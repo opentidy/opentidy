@@ -63,14 +63,14 @@ describe('DossierCard', () => {
     expect(card.className).toContain('opacity-50');
   });
 
-  it('shows "Session active" when hasActiveSession is true', () => {
+  it('shows "Terminal" indicator when session is active', () => {
     render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({ hasActiveSession: true })} />
+        <DossierCard dossier={makeDossier({})} session={{ id: 's1', dossierId: 'test', status: 'active' } as any} />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Session active')).toBeDefined();
+    expect(screen.getByText('Terminal')).toBeDefined();
   });
 
   it('click navigates to /dossier/{id}', () => {
