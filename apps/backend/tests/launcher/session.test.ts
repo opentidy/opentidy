@@ -136,7 +136,7 @@ describe('createLauncher (tmux-only)', () => {
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
       'alfred-test-dossier',
-      expect.stringContaining('Lis state.md et continue ton travail.'),
+      expect.stringContaining('claude --dangerously-skip-permissions'),
     );
   });
 
