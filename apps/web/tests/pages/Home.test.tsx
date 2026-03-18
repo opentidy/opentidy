@@ -72,11 +72,12 @@ beforeEach(() => {
     checkupStatus: null,
     resetEverything: vi.fn(),
     launchTestTasks: vi.fn(),
+    setWaitingType: vi.fn(),
   };
 });
 
 describe('Home page', () => {
-  it('renders zen mode when nothing to do', async () => {
+  it('renders empty state when nothing to do', async () => {
     render(
       <MemoryRouter>
         <Home />
@@ -84,9 +85,11 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Tout roule')).toBeDefined();
+      expect(screen.getByText(/Aucun dossier/)).toBeDefined();
     });
-    expect(screen.getByText(/aucune action requise/)).toBeDefined();
+    // No zen mode — component shows dossiers section with empty message
+    expect(screen.queryByText('Tout roule')).toBeNull();
+    expect(screen.queryByText(/aucune action requise/)).toBeNull();
   });
 
   it('renders "Suggestions" section when suggestions exist', async () => {
@@ -104,9 +107,8 @@ describe('Home page', () => {
     expect(screen.getByText('Impots chypriotes')).toBeDefined();
   });
 
-  it('renders "En fond" section with active sessions', async () => {
+  it('does not render "En fond" section — active sessions show via dossier cards', async () => {
     storeState.sessions = [makeSession({ status: 'active' })];
-    // Need something to prevent zen mode
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -116,11 +118,13 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/En fond/)).toBeDefined();
+      expect(screen.getByText(/Suggestions/)).toBeDefined();
     });
+    // Current component has no "En fond" section for active sessions
+    expect(screen.queryByText(/En fond/)).toBeNull();
   });
 
-  it('renders session count in header when sessions exist', async () => {
+  it('header shows Alfred title, not session count', async () => {
     storeState.sessions = [makeSession(), makeSession({ id: 'alfred-impots', dossierId: 'impots' })];
     storeState.suggestions = [makeSuggestion()];
 
@@ -131,8 +135,10 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('2 sessions')).toBeDefined();
+      expect(screen.getByText('Alfred')).toBeDefined();
     });
+    // Current header does not display session count
+    expect(screen.queryByText('2 sessions')).toBeNull();
   });
 
   it('does not render "En fond" when no active sessions', async () => {
@@ -162,7 +168,7 @@ describe('Home page', () => {
     expect(storeState.fetchSessions).toHaveBeenCalled();
   });
 
-  it('zen mode shows correct session count text', async () => {
+  it('shows empty dossier message with finished sessions only', async () => {
     storeState.sessions = [makeSession({ status: 'finished' })];
 
     render(
@@ -171,10 +177,11 @@ describe('Home page', () => {
       </MemoryRouter>,
     );
 
-    // finished sessions are not active, so zen mode with 0 active sessions
+    // No zen mode — shows empty dossier list
     await waitFor(() => {
-      expect(screen.getByText('Tout roule')).toBeDefined();
+      expect(screen.getByText(/Aucun dossier/)).toBeDefined();
     });
-    expect(screen.getByText(/0 sessions actives/)).toBeDefined();
+    expect(screen.queryByText('Tout roule')).toBeNull();
+    expect(screen.queryByText(/0 sessions actives/)).toBeNull();
   });
 });
