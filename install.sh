@@ -166,19 +166,19 @@ echo "         LaunchAgent installed at $PLIST_DST"
 
 # --- Setup wizard ---
 echo ""
-./bin/tidy setup
+./bin/openopentidy setup
 
 echo ""
 echo "  Installation complete!"
 echo ""
 echo "  Start OpenTidy:"
-echo "    cd $INSTALL_DIR && ./bin/tidy start"
+echo "    cd $INSTALL_DIR && ./bin/openopentidy start"
 echo ""
 echo "  Or use the LaunchAgent:"
 echo "    launchctl load ~/Library/LaunchAgents/com.opentidy.agent.plist"
 echo ""
 echo "  Commands:"
-echo "    ./bin/tidy status    — check if running"
-echo "    ./bin/tidy doctor    — verify everything"
-echo "    ./bin/tidy logs      — tail logs"
+echo "    ./bin/openopentidy status    — check if running"
+echo "    ./bin/openopentidy doctor    — verify everything"
+echo "    ./bin/openopentidy logs      — tail logs"
 echo ""
