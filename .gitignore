@@ -1,0 +1,11 @@
+node_modules/
+dist/
+*.log
+.env
+/workspace/
+!/workspace/CLAUDE.md
+!/workspace/_memory/
+!/workspace/_memory/**
+/tmp/
+.DS_Store
+.playwright-mcp/

@@ -1,0 +1,8 @@
+{
+  "name": "alfred-hooks",
+  "description": "Hooks for Alfred sessions — Stop detection, audit trail, session lifecycle",
+  "version": "1.0.0",
+  "author": {
+    "name": "Lolo"
+  }
+}

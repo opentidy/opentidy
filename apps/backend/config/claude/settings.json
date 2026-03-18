@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(npm:*)",
+      "Bash(pnpm:*)",
+      "Bash(git:*)",
+      "Bash(osascript:*)",
+      "Bash(open:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "mcp__camofox__*",
+      "mcp__gmail__*"
+    ],
+    "deny": []
+  }
+}

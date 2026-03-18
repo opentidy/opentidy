@@ -1,0 +1,57 @@
+#!/bin/sh
+# Alfred CLI wrapper — resolves node@22 and launches the backend CLI.
+# Works on Apple Silicon (/opt/homebrew), Intel (/usr/local), and non-Homebrew setups.
+set -e
+
+REQUIRED_MAJOR=22
+
+# Ensure common paths are available (launchd starts with a minimal PATH)
+export PATH="$HOME/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$PATH"
+
+# --- Find Node.js ---
+NODE=""
+
+# 1. Prefer Homebrew node@22 (Apple Silicon then Intel)
+for prefix in /opt/homebrew /usr/local; do
+  candidate="$prefix/opt/node@$REQUIRED_MAJOR/bin/node"
+  if [ -x "$candidate" ]; then
+    NODE="$candidate"
+    break
+  fi
+done
+
+# 2. Fall back to any `node` in PATH if it's the right major version
+if [ -z "$NODE" ] && command -v node >/dev/null 2>&1; then
+  SYS_NODE="$(command -v node)"
+  SYS_MAJOR="$(node --version 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')"
+  if [ "$SYS_MAJOR" = "$REQUIRED_MAJOR" ]; then
+    NODE="$SYS_NODE"
+  fi
+fi
+
+if [ -z "$NODE" ]; then
+  echo "Error: Node.js $REQUIRED_MAJOR.x not found." >&2
+  echo "Install with: brew install node@$REQUIRED_MAJOR" >&2
+  exit 1
+fi
+
+# Also put the node dir in PATH so child processes (pnpm, tsx) find it
+export PATH="$(dirname "$NODE"):$PATH"
+
+# --- Resolve libexec (backend dir) ---
+# Homebrew installs everything under libexec/
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+LIBEXEC="$(cd "$SCRIPT_DIR/../libexec" 2>/dev/null && pwd)" 2>/dev/null || true
+
+if [ -n "$LIBEXEC" ] && [ -f "$LIBEXEC/dist/cli.js" ]; then
+  exec "$NODE" "$LIBEXEC/dist/cli.js" "$@"
+fi
+
+# Dev mode: relative to repo root
+DEV_BACKEND="$(cd "$SCRIPT_DIR/../apps/backend" 2>/dev/null && pwd)" 2>/dev/null || true
+if [ -n "$DEV_BACKEND" ] && [ -f "$DEV_BACKEND/dist/cli.js" ]; then
+  exec "$NODE" "$DEV_BACKEND/dist/cli.js" "$@"
+fi
+
+echo "Error: Cannot find dist/cli.js. Run 'pnpm build' first." >&2
+exit 1

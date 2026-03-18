@@ -1,0 +1,110 @@
+import { execFileSync } from 'child_process';
+import { existsSync } from 'fs';
+import { loadConfig, getConfigPath } from '../config.js';
+import { getVersion } from '../cli.js';
+
+const REQUIRED_NODE_MAJOR = 22;
+
+interface CheckResult {
+  ok: boolean;
+  name: string;
+  detail?: string;
+  warn?: boolean;
+}
+
+export function checkNodeVersion(): CheckResult {
+  try {
+    const version = execFileSync('node', ['--version'], {
+      encoding: 'utf-8',
+      timeout: 5000,
+    }).trim();
+    const major = parseInt(version.replace(/^v/, '').split('.')[0], 10);
+    if (major !== REQUIRED_NODE_MAJOR) {
+      return {
+        ok: true,
+        warn: true,
+        name: 'node',
+        detail: `${version} — expected ${REQUIRED_NODE_MAJOR}.x, native addons may not work`,
+      };
+    }
+    return { ok: true, name: 'node', detail: version };
+  } catch {
+    return { ok: false, name: 'node', detail: 'not found in PATH' };
+  }
+}
+
+export function checkDependency(bin: string): CheckResult {
+  // tmux uses -V instead of --version
+  const versionFlag = bin === 'tmux' ? '-V' : '--version';
+  try {
+    const version = execFileSync(bin, [versionFlag], {
+      encoding: 'utf-8',
+      timeout: 5000,
+    }).trim().split('\n')[0];
+    return { ok: true, name: bin, detail: version };
+  } catch {
+    return { ok: false, name: bin, detail: 'not found in PATH' };
+  }
+}
+
+export function checkConfig(configPath: string): CheckResult {
+  if (!existsSync(configPath)) {
+    return { ok: false, name: 'config', detail: `${configPath} not found — run alfred setup` };
+  }
+  const config = loadConfig(configPath);
+  if (!config.telegram.botToken) {
+    return { ok: false, name: 'config', detail: 'telegram.botToken is empty' };
+  }
+  return { ok: true, name: 'config', detail: configPath };
+}
+
+export function checkClaudeConfig(claudeConfigDir: string): CheckResult {
+  if (!claudeConfigDir || !existsSync(claudeConfigDir)) {
+    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run alfred setup` };
+  }
+  if (!existsSync(`${claudeConfigDir}/settings.json`)) {
+    return { ok: false, name: 'claude-config', detail: 'settings.json missing' };
+  }
+  return { ok: true, name: 'claude-config', detail: claudeConfigDir };
+}
+
+export async function runDoctor(): Promise<void> {
+  console.log(`\n  Alfred Doctor (v${getVersion()})\n`);
+  const results: CheckResult[] = [];
+
+  // Node version check (special — validates major version)
+  results.push(checkNodeVersion());
+
+  // Other dependencies
+  for (const bin of ['claude', 'tmux', 'ttyd', 'python3']) {
+    results.push(checkDependency(bin));
+  }
+
+  // Config
+  const configPath = getConfigPath();
+  results.push(checkConfig(configPath));
+
+  // Claude Code config
+  const config = loadConfig(configPath);
+  results.push(checkClaudeConfig(config.claudeConfig.dir));
+
+  // Health check (if server running)
+  try {
+    const port = config.server.port || 5175;
+    execFileSync('curl', ['-sf', `http://localhost:${port}/api/health`], { encoding: 'utf-8', timeout: 5000 });
+    results.push({ ok: true, name: 'server', detail: `running on port ${port}` });
+  } catch {
+    results.push({ ok: false, name: 'server', detail: 'not responding' });
+  }
+
+  // Print results
+  let hasErrors = false;
+  for (const r of results) {
+    const icon = r.warn ? '  ⚠ ' : r.ok ? '  OK' : '  !!';
+    console.log(`${icon}  ${r.name} — ${r.detail || ''}`);
+    if (!r.ok) hasErrors = true;
+  }
+
+  console.log(hasErrors ? '\n  Some checks failed.\n' : '\n  All checks passed.\n');
+  process.exit(hasErrors ? 1 : 0);
+}

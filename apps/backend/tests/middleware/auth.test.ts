@@ -1,0 +1,72 @@
+import { describe, it, expect } from 'vitest';
+import { Hono } from 'hono';
+import { createAuthMiddleware } from '../../src/middleware/auth.js';
+
+describe('auth middleware', () => {
+  it('allows requests with valid bearer token', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.get('/api/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/test', {
+      headers: { Authorization: 'Bearer secret-token' },
+    });
+    expect(res.status).toBe(200);
+  });
+
+  it('rejects requests with invalid token', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.get('/api/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/test', {
+      headers: { Authorization: 'Bearer wrong-token' },
+    });
+    expect(res.status).toBe(401);
+  });
+
+  it('rejects requests with no token', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.get('/api/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/test');
+    expect(res.status).toBe(401);
+  });
+
+  it('skips auth when no token configured (open source mode)', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware(''));
+    app.get('/api/test', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/test');
+    expect(res.status).toBe(200);
+  });
+
+  it('always allows /api/health without auth', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.get('/api/health', (c) => c.json({ status: 'ok' }));
+
+    const res = await app.request('/api/health');
+    expect(res.status).toBe(200);
+  });
+
+  it('always allows /api/hooks without auth', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.post('/api/hooks', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/hooks', { method: 'POST' });
+    expect(res.status).toBe(200);
+  });
+
+  it('always allows /api/webhook/gmail without auth', async () => {
+    const app = new Hono();
+    app.use('/api/*', createAuthMiddleware('secret-token'));
+    app.post('/api/webhook/gmail', (c) => c.json({ ok: true }));
+
+    const res = await app.request('/api/webhook/gmail', { method: 'POST' });
+    expect(res.status).toBe(200);
+  });
+});

@@ -1,0 +1,19 @@
+{
+  "name": "alfred",
+  "private": true,
+  "packageManager": "pnpm@10.6.5",
+  "pnpm": {
+    "onlyBuiltDependencies": ["better-sqlite3", "esbuild"]
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "build": "pnpm -r build",
+    "test": "pnpm --filter @alfred/backend test && pnpm --filter @alfred/web test",
+    "test:e2e": "pnpm --filter @alfred/web test:e2e",
+    "dev": "pnpm -r --parallel dev",
+    "lint": "pnpm -r lint",
+    "smoke:setup": "pnpm --filter @alfred/backend smoke:setup",
+    "smoke:start": "pnpm --filter @alfred/backend smoke:start",
+    "smoke:cleanup": "pnpm --filter @alfred/backend smoke:cleanup"
+  }
+}

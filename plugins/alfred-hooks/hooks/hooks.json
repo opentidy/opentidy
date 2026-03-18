@@ -1,0 +1,55 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Vérifie cet envoi d'email. DENY si paiement sans approbation, montants incohérents, ou destinataire suspect. ALLOW si l'email est informatif, un rappel, ou une communication normale."
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__camofox__click|mcp__camofox__fill_form|mcp__camofox__camofox_evaluate_js",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Vérifie ce clic/formulaire. DENY si bouton de paiement, soumission financière, ou action irréversible. ALLOW si navigation, recherche, ou lecture."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__gmail__|mcp__camofox__",
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://localhost:5174/api/hooks"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "ALFRED_WORKSPACE=$HOME/Documents/alfred/workspace ALFRED_PORT=5174 $HOME/Documents/alfred/apps/backend/scripts/on-stop.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "http",
+            "url": "http://localhost:5174/api/hooks"
+          }
+        ]
+      }
+    ]
+  }
+}
