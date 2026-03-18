@@ -38,16 +38,21 @@ fi
 # Also put the node dir in PATH so child processes (pnpm, tsx) find it
 export PATH="$(dirname "$NODE"):$PATH"
 
-# --- Resolve libexec (backend dir) ---
-# Homebrew installs everything under libexec/
+# --- Resolve dist/cli.js ---
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-LIBEXEC="$(cd "$SCRIPT_DIR/../libexec" 2>/dev/null && pwd)" 2>/dev/null || true
 
+# 1. Homebrew: bin/opentidy is inside libexec/bin/, dist/ is at libexec/dist/
+if [ -f "$SCRIPT_DIR/../dist/cli.js" ]; then
+  exec "$NODE" "$SCRIPT_DIR/../dist/cli.js" "$@"
+fi
+
+# 2. Homebrew: write_env_script wrapper calls libexec/bin/opentidy
+LIBEXEC="$(cd "$SCRIPT_DIR/../libexec" 2>/dev/null && pwd)" 2>/dev/null || true
 if [ -n "$LIBEXEC" ] && [ -f "$LIBEXEC/dist/cli.js" ]; then
   exec "$NODE" "$LIBEXEC/dist/cli.js" "$@"
 fi
 
-# Dev mode: relative to repo root
+# 3. Dev mode: bin/ is at repo root, backend at apps/backend/
 DEV_BACKEND="$(cd "$SCRIPT_DIR/../apps/backend" 2>/dev/null && pwd)" 2>/dev/null || true
 if [ -n "$DEV_BACKEND" ] && [ -f "$DEV_BACKEND/dist/cli.js" ]; then
   exec "$NODE" "$DEV_BACKEND/dist/cli.js" "$@"
