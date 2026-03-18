@@ -1,0 +1,101 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm build
+      - run: pnpm test
+
+  release:
+    needs: test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm build
+
+      - name: Package with pnpm deploy
+        env:
+          VERSION_TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION_TAG#v}"
+
+          # pnpm deploy creates a flat node_modules with all prod deps
+          # for the @alfred/backend package. It also copies dist/ and package.json.
+          pnpm --filter @alfred/backend deploy ./release --prod
+
+          # The shared package is a workspace dependency — pnpm deploy resolves it
+          # into node_modules, but we also include the source for reference.
+          mkdir -p ./release/shared
+          cp -r packages/shared/dist/ ./release/shared/dist/
+          cp packages/shared/package.json ./release/shared/package.json
+
+          # Add web frontend build
+          mkdir -p ./release/web-dist
+          cp -r apps/web/dist/ ./release/web-dist/
+
+          # Add hooks plugin
+          mkdir -p ./release/plugins/alfred-hooks
+          cp -r plugins/alfred-hooks/ ./release/plugins/alfred-hooks/
+
+          # Add Claude Code config template
+          mkdir -p ./release/config/claude
+          cp -r apps/backend/config/claude/ ./release/config/claude/
+
+          # Add CLI wrapper
+          mkdir -p ./release/bin
+          cp bin/alfred ./release/bin/alfred
+          chmod +x ./release/bin/alfred
+
+          # Add LaunchAgent template
+          cp com.lolo.assistant.plist ./release/com.lolo.assistant.plist
+
+          # Add updater script
+          cp alfred-updater.sh ./release/alfred-updater.sh
+          chmod +x ./release/alfred-updater.sh
+
+          # Version file (read by cli.ts getVersion())
+          echo "$VERSION" > ./release/VERSION
+
+          # Create tarball
+          mv ./release "alfred-$VERSION"
+          tar -czf "alfred-$VERSION.tar.gz" "alfred-$VERSION/"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: alfred-*.tar.gz
+          generate_release_notes: true
+
+  update-tap:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dawidd6/action-homebrew-bump-formula@v4
+        with:
+          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          tap: lolo/alfred
+          formula: alfred
+          tag: ${{ github.ref_name }}

@@ -1,0 +1,98 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "V\u00e9rifie cet envoi d'email. DENY si paiement sans approbation, montants incoh\u00e9rents, ou destinataire suspect. ALLOW si l'email est informatif, un rappel, ou une communication normale."
+          },
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ]
+      },
+      {
+        "matcher": "mcp__camofox__click|mcp__camofox__fill_form|mcp__camofox__camofox_evaluate_js",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "V\u00e9rifie ce clic/formulaire. DENY si bouton de paiement, soumission financi\u00e8re, ou action irr\u00e9versible. ALLOW si navigation, recherche, ou lecture."
+          },
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ],
+        "input_contains": "curl -X POST"
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ],
+        "input_contains": "ssh "
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ],
+        "input_contains": "scp "
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "mcp__gmail__|mcp__camofox__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "touch /tmp/alfred-stop-fired-$(date +%s)"
+          },
+          {
+            "type": "command",
+            "command": "ALFRED_WORKSPACE=$HOME/Documents/alfred/workspace ALFRED_PORT=5174 $HOME/Documents/alfred/apps/backend/scripts/on-stop.sh"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5174/api/hooks -d @-"
+          }
+        ]
+      }
+    ]
+  }
+}
