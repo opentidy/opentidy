@@ -4,7 +4,7 @@
 
 **Goal:** Make Alfred installable via Homebrew with auto-updates, isolated Claude Code config, bearer token auth, and static frontend serving — ready for production on a remote Mac Mini.
 
-**Architecture:** A new CLI layer (`bin/alfred` shell wrapper + `cli.ts` router) wraps the existing backend. Config moves from env vars to `~/.config/alfred/config.json`. Claude Code sessions use `CLAUDE_CONFIG_DIR` for isolation. Static frontend served by Hono in production. Auto-updater checks GitHub Releases and spawns a detached shell script for brew upgrade + rollback. CI builds pre-compiled tarballs via `pnpm deploy`.
+**Architecture:** A new CLI layer (`bin/tidy` shell wrapper + `cli.ts` router) wraps the existing backend. Config moves from env vars to `~/.config/opentidy/config.json`. Claude Code sessions use `CLAUDE_CONFIG_DIR` for isolation. Static frontend served by Hono in production. Auto-updater checks GitHub Releases and spawns a detached shell script for brew upgrade + rollback. CI builds pre-compiled tarballs via `pnpm deploy`.
 
 **Tech Stack:** Hono (static serving + auth middleware), Node.js readline (interactive setup), GitHub Actions (CI/CD), Homebrew (distribution), `CLAUDE_CONFIG_DIR` (Claude Code isolation)
 
@@ -24,13 +24,13 @@
 | `apps/backend/src/cli/status.ts` | Show service state, version, uptime |
 | `apps/backend/src/cli/update.ts` | Force update now |
 | `apps/backend/src/cli/logs.ts` | Tail log files |
-| `apps/backend/src/config.ts` | Load/save `~/.config/alfred/config.json`, merge with defaults |
+| `apps/backend/src/config.ts` | Load/save `~/.config/opentidy/config.json`, merge with defaults |
 | `apps/backend/src/infra/updater.ts` | Periodic GitHub Releases check, spawn detached updater |
 | `apps/backend/src/middleware/auth.ts` | Bearer token verification middleware for Hono |
 | `apps/backend/config/claude/settings.json` | Claude Code config template (permissions, MCP servers) |
 | `apps/backend/config/claude/CLAUDE.md` | Claude Code prompt template (Alfred identity) |
-| `bin/alfred` | Shell wrapper: `exec node "$LIBEXEC/dist/cli.js" "$@"` |
-| `alfred-updater.sh` | Detached update script (brew upgrade + health check + rollback) |
+| `bin/tidy` | Shell wrapper: `exec node "$LIBEXEC/dist/cli.js" "$@"` |
+| `opentidy-updater.sh` | Detached update script (brew upgrade + health check + rollback) |
 | `.github/workflows/release.yml` | CI: test, build, pnpm deploy, tarball, GitHub Release, update tap |
 | `install.sh` | One-liner convenience: brew tap + install + setup |
 
@@ -148,7 +148,7 @@ describe('config', () => {
 
 - [ ] **Step 3: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/config.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/config.test.ts`
 Expected: FAIL — module `../src/config.js` not found
 
 - [ ] **Step 4: Implement config.ts**
@@ -157,14 +157,14 @@ Expected: FAIL — module `../src/config.js` not found
 // apps/backend/src/config.ts
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
-import type { AlfredConfig } from '@alfred/shared';
+import type { AlfredConfig } from '@opentidy/shared';
 
 const DEFAULT_CONFIG: AlfredConfig = {
   version: 1,
   telegram: { botToken: '', chatId: '', userId: '' },
   auth: { bearerToken: '' },
   server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
-  workspace: { dir: '', lockDir: '/tmp/assistant-locks' },
+  workspace: { dir: '', lockDir: '/tmp/opentidy-locks' },
   update: {
     autoUpdate: true,
     checkInterval: '6h',
@@ -177,7 +177,7 @@ const DEFAULT_CONFIG: AlfredConfig = {
 
 export function getConfigPath(): string {
   return process.env.ALFRED_CONFIG_PATH
-    || `${process.env.HOME}/.config/alfred/config.json`;
+    || `${process.env.HOME}/.config/opentidy/config.json`;
 }
 
 function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record<string, any>): T {
@@ -212,14 +212,14 @@ export function saveConfig(configPath: string, config: AlfredConfig): void {
 
 - [ ] **Step 5: Run test to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/config.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/config.test.ts`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
 
 ```bash
 git add packages/shared/src/types.ts apps/backend/src/config.ts apps/backend/tests/config.test.ts
-git commit -m "feat(config): add config system with ~/.config/alfred/config.json"
+git commit -m "feat(config): add config system with ~/.config/opentidy/config.json"
 ```
 
 ---
@@ -228,7 +228,7 @@ git commit -m "feat(config): add config system with ~/.config/alfred/config.json
 
 **Files:**
 - Create: `apps/backend/src/cli.ts`
-- Create: `bin/alfred`
+- Create: `bin/tidy`
 - Modify: `apps/backend/src/index.ts`
 - Modify: `apps/backend/package.json`
 - Test: `apps/backend/tests/cli.test.ts`
@@ -269,7 +269,7 @@ describe('cli', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement cli.ts**
@@ -410,7 +410,7 @@ case 'start': {
 }
 ```
 
-- [ ] **Step 5: Create bin/alfred shell wrapper**
+- [ ] **Step 5: Create bin/tidy shell wrapper**
 
 ```bash
 #!/bin/sh
@@ -423,7 +423,7 @@ fi
 exec node "$LIBEXEC/dist/cli.js" "$@"
 ```
 
-Make executable: `chmod +x bin/alfred`
+Make executable: `chmod +x bin/tidy`
 
 - [ ] **Step 6: Add bin field to package.json**
 
@@ -431,19 +431,19 @@ In `apps/backend/package.json`, add:
 
 ```json
 "bin": {
-  "alfred": "../../bin/alfred"
+  "alfred": "../../bin/tidy"
 }
 ```
 
 - [ ] **Step 7: Run tests to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli.test.ts`
 Expected: PASS
 
 - [ ] **Step 8: Commit**
 
 ```bash
-git add apps/backend/src/cli.ts apps/backend/src/index.ts apps/backend/tests/cli.test.ts bin/alfred apps/backend/package.json
+git add apps/backend/src/cli.ts apps/backend/src/index.ts apps/backend/tests/cli.test.ts bin/tidy apps/backend/package.json
 git commit -m "feat(cli): add CLI entrypoint with subcommand routing"
 ```
 
@@ -540,7 +540,7 @@ return `cd "${opts.dossierDir}" && ${envPrefix}claude --dangerously-skip-permiss
 
 - [ ] **Step 6: Run tests**
 
-Run: `pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: PASS
 
 - [ ] **Step 7: Commit**
@@ -635,7 +635,7 @@ describe('auth middleware', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/middleware/auth.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/middleware/auth.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement auth middleware**
@@ -663,7 +663,7 @@ export function createAuthMiddleware(bearerToken: string): MiddlewareHandler {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/middleware/auth.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/middleware/auth.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Wire into server.ts**
@@ -712,7 +712,7 @@ if (existsSync(webDistPath)) {
 
 - [ ] **Step 2: Run all existing tests to verify no regression**
 
-Run: `pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: All existing tests PASS
 
 - [ ] **Step 3: Commit**
@@ -746,7 +746,7 @@ app.get('/api/health', (c) => {
 
 - [ ] **Step 2: Run tests**
 
-Run: `pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -816,7 +816,7 @@ describe('alfred setup', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli/setup.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli/setup.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement setup.ts**
@@ -928,7 +928,7 @@ export async function runSetup(): Promise<void> {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli/setup.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli/setup.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -976,7 +976,7 @@ describe('alfred doctor', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli/doctor.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli/doctor.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement doctor.ts**
@@ -1063,7 +1063,7 @@ export async function runDoctor(): Promise<void> {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/cli/doctor.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/cli/doctor.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1125,7 +1125,7 @@ import { existsSync } from 'fs';
 export async function runLogs(): Promise<void> {
   const logPaths = [
     '/opt/homebrew/var/log/alfred.log',
-    `${process.env.HOME}/Library/Logs/alfred-stdout.log`,
+    `${process.env.HOME}/Library/Logs/opentidy-stdout.log`,
   ];
 
   const logPath = logPaths.find(p => existsSync(p));
@@ -1212,7 +1212,7 @@ describe('updater', () => {
 
 - [ ] **Step 2: Run test to verify it fails**
 
-Run: `pnpm --filter @alfred/backend test -- tests/infra/updater.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/infra/updater.test.ts`
 Expected: FAIL
 
 - [ ] **Step 3: Implement updater.ts**
@@ -1328,7 +1328,7 @@ export function createUpdater(deps: UpdaterDeps) {
 
 - [ ] **Step 4: Run test to verify it passes**
 
-Run: `pnpm --filter @alfred/backend test -- tests/infra/updater.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/infra/updater.test.ts`
 Expected: PASS
 
 - [ ] **Step 5: Commit**
@@ -1343,11 +1343,11 @@ git commit -m "feat(updater): add auto-update checker with detached script spawn
 ## Task 11: Detached Updater Script
 
 **Files:**
-- Create: `alfred-updater.sh`
+- Create: `opentidy-updater.sh`
 
 - [ ] **Step 1: Create the script**
 
-Create `alfred-updater.sh` at repo root. See spec for full script content. Key behavior:
+Create `opentidy-updater.sh` at repo root. See spec for full script content. Key behavior:
 - Reads `BOT_TOKEN`, `CHAT_ID`, `NEW_VERSION`, `PREV_VERSION` from env
 - Caches current formula before upgrading
 - Runs `brew upgrade alfred` + `brew services restart alfred`
@@ -1358,8 +1358,8 @@ Create `alfred-updater.sh` at repo root. See spec for full script content. Key b
 - [ ] **Step 2: Make executable and commit**
 
 ```bash
-chmod +x alfred-updater.sh
-git add alfred-updater.sh
+chmod +x opentidy-updater.sh
+git add opentidy-updater.sh
 git commit -m "feat(updater): add detached updater script with rollback"
 ```
 
@@ -1380,7 +1380,7 @@ import { getVersion } from './cli.js';
 
 const config = loadConfig(getConfigPath());
 const WORKSPACE_DIR = config.workspace.dir || process.env.WORKSPACE_DIR || resolve(import.meta.dirname, '../../..', 'workspace');
-const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || '/tmp/assistant-locks';
+const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || '/tmp/opentidy-locks';
 const PORT = config.server.port || parseInt(process.env.PORT || '5175');
 const TELEGRAM_TOKEN = config.telegram.botToken || process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = config.telegram.chatId || process.env.TELEGRAM_CHAT_ID || '';
@@ -1395,7 +1395,7 @@ const CLAUDE_CONFIG_DIR = config.claudeConfig.dir || '';
 
 - [ ] **Step 5: Run all tests**
 
-Run: `pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -1466,5 +1466,5 @@ After all tasks are complete:
 - [ ] Build successfully: `pnpm build`
 - [ ] Test CLI in dev: `node apps/backend/dist/cli.js --version`
 - [ ] Test CLI in dev: `node apps/backend/dist/cli.js doctor`
-- [ ] Test bin/alfred: `./bin/alfred --version`
-- [ ] Test bin/alfred: `./bin/alfred help`
+- [ ] Test bin/tidy: `./bin/tidy --version`
+- [ ] Test bin/tidy: `./bin/tidy help`

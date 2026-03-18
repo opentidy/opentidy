@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../store';
 import * as api from '../api';
-import type { MemoryIndexEntry } from '@alfred/shared';
+import type { MemoryIndexEntry } from '@opentidy/shared';
 
 export default function Memory() {
   const { memoryIndex, selectedMemory, memoryLoading, fetchMemoryIndex, selectMemory, clearSelectedMemory } = useStore();

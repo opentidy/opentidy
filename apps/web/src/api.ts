@@ -1,4 +1,4 @@
-import type { Dossier, Suggestion, Amelioration, Session, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@alfred/shared';
+import type { Dossier, Suggestion, Amelioration, Session, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
 
 const BASE = '/api';
 

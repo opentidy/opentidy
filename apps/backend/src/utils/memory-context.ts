@@ -1,4 +1,4 @@
-import type { MemoryEntry } from '@alfred/shared';
+import type { MemoryEntry } from '@opentidy/shared';
 
 export function buildMemoryContext(entries: MemoryEntry[]): string {
   if (!entries.length) return '';

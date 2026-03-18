@@ -1,4 +1,4 @@
-import type { UrgencyLevel } from '@alfred/shared';
+import type { UrgencyLevel } from '@opentidy/shared';
 
 type SendMessageFn = (chatId: string, text: string, options?: { parse_mode?: string }) => Promise<void>;
 

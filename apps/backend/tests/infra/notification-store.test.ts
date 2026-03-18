@@ -6,7 +6,7 @@ import os from 'os';
 import path from 'path';
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-notification-store-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-notification-store-test-'));
 }
 
 describe('notification-store', () => {

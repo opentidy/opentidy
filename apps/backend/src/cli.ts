@@ -34,7 +34,7 @@ async function main() {
 
   switch (cmd) {
     case 'version':
-      console.log(`alfred ${getVersion()}`);
+      console.log(`tidy ${getVersion()}`);
       break;
     case 'start': {
       const { boot } = await import('./index.js');
@@ -72,7 +72,7 @@ async function main() {
       break;
     }
     case 'help':
-      console.log(`Usage: alfred <command>
+      console.log(`Usage: tidy <command>
 
 Commands:
   start       Start the backend server (default)
@@ -81,7 +81,7 @@ Commands:
   status      Show service state, version, uptime
   update      Check and apply updates
   logs        Tail log files
-  uninstall   Remove Alfred (config, data, services)
+  uninstall   Remove OpenTidy (config, data, services)
 
 Options:
   --version  Show version

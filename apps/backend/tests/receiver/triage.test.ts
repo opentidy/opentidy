@@ -1,7 +1,7 @@
 // tests/receiver/triage.test.ts
 import { describe, it, expect, vi } from 'vitest';
 import { createTriager, createClaudeRunner } from '../../src/receiver/triage.js';
-import type { MemoryEntry } from '@alfred/shared';
+import type { MemoryEntry } from '@opentidy/shared';
 
 describe('Triager', () => {
   const dossiers = [

@@ -36,7 +36,7 @@ On pourrait croire que (1) s'exécute avant (3), mais en pratique on-stop.sh voi
 | `session.ts` | `[launcher] id: sendKeys instruction sent` en plus de `Sent initial instruction` | L'instruction envoyée est longue — log le début (30 chars) pour savoir quelle tâche |
 | `handler.ts` | `[hooks] id: TERMINÉ — killing + cleanup + post-session` | Le flow lifecycle complet quand on-stop.sh détecte TERMINÉ (même si c'est rare) |
 | `mail-reader.ts` | `[mail-reader] Found X emails in last 5min` | Savoir si le mail reader travaille (même quand 0 résultats) |
-| `index.ts` | `[alfred] Mail watcher poll: X new emails` | Trace du poll au niveau watcher |
+| `index.ts` | `[opentidy] Mail watcher poll: X new emails` | Trace du poll au niveau watcher |
 
 ### Logs inutiles / bruyants à supprimer
 | Où | Quoi | Pourquoi |

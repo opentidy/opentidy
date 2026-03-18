@@ -9,7 +9,7 @@ describe('GapsManager', () => {
   let gaps: ReturnType<typeof createGapsManager>;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     fs.mkdirSync(path.join(wsDir, '_gaps'), { recursive: true });
     gaps = createGapsManager(wsDir);
   });

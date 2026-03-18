@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { UrgencyLevel, SSEEvent } from '@alfred/shared';
+import type { UrgencyLevel, SSEEvent } from '@opentidy/shared';
 import type { TriageResult } from '../receiver/triage.js';
 import { generateSlug } from './slug.js';
 

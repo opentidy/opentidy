@@ -3,12 +3,12 @@ import { loadConfig, getConfigPath } from '../config.js';
 import { getVersion } from '../cli.js';
 
 export async function runStatus(): Promise<void> {
-  console.log(`\n  Alfred v${getVersion()}\n`);
+  console.log(`\n  OpenTidy v${getVersion()}\n`);
 
   try {
     const services = execFileSync('brew', ['services', 'list'], { encoding: 'utf-8', timeout: 5000 });
-    const alfredLine = services.split('\n').find(l => l.includes('alfred'));
-    console.log(alfredLine ? `  Service: ${alfredLine.trim()}` : '  Service: not registered');
+    const serviceLine = services.split('\n').find(l => l.includes('opentidy'));
+    console.log(serviceLine ? `  Service: ${serviceLine.trim()}` : '  Service: not registered');
   } catch {
     console.log('  Service: brew services not available');
   }

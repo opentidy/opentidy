@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { Session } from '@alfred/shared';
+import type { Session } from '@opentidy/shared';
 import { setStatus, parseStateMd } from '../workspace/state.js';
 
 // Interface for mocking tmux/claude in tests
@@ -58,7 +58,7 @@ export function createLauncher(deps: {
 
     try {
       const dossierDir = path.join(deps.workspaceDir, dossierId);
-      const sessionName = `alfred-${dossierId}`;
+      const sessionName = `opentidy-${dossierId}`;
 
       // Ensure dossier is marked EN COURS (may have been TERMINÉ)
       setStatus(dossierDir, 'EN COURS');
@@ -116,7 +116,7 @@ export function createLauncher(deps: {
       console.warn(`[launcher] sendMessage: no active session for ${dossierId}`);
       return;
     }
-    await deps.tmuxExecutor.sendKeys(`alfred-${dossierId}`, message + '\n');
+    await deps.tmuxExecutor.sendKeys(`opentidy-${dossierId}`, message + '\n');
     session.status = 'active';
     deps.sse.emit({ type: 'session:active', data: { dossierId }, timestamp: new Date().toISOString() });
     console.log(`[launcher] sent message to ${dossierId}`);
@@ -142,13 +142,13 @@ export function createLauncher(deps: {
 
   function handleSessionEnd(dossierId: string): void {
     deps.locks.release(dossierId);
-    deps.terminal.killTtyd(`alfred-${dossierId}`);
+    deps.terminal.killTtyd(`opentidy-${dossierId}`);
     sessions.delete(dossierId);
     deps.sse.emit({ type: 'session:ended', data: { dossierId }, timestamp: new Date().toISOString() });
   }
 
   async function archiveSession(dossierId: string): Promise<void> {
-    const sessionName = `alfred-${dossierId}`;
+    const sessionName = `opentidy-${dossierId}`;
     deps.terminal.killTtyd(sessionName);
     await deps.tmuxExecutor.killSession(sessionName);
     deps.locks.release(dossierId);
@@ -167,8 +167,8 @@ export function createLauncher(deps: {
 
   async function recover(): Promise<void> {
     const activeTmux = await deps.tmuxExecutor.listSessions();
-    for (const name of activeTmux.filter((s) => s.startsWith('alfred-'))) {
-      const dossierId = name.replace('alfred-', '');
+    for (const name of activeTmux.filter((s) => s.startsWith('opentidy-'))) {
+      const dossierId = name.replace('opentidy-', '');
       const dossierDir = path.join(deps.workspaceDir, dossierId);
       if (!fs.existsSync(dossierDir)) continue;
       if (!deps.locks.acquire(dossierId)) continue;
@@ -217,7 +217,7 @@ export function createLauncher(deps: {
   }
 
   function buildClaudeCommand(dossierDir: string, instruction?: string, resumeId?: string): string {
-    const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'alfred-hooks');
+    const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'opentidy-hooks');
     const pluginFlag = fs.existsSync(pluginDir) ? ` --plugin-dir ${pluginDir}` : '';
     const resumeFlag = resumeId ? ` --resume ${resumeId}` : '';
     if (instruction) {

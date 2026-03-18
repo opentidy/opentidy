@@ -1,17 +1,17 @@
 #!/bin/bash
-# Alfred installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/ldenblyd/alfred-v3/main/install.sh | bash
+# OpenTidy installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/ldenblyd/opentidy/main/install.sh | bash
 #
 # Idempotent: safe to re-run at any time.
 set -euo pipefail
 
-REPO="https://github.com/ldenblyd/alfred-v3.git"
-INSTALL_DIR="${ALFRED_INSTALL_DIR:-$HOME/Documents/alfred}"
+REPO="https://github.com/ldenblyd/opentidy.git"
+INSTALL_DIR="${OPENTIDY_INSTALL_DIR:-$HOME/Documents/opentidy}"
 REQUIRED_NODE_MAJOR=22
 
 echo ""
 echo "  ╔═══════════════════════════╗"
-echo "  ║     Alfred Installer      ║"
+echo "  ║   OpenTidy Installer      ║"
 echo "  ╚═══════════════════════════╝"
 echo ""
 
@@ -113,7 +113,7 @@ else
 fi
 
 # --- Clone / update repo ---
-echo "  [6/8] Setting up Alfred..."
+echo "  [6/8] Setting up OpenTidy..."
 if [ -d "$INSTALL_DIR/.git" ]; then
   echo "         Repo exists, pulling latest..."
   git -C "$INSTALL_DIR" pull --ff-only
@@ -123,7 +123,7 @@ else
 fi
 
 # --- Build ---
-echo "  [7/8] Building Alfred..."
+echo "  [7/8] Building OpenTidy..."
 cd "$INSTALL_DIR"
 
 # Ensure native build scripts are approved (pnpm 10+ blocks them by default).
@@ -152,8 +152,8 @@ echo "         Native addons OK"
 
 # --- Install LaunchAgent from template ---
 echo "  [8/8] Installing LaunchAgent..."
-PLIST_SRC="$INSTALL_DIR/com.lolo.assistant.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.lolo.assistant.plist"
+PLIST_SRC="$INSTALL_DIR/com.opentidy.agent.plist"
+PLIST_DST="$HOME/Library/LaunchAgents/com.opentidy.agent.plist"
 
 # Unload existing agent if loaded (ignore errors — may not be loaded)
 launchctl unload "$PLIST_DST" 2>/dev/null || true
@@ -166,19 +166,19 @@ echo "         LaunchAgent installed at $PLIST_DST"
 
 # --- Setup wizard ---
 echo ""
-./bin/alfred setup
+./bin/tidy setup
 
 echo ""
 echo "  Installation complete!"
 echo ""
-echo "  Start Alfred:"
-echo "    cd $INSTALL_DIR && ./bin/alfred start"
+echo "  Start OpenTidy:"
+echo "    cd $INSTALL_DIR && ./bin/tidy start"
 echo ""
 echo "  Or use the LaunchAgent:"
-echo "    launchctl load ~/Library/LaunchAgents/com.lolo.assistant.plist"
+echo "    launchctl load ~/Library/LaunchAgents/com.opentidy.agent.plist"
 echo ""
 echo "  Commands:"
-echo "    ./bin/alfred status    — check if running"
-echo "    ./bin/alfred doctor    — verify everything"
-echo "    ./bin/alfred logs      — tail logs"
+echo "    ./bin/tidy status    — check if running"
+echo "    ./bin/tidy doctor    — verify everything"
+echo "    ./bin/tidy logs      — tail logs"
 echo ""

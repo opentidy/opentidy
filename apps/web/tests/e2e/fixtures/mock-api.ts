@@ -74,19 +74,19 @@ export const mockSuggestions = [
 
 export const mockSessions = [
   {
-    id: 'alfred-factures-sopra',
+    id: 'opentidy-factures-sopra',
     dossierId: 'factures-sopra',
     status: 'active',
     startedAt: '2026-03-14T08:00:00Z',
   },
   {
-    id: 'alfred-exali-rapport',
+    id: 'opentidy-exali-rapport',
     dossierId: 'exali-rapport',
     status: 'idle',
     startedAt: '2026-03-14T07:00:00Z',
   },
   {
-    id: 'alfred-bloque-test',
+    id: 'opentidy-bloque-test',
     dossierId: 'bloque-test',
     status: 'mfa',
     startedAt: '2026-03-14T06:00:00Z',

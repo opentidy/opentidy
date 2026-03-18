@@ -1,7 +1,7 @@
 // tests/hooks/handler.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createHooksHandler } from '../../src/hooks/handler.js';
-import type { HookPayload } from '@alfred/shared';
+import type { HookPayload } from '@opentidy/shared';
 
 describe('HooksHandler — endpoint centralisé /api/hooks', () => {
   let mockLauncher: any;
@@ -35,7 +35,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
   // E2E-GF-12 : PostToolUse → audit.log contient sessionId, toolName, toolInput, decision
   it('PostToolUse → audit log written with all fields', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'PostToolUse',
       tool_name: 'mcp__gmail__send',
       tool_input: { to: 'billing@sopra.com', subject: 'Facture mars' },
@@ -44,7 +44,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     handler.handle(payload);
 
     expect(mockAudit.log).toHaveBeenCalledWith({
-      sessionId: 'alfred-factures-sopra',
+      sessionId: 'opentidy-factures-sopra',
       toolName: 'mcp__gmail__send',
       toolInput: { to: 'billing@sopra.com', subject: 'Facture mars' },
       decision: 'ALLOW',
@@ -54,7 +54,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
   // PostToolUse audit only — no launcher call
   it('PostToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'PostToolUse',
       tool_name: 'Bash',
       tool_input: { command: 'ls' },
@@ -71,7 +71,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('PreToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-test-dossier',
+      session_id: 'opentidy-test-dossier',
       hook_event_name: 'PreToolUse',
       tool_name: 'Read',
       tool_input: { file_path: '/some/file' },
@@ -80,7 +80,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     handler.handle(payload);
 
     expect(mockAudit.log).toHaveBeenCalledWith({
-      sessionId: 'alfred-test-dossier',
+      sessionId: 'opentidy-test-dossier',
       toolName: 'Read',
       toolInput: { file_path: '/some/file' },
       decision: 'ALLOW',
@@ -93,7 +93,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('Notification → notifies via notifier when notifyIdle available', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'Notification',
     };
 
@@ -117,7 +117,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     });
 
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'Notification',
     };
 
@@ -131,7 +131,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
   // E2E-LCH-05 : SessionEnd → cleanup
   it('SessionEnd → calls handleSessionEnd on launcher (no claudeSessionId)', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'SessionEnd',
     };
 
@@ -142,7 +142,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('SessionEnd → emits session:ended SSE', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'SessionEnd',
     };
 
@@ -160,7 +160,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('Stop → calls markWaiting on launcher', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'Stop',
     };
 
@@ -171,7 +171,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('Stop → emits session:idle SSE event', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-factures-sopra',
+      session_id: 'opentidy-factures-sopra',
       hook_event_name: 'Stop',
     };
 
@@ -190,19 +190,19 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
   it('multiple hooks processed sequentially → all audit logged', () => {
     const payloads: HookPayload[] = [
       {
-        session_id: 'alfred-factures-sopra',
+        session_id: 'opentidy-factures-sopra',
         hook_event_name: 'PreToolUse',
         tool_name: 'Read',
         tool_input: { file_path: '/a' },
       },
       {
-        session_id: 'alfred-factures-sopra',
+        session_id: 'opentidy-factures-sopra',
         hook_event_name: 'PostToolUse',
         tool_name: 'Read',
         tool_input: { file_path: '/a' },
       },
       {
-        session_id: 'alfred-factures-sopra',
+        session_id: 'opentidy-factures-sopra',
         hook_event_name: 'PreToolUse',
         tool_name: 'Write',
         tool_input: { file_path: '/b' },
@@ -220,20 +220,20 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('parsePayload validates valid hook payload', () => {
     const result = handler.parsePayload({
-      session_id: 'alfred-test',
+      session_id: 'opentidy-test',
       hook_event_name: 'PreToolUse',
       tool_name: 'Bash',
     });
 
     expect(result.success).toBe(true);
     if (result.success) {
-      expect(result.data.session_id).toBe('alfred-test');
+      expect(result.data.session_id).toBe('opentidy-test');
     }
   });
 
   it('parsePayload rejects invalid hook payload', () => {
     const result = handler.parsePayload({
-      session_id: 'alfred-test',
+      session_id: 'opentidy-test',
       hook_event_name: 'InvalidEvent',
     });
 
@@ -258,7 +258,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('handles PostToolUse without tool_name gracefully', () => {
     const payload: HookPayload = {
-      session_id: 'alfred-test',
+      session_id: 'opentidy-test',
       hook_event_name: 'PostToolUse',
     };
 

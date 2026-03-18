@@ -3,8 +3,8 @@ import { existsSync } from 'fs';
 
 export async function runLogs(): Promise<void> {
   const logPaths = [
-    '/opt/homebrew/var/log/alfred.log',
-    `${process.env.HOME}/Library/Logs/alfred-stdout.log`,
+    '/opt/homebrew/var/log/opentidy.log',
+    `${process.env.HOME}/Library/Logs/opentidy-stdout.log`,
   ];
 
   const logPath = logPaths.find(p => existsSync(p));

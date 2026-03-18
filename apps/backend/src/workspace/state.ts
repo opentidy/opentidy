@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { DossierStatus, Dossier, JournalEntry } from '@alfred/shared';
+import type { DossierStatus, Dossier, JournalEntry } from '@opentidy/shared';
 
 const VALID_STATUSES: DossierStatus[] = ['EN COURS', 'TERMINÉ'];
 

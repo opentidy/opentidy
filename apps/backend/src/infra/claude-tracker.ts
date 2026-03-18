@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { ClaudeProcess, ClaudeProcessType } from '@alfred/shared';
+import type { ClaudeProcess, ClaudeProcessType } from '@opentidy/shared';
 
 export function createClaudeTracker(db: Database.Database) {
   const insertStmt = db.prepare(

@@ -178,7 +178,7 @@ Vue liste des mémoires (reprend INDEX.md). Clic sur une entrée → éditeur ma
 
 ## Concurrence
 
-Les écritures dans `_memory/` sont protégées par un lock fichier dédié (`_memory/.lock`), distinct des PID locks par dossier (qui vivent dans `/tmp/assistant-locks/`).
+Les écritures dans `_memory/` sont protégées par un lock fichier dédié (`_memory/.lock`), distinct des PID locks par dossier (qui vivent dans `/tmp/opentidy-locks/`).
 
 Mécanisme : acquire/release explicite (créer le fichier `.lock` au début de l'écriture, le supprimer à la fin). Ce n'est pas un PID lock classique car les agents `claude -p` sont des processus éphémères — le PID n'est plus valide après la fin de l'agent. Un simple lockfile avec retry/timeout (ex: attendre 5s max, retry toutes les 500ms) suffit.
 

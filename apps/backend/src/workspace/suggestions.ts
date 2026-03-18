@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { Suggestion, UrgencyLevel } from '@alfred/shared';
+import type { Suggestion, UrgencyLevel } from '@opentidy/shared';
 
 const URGENCY_ORDER: Record<UrgencyLevel, number> = { urgent: 0, normal: 1, faible: 2 };
 const MAX_SUGGESTIONS = 20;

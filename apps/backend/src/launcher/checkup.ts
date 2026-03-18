@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { MemoryEntry } from '@alfred/shared';
+import type { MemoryEntry } from '@opentidy/shared';
 import type { SpawnClaudeSimpleFn } from '../infra/spawn-claude.js';
 import { generateSlug } from '../utils/slug.js';
 import { buildMemoryContext } from '../utils/memory-context.js';

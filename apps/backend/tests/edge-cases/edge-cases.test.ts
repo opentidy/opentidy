@@ -13,7 +13,7 @@ describe('Edge cases', () => {
   let wsDir: string;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
   });
   afterEach(() => {
     fs.rmSync(wsDir, { recursive: true, force: true });
@@ -21,7 +21,7 @@ describe('Edge cases', () => {
 
   // E2E-EDGE-07: Webhook flood — 100 emails
   it('handles 100 webhooks without crash or memory leak (E2E-EDGE-07)', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-dedup-edge-'));
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-dedup-edge-'));
     const db = createDatabase(tmpDir);
     const dedup = createDedupStore(db);
     const triage = vi.fn().mockResolvedValue(undefined);

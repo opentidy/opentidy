@@ -17,7 +17,7 @@ Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (2
 │  │   - Receiver (webhooks, SMS/Mail watchers)          │ │
 │  │   - Hooks handler (PreToolUse security)             │ │
 │  │   - Auto-updater (checks GitHub Releases)           │ │
-│  │   - SQLite (workspace/_data/alfred.db)              │ │
+│  │   - SQLite (workspace/_data/opentidy.db)              │ │
 │  └─────────────────────────────────────────────────────┘ │
 │                                                          │
 │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐ │
@@ -80,7 +80,7 @@ class Alfred < Formula
     # Tarball is pre-built by CI via `pnpm deploy`:
     # flat node_modules (no symlinks), compiled dist/, built web app
     libexec.install Dir["*"]
-    bin.install_symlink libexec/"bin/alfred"
+    bin.install_symlink libexec/"bin/tidy"
   end
 
   def postinstall
@@ -104,7 +104,7 @@ end
 
 ### CLI Entrypoint
 
-`bin/alfred` is a shell wrapper created during CI packaging:
+`bin/tidy` is a shell wrapper created during CI packaging:
 
 ```bash
 #!/bin/sh
@@ -168,11 +168,11 @@ alfred-{version}/
 ├── dist/                    # Compiled backend (apps/backend/dist/)
 ├── web-dist/                # Built frontend (apps/web/dist/)
 ├── node_modules/            # Flat vendored deps (via pnpm deploy, no symlinks)
-├── shared/                  # Compiled @alfred/shared (packages/shared/dist/)
-├── plugins/alfred-hooks/    # Hooks plugin directory
+├── shared/                  # Compiled @opentidy/shared (packages/shared/dist/)
+├── plugins/opentidy-hooks/    # Hooks plugin directory
 ├── config/claude/           # Claude Code config template (settings.json, CLAUDE.md)
-├── bin/alfred               # Shell wrapper CLI entrypoint
-├── alfred-updater.sh        # Detached updater script
+├── bin/tidy               # Shell wrapper CLI entrypoint
+├── opentidy-updater.sh        # Detached updater script
 ├── package.json
 └── VERSION                  # Current version string for alfred --version
 ```
@@ -183,15 +183,15 @@ pnpm workspaces use symlinks in `node_modules/` which break when tarred. The CI 
 
 ```bash
 # In CI, after pnpm install && pnpm build:
-pnpm --filter @alfred/backend deploy ./release --prod
+pnpm --filter @opentidy/backend deploy ./release --prod
 # This creates ./release/ with flat node_modules, no symlinks
 
 # Then assemble the tarball:
 cp -r apps/web/dist/ ./release/web-dist/
 cp -r packages/shared/dist/ ./release/shared/
-cp -r plugins/alfred-hooks/ ./release/plugins/alfred-hooks/
-cp bin/alfred ./release/bin/alfred
-cp alfred-updater.sh ./release/
+cp -r plugins/opentidy-hooks/ ./release/plugins/opentidy-hooks/
+cp bin/tidy ./release/bin/tidy
+cp opentidy-updater.sh ./release/
 echo "${VERSION}" > ./release/VERSION
 ```
 
@@ -223,13 +223,13 @@ jobs:
       - name: Package with pnpm deploy
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          pnpm --filter @alfred/backend deploy ./release --prod
+          pnpm --filter @opentidy/backend deploy ./release --prod
           cp -r apps/web/dist/ ./release/web-dist/
           cp -r packages/shared/dist/ ./release/shared/
-          cp -r plugins/alfred-hooks/ ./release/plugins/alfred-hooks/
+          cp -r plugins/opentidy-hooks/ ./release/plugins/opentidy-hooks/
           cp -r apps/backend/config/claude/ ./release/config/claude/
-          mkdir -p ./release/bin && cp bin/alfred ./release/bin/alfred
-          cp alfred-updater.sh ./release/
+          mkdir -p ./release/bin && cp bin/tidy ./release/bin/tidy
+          cp opentidy-updater.sh ./release/
           echo "$VERSION" > ./release/VERSION
           mv ./release alfred-$VERSION
           tar -czf alfred-$VERSION.tar.gz alfred-$VERSION/
@@ -264,7 +264,7 @@ The auto-updater **cannot run inside the Alfred process** — `brew upgrade` rep
   3. Wait 5 minutes (allows Lolo to cancel via Telegram if needed)
   4. Spawn detached updater script and exit gracefully
 
-### Detached Updater Script (`alfred-updater.sh`)
+### Detached Updater Script (`opentidy-updater.sh`)
 
 Spawned as a background process (`nohup ... &`), runs independently of Alfred:
 
@@ -356,13 +356,13 @@ Exposes Alfred's API + web UI on a domain (e.g. `alfred.loaddr.com`):
 ### Secrets Management
 
 Secrets are configured during `alfred setup` and stored in:
-- `~/.config/alfred/config.json` (Telegram tokens, bearer token, update preferences)
+- `~/.config/opentidy/config.json` (Telegram tokens, bearer token, update preferences)
 - Cloudflare Tunnel credentials managed by `cloudflared` itself
 - Claude Code auth via OAuth (no API keys)
 
 Never committed to git. The `alfred doctor` command verifies secrets are properly configured.
 
-**Migration note**: The current `com.lolo.assistant.plist` contains hardcoded Telegram tokens. This must be migrated to `~/.config/alfred/config.json` and the plist updated to reference config via environment variables loaded by Alfred at startup. The exposed token in the committed plist should be rotated.
+**Migration note**: The current `com.opentidy.agent.plist` contains hardcoded Telegram tokens. This must be migrated to `~/.config/opentidy/config.json` and the plist updated to reference config via environment variables loaded by Alfred at startup. The exposed token in the committed plist should be rotated.
 
 ### Dependencies Not in Homebrew
 
@@ -376,7 +376,7 @@ Never committed to git. The `alfred doctor` command verifies secrets are properl
 Alfred must NOT touch the user's personal `~/.claude/` config. All Claude Code sessions spawned by Alfred use an isolated config directory:
 
 ```bash
-CLAUDE_CONFIG_DIR=~/.config/alfred/claude-config claude -p ...
+CLAUDE_CONFIG_DIR=~/.config/opentidy/claude-config claude -p ...
 ```
 
 This gives Alfred its own settings, permissions, MCP servers, and CLAUDE.md — completely separate from the user's personal Claude Code setup.
@@ -384,7 +384,7 @@ This gives Alfred its own settings, permissions, MCP servers, and CLAUDE.md — 
 ### Config Directory Structure
 
 ```
-~/.config/alfred/claude-config/       # CLAUDE_CONFIG_DIR for Alfred sessions
+~/.config/opentidy/claude-config/       # CLAUDE_CONFIG_DIR for Alfred sessions
 ├── settings.json                     # Permissions, MCP servers, allowed tools
 ├── settings.local.json               # User overrides (never overwritten by updates)
 └── CLAUDE.md                         # Global prompt: Alfred's identity, rules, style
@@ -405,7 +405,7 @@ This template is the SSOT for what Claude Code sessions should look like. When a
 ### Config Lifecycle
 
 **Initial setup (`alfred setup`):**
-1. Copies template from `config/claude/` to `~/.config/alfred/claude-config/`
+1. Copies template from `config/claude/` to `~/.config/opentidy/claude-config/`
 2. Runs Claude Code OAuth flow (`claude auth login` with `CLAUDE_CONFIG_DIR` set) — interactive, one-time
 3. Creates empty `settings.local.json` for user overrides
 
@@ -416,7 +416,7 @@ This template is the SSOT for what Claude Code sessions should look like. When a
 4. `CLAUDE.md` is replaced entirely from template (it's versioned, not user-edited)
 
 **On each session spawn:**
-1. Backend sets `CLAUDE_CONFIG_DIR=~/.config/alfred/claude-config/` in the child process env
+1. Backend sets `CLAUDE_CONFIG_DIR=~/.config/opentidy/claude-config/` in the child process env
 2. Claude Code loads settings + CLAUDE.md from this directory
 3. Per-dossier `CLAUDE.md` (level 2) is generated in `workspace/<dossier-id>/CLAUDE.md` as before
 

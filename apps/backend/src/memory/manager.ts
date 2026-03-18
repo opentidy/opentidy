@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { MemoryEntry, MemoryIndexEntry } from '@alfred/shared'
+import type { MemoryEntry, MemoryIndexEntry } from '@opentidy/shared'
 
 interface WriteFileInput {
   filename: string
@@ -75,7 +75,7 @@ export function createMemoryManager(workspaceDir: string) {
   }
 
   function writeIndexFile(entries: MemoryIndexEntry[]): void {
-    const header = `# Alfred Memory Index
+    const header = `# OpenTidy Memory Index
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|

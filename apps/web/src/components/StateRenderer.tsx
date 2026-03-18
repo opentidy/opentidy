@@ -1,4 +1,4 @@
-import type { Dossier } from '@alfred/shared';
+import type { Dossier } from '@opentidy/shared';
 import { getArtifactUrl } from '../api';
 
 function MarkdownContent({ raw }: { raw: string }) {

@@ -188,7 +188,7 @@ Replace `apps/backend/src/launcher/session.ts` with:
 ```typescript
 import fs from 'fs';
 import path from 'path';
-import type { Session } from '@alfred/shared';
+import type { Session } from '@opentidy/shared';
 
 export interface SessionExecutor {
   launchTmux(name: string, command: string): Promise<number>;
@@ -379,7 +379,7 @@ export function createLauncher(deps: {
   }
 
   function buildClaudeCommand(dossierDir: string, instruction: string, resumeId?: string): string {
-    const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'alfred-hooks');
+    const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'opentidy-hooks');
     const pluginFlag = fs.existsSync(pluginDir) ? ` --plugin-dir ${pluginDir}` : '';
     const resumeFlag = resumeId ? ` --resume ${resumeId}` : '';
     // Escape single quotes in instruction

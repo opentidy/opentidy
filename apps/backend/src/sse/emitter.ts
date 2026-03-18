@@ -1,4 +1,4 @@
-import type { SSEEvent } from '@alfred/shared';
+import type { SSEEvent } from '@opentidy/shared';
 
 interface SSEClient {
   write: (data: string) => void;

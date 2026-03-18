@@ -32,7 +32,7 @@ pnpm test -t "E2E-RCV-01"
 - Chaque test crée un workspace temporaire (`tmp/test-workspace-<random>/`)
 - Claude est **mocké** : le launcher appelle une fonction mock au lieu du vrai `claude` CLI
 - Telegram est **mocké** : les notifications sont capturées dans un tableau
-- Les locks utilisent un dossier temporaire (pas `/tmp/assistant-locks/`)
+- Les locks utilisent un dossier temporaire (pas `/tmp/opentidy-locks/`)
 - Cleanup automatique après chaque test
 
 **Structure des fichiers de test** :
@@ -354,7 +354,7 @@ pnpm test tests/launcher/
 **Steps** :
 1. Un event déclenche le travail sur `factures-sopra`
 2. Launcher vérifie qu'aucun lock n'existe pour ce dossier
-3. Crée un lock PID dans `/tmp/assistant-locks/factures-sopra.lock`
+3. Crée un lock PID dans `/tmp/opentidy-locks/factures-sopra.lock`
 4. Lance `claude` dans une session tmux nommée
 5. Injecte le contexte : state.md + event + prompt système
 **Attendu** : session tmux active, lock créé, contexte chargé
@@ -1033,7 +1033,7 @@ pnpm test tests/infra/
 
 ### E2E-INF-02 — Lock PID — process mort nettoyé
 **Steps** :
-1. Session crash, lock PID reste dans `/tmp/assistant-locks/`
+1. Session crash, lock PID reste dans `/tmp/opentidy-locks/`
 2. Nouveau trigger pour le même dossier
 3. Launcher vérifie le PID → process mort
 4. Nettoie le lock, relance
@@ -1105,7 +1105,7 @@ et clique "Lancer". Vérifie que :
 2. L'app redirige vers la page du dossier /dossier/<id>
 3. Le state.md contient l'objectif "Rapport exali"
 4. Une session tmux existe pour ce dossier (tmux list-sessions)
-5. Un lock existe dans /tmp/assistant-locks/
+5. Un lock existe dans /tmp/opentidy-locks/
 ```
 
 ### E2E-FULL-04 — Flux complet : sweep → détection deadline → travail autonome
@@ -1166,7 +1166,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 Vérifie que :
 1. 3 dossiers distincts existent dans workspace/
 2. 3 sessions tmux distinctes tournent (tmux list-sessions | grep test)
-3. 3 locks PID distincts existent dans /tmp/assistant-locks/
+3. 3 locks PID distincts existent dans /tmp/opentidy-locks/
 4. L'app web sur / affiche 3 sessions actives dans "En fond"
 5. Chaque dossier a son propre state.md indépendant
 ```
@@ -1221,7 +1221,7 @@ Note les sessions et locks actuels.
 Redémarre le backend (kill + restart ou POST /api/restart).
 Après redémarrage, vérifie que :
 1. Les sessions tmux sont toujours actives (indépendantes du backend)
-2. Les locks dans /tmp/assistant-locks/ sont cohérents avec les sessions tmux
+2. Les locks dans /tmp/opentidy-locks/ sont cohérents avec les sessions tmux
 3. L'app web / affiche les sessions actives correctement
 4. Aucun lock orphelin (PID mort) ne persiste
 ```
@@ -1350,7 +1350,7 @@ pnpm test tests/edge-cases/
 **Attendu** : erreur détectée, notification d'alerte, session ne crash pas silencieusement
 
 ### E2E-EDGE-18 — Backend restart avec locks orphelins
-**Préconditions** : backend crash, locks PID dans `/tmp/assistant-locks/` dont certains avec PID morts
+**Préconditions** : backend crash, locks PID dans `/tmp/opentidy-locks/` dont certains avec PID morts
 **Steps** :
 1. Backend redémarre
 2. Scan des locks au boot
@@ -1358,7 +1358,7 @@ pnpm test tests/edge-cases/
 
 ### E2E-EDGE-13 — Lock stale détecté par le sweep
 **Steps** :
-1. Lock existe dans `/tmp/assistant-locks/` mais le PID est mort
+1. Lock existe dans `/tmp/opentidy-locks/` mais le PID est mort
 2. Sweep ou event pour ce dossier
 3. Lock détecté comme stale → nettoyé
 **Attendu** : dossier à nouveau disponible pour une session

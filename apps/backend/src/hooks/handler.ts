@@ -1,4 +1,4 @@
-import { HookPayloadSchema, type HookPayload } from '@alfred/shared';
+import { HookPayloadSchema, type HookPayload } from '@opentidy/shared';
 
 interface AuditLogger {
   log(input: {
@@ -32,9 +32,9 @@ export interface HooksHandlerDeps {
 }
 
 function extractDossierId(payload: { session_id: string; cwd?: string }): string | null {
-  // Try session_id first (alfred-<dossierId>)
-  if (payload.session_id.startsWith('alfred-')) {
-    return payload.session_id.slice('alfred-'.length);
+  // Try session_id first (opentidy-<dossierId>)
+  if (payload.session_id.startsWith('opentidy-')) {
+    return payload.session_id.slice('opentidy-'.length);
   }
   // Fallback: extract from cwd (/path/to/workspace/<dossierId>)
   if (payload.cwd?.includes('/workspace/')) {

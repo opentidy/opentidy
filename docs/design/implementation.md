@@ -161,7 +161,7 @@ Pour un seul Mac Mini dédié, un MDM serait overkill.
   prompts de permission Claude Code. La sécurité est assurée par les hooks
   PreToolUse (garde-fous), pas par le système de permissions intégré.
   Les hooks firent AVANT le check de permissions, donc restent actifs.
-- Lock PID par dossier dans `/tmp/assistant-locks/`
+- Lock PID par dossier dans `/tmp/opentidy-locks/`
 - Crash recovery : détection PID mort → nettoyage lock
 - Session ID persisté dans `workspace/<dossier>/.session-id` pour resume
 

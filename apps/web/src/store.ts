@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { useSyncExternalStore } from 'react';
-import type { Dossier, Suggestion, Amelioration, Session, SSEEventType, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@alfred/shared';
+import type { Dossier, Suggestion, Amelioration, Session, SSEEventType, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
 import * as api from './api';
 
 export interface SessionOutputLine {

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Alfred CLI wrapper — resolves node@22 and launches the backend CLI.
+# OpenTidy CLI wrapper — resolves node@22 and launches the backend CLI.
 # Works on Apple Silicon (/opt/homebrew), Intel (/usr/local), and non-Homebrew setups.
 set -e
 

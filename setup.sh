@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# setup.sh — Alfred installation script for Mac Mini
+# setup.sh — OpenTidy installation script for Mac Mini
 # Usage: curl -fsSL <url>/setup.sh | bash  (or just ./setup.sh)
 set -euo pipefail
 
-ALFRED_DIR="$HOME/Documents/alfred"
-PLIST_NAME="com.lolo.assistant"
-PLIST_SRC="$ALFRED_DIR/$PLIST_NAME.plist"
+OPENTIDY_DIR="$HOME/Documents/opentidy"
+PLIST_NAME="com.opentidy.agent"
+PLIST_SRC="$OPENTIDY_DIR/$PLIST_NAME.plist"
 PLIST_DST="$HOME/Library/LaunchAgents/$PLIST_NAME.plist"
 LOG_DIR="$HOME/Library/Logs"
 
@@ -33,7 +33,7 @@ confirm() {
 
 echo ""
 echo "=========================================="
-echo "  Alfred — Setup Mac Mini"
+echo "  OpenTidy — Setup Mac Mini"
 echo "=========================================="
 echo ""
 
@@ -115,23 +115,23 @@ else
 fi
 
 # 9. Clone repo (if not already present)
-if [ -d "$ALFRED_DIR" ]; then
-  ok "Alfred repo already exists at $ALFRED_DIR"
+if [ -d "$OPENTIDY_DIR" ]; then
+  ok "OpenTidy repo already exists at $OPENTIDY_DIR"
 else
-  info "Cloning Alfred repo..."
-  git clone git@github.com:ldenblyd/alfred.git "$ALFRED_DIR"
+  info "Cloning OpenTidy repo..."
+  git clone git@github.com:ldenblyd/opentidy.git "$OPENTIDY_DIR"
   ok "Repo cloned"
 fi
 
 # 10. Install dependencies and build
 info "Installing dependencies and building..."
-cd "$ALFRED_DIR"
+cd "$OPENTIDY_DIR"
 pnpm install
 pnpm build
 ok "Dependencies installed and project built"
 
 # 11. Create workspace directory
-mkdir -p "$ALFRED_DIR/workspace"
+mkdir -p "$OPENTIDY_DIR/workspace"
 ok "Workspace directory ready"
 
 # 12. Create log directory
@@ -152,7 +152,7 @@ fi
 echo ""
 info "Cloudflare tunnel setup:"
 echo "  1. cloudflared tunnel login"
-echo "  2. cloudflared tunnel create alfred"
+echo "  2. cloudflared tunnel create opentidy"
 echo "  3. Configure tunnel to route to localhost:3001"
 echo "  4. cloudflared service install"
 echo ""
@@ -301,6 +301,6 @@ echo ""
 info "Next steps:"
 echo "  1. Edit LaunchAgent plist with Telegram credentials"
 echo "  2. Load the agent:  launchctl load $PLIST_DST"
-echo "  3. Verify:          tail -f ~/Library/Logs/alfred-stdout.log"
+echo "  3. Verify:          tail -f ~/Library/Logs/opentidy-stdout.log"
 echo ""
-ok "Alfred is ready."
+ok "OpenTidy is ready."

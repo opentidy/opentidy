@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  Alfred LaunchAgent template.
+  OpenTidy LaunchAgent template.
   install.sh copies this to ~/Library/LaunchAgents/ and replaces __INSTALL_DIR__ with the actual path.
-  Telegram credentials and other secrets are read from ~/.config/alfred/config.json at runtime.
+  Telegram credentials and other secrets are read from ~/.config/opentidy/config.json at runtime.
 -->
 <plist version="1.0">
 <dict>
 	<key>Label</key>
-	<string>com.lolo.assistant</string>
+	<string>com.opentidy.agent</string>
 
 	<key>ProgramArguments</key>
 	<array>
-		<string>__INSTALL_DIR__/bin/alfred</string>
+		<string>__INSTALL_DIR__/bin/tidy</string>
 		<string>start</string>
 	</array>
 
@@ -34,9 +34,9 @@
 	<true/>
 
 	<key>StandardOutPath</key>
-	<string>__HOME__/Library/Logs/alfred-stdout.log</string>
+	<string>__HOME__/Library/Logs/opentidy-stdout.log</string>
 
 	<key>StandardErrorPath</key>
-	<string>__HOME__/Library/Logs/alfred-stderr.log</string>
+	<string>__HOME__/Library/Logs/opentidy-stderr.log</string>
 </dict>
 </plist>

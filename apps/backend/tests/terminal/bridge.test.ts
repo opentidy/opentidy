@@ -25,15 +25,15 @@ describe('TerminalManager', () => {
   });
 
   it('getPort returns undefined when no ttyd is running', () => {
-    const deps = createMockDeps(['alfred-sopra']);
+    const deps = createMockDeps(['opentidy-sopra']);
     const mgr = createTerminalManager(deps);
-    const port = mgr.getPort('alfred-sopra');
+    const port = mgr.getPort('opentidy-sopra');
     expect(port).toBeUndefined();
   });
 
   it('returns undefined port for session not in list', () => {
     const deps = createMockDeps([]);
     const mgr = createTerminalManager(deps);
-    expect(mgr.getPort('alfred-test')).toBeUndefined();
+    expect(mgr.getPort('opentidy-test')).toBeUndefined();
   });
 });

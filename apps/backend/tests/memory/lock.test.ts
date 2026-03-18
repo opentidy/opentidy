@@ -9,7 +9,7 @@ describe('MemoryLock', () => {
   let lock: ReturnType<typeof createMemoryLock>
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-lock-test-'))
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-lock-test-'))
     lock = createMemoryLock(tmpDir)
   })
 

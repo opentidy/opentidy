@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import type { ClaudeProcessType } from '@alfred/shared'
+import type { ClaudeProcessType } from '@opentidy/shared'
 import type { SpawnClaudeSimpleFn } from '../infra/spawn-claude.js'
 import { createMemoryLock } from './lock.js'
 import { createMemoryManager } from './manager.js'
@@ -28,7 +28,7 @@ export function createMemoryAgents(workspaceDir: string, deps: {
   const manager = createMemoryManager(workspaceDir)
 
   function buildInjectionPrompt(input: InjectionInput): string {
-    return `Tu es l'agent d'injection mémoire d'Alfred. Ton rôle est de synthétiser les informations pertinentes de la mémoire pour une session de travail.
+    return `Tu es l'agent d'injection mémoire d'OpenTidy. Ton rôle est de synthétiser les informations pertinentes de la mémoire pour une session de travail.
 
 ## INDEX.md (mémoire disponible)
 ${input.indexContent}
@@ -59,7 +59,7 @@ Dernière injection : ${new Date().toISOString().split('T')[0]}
 
   function buildExtractionPrompt(input: ExtractionInput): string {
     const today = new Date().toISOString().split('T')[0]
-    return `Tu es l'agent post-session d'Alfred. Tu fais 3 choses en un seul passage après chaque session terminée.
+    return `Tu es l'agent post-session d'OpenTidy. Tu fais 3 choses en un seul passage après chaque session terminée.
 
 ## Contexte
 - Dossier : ${input.dossierId}
@@ -118,7 +118,7 @@ Identifie les obstacles rencontrés pendant la session et génère des analyses 
 - OUI : process inefficace détecté → Lolo peut améliorer le workflow
 - NON : limitation théorique sans impact concret
 - NON : observation vague sans action claire
-- NON : bug interne du code Alfred (ça va dans les issues, pas les gaps)
+- NON : bug interne du code OpenTidy (ça va dans les issues, pas les gaps)
 
 **Si des gaps actionnables sont trouvés :** ajoute un bloc structuré par gap dans ${path.join(workspaceDir, '_gaps', 'gaps.md')} (append, ne supprime rien).
 Format pour chaque gap :
@@ -157,7 +157,7 @@ Si le journal est vide ou incomplet par rapport au transcript (actions faites ma
   }
 
   function buildPromptAgentPrompt(text: string, indexContent: string): string {
-    return `Tu es l'agent mémoire d'Alfred. Lolo te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
+    return `Tu es l'agent mémoire d'OpenTidy. Lolo te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
 
 ## Instruction de Lolo
 "${text}"

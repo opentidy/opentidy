@@ -34,7 +34,7 @@ describe('createSpawnClaude', () => {
   let outputDir: string;
 
   beforeEach(() => {
-    outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-spawn-test-'));
+    outputDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-spawn-test-'));
     vi.clearAllMocks();
   });
 

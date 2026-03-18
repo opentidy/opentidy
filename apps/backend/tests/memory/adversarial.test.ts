@@ -12,7 +12,7 @@ describe('Adversarial: Memory Manager', () => {
   let manager: ReturnType<typeof createMemoryManager>
 
   beforeEach(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-adv-test-'))
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-adv-test-'))
     memDir = path.join(workspaceDir, '_memory')
     indexPath = path.join(memDir, 'INDEX.md')
     manager = createMemoryManager(workspaceDir)
@@ -39,7 +39,7 @@ describe('Adversarial: Memory Manager', () => {
     })
 
     it('INDEX.md has extra columns in some rows → should still parse', () => {
-      const content = `# Alfred Memory Index
+      const content = `# OpenTidy Memory Index
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|
@@ -57,7 +57,7 @@ describe('Adversarial: Memory Manager', () => {
     // FIX: Pipes in description are now escaped with \| in writeIndexFile,
     // and unescaped when reading back with readIndex.
     it('INDEX.md with escaped pipes in description → parsing works', () => {
-      const content = `# Alfred Memory Index
+      const content = `# OpenTidy Memory Index
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|
@@ -476,7 +476,7 @@ describe('Adversarial: Lock Manager', () => {
   let tmpDir: string
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-advlock-test-'))
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-advlock-test-'))
   })
 
   afterEach(() => {
@@ -584,7 +584,7 @@ describe('Adversarial: readAllFiles', () => {
   let manager: ReturnType<typeof createMemoryManager>
 
   beforeEach(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-adv-all-'))
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-adv-all-'))
     memDir = path.join(workspaceDir, '_memory')
     manager = createMemoryManager(workspaceDir)
     manager.ensureDir()
@@ -632,7 +632,7 @@ describe('Adversarial: writeFile', () => {
   let manager: ReturnType<typeof createMemoryManager>
 
   beforeEach(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-adv-write-'))
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-adv-write-'))
     memDir = path.join(workspaceDir, '_memory')
     manager = createMemoryManager(workspaceDir)
     manager.ensureDir()

@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-## Project: Alfred
+## Project: OpenTidy
 
 Assistant personnel autonome de Lolo (V2). Gère des dossiers administratifs via sessions Claude Code autonomes (`claude -p` child processes), avec garde-fous hooks et une app web.
 
-**Repo:** `alfred` (clean break avec AI-assistant/V1)
-**Spec complète:** `docs/design/alfred-spec.md`
-**Plan d'implémentation:** `docs/plans/alfred-plan.md`
+**Repo:** `opentidy` (clean break avec AI-assistant/V1)
+**Spec complète:** `docs/design/opentidy-spec.md`
+**Plan d'implémentation:** `docs/plans/opentidy-plan.md`
 **Architecture V2:** `docs/design/v2-final.md`
 
 ## Platform
@@ -25,20 +25,20 @@ pnpm build                             # build all packages
 pnpm dev                               # dev mode (backend + web parallel)
 pnpm test                              # vitest (backend)
 pnpm test:e2e                          # playwright (web)
-pnpm --filter @alfred/backend test     # backend tests only
-pnpm --filter @alfred/web dev          # web dev only
-pnpm --filter @alfred/shared build     # shared types only
+pnpm --filter @opentidy/backend test     # backend tests only
+pnpm --filter @opentidy/web dev          # web dev only
+pnpm --filter @opentidy/shared build     # shared types only
 ```
 
 ### LaunchAgent (production)
 
 ```bash
-launchctl load ~/Library/LaunchAgents/com.lolo.assistant.plist
-launchctl unload ~/Library/LaunchAgents/com.lolo.assistant.plist
-launchctl kickstart -k gui/$(id -u)/com.lolo.assistant   # restart
+launchctl load ~/Library/LaunchAgents/com.opentidy.agent.plist
+launchctl unload ~/Library/LaunchAgents/com.opentidy.agent.plist
+launchctl kickstart -k gui/$(id -u)/com.opentidy.agent   # restart
 ```
 
-Logs: `~/Library/Logs/alfred.log` (app), `~/Library/Logs/alfred-stdout.log` / `alfred-stderr.log` (launchd).
+Logs: `~/Library/Logs/opentidy.log` (app), `~/Library/Logs/opentidy-stdout.log` / `opentidy-stderr.log` (launchd).
 
 ## Architecture
 
@@ -56,7 +56,7 @@ Logs: `~/Library/Logs/alfred.log` (app), `~/Library/Logs/alfred-stdout.log` / `a
 ### Monorepo
 
 ```
-alfred/
+opentidy/
 ├── pnpm-workspace.yaml
 ├── packages/
 │   └── shared/              # types TypeScript, Zod schemas
@@ -99,11 +99,11 @@ alfred/
 - `_audit/actions.log` — trace de toutes les actions externes
 
 **Infrastructure** (`apps/backend/src/infra/`):
-- Locks PID par dossier (`/tmp/assistant-locks/`)
+- Locks PID par dossier (`/tmp/opentidy-locks/`)
 - Dedup store (content hash)
 - Audit logger
 - SSE emitter (event types : session:started/ended/idle/active/output/mode-changed, dossier:updated/completed, suggestion:created, checkpoint:created/resolved, amelioration:created)
-- **SQLite (planifie)** : `better-sqlite3` dans `workspace/_data/alfred.db` — 4 tables (`claude_processes`, `notifications`, `dedup_hashes`, `sessions`) pour remplacer l'etat in-memory. Les fichiers (state.md, checkpoint.md, artifacts, memory) restent pour ce que Claude touche.
+- **SQLite (planifie)** : `better-sqlite3` dans `workspace/_data/opentidy.db` — 4 tables (`claude_processes`, `notifications`, `dedup_hashes`, `sessions`) pour remplacer l'etat in-memory. Les fichiers (state.md, checkpoint.md, artifacts, memory) restent pour ce que Claude touche.
 
 **Hooks handler** (`apps/backend/src/hooks/`):
 - Endpoint unique `POST /api/hooks` — tous les hooks `type: "command"` appellent ca
@@ -154,7 +154,7 @@ Gmail webhook / SMS watcher / WhatsApp watcher / Telegram / App web
 ```bash
 # Lancement autonome (child process, pas tmux)
 claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
-  [--plugin-dir plugins/alfred-hooks] [--resume <session-id>] "<instruction>"
+  [--plugin-dir plugins/opentidy-hooks] [--resume <session-id>] "<instruction>"
 # Le process tourne dans le cwd du dossier (workspace/<dossier-id>/)
 # stdout = NDJSON (stream events), exit = fin de session
 ```
@@ -162,7 +162,7 @@ claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
 **Mode interactif ("Prendre la main")** — tmux pour Lolo :
 ```bash
 # Lance quand Lolo clique "Prendre la main" dans l'app web
-tmux new-session -d -s alfred-<dossier-id> \
+tmux new-session -d -s opentidy-<dossier-id> \
   "cd workspace/<dossier-id> && claude --dangerously-skip-permissions --resume <session-id>"
 # Lolo interagit via ttyd (terminal dans l'app web)
 # "Rendre la main" → kill tmux → relance en mode autonome
@@ -223,7 +223,7 @@ Chaque session a sa propre instance Camoufox avec profil isole. Pas Chrome/Playw
 
 ## Test Tasks Safety
 
-Quand tu generes des taches de test pour Alfred (test tasks, debug, validation de features) :
+Quand tu generes des taches de test pour OpenTidy (test tasks, debug, validation de features) :
 - **JAMAIS d'actions irreversibles** : pas d'envoi de vrais emails a des tiers, pas de transactions, pas de posts publics
 - **Emails uniquement a Lolo** : `l.denblyden@gmail.com` — jamais a des contacts reels (comptable, clients, admin)
 - **Destinations fictives** : utiliser `example.com` pour les adresses email fictives
@@ -251,7 +251,7 @@ Quand tu generes des taches de test pour Alfred (test tasks, debug, validation d
 - `packages/shared/src/` — types partages, Zod schemas
 - `workspace/` — runtime data (dossiers, state.md, artifacts) — **gitignored**
 - `workspace/CLAUDE.md` — prompt global niveau 1 (pas gitignored)
-- `/tmp/assistant-locks/` — PID lock files runtime
+- `/tmp/opentidy-locks/` — PID lock files runtime
 - `docs/design/` — architecture, spec, reflexion V2
 - `docs/plans/` — plan d'implementation
 
@@ -259,10 +259,10 @@ Quand tu generes des taches de test pour Alfred (test tasks, debug, validation d
 
 | Document | Contenu |
 |----------|---------|
-| `docs/design/alfred-spec.md` | Spec complete consolidee (SSOT pour le plan) |
+| `docs/design/opentidy-spec.md` | Spec complete consolidee (SSOT pour le plan) |
 | `docs/design/v2-final.md` | Architecture V2, principes, benchmark tasks |
 | `docs/design/implementation.md` | Decisions techniques, monorepo, infra |
 | `docs/design/hooks-techniques.md` | Reference technique hooks Claude Code |
 | `docs/design/e2e-tests.md` | 148 tests E2E structures |
-| `docs/plans/alfred-plan.md` | Plan d'implementation (5 chunks, 28 tasks) |
+| `docs/plans/opentidy-plan.md` | Plan d'implementation (5 chunks, 28 tasks) |
 | `docs/design/archive/` | Historique de reflexion (approches explorees, decisions ecartees) |

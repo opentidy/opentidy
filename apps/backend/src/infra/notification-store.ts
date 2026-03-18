@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { NotificationRecord } from '@alfred/shared';
+import type { NotificationRecord } from '@opentidy/shared';
 
 export function createNotificationStore(db: Database.Database) {
   const insertStmt = db.prepare(

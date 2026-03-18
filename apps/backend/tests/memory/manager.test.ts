@@ -9,7 +9,7 @@ describe('MemoryManager', () => {
   let manager: ReturnType<typeof createMemoryManager>
 
   beforeEach(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-mem-test-'))
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-mem-test-'))
     manager = createMemoryManager(workspaceDir)
   })
 
@@ -34,7 +34,7 @@ describe('MemoryManager', () => {
 
     it('parses INDEX.md table rows', () => {
       manager.ensureDir()
-      const content = `# Alfred Memory Index
+      const content = `# OpenTidy Memory Index
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|

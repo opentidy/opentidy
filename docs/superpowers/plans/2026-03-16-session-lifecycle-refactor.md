@@ -36,7 +36,7 @@
 | File | Changes |
 |------|---------|
 | `apps/backend/scripts/on-stop.sh` | Keep for interactive mode only. No changes needed (already signal-only). |
-| `plugins/alfred-hooks/hooks/hooks.json` | No changes — hooks still fire in `-p` mode for audit + security guards. |
+| `plugins/opentidy-hooks/hooks/hooks.json` | No changes — hooks still fire in `-p` mode for audit + security guards. |
 | `workspace/CLAUDE.md` | Remove `/exit` references. Update "mode autonome" language. |
 | `apps/backend/src/terminal/bridge.ts` | No changes — still used for interactive mode. |
 
@@ -102,7 +102,7 @@ describe('AutonomousExecutor', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `pnpm --filter @alfred/backend test -- tests/launcher/autonomous-executor.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/launcher/autonomous-executor.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement the autonomous executor**
@@ -266,7 +266,7 @@ export type { ProcessHandle, StreamEvent, LaunchOptions };
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `pnpm --filter @alfred/backend test -- tests/launcher/autonomous-executor.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/launcher/autonomous-executor.test.ts`
 
 - [ ] **Step 5: Commit**
 
@@ -320,7 +320,7 @@ export type SSEEventType =
 
 - [ ] **Step 2: Build shared package**
 
-Run: `pnpm --filter @alfred/shared build`
+Run: `pnpm --filter @opentidy/shared build`
 Expected: PASS
 
 - [ ] **Step 3: Commit**
@@ -389,7 +389,7 @@ const resumeId = fs.existsSync(sessionIdFile)
   ? fs.readFileSync(sessionIdFile, 'utf-8').trim()
   : undefined;
 
-const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'alfred-hooks');
+const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'opentidy-hooks');
 const pluginFlag = fs.existsSync(pluginDir) ? pluginDir : undefined;
 
 const instruction = event?.content ?? 'Lis state.md et continue ton travail.';
@@ -548,7 +548,7 @@ async function takeControl(dossierId: string): Promise<void> {
     ?? (fs.existsSync(sessionIdFile) ? fs.readFileSync(sessionIdFile, 'utf-8').trim() : undefined);
 
   const sessionName = `alfred-${dossierId}`;
-  const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'alfred-hooks');
+  const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'opentidy-hooks');
   const pluginFlag = fs.existsSync(pluginDir) ? ` --plugin-dir ${pluginDir}` : '';
 
   const claudeCmd = resumeId
@@ -623,7 +623,7 @@ Update `tests/launcher/session.test.ts`:
 
 - [ ] **Step 8: Build + test**
 
-Run: `pnpm --filter @alfred/backend build && pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend build && pnpm --filter @opentidy/backend test`
 
 - [ ] **Step 9: Commit**
 
@@ -713,7 +713,7 @@ Rewrite tests to only test fs.watch behavior — remove all tmux/capturePane/idl
 
 - [ ] **Step 3: Build + test**
 
-Run: `pnpm --filter @alfred/backend build && pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend build && pnpm --filter @opentidy/backend test`
 
 - [ ] **Step 4: Commit**
 
@@ -832,7 +832,7 @@ app.post('/api/session/:id/release-control', async (c) => {
 
 - [ ] **Step 3: Build + test**
 
-Run: `pnpm --filter @alfred/backend build && pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend build && pnpm --filter @opentidy/backend test`
 
 - [ ] **Step 4: Commit**
 
@@ -1095,7 +1095,7 @@ Test the full flow with mocked child process:
 
 - [ ] **Step 2: Run tests**
 
-Run: `pnpm --filter @alfred/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 
 - [ ] **Step 3: Commit**
 

@@ -37,7 +37,7 @@ export function createTitleGenerator(workspaceDir: string, deps: {
 }) {
   return async function generateTitle(instruction: string): Promise<string> {
     try {
-      console.log('[alfred] Generating title via claude -p');
+      console.log('[opentidy] Generating title via claude -p');
       const args = ['-p', '--output-format', 'text', '--system-prompt', TITLE_SYSTEM_PROMPT, `Instruction du dossier :\n${instruction}`];
       const stdout = await deps.spawnClaude({ args, cwd: workspaceDir, type: 'title', description: `Génération titre: ${instruction.slice(0, 100)}` });
 
@@ -45,12 +45,12 @@ export function createTitleGenerator(workspaceDir: string, deps: {
       if (!title) {
         throw new Error('Empty title generated');
       }
-      console.log(`[alfred] Generated title: "${title}"`);
+      console.log(`[opentidy] Generated title: "${title}"`);
       return title;
     } catch (err) {
-      console.warn('[alfred] Title generation failed, using fallback:', (err as Error).message);
+      console.warn('[opentidy] Title generation failed, using fallback:', (err as Error).message);
       const title = fallbackTitle(instruction);
-      console.log(`[alfred] Fallback title: "${title}"`);
+      console.log(`[opentidy] Fallback title: "${title}"`);
       return title;
     }
   };

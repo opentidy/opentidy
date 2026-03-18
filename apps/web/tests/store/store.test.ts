@@ -5,7 +5,7 @@ vi.mock('../../src/api', () => ({
   fetchDossiers: vi.fn().mockResolvedValue([{ id: 'sopra', title: 'Sopra' }]),
   fetchSuggestions: vi.fn().mockResolvedValue([{ slug: 'test', title: 'Test' }]),
   fetchAmeliorations: vi.fn().mockResolvedValue([]),
-  fetchSessions: vi.fn().mockResolvedValue([{ id: 'alfred-sopra', status: 'active' }]),
+  fetchSessions: vi.fn().mockResolvedValue([{ id: 'opentidy-sopra', status: 'active' }]),
   createDossier: vi.fn().mockResolvedValue({ created: true }),
   resumeSession: vi.fn().mockResolvedValue({ resumed: true }),
   sendInstruction: vi.fn().mockResolvedValue({ launched: true }),
@@ -66,7 +66,7 @@ describe('Zustand store', () => {
     it('fetchSessions updates store', async () => {
       await useStore.getState().fetchSessions();
       expect(api.fetchSessions).toHaveBeenCalled();
-      expect(useStore.getState().sessions).toEqual([{ id: 'alfred-sopra', status: 'active' }]);
+      expect(useStore.getState().sessions).toEqual([{ id: 'opentidy-sopra', status: 'active' }]);
     });
 
   });

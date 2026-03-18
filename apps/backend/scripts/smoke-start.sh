@@ -13,21 +13,21 @@ echo "[smoke-start] Workspace: $WORKSPACE_DIR"
 echo "[smoke-start] Building backend..."
 
 cd "$ROOT_DIR"
-pnpm --filter @alfred/backend build
+pnpm --filter @opentidy/backend build
 
 # Start backend
 cd "$ROOT_DIR/apps/backend"
 node dist/index.js &
 BACKEND_PID=$!
 echo "[smoke-start] Backend PID: $BACKEND_PID (port $PORT)"
-echo $BACKEND_PID > /tmp/alfred-smoke-backend.pid
+echo $BACKEND_PID > /tmp/opentidy-smoke-backend.pid
 
 # Start web dev server
 cd "$ROOT_DIR/apps/web"
 npx vite --port 5173 &
 FRONTEND_PID=$!
 echo "[smoke-start] Frontend PID: $FRONTEND_PID (port 5173)"
-echo $FRONTEND_PID > /tmp/alfred-smoke-frontend.pid
+echo $FRONTEND_PID > /tmp/opentidy-smoke-frontend.pid
 
 echo ""
 echo "[smoke-start] Smoke environment ready"

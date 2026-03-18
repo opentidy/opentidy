@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Dossier } from '@alfred/shared';
+import type { Dossier } from '@opentidy/shared';
 import DossierCard from '../../src/components/DossierCard';
 
 const mockNavigate = vi.fn();

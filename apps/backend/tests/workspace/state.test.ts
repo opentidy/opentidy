@@ -8,7 +8,7 @@ describe('parseStateMd', () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
   });
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -104,7 +104,7 @@ describe('clearWaitingFor', () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
   });
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
@@ -138,7 +138,7 @@ describe('setWaitingType', () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
   });
   afterEach(() => {
     fs.rmSync(tmpDir, { recursive: true, force: true });

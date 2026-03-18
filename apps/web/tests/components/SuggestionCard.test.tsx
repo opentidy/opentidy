@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import type { Suggestion } from '@alfred/shared';
+import type { Suggestion } from '@opentidy/shared';
 import SuggestionCard from '../../src/components/SuggestionCard';
 
 const mockApproveSuggestion = vi.fn();

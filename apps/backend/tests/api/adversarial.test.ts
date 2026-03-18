@@ -36,7 +36,7 @@ function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
     },
     notify: { notifySuggestion: async () => {} },
     sse: { emit: () => {}, addClient: () => {}, removeClient: () => {} },
-    workspaceDir: '/tmp/alfred-test',
+    workspaceDir: '/tmp/opentidy-test',
     ...overrides,
   }
 }
@@ -71,7 +71,7 @@ describe('Adversarial memory API tests', () => {
   let memoryAgents: AppDeps['memoryAgents']
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-adv-test-'))
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-adv-test-'))
     memoryManager = createMemoryManager(tmpDir)
     memoryManager.ensureDir()
     memoryAgents = { runPromptAgent: vi.fn(async () => {}) }
@@ -912,7 +912,7 @@ describe('Adversarial memory API tests', () => {
 
     it('handles INDEX.md with only header (no entries)', async () => {
       const indexPath = path.join(tmpDir, '_memory', 'INDEX.md')
-      fs.writeFileSync(indexPath, `# Alfred Memory Index
+      fs.writeFileSync(indexPath, `# OpenTidy Memory Index
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|

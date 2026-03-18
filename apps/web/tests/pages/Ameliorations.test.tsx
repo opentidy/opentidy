@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Amelioration } from '@alfred/shared';
+import type { Amelioration } from '@opentidy/shared';
 import Ameliorations from '../../src/pages/Ameliorations';
 
 const mockNavigate = vi.fn();
