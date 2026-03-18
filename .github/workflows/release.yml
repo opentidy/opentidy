@@ -96,6 +96,6 @@ jobs:
       - uses: dawidd6/action-homebrew-bump-formula@v4
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          tap: opentidy/opentidy
+          tap: ldenblyd/alfred-v3
           formula: alfred
           tag: ${{ github.ref_name }}

@@ -1,11 +1,11 @@
 #!/bin/bash
 # Alfred installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/ldenblyd/alfred/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/ldenblyd/alfred-v3/main/install.sh | bash
 #
 # Idempotent: safe to re-run at any time.
 set -euo pipefail
 
-REPO="https://github.com/ldenblyd/alfred.git"
+REPO="https://github.com/ldenblyd/alfred-v3.git"
 INSTALL_DIR="${ALFRED_INSTALL_DIR:-$HOME/Documents/alfred}"
 REQUIRED_NODE_MAJOR=22
 
