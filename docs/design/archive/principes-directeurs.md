@@ -10,7 +10,7 @@ temps réel. Que Claude mette 10 secondes ou 2 minutes pour trier un email, le r
 est le même.
 
 **Comment on y est arrivé** : On s'inquiétait de la performance du triage ("est-ce que
-10s de triage Claude c'est trop lent ?", "faut-il optimiser le routing ?"). Lolo a fait
+10s de triage Claude c'est trop lent ?", "faut-il optimiser le routing ?"). L'utilisateur a fait
 remarquer que contrairement à un chatbot, l'assistant n'a pas besoin d'être rapide.
 Il doit être fiable et atteindre des objectifs. Si une facture est envoyée 2 minutes
 après au lieu de 30 secondes, personne ne le remarque.
@@ -23,7 +23,7 @@ après au lieu de 30 secondes, personne ne le remarque.
 - Pas besoin de queue avec priorités ultra-fines
 - On peut se concentrer sur la qualité des résultats plutôt que la latence
 
-**Seule exception** : quand Lolo demande quelque chose directement en mode interactif
+**Seule exception** : quand l'utilisateur demande quelque chose directement en mode interactif
 (Claude Code terminal) — là c'est du live, mais c'est déjà géré nativement.
 
 ## 2. Claude Code est le moteur d'exécution
@@ -50,7 +50,7 @@ du browser. C'est une question ouverte qui nécessite des tests concrets.
 pour économiser des tokens ou des ressources.
 
 **Contexte** : On s'inquiétait des limites Claude Max (sessions parallèles, etc.).
-Lolo a confirmé que le budget n'est pas un problème. Ça libère les choix
+L'utilisateur a confirmé que le budget n'est pas un problème. Ça libère les choix
 architecturaux — on peut lancer plusieurs sessions en parallèle sans se soucier
 du coût.
 
@@ -84,7 +84,7 @@ Ces fonctions restent dans le code — c'est de l'infrastructure, pas de la déc
 ne l'interrompt pas — il lance une nouvelle session parallèle.
 
 **Raisonnement** : On avait identifié l'interruption comme un problème (challenge 1).
-Lolo a clarifié : l'interruption est le mauvais modèle. Si un email urgent arrive
+L'utilisateur a clarifié : l'interruption est le mauvais modèle. Si un email urgent arrive
 pendant que Claude crée une facture, il ne faut pas arrêter la facture. Il faut
 lancer un deuxième Claude en parallèle qui gère l'email. Chaque Claude a son propre
 espace et ses propres ressources.
@@ -95,7 +95,7 @@ veulent Chrome en même temps). Le système de locks de la V1 fonctionne déjà 
 ## 6. L'assistant tourne en fond, tranquillement
 
 **Le principe** : Pas besoin de réactivité à la seconde. L'assistant travaille
-méthodiquement, vérifie régulièrement, avance sur les dossiers, et ne dérange Lolo
+méthodiquement, vérifie régulièrement, avance sur les dossiers, et ne dérange l'utilisateur
 que quand c'est nécessaire.
 
 **L'analogie retenue** : le système nerveux. L'agent ne "commence pas sa journée"
@@ -127,12 +127,12 @@ temps réel, shopping en ligne. Chacun = un skill que Claude appelle.
 ## 8. Amélioration continue
 
 **Le principe** : L'assistant n'a pas besoin d'être parfait au jour 1. Il doit être
-capable de détecter ses lacunes et permettre à Lolo de l'améliorer au fil du temps.
+capable de détecter ses lacunes et permettre à l'utilisateur de l'améliorer au fil du temps.
 
 **Idée d'auto-analyse** : Quand Claude n'arrive pas à faire quelque chose, il devrait
 reporter le gap : "Pour faire X, j'aurais besoin de pouvoir Y mais je n'en suis pas
-capable." Ça permet à Lolo d'ajouter des skills, modifier des comportements, etc.
+capable." Ça permet à l'utilisateur d'ajouter des skills, modifier des comportements, etc.
 
 **Crainte** : ne pas tomber dans le piège de sur-engineer l'auto-analyse. Rester
-simple — un fichier de "gaps détectés" que Claude alimente et que Lolo consulte
+simple — un fichier de "gaps détectés" que Claude alimente et que l'utilisateur consulte
 quand il veut améliorer l'assistant.

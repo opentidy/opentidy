@@ -48,7 +48,7 @@ Points importants :
 
 - `allow` → continue
 - `deny` → bloque, Claude reçoit le systemMessage
-- `ask` → demande confirmation à l'utilisateur (Lolo)
+- `ask` → demande confirmation à l'utilisateur
 - `updatedInput` → peut MODIFIER les paramètres de l'outil avant exécution
 
 ## Types de hooks

@@ -5,7 +5,7 @@ import { createWebhookReceiver } from '../../src/receiver/webhook.js';
 describe('WebhookReceiver', () => {
   const validGmailPayload = {
     from: 'billing@sopra.com',
-    to: 'lolo@loaddr.com',
+    to: 'user@example.com',
     subject: 'Facture Mars 2026',
     body: 'Veuillez trouver ci-joint la facture.',
     messageId: 'msg-123',

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Give Alfred a persistent global memory that sessions read on launch and write to on exit, editable by Lolo via the UI.
+**Goal:** Give Alfred a persistent global memory that sessions read on launch and write to on exit, editable by the user via the UI.
 
 **Architecture:** Markdown files in `workspace/_memory/` with INDEX.md as compact index. Three agents: injection (session launch), extraction (session end via hook), prompt (UI natural language). File-based lockfile for concurrency.
 
@@ -102,7 +102,7 @@ export const MemoryCreateSchema = z.object({
 
 - [ ] **Step 3: Build shared package**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/shared build`
+Run: `pnpm --filter @opentidy/shared build`
 Expected: Build success
 
 - [ ] **Step 4: Commit**
@@ -174,7 +174,7 @@ describe('MemoryLock', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement lock manager**
@@ -217,7 +217,7 @@ export function createMemoryLock(memoryDir: string) {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
 Expected: 3 tests PASS
 
 - [ ] **Step 5: Commit**
@@ -302,7 +302,7 @@ updated: 2026-03-16
 category: business
 ---
 
-Loaddr is active.
+Acme Corp is active.
 
 - [2026-03-16] Confirmed active
 `
@@ -310,7 +310,7 @@ Loaddr is active.
       const entry = manager.readFile('test.md')
       expect(entry.category).toBe('business')
       expect(entry.created).toBe('2026-03-16')
-      expect(entry.content).toContain('Loaddr is active')
+      expect(entry.content).toContain('Acme Corp is active')
     })
 
     it('throws for non-existent file', () => {
@@ -323,18 +323,18 @@ Loaddr is active.
     it('creates file with frontmatter and updates INDEX.md', () => {
       manager.ensureDir()
       manager.writeFile({
-        filename: 'business-loaddr.md',
+        filename: 'business-acme.md',
         category: 'business',
-        description: 'Statut Loaddr',
-        content: 'Loaddr is active.',
+        description: 'Statut Acme',
+        content: 'Acme Corp is active.',
       })
-      const file = manager.readFile('business-loaddr.md')
+      const file = manager.readFile('business-acme.md')
       expect(file.category).toBe('business')
-      expect(file.content).toContain('Loaddr is active')
+      expect(file.content).toContain('Acme Corp is active')
 
       const index = manager.readIndex()
       expect(index).toHaveLength(1)
-      expect(index[0].filename).toBe('business-loaddr.md')
+      expect(index[0].filename).toBe('business-acme.md')
     })
 
     it('updates existing file and INDEX.md', () => {
@@ -413,7 +413,7 @@ Content A
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement memory manager**
@@ -586,7 +586,7 @@ ${input.content}
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
 Expected: All tests PASS
 
 - [ ] **Step 5: Commit**
@@ -683,7 +683,7 @@ describe('MemoryAgents', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement memory agents**
@@ -783,9 +783,9 @@ Contenu libre avec entrées datées.
   }
 
   function buildPromptAgentPrompt(text: string, indexContent: string): string {
-    return `Tu es l'agent mémoire d'Alfred. Lolo te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
+    return `Tu es l'agent mémoire d'Alfred. L'utilisateur te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
 
-## Instruction de Lolo
+## Instruction de l'utilisateur
 "${text}"
 
 ## INDEX.md (mémoire actuelle)
@@ -879,7 +879,7 @@ Contenu libre avec entrées datées [YYYY-MM-DD].
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
+Run: `pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
 Expected: All tests PASS
 
 - [ ] **Step 5: Create index re-export**
@@ -959,7 +959,7 @@ const hooksHandler = createHooksHandler({
 
 - [ ] **Step 4: Run existing hook tests to check nothing is broken**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1016,7 +1016,7 @@ Update `createLauncher` to receive `memoryManager` and `memoryAgents`.
 
 - [ ] **Step 4: Run existing tests**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1062,7 +1062,7 @@ Add memory context to the checkup prompt in the same way.
 
 - [ ] **Step 4: Run existing tests**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1160,7 +1160,7 @@ Pass these to hook handler and launcher factories.
 
 - [ ] **Step 4: Run all backend tests**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
+Run: `pnpm --filter @opentidy/backend test`
 Expected: All tests PASS
 
 - [ ] **Step 5: Commit**
@@ -1194,7 +1194,7 @@ Le système a une mémoire persistante dans `_memory/INDEX.md` et `_memory/*.md`
 La mémoire est gérée automatiquement :
 - **Lue** au lancement de ta session (section "Contexte mémoire" dans ton CLAUDE.md)
 - **Écrite** automatiquement à la fin de ta session par un agent dédié
-- **Éditée** par Lolo via l'app web
+- **Éditée** par l'utilisateur via l'app web
 ```
 
 - [ ] **Step 3: Commit**
@@ -1308,7 +1308,7 @@ Add "Mémoire" to the `links` array in `DesktopNav.tsx` and `MobileNav.tsx`. Add
 
 - [ ] **Step 5: Test manually**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm dev`
+Run: `pnpm dev`
 Navigate to `/memory` in browser. Verify:
 - Page loads without errors
 - Empty state shows correctly
@@ -1378,7 +1378,7 @@ git commit -m "feat(memory): initialize memory directory structure"
 
 - [ ] **Step 1: Start the backend**
 
-Run: `cd /Users/lolo/Documents/opentidy && pnpm dev`
+Run: `pnpm dev`
 
 - [ ] **Step 2: Test memory API endpoints**
 

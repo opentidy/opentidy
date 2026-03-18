@@ -8,7 +8,7 @@
 set -euo pipefail
 
 PAYLOAD=$(cat)
-WORKSPACE_DIR="${OPENTIDY_WORKSPACE:-/Users/lolo/Documents/opentidy/workspace}"
+WORKSPACE_DIR="${OPENTIDY_WORKSPACE:-${HOME}/workspace}"
 CWD=$(echo "$PAYLOAD" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd',''))" 2>/dev/null)
 
 # Not an OpenTidy session (cwd not inside workspace) → ALLOW immediately

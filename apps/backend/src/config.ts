@@ -16,6 +16,7 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
     keepReleases: 3,
   },
   claudeConfig: { dir: '' },
+  language: 'en',
 };
 
 function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record<string, any>): T {

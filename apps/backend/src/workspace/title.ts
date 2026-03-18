@@ -1,14 +1,14 @@
 import type { SpawnClaudeSimpleFn } from '../infra/spawn-claude.js';
 
-const TITLE_SYSTEM_PROMPT = `Génère un titre court et descriptif (max 50 caractères) pour ce dossier.
-Le titre doit résumer l'action principale et le sujet clé.
-Exemples de bons titres :
-- "Récap météo quotidien Limassol"
-- "Veille fiscale Chypre non-dom"
-- "Week-end Paphos 22-23 mars"
-- "Rappel renouvellement loaddr.com"
-- "Surveillance prix vols LCA → BRU"
-Réponds UNIQUEMENT avec le titre, sans guillemets ni ponctuation finale.`;
+const TITLE_SYSTEM_PROMPT = `Generate a short, descriptive title (max 50 characters) for this dossier.
+The title should summarize the main action and key subject.
+Examples of good titles:
+- "Daily weather recap Limassol"
+- "Cyprus non-dom tax watch"
+- "Weekend Paphos March 22-23"
+- "Renewal reminder example.com"
+- "Flight price tracker LCA → BRU"
+Reply ONLY with the title, no quotes or trailing punctuation.`;
 
 export function cleanTitle(raw: string): string {
   let title = raw.trim();
@@ -38,8 +38,8 @@ export function createTitleGenerator(workspaceDir: string, deps: {
   return async function generateTitle(instruction: string): Promise<string> {
     try {
       console.log('[opentidy] Generating title via claude -p');
-      const args = ['-p', '--output-format', 'text', '--system-prompt', TITLE_SYSTEM_PROMPT, `Instruction du dossier :\n${instruction}`];
-      const stdout = await deps.spawnClaude({ args, cwd: workspaceDir, type: 'title', description: `Génération titre: ${instruction.slice(0, 100)}` });
+      const args = ['-p', '--output-format', 'text', '--system-prompt', TITLE_SYSTEM_PROMPT, `Dossier instruction:\n${instruction}`];
+      const stdout = await deps.spawnClaude({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}` });
 
       const title = cleanTitle(stdout);
       if (!title) {

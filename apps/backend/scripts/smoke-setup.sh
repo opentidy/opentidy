@@ -123,8 +123,8 @@ Suggestion: Implémenter un backoff exponentiel et un cache des emails déjà lu
 
 ---
 
-## ~~2026-03-08 — Certificat SSL expiré loaddr.com~~ ✅ RÉSOLU
-Problème: Le certificat SSL du site loaddr.com avait expiré.
+## ~~2026-03-08 — Certificat SSL expiré example.com~~ ✅ RÉSOLU
+Problème: Le certificat SSL du site example.com avait expiré.
 Impact: Les requêtes HTTPS échouaient.
 Résolu: Certificat renouvelé via Let's Encrypt le 2026-03-09.
 GAPS

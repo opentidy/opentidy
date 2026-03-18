@@ -2,7 +2,7 @@
 
 ## Context
 
-Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner (Lolo) will be abroad with no physical access — everything must be remotely manageable and self-updating. The project will be open source.
+Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner will be abroad with no physical access — everything must be remotely manageable and self-updating. The project will be open source.
 
 ## Architecture Overview
 
@@ -36,7 +36,7 @@ Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (2
 └──────────────────────────────────────────────────────────┘
          │
          │ Cloudflare Tunnel
-         │ (alfred.loaddr.com)
+         │ (opentidy.yourdomain.com)
          │ Zero Trust auth
          ▼
     Any browser
@@ -261,7 +261,7 @@ The auto-updater **cannot run inside the Alfred process** — `brew upgrade` rep
 - **Flow**:
   1. Compare current version with latest release tag
   2. If newer version available → notify via Telegram: "Alfred v1.4.0 disponible. Mise a jour auto dans 5min."
-  3. Wait 5 minutes (allows Lolo to cancel via Telegram if needed)
+  3. Wait 5 minutes (allows the user to cancel via Telegram if needed)
   4. Spawn detached updater script and exit gracefully
 
 ### Detached Updater Script (`opentidy-updater.sh`)
@@ -336,7 +336,7 @@ Users can disable auto-update (`autoUpdate: false`) and update manually with `al
 
 ### Cloudflare Tunnel
 
-Exposes Alfred's API + web UI on a domain (e.g. `alfred.loaddr.com`):
+Exposes Alfred's API + web UI on a domain (e.g. `opentidy.yourdomain.com`):
 
 - **Cloudflare Access (Zero Trust)** as first auth layer — only authenticated users reach the Mac Mini
 - **Bearer token** as second auth layer in Hono middleware — for open source users without Cloudflare

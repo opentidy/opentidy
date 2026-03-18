@@ -7,9 +7,9 @@ const TRIAGE_SYSTEM_PROMPT = `Mode triage. Tu reçois un event et la liste des d
 Décide :
 1. Si l'event concerne un ou plusieurs dossiers existants → { "dossierIds": ["id1", ...] }
    - Vérifie la section "## En attente" : si un dossier attend exactement ce type d'info, c'est un match
-2. Si c'est un nouveau sujet qui nécessite une ACTION CONCRÈTE de Lolo → { "suggestion": { "title": "...", "urgency": "urgent|normal|faible", "source": "...", "why": "..." } }
+2. Si c'est un nouveau sujet qui nécessite une ACTION CONCRÈTE de l'utilisateur → { "suggestion": { "title": "...", "urgency": "urgent|normal|faible", "source": "...", "why": "..." } }
    - La suggestion doit être une VRAIE tâche : répondre à un email, traiter une demande, respecter une deadline
-   - Le "why" doit expliquer pourquoi Lolo devrait s'en occuper et ce qui se passe s'il ne le fait pas
+   - Le "why" doit expliquer pourquoi l'utilisateur devrait s'en occuper et ce qui se passe s'il ne le fait pas
    - NE PAS créer de suggestions pour du ménage, de l'optimisation, ou des constats techniques
 3. Si c'est du spam, une newsletter, un email marketing, ou non pertinent → { "ignore": true, "reason": "..." }
 Réponds UNIQUEMENT en JSON, rien d'autre.`;

@@ -1,7 +1,7 @@
-// types.ts — SSOT pour tous les types OpenTidy
+// types.ts — SSOT for all OpenTidy types
 
 // === Dossier (workspace/) ===
-export type DossierStatus = 'EN COURS' | 'TERMINÉ';
+export type DossierStatus = 'IN_PROGRESS' | 'COMPLETED';
 
 export interface Dossier {
   id: string;           // slug du dossier (nom du répertoire)
@@ -15,7 +15,7 @@ export interface Dossier {
   confirm?: boolean;    // mode validation — Claude asks before external actions
   journal: JournalEntry[];
   waitingFor?: string;  // contenu de la section ## En attente (si présente)
-  waitingType?: 'lolo' | 'tiers'; // LOLO = Lolo doit agir, TIERS = attente externe
+  waitingType?: 'user' | 'tiers'; // USER = user must act, TIERS = waiting for third party
 }
 
 export interface JournalEntry {
@@ -24,7 +24,7 @@ export interface JournalEntry {
 }
 
 // === Suggestion (_suggestions/) ===
-export type UrgencyLevel = 'urgent' | 'normal' | 'faible';
+export type UrgencyLevel = 'urgent' | 'normal' | 'low';
 
 export interface Suggestion {
   slug: string;         // nom du fichier sans .md
@@ -81,7 +81,7 @@ export interface Session {
   startedAt: string;
   claudeSessionId?: string;   // pour --resume
   pid?: number;
-  waitingType?: 'lolo' | 'tiers'; // type d'attente quand idle
+  waitingType?: 'user' | 'tiers'; // type of wait when idle
 }
 
 // === Hook (centralisé) ===
@@ -191,5 +191,6 @@ export interface OpenTidyConfig {
   claudeConfig: {
     dir: string;
   };
+  language: string; // language for Claude responses (e.g. 'en', 'fr')
 }
 

@@ -62,7 +62,7 @@ category: business
 description: Test desc
 ---
 
-Loaddr is active.
+Acme Corp is active.
 
 - [2026-03-16] Confirmed active
 `
@@ -70,7 +70,7 @@ Loaddr is active.
       const entry = manager.readFile('test.md')
       expect(entry.category).toBe('business')
       expect(entry.created).toBe('2026-03-16')
-      expect(entry.content).toContain('Loaddr is active')
+      expect(entry.content).toContain('Acme Corp is active')
     })
 
     it('throws for non-existent file', () => {
@@ -83,18 +83,18 @@ Loaddr is active.
     it('creates file with frontmatter and updates INDEX.md', () => {
       manager.ensureDir()
       manager.writeFile({
-        filename: 'business-loaddr.md',
+        filename: 'business-acme.md',
         category: 'business',
-        description: 'Statut Loaddr',
-        content: 'Loaddr is active.',
+        description: 'Statut Acme',
+        content: 'Acme Corp is active.',
       })
-      const file = manager.readFile('business-loaddr.md')
+      const file = manager.readFile('business-acme.md')
       expect(file.category).toBe('business')
-      expect(file.content).toContain('Loaddr is active')
+      expect(file.content).toContain('Acme Corp is active')
 
       const index = manager.readIndex()
       expect(index).toHaveLength(1)
-      expect(index[0].filename).toBe('business-loaddr.md')
+      expect(index[0].filename).toBe('business-acme.md')
     })
 
     it('updates existing file and INDEX.md', () => {

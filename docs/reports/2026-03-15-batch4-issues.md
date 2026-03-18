@@ -6,7 +6,7 @@ generateTitle échoue silencieusement. Tous les titres sont des IDs de dossier.
 ## 2. Tâches récurrentes : TERMINÉ après 1 itération
 Claude met TERMINÉ après 1 check au lieu de garder EN COURS avec une date de prochaine action. Le patrol ne relance pas.
 
-## 3. T3 email attente : pas de relance quand Lolo répond
+## 3. T3 email attente : pas de relance quand l'utilisateur répond
 Le triage webhook ne sait pas associer un email de réponse à un dossier en attente. La session reste BLOQUÉ indéfiniment.
 
 ## 4. Pas de .session-id persisté

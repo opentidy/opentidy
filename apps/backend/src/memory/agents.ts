@@ -28,33 +28,33 @@ export function createMemoryAgents(workspaceDir: string, deps: {
   const manager = createMemoryManager(workspaceDir)
 
   function buildInjectionPrompt(input: InjectionInput): string {
-    return `Tu es l'agent d'injection mémoire d'OpenTidy. Ton rôle est de synthétiser les informations pertinentes de la mémoire pour une session de travail.
+    return `You are OpenTidy's memory injection agent. Your role is to synthesize relevant information from memory for a work session.
 
-## INDEX.md (mémoire disponible)
+## INDEX.md (available memory)
 ${input.indexContent}
 
-## Événement déclencheur
+## Triggering event
 ${input.event}
 
-## État du dossier (state.md)
+## Dossier state (state.md)
 ${input.stateContent}
 
 ## Instructions
-1. Lis les fichiers mémoire qui te semblent pertinents pour cette tâche (utilise Read)
-2. Synthétise les informations pertinentes en un bloc concis
-3. Retourne UNIQUEMENT le bloc à injecter, au format suivant :
+1. Read the memory files that seem relevant to this task (use Read)
+2. Synthesize the relevant information into a concise block
+3. Return ONLY the block to inject, in the following format:
 
-## Contexte mémoire (injecté automatiquement — ne pas modifier)
-Dernière injection : ${new Date().toISOString().split('T')[0]}
+## Memory context (injected automatically — do not modify)
+Last injection: ${new Date().toISOString().split('T')[0]}
 
-- Point pertinent 1
-- Point pertinent 2
+- Relevant point 1
+- Relevant point 2
 
-## Contraintes
-- 30 lignes maximum
-- Que les infos pertinentes pour la tâche
-- Si aucune mémoire n'est pertinente, retourne "Aucun contexte mémoire pertinent."
-- Privilégie les entrées les plus récentes en cas de conflit`
+## Constraints
+- 30 lines maximum
+- Only information relevant to the task
+- If no memory is relevant, return "No relevant memory context."
+- Prefer the most recent entries in case of conflict`
   }
 
   function buildExtractionPrompt(input: ExtractionInput): string {
@@ -111,11 +111,11 @@ Contenu libre avec entrées datées.
 ### Mission 2 — Auto-analyses (gaps)
 Identifie les obstacles rencontrés pendant la session et génère des analyses ACTIONNABLES.
 
-**Critère clé : ne crée un gap QUE si Lolo peut agir dessus.** Exemples :
-- OUI : accès/credentials manquants → Lolo peut les fournir
-- OUI : hook qui bloque une action légitime → Lolo peut ajuster la config
-- OUI : MCP/outil cassé ou mal configuré → Lolo peut corriger
-- OUI : process inefficace détecté → Lolo peut améliorer le workflow
+**Critère clé : ne crée un gap QUE si l'utilisateur peut agir dessus.** Exemples :
+- OUI : accès/credentials manquants → l'utilisateur peut les fournir
+- OUI : hook qui bloque une action légitime → l'utilisateur peut ajuster la config
+- OUI : MCP/outil cassé ou mal configuré → l'utilisateur peut corriger
+- OUI : process inefficace détecté → l'utilisateur peut améliorer le workflow
 - NON : limitation théorique sans impact concret
 - NON : observation vague sans action claire
 - NON : bug interne du code OpenTidy (ça va dans les issues, pas les gaps)
@@ -131,7 +131,7 @@ Format pour chaque gap :
 **Impact:** <Conséquence business ou opérationnelle>
 **Catégorie:** <capability|access|config|process|data>
 **Actions recommandées:**
-- <Action concrète 1 que Lolo peut faire>
+- <Action concrète 1 que l'utilisateur peut faire>
 - <Action concrète 2 (optionnel)>
 **Dossier:** ${input.dossierId}
 **Session:** <session_id si tu le trouves dans le transcript>
@@ -157,9 +157,9 @@ Si le journal est vide ou incomplet par rapport au transcript (actions faites ma
   }
 
   function buildPromptAgentPrompt(text: string, indexContent: string): string {
-    return `Tu es l'agent mémoire d'OpenTidy. Lolo te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
+    return `Tu es l'agent mémoire d'OpenTidy. L'utilisateur te donne une instruction en langage naturel pour ajouter ou modifier la mémoire.
 
-## Instruction de Lolo
+## Instruction utilisateur
 "${text}"
 
 ## INDEX.md (mémoire actuelle)

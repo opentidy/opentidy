@@ -5,24 +5,24 @@ import type { SpawnClaudeSimpleFn } from '../infra/spawn-claude.js';
 import { generateSlug } from '../utils/slug.js';
 import { buildMemoryContext } from '../utils/memory-context.js';
 
-const CHECKUP_SYSTEM_PROMPT = `Mode checkup. Tu analyses l'état du workspace.
+const CHECKUP_SYSTEM_PROMPT = `Checkup mode. You analyze the workspace state.
 
-Pour chaque dossier EN COURS :
-- Si une action est nécessaire (deadline, relance, travail à avancer) → ajoute-le dans "launch"
-- Si un dossier a une section "## En attente", ne le relance PAS sauf si une date y est mentionnée et dépassée
-- Si un dossier a un champ "PROCHAINE ACTION :" avec une date/heure dépassée → ajoute-le dans "launch"
+For each IN_PROGRESS dossier:
+- If an action is needed (deadline, follow-up, work to advance) → add it to "launch"
+- If a dossier has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
+- If a dossier has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
 
-Pour les suggestions — sois TRÈS sélectif. Une suggestion c'est une VRAIE tâche actionable que Lolo devrait lancer :
-- OUI : "Email reçu de Sopra demandant les timesheets de mars" (action concrète déclenchée par un event externe)
-- OUI : "La deadline de déclaration TVA est dans 3 jours" (action urgente avec deadline)
-- NON : "Archiver les dossiers terminés" (ménage interne, pas une tâche)
-- NON : "Bitcoin suivi incomplet" (c'est un gap/bug, pas une suggestion)
-- NON : "Améliorer le process de X" (c'est un gap, à mettre dans _gaps/gaps.md)
+For suggestions — be VERY selective. A suggestion is a REAL actionable task the user should launch:
+- YES: "Email received from Sopra requesting March timesheets" (concrete action triggered by an external event)
+- YES: "VAT declaration deadline is in 3 days" (urgent action with deadline)
+- NO: "Archive completed dossiers" (internal housekeeping, not a task)
+- NO: "Bitcoin tracking incomplete" (that's a gap/bug, not a suggestion)
+- NO: "Improve process X" (that's a gap, belongs in _gaps/gaps.md)
 
-Si tu détectes un problème technique ou une amélioration système → écris-le dans _gaps/gaps.md, pas dans les suggestions.
+If you detect a technical issue or system improvement → write it in _gaps/gaps.md, not in suggestions.
 
-Réponds UNIQUEMENT en JSON :
-{ "launch": ["dossier-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|faible", "why": "..." }] }`;
+Respond ONLY in JSON:
+{ "launch": ["dossier-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
 
 type RunClaudeFn = (args: string[], opts: { cwd: string; timeout?: number }) => Promise<string>;
 
@@ -59,7 +59,7 @@ export function createCheckup(deps: {
   };
 
   async function runCheckup(): Promise<{ launched: string[]; suggestions: number }> {
-    const prompt = `Lis workspace/*/state.md dans ${deps.workspaceDir}. Analyse chaque dossier actif.`;
+    const prompt = `Read workspace/*/state.md in ${deps.workspaceDir}. Analyze each active dossier.`;
 
     // Build system prompt with memory context
     const memoryContext = deps.memoryManager
@@ -67,11 +67,11 @@ export function createCheckup(deps: {
       : '';
     const existingSuggestions = deps.suggestionsManager?.listSuggestions() ?? [];
     const suggestionsBlock = existingSuggestions.length > 0
-      ? `\n\nSuggestions deja existantes (NE PAS recreer de suggestion similaire) :\n${existingSuggestions.map(s => `- ${s.title}`).join('\n')}`
+      ? `\n\nExisting suggestions (do NOT recreate similar ones):\n${existingSuggestions.map(s => `- ${s.title}`).join('\n')}`
       : '';
 
     const systemPrompt = memoryContext
-      ? `${CHECKUP_SYSTEM_PROMPT}${suggestionsBlock}\n\n## Mémoire globale (contexte persistant)\n${memoryContext}`
+      ? `${CHECKUP_SYSTEM_PROMPT}${suggestionsBlock}\n\n## Global memory (persistent context)\n${memoryContext}`
       : `${CHECKUP_SYSTEM_PROMPT}${suggestionsBlock}`;
 
     let stdout: string;
@@ -82,7 +82,7 @@ export function createCheckup(deps: {
     if (deps.runClaude) {
       stdout = await deps.runClaude(clArgs, { cwd: deps.workspaceDir, timeout: 3_600_000 });
     } else if (deps.spawnClaude) {
-      stdout = await deps.spawnClaude({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Scan périodique du workspace' });
+      stdout = await deps.spawnClaude({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' });
     } else {
       throw new Error('[checkup] No Claude runner provided — pass runClaude or spawnClaude');
     }
@@ -102,7 +102,7 @@ export function createCheckup(deps: {
       suggestions: Array<{ title: string; urgency: string; why: string }>;
     };
 
-    // Lancer les sessions (with PROCHAINE ACTION date guard)
+    // Launch sessions (with NEXT ACTION date guard)
     const activeDossierIds = new Set(deps.launcher.listActiveSessions().map(s => s.dossierId));
     const validLaunches: string[] = [];
     for (const dossierId of result.launch) {

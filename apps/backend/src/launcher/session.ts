@@ -60,8 +60,8 @@ export function createLauncher(deps: {
       const dossierDir = path.join(deps.workspaceDir, dossierId);
       const sessionName = `opentidy-${dossierId}`;
 
-      // Ensure dossier is marked EN COURS (may have been TERMINÉ)
-      setStatus(dossierDir, 'EN COURS');
+      // Ensure dossier is marked IN_PROGRESS (may have been COMPLETED)
+      setStatus(dossierDir, 'IN_PROGRESS');
 
       // Generate dossier CLAUDE.md
       generateDossierClaudeMd(dossierId, event);
@@ -129,11 +129,11 @@ export function createLauncher(deps: {
     // Determine waiting type from state.md
     const dossierDir = path.join(deps.workspaceDir, dossierId);
     const state = parseStateMd(dossierDir);
-    session.waitingType = state.waitingType ?? 'lolo';
+    session.waitingType = state.waitingType ?? 'user';
     deps.sse.emit({ type: 'session:idle', data: { dossierId, waitingType: session.waitingType }, timestamp: new Date().toISOString() });
   }
 
-  function setSessionWaitingType(dossierId: string, type: 'lolo' | 'tiers'): void {
+  function setSessionWaitingType(dossierId: string, type: 'user' | 'tiers'): void {
     const session = sessions.get(dossierId);
     if (!session) return;
     session.waitingType = type;
@@ -196,14 +196,14 @@ export function createLauncher(deps: {
   function generateDossierClaudeMd(dossierId: string, event?: { source: string; content: string }): void {
     const dossierDir = path.join(deps.workspaceDir, dossierId);
     const state = deps.workspace.getDossier(dossierId);
-    let content = `# Dossier : ${state.title}\n\n## Objectif\n${state.objective}\n`;
+    let content = `# Dossier: ${state.title}\n\n## Objective\n${state.objective}\n`;
     if (event) {
-      content += `\n## Event declencheur\nSource: ${event.source}\n${event.content}\n`;
+      content += `\n## Trigger\nSource: ${event.source}\n${event.content}\n`;
     }
     if (state.confirm) {
-      content += `\n## Mode Validation\nCe dossier est en mode validation. Avant toute action externe (envoi d'email, soumission de formulaire, navigation bancaire, paiement, transfert de fichiers), tu DOIS :\n1. Decrire l'action que tu vas faire dans state.md\n2. Attendre la confirmation de Lolo (il repondra via le terminal)\n\nLes actions internes (lecture de fichiers, recherche, analyse) ne necessitent pas de confirmation.\n`;
+      content += `\n## Confirm Mode\nThis dossier is in confirm mode. Before any external action (sending email, form submission, bank navigation, payment, file transfer), you MUST:\n1. Describe the action you will take in state.md\n2. Wait for user confirmation (they will respond via the terminal)\n\nInternal actions (reading files, searching, analysis) do not require confirmation.\n`;
     }
-    content += `\n## Fin de travail\nQuand tu as termine ton travail sur ce dossier, mets a jour STATUT: TERMINE dans state.md.\n`;
+    content += `\n## End of work\nWhen you have finished working on this dossier, update STATUS: COMPLETED in state.md.\n`;
     fs.writeFileSync(path.join(dossierDir, 'CLAUDE.md'), content);
   }
 

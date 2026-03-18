@@ -47,7 +47,7 @@ export const timeoutSession = (id: string) =>
   json(`/session/${id}/timeout`, { method: 'POST' });
 export const stopSession = (id: string) =>
   json(`/session/${id}/stop`, { method: 'POST' });
-export const setWaitingType = (id: string, type: 'lolo' | 'tiers') =>
+export const setWaitingType = (id: string, type: 'user' | 'tiers') =>
   json(`/dossier/${id}/waiting-type`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }) });
 export const completeDossier = (id: string) =>
   json(`/dossier/${id}/complete`, { method: 'POST' });

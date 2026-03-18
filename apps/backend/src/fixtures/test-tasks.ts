@@ -1,5 +1,5 @@
 // Fixture: 13 test tasks that cover all OpenTidy features
-// SAFE: all emails go to l.denblyden@gmail.com only, no real third-party contacts
+// SAFE: all emails go to the configured user email only, no real third-party contacts
 
 export interface TestTask {
   instruction: string;
@@ -31,7 +31,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Login + credentials (Bitwarden, 2FA checkpoint)',
     instruction:
-      "Connecte-toi à mon compte GitHub (ldenblyd) en utilisant Camoufox et mes credentials Bitwarden. Tu DOIS utiliser le browser (pas gh CLI). Liste mes 5 repos les plus récents avec leur dernière activité. Mets le résultat dans artifacts/github-repos.md. Si tu rencontres du 2FA, fais un checkpoint.",
+      "Connecte-toi à mon compte GitHub (your-username) en utilisant Camoufox et mes credentials Bitwarden. Tu DOIS utiliser le browser (pas gh CLI). Liste mes 5 repos les plus récents avec leur dernière activité. Mets le résultat dans artifacts/github-repos.md. Si tu rencontres du 2FA, fais un checkpoint.",
     confirm: false,
     tests: ['camoufox', 'bitwarden', '2fa', 'checkpoint', 'session-profile'],
   },
@@ -40,7 +40,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Email envoi + En attente + relance par triage + extraction mémoire',
     instruction:
-      'Envoie un email à l.denblyden@gmail.com avec le sujet "Test OpenTidy — réponds-moi" et le contenu "Ceci est un test du système de suivi. Réponds simplement OK.". Ensuite, mets la section "## En attente" dans state.md en expliquant que tu attends la réponse à cet email. Quand ta session reprend (le système te relancera quand la réponse arrive), lis la réponse via Gmail MCP, note-la dans le journal et termine.',
+      'Envoie un email à user@example.com avec le sujet "Test OpenTidy — réponds-moi" et le contenu "Ceci est un test du système de suivi. Réponds simplement OK.". Ensuite, mets la section "## En attente" dans state.md en expliquant que tu attends la réponse à cet email. Quand ta session reprend (le système te relancera quand la réponse arrive), lis la réponse via Gmail MCP, note-la dans le journal et termine.',
     confirm: false,
     tests: ['apple-mail', 'en-attente', 'triage-relance', 'gmail-read', 'resume', 'memory-extraction', 'exit'],
   },
@@ -58,7 +58,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Mode confirm + checkpoint + contexte mémoire',
     instruction:
-      "Rédige un email pour demander l'avancement de la fermeture d'une société à un comptable. Envoie-le à l.denblyden@gmail.com (c'est un test). Mets aussi une copie dans artifacts/email-comptable.md. Fais un checkpoint pour que je valide avant l'envoi. IMPORTANT : vérifie d'abord le contexte mémoire (section \"Contexte mémoire\" dans CLAUDE.md) — si la mémoire indique que les emails de fermeture sont des tests, mentionne-le dans le journal.",
+      "Rédige un email pour demander l'avancement de la fermeture d'une société à un comptable. Envoie-le à user@example.com (c'est un test). Mets aussi une copie dans artifacts/email-comptable.md. Fais un checkpoint pour que je valide avant l'envoi. IMPORTANT : vérifie d'abord le contexte mémoire (section \"Contexte mémoire\" dans CLAUDE.md) — si la mémoire indique que les emails de fermeture sont des tests, mentionne-le dans le journal.",
     confirm: true,
     tests: ['confirm-mode', 'checkpoint', 'artifacts', 'notification', 'memory-injection'],
   },
@@ -76,7 +76,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Monitoring email conditionnel (Gmail watch, action)',
     instruction:
-      'Surveille mes emails pendant les prochaines 2 heures. Si je reçois un email avec "URGENT" dans le sujet, résume-le et envoie-moi un récap à l.denblyden@gmail.com avec le sujet "OpenTidy — Email urgent détecté". Note chaque vérification dans state.md.',
+      'Surveille mes emails pendant les prochaines 2 heures. Si je reçois un email avec "URGENT" dans le sujet, résume-le et envoie-moi un récap à user@example.com avec le sujet "OpenTidy — Email urgent détecté". Note chaque vérification dans state.md.',
     confirm: false,
     tests: ['gmail-read', 'conditional', 'recurrence', 'apple-mail'],
   },
@@ -85,7 +85,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Workflow cross-outils (browser + email + fichier)',
     instruction:
-      "1) Va sur mon profil LinkedIn et récupère mon titre actuel et mes 3 dernières expériences. 2) Cherche 3 conférences tech en Europe (mars-juin 2026) qui matchent mon profil. 3) Envoie-moi un email à l.denblyden@gmail.com avec les 3 conférences et un lien d'inscription pour chacune. 4) Mets tout dans artifacts/conferences-2026.md",
+      "1) Va sur mon profil LinkedIn et récupère mon titre actuel et mes 3 dernières expériences. 2) Cherche 3 conférences tech en Europe (mars-juin 2026) qui matchent mon profil. 3) Envoie-moi un email à user@example.com avec les 3 conférences et un lien d'inscription pour chacune. 4) Mets tout dans artifacts/conferences-2026.md",
     confirm: false,
     tests: ['camoufox', 'linkedin', 'apple-mail', 'multi-step', 'artifacts'],
   },
@@ -112,7 +112,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Mémoire — tâche qui dépend du contexte mémoire injecté',
     instruction:
-      "Envoie un email de suivi à mon comptable belge pour savoir où en est la fermeture de la société belge. Utilise les informations de la mémoire (section \"Contexte mémoire\" dans CLAUDE.md) pour connaître son nom et ses coordonnées. Envoie l'email à l.denblyden@gmail.com (c'est un test). Mets une copie dans artifacts/email-comptable-belge.md. Si tu n'as pas les infos du comptable dans la mémoire, fais un checkpoint en expliquant ce qui te manque.",
+      "Envoie un email de suivi à mon comptable belge pour savoir où en est la fermeture de la société belge. Utilise les informations de la mémoire (section \"Contexte mémoire\" dans CLAUDE.md) pour connaître son nom et ses coordonnées. Envoie l'email à user@example.com (c'est un test). Mets une copie dans artifacts/email-comptable-belge.md. Si tu n'as pas les infos du comptable dans la mémoire, fais un checkpoint en expliquant ce qui te manque.",
     confirm: false,
     tests: ['memory-injection', 'checkpoint-if-no-memory', 'apple-mail', 'artifacts'],
   },
@@ -121,7 +121,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Mémoire — recherche qui génère des faits extractibles',
     instruction:
-      "Cherche sur le web le statut actuel de la société Loaddr Ltd (UK). Trouve le numéro d'enregistrement Companies House, la date de création, le statut (active/dissolved), et l'adresse enregistrée. Mets tout dans artifacts/loaddr-status.md. Note dans le journal les faits importants découverts.",
+      "Cherche sur le web le statut actuel de la société Acme Corp (UK). Trouve le numéro d'enregistrement Companies House, la date de création, le statut (active/dissolved), et l'adresse enregistrée. Mets tout dans artifacts/company-status.md. Note dans le journal les faits importants découverts.",
     confirm: false,
     tests: ['camoufox', 'memory-extraction', 'artifacts', 'web-search'],
   },

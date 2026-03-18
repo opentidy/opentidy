@@ -9,7 +9,7 @@ Claude Code est déjà capable de faire quasi tout ce qu'on veut :
 - Messages → /sms, /whatsapp
 - Calendrier, Notion, etc. → MCP servers
 
-Lolo a constaté ça en utilisant /comptable : Claude Code est quasi 100% autonome
+L'utilisateur a constaté ça en utilisant /comptable : Claude Code est quasi 100% autonome
 pour créer des factures, récupérer des dépenses, naviguer sur des sites. Le seul
 moment où il coince, c'est quand il y a de l'authentification qu'il ne peut pas
 gérer seul (captcha, MFA, etc.).
@@ -17,19 +17,19 @@ gérer seul (captcha, MFA, etc.).
 **Le problème n'est pas la capacité. C'est l'orchestration.**
 
 Comment faire pour que Claude Code tourne en autonomie, suive des dossiers sur
-plusieurs jours/semaines, et ne sollicite Lolo que quand c'est vraiment nécessaire ?
+plusieurs jours/semaines, et ne sollicite l'utilisateur que quand c'est vraiment nécessaire ?
 
 ## Les problèmes à résoudre
 
 ### 1. TRIGGER — "Quelque chose se passe, lance Claude"
 Claude ne se lance pas tout seul. Il faut un backend qui :
 - Reçoit les events externes (webhook Gmail, nouveau SMS, etc.)
-- Reçoit les instructions directes de Lolo (app web, Claude Code interactif)
+- Reçoit les instructions directes de l'utilisateur (app web, Claude Code interactif)
 - Réagit aux événements schedulés (crons, deadlines)
 - Lance Claude avec le bon contexte
 
 Ne pas se limiter aux emails — penser à tout ce à quoi un assistant réagit :
-events entrants, instructions de Lolo, deadlines qui approchent, relances à faire,
+events entrants, instructions de l'utilisateur, deadlines qui approchent, relances à faire,
 réponses attendues qui n'arrivent pas, triggers externes.
 
 ### 2. ÉTAT — "Voici où tu en étais sur ce dossier"
@@ -39,15 +39,15 @@ Claude n'a pas de mémoire entre sessions. Il faut :
 - Permettre à Claude de le mettre à jour
 - Garder l'état concis (ne pas accumuler du bruit au fil du temps)
 
-### 3. CHECKPOINT — "Claude a besoin de Lolo, pause et notifie"
+### 3. CHECKPOINT — "Claude a besoin de l'utilisateur, pause et notifie"
 Certaines actions sont sensibles. Il faut :
 - Que Claude puisse se mettre en pause à des moments précis
-- Notifier Lolo (Telegram push → lien vers app web pour le contexte complet)
+- Notifier l'utilisateur (Telegram push → lien vers app web pour le contexte complet)
 - Persister l'état pour pouvoir reprendre plus tard
 
-Cas d'usage concret (soulevé par Lolo) : Claude va sur facture.net, il n'a pas
+Cas d'usage concret : Claude va sur facture.net, il n'a pas
 le mot de passe ou pire, il a besoin d'une validation MFA par téléphone. Il doit
-pouvoir dire "je suis bloqué ici" et que Lolo puisse intervenir. Et si Claude
+pouvoir dire "je suis bloqué ici" et que l'utilisateur puisse intervenir. Et si Claude
 doit y retourner plus tard, il sera peut-être ENCORE bloqué par la MFA. Certaines
 tâches nécessitent des interactions multiples et imprévisibles.
 
@@ -56,18 +56,18 @@ bien ça ? Probablement pas — quand Claude est bloqué en mode print, il ne pe
 pas demander d'aide mid-session. Options :
 - Print + fallback (Claude s'arrête, notifie, reprend dans une nouvelle session)
   → mais on perd l'état browser (cookies, page ouverte, formulaire rempli)
-- Tmux (session interactive détachée, Lolo peut attacher quand Claude a besoin)
+- Tmux (session interactive détachée, l'utilisateur peut attacher quand Claude a besoin)
   → c'est ce que V1 fait, ça marche pour les interactions
 - Hybride (print pour les tâches simples, tmux pour les tâches browser)
   → plus complexe à orchestrer
 
-### 4. REPRISE — "Lolo a répondu, Claude reprend"
-Quand Lolo valide ou donne une instruction, il faut :
+### 4. REPRISE — "L'utilisateur a répondu, Claude reprend"
+Quand l'utilisateur valide ou donne une instruction, il faut :
 - Recevoir la réponse
-- Relancer Claude avec l'état du dossier + la réponse de Lolo
+- Relancer Claude avec l'état du dossier + la réponse de l'utilisateur
 - Continuer le workflow là où il s'était arrêté
 
-Si on utilise tmux, la reprise est "native" (Lolo intervient dans le terminal,
+Si on utilise tmux, la reprise est "native" (l'utilisateur intervient dans le terminal,
 Claude continue). Si on utilise des sessions print séparées, il faut reconstruire
 le contexte dans la nouvelle session.
 
@@ -94,7 +94,7 @@ ne couvrent que les cas où Claude SAIT qu'il doit s'arrêter.
 Quand Claude n'arrive pas à faire quelque chose, il devrait :
 - Détecter qu'il est bloqué ou incapable
 - Reporter le gap : "Pour faire X, j'aurais besoin de pouvoir Y"
-- Trigger Lolo uniquement quand il ne peut pas avancer
+- Trigger l'utilisateur uniquement quand il ne peut pas avancer
 - Permettre d'améliorer ses compétences (ajout de skills) au fil du temps
 
 L'avantage de Claude Code c'est qu'on peut l'améliorer incrémentalement :

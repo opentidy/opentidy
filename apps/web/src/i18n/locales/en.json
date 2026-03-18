@@ -1,0 +1,126 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "close": "Close",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "files": "Files",
+    "send": "Send",
+    "launch": "Launch",
+    "stop": "Stop",
+    "complete": "Complete",
+    "ignore": "Ignore",
+    "resolved": "Resolved",
+    "open": "Open",
+    "reset": "Reset",
+    "resetting": "Reset...",
+    "launching": "Launching..."
+  },
+  "status": {
+    "inProgress": "In progress",
+    "completed": "Completed",
+    "waiting": "Waiting",
+    "active": "Active",
+    "idle": "Idle"
+  },
+  "nav": {
+    "home": "Home",
+    "terminal": "Terminal",
+    "analyses": "Self-analyses",
+    "memory": "Memory",
+    "new": "New"
+  },
+  "home": {
+    "waitingForYou": "Waiting for you",
+    "dossier_one": "{{count}} dossier",
+    "dossier_other": "{{count}} dossiers",
+    "claudeWaiting": "Claude is waiting for your response",
+    "thirdPartyWait": "Third-party wait",
+    "userWait": "User wait",
+    "waitingForResponse": "Waiting for response",
+    "suggestions": "Suggestions",
+    "new_one": "{{count}} new",
+    "new_other": "{{count}} new",
+    "dossiers": "Dossiers",
+    "active": "Active",
+    "completed": "Completed",
+    "search": "Search...",
+    "noDossiers": "No {{filter}} dossiers",
+    "checkupRunning": "Checkup running...",
+    "checkupResult": "Checkup {{time}} — {{result}}",
+    "checkupOk": "OK",
+    "checkupError": "Error",
+    "nextAt": "Next at {{time}}",
+    "nextCheckup": "Next checkup at {{time}}",
+    "checkupWaiting": "Checkup — waiting",
+    "deleteConfirm": "Delete everything? Sessions, dossiers, locks — fresh start.",
+    "launchTestConfirm": "Launch all test tasks?",
+    "runCheckup": "Run checkup",
+    "newDossier": "+ New dossier"
+  },
+  "nouveau": {
+    "title": "New dossier",
+    "description": "Describe what you need. The assistant creates the dossier and starts working.",
+    "placeholder": "E.g.: List my desk for sale on Marketplace, price €300...",
+    "confirmMode": "Confirm before external actions",
+    "recommendations": "Assistant recommendations"
+  },
+  "dossierDetail": {
+    "stop": "Stop",
+    "complete": "Complete",
+    "completeConfirm": "Complete \"{{title}}\"?",
+    "state": "State",
+    "log": "Log",
+    "noActiveSession": "No active session",
+    "dossierCompleted": "This dossier is completed. Reopen it to start a session.",
+    "reopenDossier": "Reopen dossier",
+    "startSession": "Start a session"
+  },
+  "ameliorations": {
+    "title": "Self-analyses",
+    "open": "Open",
+    "resolved": "Resolved",
+    "ignored": "Ignored",
+    "open_one": "{{count}} open",
+    "open_other": "{{count}} open",
+    "noAnalyses": "No {{filter}} analyses",
+    "impact": "Impact",
+    "recommendedActions": "Recommended actions",
+    "suggestion": "Suggestion",
+    "category": {
+      "capability": "Capability",
+      "access": "Access",
+      "config": "Config",
+      "process": "Process",
+      "data": "Data"
+    }
+  },
+  "suggestion": {
+    "viewOriginal": "View original message",
+    "createDossier": "Create dossier",
+    "ignore": "Ignore"
+  },
+  "instruction": {
+    "placeholder": "Send an instruction to this dossier...",
+    "confirmMode": "Confirm before external actions"
+  },
+  "sidebar": {
+    "session": "Session",
+    "openTerminal": "Open terminal",
+    "stopSession": "Stop session"
+  },
+  "sessionOutput": {
+    "waiting": "Waiting for output..."
+  },
+  "stateRenderer": {
+    "completed": "Completed",
+    "lastAction": "Last action",
+    "objective": "Objective",
+    "log": "Log"
+  },
+  "errorBanner": {
+    "error": "Error: {{message}}",
+    "close": "Close"
+  }
+}

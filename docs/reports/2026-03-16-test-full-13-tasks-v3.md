@@ -58,7 +58,7 @@ On pourrait croire que (1) s'exécute avant (3), mais en pratique on-stop.sh voi
 ### Task 10: Booking.com hooks — PASS TERMINÉ, artifact hotel-larnaca.md
 ### Task 11: Contacts macOS — PASS TERMINÉ, artifact contacts-gmail.md
 ### Task 12: Mémoire injection — BLOQUÉ "mémoire système vide" (attendu, correct)
-### Task 13: Mémoire extraction — BLOQUÉ "Loaddr Ltd introuvable sur Companies House UK" (checkpoint pertinent)
+### Task 13: Mémoire extraction — BLOQUÉ "Acme Corp introuvable sur Companies House UK" (checkpoint pertinent)
 
 ## Issues Found
 

@@ -8,7 +8,7 @@ On a d'abord pensé en termes d'"agents spécialisés" (un agent compta, un agen
 un agent social) — c'est l'approche D (bureau d'agents). L'idée était séduisante :
 chaque agent a son domaine, son prompt optimisé, son workspace.
 
-Mais en réfléchissant, Lolo a fait remarquer que Claude peut lui-même déterminer
+Mais en réfléchissant, l'utilisateur a fait remarquer que Claude peut lui-même déterminer
 quels skills utiliser et quel contexte charger. La spécialisation par domaine
 n'apporte pas grand-chose — Claude est déjà généraliste et bon dans tous ces domaines.
 
@@ -35,7 +35,7 @@ Exemples :
   concernés. C'est tout.
 
 Le même Claude, juste des contextes différents. Quand il a fini (ou quand il a besoin
-de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
+de l'utilisateur), il sauvegarde son état et se termine. Session propre à chaque fois.
 
 ### Ce que ça résout
 - **Contexte fini** → chaque session ne charge que ce dont elle a besoin
@@ -60,7 +60,7 @@ de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
 
 ---
 
-## Interface : comment Lolo interagit avec l'assistant
+## Interface : comment l'utilisateur interagit avec l'assistant
 
 ### Le cheminement de réflexion
 
@@ -91,7 +91,7 @@ Telegram est trop limitant pour prendre des actions complexes :
 - PAS d'actions depuis Telegram — juste des notifications qui renvoient vers l'app
 
 **Claude Code interactif (usage ponctuel)**
-- Quand Lolo veut faire quelque chose lui-même directement
+- Quand l'utilisateur veut faire quelque chose lui-même directement
 - Utilise les mêmes skills et outils que les agents autonomes
 - Pas de changement par rapport à aujourd'hui
 
@@ -100,8 +100,8 @@ Telegram est trop limitant pour prendre des actions complexes :
   existe déjà (React 19, Fastify API), est-ce qu'on le réutilise ou on repart de zéro ?
 - **Intervention sur captcha/MFA via web** — Est-ce que c'est réaliste techniquement ?
   Il faudrait que l'app web montre le browser de Claude en temps réel et permette
-  à Lolo d'interagir. C'est faisable (VNC, noVNC, screenshot polling) mais complexe.
-- **Mobile-first ou desktop-first ?** — Lolo est souvent sur mobile. L'app doit être
+  à l'utilisateur d'interagir. C'est faisable (VNC, noVNC, screenshot polling) mais complexe.
+- **Mobile-first ou desktop-first ?** — L'utilisateur est souvent sur mobile. L'app doit être
   utilisable sur téléphone pour les validations rapides.
 
 ---

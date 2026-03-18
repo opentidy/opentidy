@@ -170,7 +170,7 @@ Le profil par défaut Camoufox était incompatible ("newer version"). Claude l'a
 
 ### 1. Dossier confirm invisible sur la Home
 
-Le dossier `prpare-un-email-pour-mon-comp-2bbl` en mode confirm n'apparaît nulle part sur la Home. Pas de section "En attente d'approbation". Lolo ne sait pas qu'il a un dossier à approuver.
+Le dossier `prpare-un-email-pour-mon-comp-2bbl` en mode confirm n'apparaît nulle part sur la Home. Pas de section "En attente d'approbation". L'utilisateur ne sait pas qu'il a un dossier à approuver.
 
 ### 2. Dossiers terminés + session active (contradiction)
 

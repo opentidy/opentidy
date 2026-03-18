@@ -2,33 +2,37 @@ import fs from 'fs';
 import path from 'path';
 import type { DossierStatus, Dossier, JournalEntry } from '@opentidy/shared';
 
-const VALID_STATUSES: DossierStatus[] = ['EN COURS', 'TERMINÉ'];
+const VALID_STATUSES: DossierStatus[] = ['IN_PROGRESS', 'COMPLETED'];
 
-// Normalize accented status strings — Claude sometimes writes TERMINE without accent
+// Normalize status strings — accepts both old French and new English values
 function normalizeStatus(raw: string): DossierStatus {
   const upper = raw.toUpperCase().trim();
-  if (upper.startsWith('TERMIN')) return 'TERMINÉ';
-  if (upper.startsWith('BLOQU')) return 'TERMINÉ';
-  if (upper.startsWith('ARCHIV')) return 'TERMINÉ';
-  if (upper === 'EN COURS') return 'EN COURS';
-  return 'EN COURS';
+  // English values
+  if (upper.startsWith('COMPLET')) return 'COMPLETED';
+  if (upper.replace(/[\s_-]/g, '').startsWith('INPROGRESS')) return 'IN_PROGRESS';
+  // French legacy values
+  if (upper.startsWith('TERMIN')) return 'COMPLETED';
+  if (upper.startsWith('BLOQU')) return 'COMPLETED';
+  if (upper.startsWith('ARCHIV')) return 'COMPLETED';
+  if (upper === 'EN COURS') return 'IN_PROGRESS';
+  return 'IN_PROGRESS';
 }
 
-export function parseStateMd(dossierDir: string): { title: string; status: DossierStatus; objective: string; lastAction: string; confirm: boolean; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'lolo' | 'tiers' | null } {
+export function parseStateMd(dossierDir: string): { title: string; status: DossierStatus; objective: string; lastAction: string; confirm: boolean; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'user' | 'tiers' | null } {
   const filePath = path.join(dossierDir, 'state.md');
-  if (!fs.existsSync(filePath)) return { title: '', status: 'EN COURS', objective: '', lastAction: '', confirm: false, journal: [], stateRaw: '', waitingType: null };
+  if (!fs.existsSync(filePath)) return { title: '', status: 'IN_PROGRESS', objective: '', lastAction: '', confirm: false, journal: [], stateRaw: '', waitingType: null };
 
   const content = fs.readFileSync(filePath, 'utf-8');
   const title = content.match(/^# (.+)$/m)?.[1]?.trim() ?? '';
-  const statusMatch = content.match(/STATUT\s*:\s*(.+)$/m)?.[1]?.trim();
-  const status: DossierStatus = statusMatch ? normalizeStatus(statusMatch) : 'EN COURS';
-  const objective = content.match(/## Objectif\n(.+)/)?.[1]?.trim() ?? '';
+  const statusMatch = content.match(/(?:STATUT|STATUS)\s*:\s*(.+)$/m)?.[1]?.trim();
+  const status: DossierStatus = statusMatch ? normalizeStatus(statusMatch) : 'IN_PROGRESS';
+  const objective = content.match(/## (?:Objectif|Objective)\n(.+)/)?.[1]?.trim() ?? '';
   const lastActionMatch = content.match(/- (\d{4}-\d{2}-\d{2})/g);
   const lastAction = lastActionMatch ? lastActionMatch[lastActionMatch.length - 1].replace('- ', '') : '';
   const confirm = /MODE\s*:\s*CONFIRM/m.test(content);
 
   // Parse journal entries
-  const journalSection = content.match(/## Journal\n([\s\S]*?)(?=\n## |\n*$)/)?.[1] ?? '';
+  const journalSection = content.match(/## (?:Journal|Log)\n([\s\S]*?)(?=\n## |\n*$)/)?.[1] ?? '';
   const journal = journalSection
     .split('\n')
     .filter(line => line.match(/^- \d{4}-\d{2}-\d{2}/))
@@ -38,23 +42,23 @@ export function parseStateMd(dossierDir: string): { title: string; status: Dossi
     })
     .filter(Boolean) as JournalEntry[];
 
-  // Parse ## En attente section
-  const waitingForMatch = content.match(/## En attente\n([\s\S]*?)(?=\n## |\n*$)/);
+  // Parse ## Waiting / ## En attente section
+  const waitingForMatch = content.match(/## (?:En attente|Waiting)\n([\s\S]*?)(?=\n## |\n*$)/);
   const waitingFor = waitingForMatch?.[1]?.trim() || undefined;
 
   // Determine waiting type from ## En attente section content
-  let waitingType: 'lolo' | 'tiers' | null = null;
+  let waitingType: 'user' | 'tiers' | null = null;
   if (waitingFor) {
     if (/ATTENTE\s*:\s*TIERS/i.test(waitingFor)) {
       waitingType = 'tiers';
     } else {
-      // Default to 'lolo' when section exists (with or without explicit ATTENTE: LOLO tag)
-      waitingType = 'lolo';
+      // Default to 'user' when section exists (with or without explicit ATTENTE: USER tag)
+      waitingType = 'user';
     }
   }
 
   if (content.length > 50 && !title) console.warn(`[state] ${dossierDir}: no title found in non-empty state.md`);
-  if (content.length > 50 && !statusMatch) console.warn(`[state] ${dossierDir}: no STATUT found in non-empty state.md`);
+  if (content.length > 50 && !statusMatch) console.warn(`[state] ${dossierDir}: no STATUS found in non-empty state.md`);
   if (content.length > 50 && !objective) console.warn(`[state] ${dossierDir}: no objective found in non-empty state.md`);
 
   return { title, status, objective, lastAction, confirm, journal, stateRaw: content, waitingFor, waitingType };
@@ -64,32 +68,32 @@ export function setStatus(dossierDir: string, newStatus: DossierStatus): void {
   const filePath = path.join(dossierDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, 'utf-8');
-  const updated = content.match(/STATUT\s*:\s*.+$/m)
-    ? content.replace(/STATUT\s*:\s*.+$/m, `STATUT: ${newStatus}`)
-    : content + `\nSTATUT: ${newStatus}\n`;
+  const updated = content.match(/(?:STATUT|STATUS)\s*:\s*.+$/m)
+    ? content.replace(/(?:STATUT|STATUS)\s*:\s*.+$/m, `STATUS: ${newStatus}`)
+    : content + `\nSTATUS: ${newStatus}\n`;
   fs.writeFileSync(filePath, updated);
 }
 
-export function setWaitingType(dossierDir: string, type: 'lolo' | 'tiers'): void {
+export function setWaitingType(dossierDir: string, type: 'user' | 'tiers'): void {
   const filePath = path.join(dossierDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   let content = fs.readFileSync(filePath, 'utf-8');
   const tag = `ATTENTE: ${type.toUpperCase()}`;
 
-  const sectionMatch = content.match(/## En attente\n([\s\S]*?)(?=\n## |\n*$)/);
+  const sectionMatch = content.match(/## (?:En attente|Waiting)\n([\s\S]*?)(?=\n## |\n*$)/);
   if (sectionMatch) {
     const sectionBody = sectionMatch[1];
     // Replace existing ATTENTE tag or insert at beginning
-    if (/ATTENTE\s*:\s*(LOLO|TIERS)/i.test(sectionBody)) {
-      const updated = sectionBody.replace(/ATTENTE\s*:\s*(LOLO|TIERS)/i, tag);
+    if (/ATTENTE\s*:\s*(USER|TIERS)/i.test(sectionBody)) {
+      const updated = sectionBody.replace(/ATTENTE\s*:\s*(USER|TIERS)/i, tag);
       content = content.replace(sectionBody, updated);
     } else {
-      // Insert tag as first line of section
-      content = content.replace('## En attente\n', `## En attente\n${tag}\n`);
+      // Insert tag as first line of section (match whichever header exists)
+      content = content.replace(/## (?:En attente|Waiting)\n/, (match) => `${match}${tag}\n`);
     }
   } else {
-    // No ## En attente section — create one
-    content = content.trimEnd() + `\n\n## En attente\n${tag}\n`;
+    // No waiting section — create one with English header
+    content = content.trimEnd() + `\n\n## Waiting\n${tag}\n`;
   }
   fs.writeFileSync(filePath, content);
 }

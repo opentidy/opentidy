@@ -9,12 +9,12 @@ sont l'historique de la réflexion — ce document est la version finale.
 ## 1. Vision
 
 Un assistant personnel qui tourne 24/7, capable de gérer des dossiers administratifs
-en autonomie. Il travaille méthodiquement en fond, ne dérange Lolo que quand c'est
+en autonomie. Il travaille méthodiquement en fond, ne dérange l'utilisateur que quand c'est
 nécessaire, et s'améliore au fil du temps.
 
 ### Ce que V1 a prouvé
 
-Lolo a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
+L'utilisateur a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
 voyant Claude Code travailler, il a constaté que Claude est quasi 100% autonome sur
 des tâches admin complexes. Le seul point de blocage : l'authentification (captcha,
 MFA). Le problème n'est pas la capacité de Claude — c'est l'orchestration autour.
@@ -62,7 +62,7 @@ Personne ne remarque si une facture est envoyée 2 minutes plus tard.
 ultra-fines. On se concentre sur la qualité des résultats. Si un triage Claude
 prend 30 secondes, c'est acceptable.
 
-**Exception** : l'usage interactif direct (Lolo dans un terminal Claude Code) — là
+**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code) — là
 c'est du live, mais c'est géré nativement.
 
 ### Principe 2 — Claude Code est le moteur d'exécution
@@ -90,7 +90,7 @@ persister l'état. Claude décide quoi faire, comment, dans quel ordre.
 
 **Origine** : en analysant la V1, on a réalisé que ~3000 lignes de TypeScript
 réimplémentent ce que Claude fait déjà. On a proposé des CLIs custom comme
-`invoice list --missing` — Lolo a fait remarquer que c'est "programmer ce que Claude
+`invoice list --missing` — l'utilisateur a fait remarquer que c'est "programmer ce que Claude
 est déjà capable de faire." Les outils sont des ponts vers les services (chercher,
 envoyer, lister), la logique métier c'est Claude.
 
@@ -108,7 +108,7 @@ par les locks (mécanisme V1, déjà fonctionnel).
 ### Principe 6 — L'assistant tourne en fond, tranquillement
 
 Pas de réactivité à la seconde. L'assistant travaille méthodiquement, vérifie
-régulièrement, avance sur les dossiers, et ne dérange Lolo que quand c'est nécessaire.
+régulièrement, avance sur les dossiers, et ne dérange l'utilisateur que quand c'est nécessaire.
 
 **Modèle retenu** : hybride events + crons.
 - Event-driven pour les stimuli externes (webhook Gmail, message Telegram)
@@ -131,7 +131,7 @@ spécialisé que l'assistant appelle quand il en a besoin — pas le système pr
 
 L'assistant n'a pas besoin d'être parfait au jour 1. Quand Claude n'arrive pas à
 faire quelque chose, il reporte le gap dans un fichier `workspace/_gaps/gaps.md` :
-"Pour faire X, j'aurais besoin de Y." Lolo consulte ce fichier pour décider quoi
+"Pour faire X, j'aurais besoin de Y." L'utilisateur consulte ce fichier pour décider quoi
 ajouter (nouveau skill, nouveau MCP, etc.). C'est un backlog naturel d'améliorations,
 généré par l'usage réel.
 
@@ -142,7 +142,7 @@ généré par l'usage réel.
 ### Le raisonnement
 
 On a d'abord pensé en termes d'agents spécialisés (compta, admin, social) — Approche D.
-Lolo a fait remarquer que Claude est déjà généraliste et peut choisir les bons skills
+L'utilisateur a fait remarquer que Claude est déjà généraliste et peut choisir les bons skills
 lui-même. La spécialisation par domaine n'apporte pas grand-chose.
 
 On a ensuite pensé à un agent unique qui gère un "bureau" — Approche C. Mais un seul
@@ -167,7 +167,7 @@ avec le bon contexte pour un dossier précis.
 - Claude remplit le rapport exali → chargé avec : état du dossier, credentials, browser.
 
 Le même Claude, juste des contextes différents. Quand il a fini (ou quand il a besoin
-de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
+de l'utilisateur), il sauvegarde son état et se termine. Session propre à chaque fois.
 
 **Ce que ça résout** :
 - Contexte fini → chaque session ne charge que ce dont elle a besoin
@@ -185,7 +185,7 @@ de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
 ┌────────────────────────────────────────────────────────────────────┐
 │                          APP WEB                                   │
 │                                                                    │
-│  Interface principale de Lolo :                                    │
+│  Interface principale de l'utilisateur :                            │
 │  - Dossiers en cours + statut                                      │
 │  - Valider/refuser des actions (previews avec contexte)            │
 │  - Donner des instructions / créer des dossiers                    │
@@ -217,7 +217,7 @@ de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
 │                                                                    │
 │  ┌─────────────────────────────────────────┐                       │
 │  │         NOTIFICATIONS (Telegram)        │                       │
-│  │  Push → Lolo (liens vers app web)       │                       │
+│  │  Push → l'utilisateur (liens vers app web)  │                    │
 │  └─────────────────────────────────────────┘                       │
 │                                                                    │
 └────────────────────────┬───────────────────────────────────────────┘
@@ -254,7 +254,7 @@ de Lolo), il sauvegarde son état et se termine. Session propre à chaque fois.
 │  3. Travaille (skills, MCP, browser)                               │
 │     → les hooks vérifient chaque action sensible                   │
 │  4. Met à jour state.md                                            │
-│  5. Si besoin de Lolo → checkpoint.md + termine                    │
+│  5. Si besoin de l'utilisateur → checkpoint.md + termine            │
 │  6. Si fini → état "terminé" + termine                             │
 │                                                                    │
 └────────────────────────────────────────────────────────────────────┘
@@ -277,9 +277,9 @@ Reçoit tout ce qui peut déclencher du travail et le transforme en event unifor
 | Cron | Travail de fond | "Vérifie les dossiers, avance ce qui peut" |
 | Cron | Deadlines | "Le rapport exali est dû dans 3 jours" |
 | Cron | Relances | "Sopra n'a pas répondu depuis 3 jours" |
-| Instruction Lolo | App web | "Mets le bureau en vente sur 2ememain" |
-| Instruction Lolo | Claude Code interactif | Lolo travaille directement |
-| Instruction Lolo | Telegram | Réponse à un checkpoint |
+| Instruction utilisateur | App web | "Mets le bureau en vente sur 2ememain" |
+| Instruction utilisateur | Claude Code interactif | L'utilisateur travaille directement |
+| Instruction utilisateur | Telegram | Réponse à un checkpoint |
 
 **Format uniforme** : source, contenu, timestamp, métadonnées (expéditeur, etc.).
 
@@ -290,9 +290,9 @@ Le receiver donne l'event à un Claude qui décide :
 - **Dossier existant** → route l'event vers le dossier, le travail continue en autonomie
 - **Pas de dossier existant** → crée une **suggestion** (pas un dossier)
 
-**Règle fondamentale : Claude ne crée jamais de dossier lui-même.** Seul Lolo peut
+**Règle fondamentale : Claude ne crée jamais de dossier lui-même.** Seul l'utilisateur peut
 créer un dossier (via l'app web) ou approuver une suggestion de Claude. C'est le
-point de contrôle principal : rien ne démarre sans le feu vert de Lolo. Sans ça,
+point de contrôle principal : rien ne démarre sans le feu vert de l'utilisateur. Sans ça,
 l'assistant peut partir en roue libre pendant une absence (vacances, week-end).
 
 Pour commencer, chaque event = une session Claude (même les spams). On optimise
@@ -308,7 +308,7 @@ Pas de base de données pour l'état — des fichiers lisibles par l'humain ET p
 workspace/
 ├── factures-2025/
 │   ├── state.md          # état actuel, prochaines étapes, historique condensé
-│   ├── checkpoint.md     # si en attente de Lolo : quoi, pourquoi, options
+│   ├── checkpoint.md     # si en attente de l'utilisateur : quoi, pourquoi, options
 │   └── artifacts/        # fichiers produits (factures PDF, etc.)
 │
 ├── exali-rapport-2025/
@@ -371,8 +371,8 @@ lui demande de garder state.md concis.
 
 #### Le fichier checkpoint.md
 
-Quand Claude a besoin de Lolo (question, validation, info manquante), il écrit
-un checkpoint. L'app web le présente et permet à Lolo de répondre.
+Quand Claude a besoin de l'utilisateur (question, validation, info manquante), il écrit
+un checkpoint. L'app web le présente et permet à l'utilisateur de répondre.
 
 ```markdown
 # Checkpoint — Attente validation
@@ -416,7 +416,7 @@ d'un Claude bloqué repose sur le hook `idle_prompt`, pas sur checkpoint.md.
 
 Pourquoi tmux et pas print :
 - Le browser reste ouvert quand Claude attend (état préservé : cookies, page, formulaire)
-- Lolo peut voir/intervenir via le terminal intégré dans l'app web (accessible
+- L'utilisateur peut voir/intervenir via le terminal intégré dans l'app web (accessible
   depuis téléphone, Windows, n'importe quel appareil)
 - Les hooks PreToolUse fonctionnent dans les sessions tmux interactives
 - Déjà implémenté et éprouvé en V1
@@ -429,7 +429,7 @@ Pourquoi pas `claude -p` :
 **Contexte chargé dans chaque session** :
 1. Le fichier state.md du dossier (où j'en suis)
 2. L'event ou l'instruction qui a déclenché la session
-3. Un prompt système minimal ("tu es l'assistant de Lolo, voici les règles")
+3. Un prompt système minimal ("tu es l'assistant personnel, voici les règles")
 
 C'est tout. Pas de contexte global, pas de tous-les-dossiers. Session focalisée.
 
@@ -442,7 +442,7 @@ Camoufox avec un profil isolé (via le skill `/browser`). Avantages :
 - Parallélisme total — plus de lock browser entre agents
 - Anti-détection (pas détecté comme bot par les sites)
 - Sessions persistantes par profil (cookies, login conservés entre sessions)
-- Lolo garde Chrome pour lui, aucune interférence
+- L'utilisateur garde Chrome pour lui, aucune interférence
 
 Le nombre de sessions parallèles est limité par les quotas Claude Max — à découvrir
 empiriquement.
@@ -470,12 +470,12 @@ Stats clés :
 
 | Approche | Problème |
 |---|---|
-| Checkpoint avant chaque action | Tue l'autonomie. C'est Lolo qui fait le boulot. |
+| Checkpoint avant chaque action | Tue l'autonomie. C'est l'utilisateur qui fait le boulot. |
 | Règles d'outils (`--allowedTools`) | Claude contourne via browser/bash. Restreindre les outils le pousse à hacker le système — il vaut mieux qu'il utilise les bons outils. |
 | Claude évalue le risque lui-même (prompts) | Il ne suit pas les consignes ~50% du temps. Le cas dangereux c'est quand il se trompe dans son évaluation. |
-| Checks programmatiques | Trop rigides. Si Claude doit contacter un nouveau service, il est bloqué. "Chiant à maintenir" (Lolo). |
+| Checks programmatiques | Trop rigides. Si Claude doit contacter un nouveau service, il est bloqué. |
 | Double-check par 2ème Claude | Comment FORCER Claude à appeler le vérificateur ? Si c'est dans le prompt, il ne le fera pas systématiquement. |
-| Délai systématique | "Pourquoi Claude serait meilleur en attendant 5 minutes ?" (Lolo). Si Lolo ne voit pas la notif, l'action part quand même. |
+| Délai systématique | "Pourquoi Claude serait meilleur en attendant 5 minutes ?" Si l'utilisateur ne voit pas la notif, l'action part quand même. |
 
 #### La solution : hooks PreToolUse `type: "prompt"`
 
@@ -496,7 +496,7 @@ AUTOMATIQUEMENT, AVANT l'exécution :
     ↓
 Si ALLOW → l'action s'exécute
 Si DENY  → Claude reçoit "action refusée : [raison]"
-Si ASK   → Lolo est notifié et doit approuver
+Si ASK   → l'utilisateur est notifié et doit approuver
 ```
 
 **Le game changer** : le hook `type: "prompt"` est un mini-Claude vérificateur
@@ -596,7 +596,7 @@ les clics safe des clics dangereux.
    l'audit trail + la réparabilité (concept Reversible Autonomy : accepter l'erreur,
    la rendre détectable et réparable).
 
-### 5.5 APP WEB — interface principale de Lolo
+### 5.5 APP WEB — interface principale de l'utilisateur
 
 L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 
@@ -607,13 +607,13 @@ L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 | Tableau de bord | Dossiers en cours + statut, actions en attente, suggestions, sessions actives, activité récente (avec lien vers les logs complets) |
 | Dossier | État détaillé (state.md rendu), historique, checkpoint résumé, artifacts |
 | Instructions | Créer un dossier + recommandations de l'assistant en dessous |
-| Terminal | Sessions tmux brutes — c'est ici que Lolo interagit avec les checkpoints |
+| Terminal | Sessions tmux brutes — c'est ici que l'utilisateur interagit avec les checkpoints |
 | Améliorations | Limites détectées par l'assistant, backlog d'évolutions |
 
 **Checkpoints** : quand Claude écrit un checkpoint.md, l'app web affiche un
 résumé court (1-2 lignes tirées du checkpoint) sur la page du dossier et sur
 le tableau de bord, avec un bouton "Ouvrir le terminal". Pas de pages checkpoint
-dédiées, pas de boutons d'action (Valider/Modifier/Annuler) dans l'UI. Lolo
+dédiées, pas de boutons d'action (Valider/Modifier/Annuler) dans l'UI. L'utilisateur
 ouvre le terminal, lit le détail, pose ses questions à Claude si besoin, et
 approuve ou refuse directement dans la conversation. Ce pattern est uniforme
 pour tous les types de checkpoint (validation, question, MFA, info manquante) —
@@ -622,7 +622,7 @@ pas de feature custom par type.
 **Pourquoi** : un checkpoint peut être n'importe quoi (facture, email, question
 ouverte, MFA). Construire un preview riche par type serait du feature creep
 impossible à maintenir. Et souvent la réponse n'est pas un simple "oui/non" —
-Lolo veut poser des questions, demander des modifications, faire des recherches
+L'utilisateur veut poser des questions, demander des modifications, faire des recherches
 avant de décider. Le terminal est le bon endroit pour ça.
 
 **Mobile** : PWA responsive, pas d'app native. Le terminal tmux est accessible
@@ -634,7 +634,7 @@ repensée de zéro (maquettes/tests UI à faire avant l'implémentation).
 ### 5.6 NOTIFICATIONS — Telegram (rôle réduit)
 
 Telegram n'est plus l'interface principale. Il sert uniquement de push notification
-vers Lolo avec un lien vers l'app web.
+vers l'utilisateur avec un lien vers l'app web.
 
 **Types** :
 - "Facture avril prête à valider → [Voir dans l'app]"
@@ -642,7 +642,7 @@ vers Lolo avec un lien vers l'app web.
 - "Relance envoyée à Sopra pour timesheet mai"
 - "Email urgent des impôts chypriotes → [Voir]"
 
-**Pourquoi garder Telegram** : les push notifications sont essentielles — Lolo ne
+**Pourquoi garder Telegram** : les push notifications sont essentielles — l'utilisateur ne
 checke pas l'app en permanence. Telegram est déjà configuré et fiable. PAS d'actions
 depuis Telegram — juste des notifications. Les actions nécessitent le contexte visuel
 de l'app (voir la facture avant de valider, lire le draft).
@@ -673,7 +673,7 @@ le fichier `workspace/_audit/actions.log`. Chaque dossier a aussi son historique
 dans sa sidebar. Une page Logs séparée serait du bruit dans la nav pour un usage
 rare (debug).
 
-### 5.8 SUGGESTIONS — Claude propose, Lolo décide
+### 5.8 SUGGESTIONS — Claude propose, l'utilisateur décide
 
 Claude ne peut pas créer de dossiers. Quand il détecte quelque chose qui mérite
 attention mais qui ne correspond à aucun dossier existant, il crée une suggestion
@@ -705,7 +705,7 @@ Créer un dossier, analyser l'email, préparer les documents demandés.
 ```
 
 **Niveaux d'urgence** : `urgent` (deadline proche, conséquence si ignoré),
-`normal` (à traiter quand Lolo a le temps), `faible` (opportunité, pas de rush).
+`normal` (à traiter quand l'utilisateur a le temps), `faible` (opportunité, pas de rush).
 
 **Dans l'app web** : les suggestions apparaissent sur le Home dans une section
 dédiée. Chaque suggestion a deux actions : "Créer le dossier" (transforme la
@@ -717,7 +717,7 @@ la suggestion). L'urgence est indiquée visuellement par la bordure gauche
 Telegram. Les autres sont silencieuses — visibles dans l'app uniquement.
 
 **Principe** : c'est le seul point d'entrée pour du nouveau travail autonome.
-Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
+L'utilisateur garde le contrôle de ce sur quoi l'assistant passe du temps.
 
 ---
 
@@ -739,7 +739,7 @@ Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
       → Mini-Claude vérifie : "réponse cohérente, destinataire connu → ALLOW"
       OU → "montant anormal → DENY" OU → "première interaction, demander → ASK"
    f. Si ALLOW → email envoyé, PostToolUse log l'action
-   g. Si ASK → Lolo reçoit une notification, doit approuver dans l'app
+   g. Si ASK → l'utilisateur reçoit une notification, doit approuver dans l'app
    h. Met à jour state.md
 5. NOTIFICATION → Telegram si pertinent
 ```
@@ -758,10 +758,10 @@ Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
 3. NOTIFICATION → "Relance envoyée à Sopra"
 ```
 
-### Flux 3 : Instruction de Lolo
+### Flux 3 : Instruction de l'utilisateur
 
 ```
-1. Lolo ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
+1. L'utilisateur ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
 2. RECEIVER crée un event
 3. LAUNCHER lance Claude avec l'instruction
 4. Claude :
@@ -769,10 +769,10 @@ Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
    b. Commence sur 2ememain (browser)
    c. A besoin de photos → checkpoint.md : "J'ai besoin de photos du bureau"
 5. NOTIFICATION → Telegram → lien app web
-6. Lolo envoie les photos via l'app
+6. L'utilisateur envoie les photos via l'app
 7. LAUNCHER relance Claude avec les photos
 8. Claude crée l'annonce, preview → checkpoint.md
-9. Lolo valide → annonce publiée
+9. L'utilisateur valide → annonce publiée
 ```
 
 ### Flux 4 : Blocage MFA/captcha (intervention manuelle)
@@ -783,7 +783,7 @@ Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
 3. Le site demande un code MFA
 4. Claude écrit checkpoint.md : "Bloqué sur exali.com — MFA requis, intervention manuelle nécessaire"
 5. NOTIFICATION → Telegram : "Bloqué sur exali.com (MFA) → [Intervenir]"
-6. Lolo fait tmux attach → résout le MFA → se détache
+6. L'utilisateur fait tmux attach → résout le MFA → se détache
 7. Claude continue son travail
 8. (Si le MFA revient plus tard, même cycle — le tmux tourne toujours)
 ```
@@ -824,13 +824,13 @@ Ce qui suit est un résumé. L'historique complet de la réflexion est dans
 | E — Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie (webhooks, locks, état). "50 lignes" c'est irréaliste. |
 | F — Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser entre sessions. |
 | G — Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'architecture finale (sessions tmux = stateful le temps de la tâche). |
-| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire" (Lolo). Les MCP font déjà ça. |
+| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire". Les MCP font déjà ça. |
 
 **Autres décisions écartées** :
 - **Claude API / Agent SDK** : trop cher (payant au token), pas d'écosystème existant.
 - **Agents spécialisés par domaine** : complexité sans valeur. Un seul type d'agent avec contextes différents.
 - **Conversations autonomes temps réel** : pas un besoin réel. Si interactivité nécessaire = outil spécialisé (principe #7).
-- **`--allowedTools` pour la sécurité** : Claude contourne via browser/bash. "Autant qu'il utilise les bons outils plutôt que de hacker le système" (Lolo).
+- **`--allowedTools` pour la sécurité** : Claude contourne via browser/bash. Autant qu'il utilise les bons outils plutôt que de hacker le système.
 
 ---
 
@@ -848,11 +848,11 @@ concrets ou des décisions d'implémentation, pas de la réflexion architectural
 3. Le hook `Notification` / `idle_prompt` se déclenche → notifie Telegram
 4. Un script côté backend démarre un timer (configurable, 1h par défaut)
 
-**Si Lolo est là** (tmux attaché ou attache après la notif) : il répond directement
+**Si l'utilisateur est là** (tmux attaché ou attache après la notif) : il répond directement
 dans le terminal. Claude continue. Pas de coupure, pas de cold start. Pour un MFA,
-Lolo peut même interagir directement avec le browser.
+L'utilisateur peut même interagir directement avec le browser.
 
-**Si Lolo ne répond pas** (timeout expiré) : le script envoie un message à Claude
+**Si l'utilisateur ne répond pas** (timeout expiré) : le script envoie un message à Claude
 via `tmux send-keys` ("Timeout, sauvegarde ton état et termine"). Claude met à jour
 state.md avec où il en était précisément, et quitte proprement.
 
@@ -949,7 +949,7 @@ pour les brancher.
 - Gestion de voyage
 - Veille informationnelle
 - Conversations autonomes avancées (si le besoin émerge)
-- **OMI** (device open source d'enregistrement continu) — Lolo en a un, à explorer
+- **OMI** (device open source d'enregistrement continu) — à explorer
   ce qu'on peut en tirer (transcription, contexte, instructions vocales, etc.)
 - **iPhone 11** (écran cassé) — dédié à l'assistant pour interactions téléphone
-- **Mac Mini dédié** — machine isolée pour l'assistant (24/7, pas de conflit avec Lolo)
+- **Mac Mini dédié** — machine isolée pour l'assistant (24/7, pas de conflit avec l'utilisateur)

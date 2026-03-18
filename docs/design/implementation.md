@@ -41,7 +41,7 @@ liste les IDs de tests qu'elle doit faire passer. Si un ID n'apparaît dans aucu
 - Machine dédiée à l'assistant, tourne 24/7
 - macOS natif (pas de container) — nécessaire pour AppleScript, Contacts,
   Messages, osascript, accès système complet
-- Le Mac Mini est l'environnement isolé de l'assistant, pas de conflit avec Lolo
+- Le Mac Mini est l'environnement isolé de l'assistant, pas de conflit avec l'utilisateur
 
 ### Déploiement backend — LaunchAgent macOS
 - `com.lolo.assistant.plist` dans `~/Library/LaunchAgents/`
@@ -168,7 +168,7 @@ Pour un seul Mac Mini dédié, un MDM serait overkill.
 ### Browser
 - **Camoufox** (pas Chrome/Playwright) — anti-détection, profils isolés
 - Chaque session a son propre profil → parallélisme total
-- Lolo garde Chrome pour lui
+- L'utilisateur garde Chrome pour lui
 
 ### Cron sweep — `claude -p` périodique (APPROCHE VALIDÉE)
 

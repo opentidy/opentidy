@@ -235,7 +235,7 @@ pnpm test tests/workspace/
 
 ### E2E-WS-01 — Création de dossier via app web
 **Steps** :
-1. Lolo ouvre l'app web → page "Nouveau"
+1. L'utilisateur ouvre l'app web → page "Nouveau"
 2. Tape "Mets le bureau en vente sur 2ememain, prix 300€"
 3. Clique "Lancer"
 4. Backend crée `workspace/2ememain-bureau/` + state.md initial
@@ -245,7 +245,7 @@ pnpm test tests/workspace/
 ### E2E-WS-02 — Création de dossier via approbation de suggestion
 **Préconditions** : `workspace/_suggestions/impots-chypre.md` existe
 **Steps** :
-1. Lolo ouvre l'app web → Home → section Suggestions
+1. L'utilisateur ouvre l'app web → Home → section Suggestions
 2. Clique "Créer le dossier" sur la suggestion impôts chypriotes
 3. Backend crée `workspace/impots-chypre/` + state.md basé sur la suggestion
 4. Supprime `_suggestions/impots-chypre.md`
@@ -255,7 +255,7 @@ pnpm test tests/workspace/
 ### E2E-WS-03 — Ignorer une suggestion
 **Préconditions** : `workspace/_suggestions/timesheet-juin.md` existe
 **Steps** :
-1. Lolo clique "Ignorer" sur la suggestion
+1. L'utilisateur clique "Ignorer" sur la suggestion
 2. Backend supprime `_suggestions/timesheet-juin.md`
 **Attendu** : suggestion supprimée, aucun dossier créé
 
@@ -277,7 +277,7 @@ pnpm test tests/workspace/
 
 ### E2E-WS-06 — Checkpoint.md création et détection
 **Steps** :
-1. Claude travaille sur un dossier et a besoin de Lolo
+1. Claude travaille sur un dossier et a besoin de l'utilisateur
 2. Claude écrit `checkpoint.md` dans le dossier
 3. Hook SessionEnd ou idle_prompt détecte le checkpoint
 4. Backend envoie une notification Telegram
@@ -287,7 +287,7 @@ pnpm test tests/workspace/
 ### E2E-WS-07 — Checkpoint.md supprimé après réponse
 **Préconditions** : checkpoint.md existe dans un dossier
 **Steps** :
-1. Lolo ouvre le terminal, répond au checkpoint
+1. L'utilisateur ouvre le terminal, répond au checkpoint
 2. Claude continue le travail
 3. Claude supprime checkpoint.md (ou le remplace par le prochain)
 4. App web ne montre plus le checkpoint
@@ -314,7 +314,7 @@ pnpm test tests/workspace/
 
 ### E2E-WS-12 — Création de dossier avec fichier joint
 **Steps** :
-1. Lolo ouvre la page Nouveau
+1. L'utilisateur ouvre la page Nouveau
 2. Écrit une instruction + joint 2 photos
 3. Clique "Lancer"
 4. Backend crée le dossier + copie les fichiers dans `artifacts/`
@@ -324,7 +324,7 @@ pnpm test tests/workspace/
 ### E2E-WS-13 — Upload de fichier vers un dossier existant
 **Préconditions** : dossier `2ememain-bureau` existe, checkpoint demande des photos
 **Steps** :
-1. Lolo ouvre la page du dossier
+1. L'utilisateur ouvre la page du dossier
 2. Upload 3 photos via l'interface
 3. Fichiers sauvés dans `artifacts/`
 4. Session relancée ou notifiée avec les nouveaux fichiers
@@ -463,8 +463,8 @@ pnpm test tests/hooks/
 ### E2E-GF-03 — Email première interaction → ASK
 **Steps** :
 1. Claude appelle `gmail.send()` vers un nouveau destinataire jamais contacté
-2. Hook évalue : première interaction, demander à Lolo
-**Attendu** : ASK, notification Telegram à Lolo, email en attente d'approbation
+2. Hook évalue : première interaction, demander à l'utilisateur
+**Attendu** : ASK, notification Telegram à l'utilisateur, email en attente d'approbation
 
 ### E2E-GF-04 — Browser click safe → ALLOW
 **Steps** :
@@ -524,26 +524,26 @@ pnpm test tests/hooks/
 2. Le mini-Claude du hook met plus de 30s à répondre
 **Attendu** : timeout → comportement par défaut (DENY par sécurité ou ASK)
 
-### E2E-GF-15 — Hook ASK → Lolo approuve → action exécutée
+### E2E-GF-15 — Hook ASK → l'utilisateur approuve → action exécutée
 **Préconditions** : Claude a appelé gmail.send() vers un nouveau destinataire, hook a retourné ASK
 **Steps** :
-1. Notification Telegram envoyée à Lolo
-2. Lolo ouvre l'app, voit l'action en attente
-3. Lolo approuve
+1. Notification Telegram envoyée à l'utilisateur
+2. L'utilisateur ouvre l'app, voit l'action en attente
+3. L'utilisateur approuve
 **Attendu** : l'email est envoyé, PostToolUse audit log, Claude continue son travail
 
-### E2E-GF-16 — Hook ASK → Lolo refuse → action annulée
+### E2E-GF-16 — Hook ASK → l'utilisateur refuse → action annulée
 **Préconditions** : même que GF-15, hook ASK
 **Steps** :
 1. Notification Telegram envoyée
-2. Lolo ouvre l'app, refuse l'action
-**Attendu** : email NON envoyé, Claude reçoit "action refusée par Lolo", Claude s'adapte (checkpoint ou alternative)
+2. L'utilisateur ouvre l'app, refuse l'action
+**Attendu** : email NON envoyé, Claude reçoit "action refusée par l'utilisateur", Claude s'adapte (checkpoint ou alternative)
 
-### E2E-GF-17 — Hook ASK → timeout sans réponse de Lolo
+### E2E-GF-17 — Hook ASK → timeout sans réponse de l'utilisateur
 **Préconditions** : même que GF-15, hook ASK
 **Steps** :
 1. Notification Telegram envoyée
-2. Lolo ne répond pas pendant le timeout
+2. L'utilisateur ne répond pas pendant le timeout
 **Attendu** : action refusée par défaut (DENY), Claude informé, peut écrire un checkpoint
 
 ### E2E-GF-18 — Plusieurs hooks sur le même appel d'outil
@@ -846,10 +846,10 @@ pnpm test tests/suggestions/
 ### E2E-SUG-08 — Suggestion approuvée avec instructions personnalisées
 **Préconditions** : suggestion `_suggestions/impots-chypre.md` existe
 **Steps** :
-1. Lolo ouvre la suggestion dans l'app
+1. L'utilisateur ouvre la suggestion dans l'app
 2. Clique "Créer le dossier" et ajoute une instruction : "Focalise-toi sur le formulaire TD1, pas les autres documents"
-3. Dossier créé avec le contexte de la suggestion + l'instruction de Lolo
-**Attendu** : state.md contient à la fois le résumé de la suggestion ET l'instruction personnalisée de Lolo
+3. Dossier créé avec le contexte de la suggestion + l'instruction de l'utilisateur
+**Attendu** : state.md contient à la fois le résumé de la suggestion ET l'instruction personnalisée de l'utilisateur
 
 ### E2E-SUG-09 — Sweep crée plusieurs suggestions d'un coup
 **Steps** :
@@ -921,16 +921,16 @@ pnpm test tests/session-lifecycle/
 4. Timer démarre (1h par défaut)
 **Attendu** : notification envoyée, timer actif
 
-### E2E-SLC-02 — Lolo répond avant timeout
+### E2E-SLC-02 — L'utilisateur répond avant timeout
 **Préconditions** : Claude idle, timer actif
 **Steps** :
-1. Lolo ouvre le terminal (tmux attach)
+1. L'utilisateur ouvre le terminal (tmux attach)
 2. Répond à la question
 3. Claude continue le travail
 **Attendu** : pas de timeout, session continue normalement, timer annulé
 
 ### E2E-SLC-03 — Timeout expiré → sauvegarde et fin
-**Préconditions** : Claude idle, timer actif, Lolo ne répond pas
+**Préconditions** : Claude idle, timer actif, l'utilisateur ne répond pas
 **Steps** :
 1. Timer expire (1h)
 2. Backend envoie `tmux send-keys` : "Timeout, sauvegarde ton état et termine"
@@ -942,7 +942,7 @@ pnpm test tests/session-lifecycle/
 ### E2E-SLC-04 — Resume après timeout
 **Préconditions** : session précédente terminée par timeout, `.session-id` sauvé
 **Steps** :
-1. Lolo répond au checkpoint (via l'app ou un event)
+1. L'utilisateur répond au checkpoint (via l'app ou un event)
 2. Launcher lance `claude --resume <session-id>`
 3. Claude reprend avec historique compacté
 **Attendu** : Claude sait où il en était, continue le travail
@@ -1095,7 +1095,7 @@ pnpm smoke:start    # lance backend + frontend en mode smoke test
 7. L'app web sur /dossiers affiche le nouveau dossier
 ```
 
-### E2E-FULL-03 — Flux complet : instruction Lolo → dossier → checkpoint
+### E2E-FULL-03 — Flux complet : instruction utilisateur → dossier → checkpoint
 
 **`/test` commande** :
 ```
@@ -1139,7 +1139,7 @@ Déclenche un sweep via POST /api/sweep. Vérifie que :
 dossier, vérifie que si Claude tente une action bloquée par le hook (ex: gmail.send
 vers un destinataire inconnu), le hook retourne DENY. Vérifie que :
 1. Le fichier workspace/_audit/actions.log contient une entrée DENY
-2. Un checkpoint.md est créé dans le dossier (Claude demande l'aide de Lolo)
+2. Un checkpoint.md est créé dans le dossier (Claude demande l'aide de l'utilisateur)
 3. L'app web affiche le checkpoint dans la section "Pour toi"
 4. Le bouton "Ouvrir le terminal" est présent
 ```
@@ -1184,7 +1184,7 @@ vérifie que :
 5. Les deux sont indépendants (résoudre le checkpoint ne résout pas le gap)
 ```
 
-### E2E-FULL-11 — Flux complet : échange de fichiers Lolo ↔ Claude
+### E2E-FULL-11 — Flux complet : échange de fichiers utilisateur ↔ Claude
 
 **`/test` commande** :
 ```
@@ -1258,10 +1258,10 @@ pnpm test tests/edge-cases/
 3. Receiver crée l'event normalement
 **Attendu** : event traité indépendamment du sweep (session séparée ou en attente)
 
-### E2E-EDGE-02 — Lolo crée un dossier avec le même nom qu'une suggestion
+### E2E-EDGE-02 — L'utilisateur crée un dossier avec le même nom qu'une suggestion
 **Steps** :
 1. Suggestion `_suggestions/impots-chypre.md` existe
-2. Lolo crée manuellement un dossier "impots-chypre" via la page Nouveau
+2. L'utilisateur crée manuellement un dossier "impots-chypre" via la page Nouveau
 **Attendu** : dossier créé, suggestion devrait être auto-nettoyée ou signalée comme obsolète
 
 ### E2E-EDGE-03 — Checkpoint écrit mais session crash avant notification
@@ -1295,16 +1295,16 @@ pnpm test tests/edge-cases/
 3. Restant traité séquentiellement ou en parallèle limité
 **Attendu** : pas de crash, pas de sessions infinies, dedup fonctionne
 
-### E2E-EDGE-08 — Lolo modifie un state.md manuellement
+### E2E-EDGE-08 — L'utilisateur modifie un state.md manuellement
 **Steps** :
-1. Lolo édite directement `workspace/factures-sopra/state.md` dans un éditeur
+1. L'utilisateur édite directement `workspace/factures-sopra/state.md` dans un éditeur
 2. Prochaine session Claude pour ce dossier
 **Attendu** : Claude lit le state.md modifié et s'adapte aux changements
 
 ### E2E-EDGE-09 — Suggestion pour un dossier qui vient d'être créé
 **Steps** :
 1. Un event crée une suggestion
-2. Pendant ce temps, Lolo a déjà créé un dossier pour le même sujet
+2. Pendant ce temps, l'utilisateur a déjà créé un dossier pour le même sujet
 3. Le triage d'un prochain event similaire devrait router vers le dossier
 **Attendu** : la suggestion devient obsolète, les events suivants sont routés vers le dossier
 
@@ -1319,7 +1319,7 @@ pnpm test tests/edge-cases/
 1. Claude essaie une action → DENY
 2. Claude réessaie autrement → DENY
 3. Claude réessaie encore → DENY
-**Attendu** : après N tentatives DENY, Claude devrait créer un checkpoint demandant l'aide de Lolo, pas boucler
+**Attendu** : après N tentatives DENY, Claude devrait créer un checkpoint demandant l'aide de l'utilisateur, pas boucler
 
 ### E2E-EDGE-12 — Camoufox profil corrompu
 **Steps** :
@@ -1334,7 +1334,7 @@ pnpm test tests/edge-cases/
 
 ### E2E-EDGE-15 — Double-clic sur "Créer le dossier" (concurrence)
 **Steps** :
-1. Lolo double-clique rapidement sur "Créer le dossier" d'une suggestion
+1. L'utilisateur double-clique rapidement sur "Créer le dossier" d'une suggestion
 2. 2 requêtes partent vers le backend
 **Attendu** : 1 seul dossier créé, pas de doublon. La 2e requête est ignorée ou retourne une erreur gracieuse.
 

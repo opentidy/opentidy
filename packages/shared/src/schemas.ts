@@ -11,7 +11,7 @@ export const GmailWebhookSchema = z.object({
   timestamp: z.string(),
 });
 
-// Instruction Lolo (créer un dossier)
+// User instruction (create a dossier)
 export const CreateDossierSchema = z.object({
   instruction: z.string().min(1),
   confirm: z.boolean().default(false),
@@ -25,7 +25,7 @@ export const DossierInstructionSchema = z.object({
 
 // Approuver une suggestion
 export const ApproveSuggestionSchema = z.object({
-  instruction: z.string().optional(),  // instruction personnalisée de Lolo
+  instruction: z.string().optional(),  // custom user instruction
 });
 
 // Hook payload (centralisé)

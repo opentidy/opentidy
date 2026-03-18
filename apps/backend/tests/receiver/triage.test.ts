@@ -85,7 +85,7 @@ describe('createClaudeRunner — memory context', () => {
       category: 'contacts',
       created: '2026-01-01',
       updated: '2026-03-10',
-      description: 'Contacts importants de Lolo',
+      description: 'Important contacts',
       content: 'ligne1\nligne2\nligne3\nligne4\nligne5',
     },
     {
@@ -125,7 +125,7 @@ describe('createClaudeRunner — memory context', () => {
 
   it('includes category and description from memory files', async () => {
     const systemPrompt = await captureSystemPrompt(memoryEntries);
-    expect(systemPrompt).toContain('[contacts] Contacts importants de Lolo');
+    expect(systemPrompt).toContain('[contacts] Important contacts');
     expect(systemPrompt).toContain('[préférences] Préférences utilisateur');
   });
 

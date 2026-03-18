@@ -307,8 +307,8 @@ async function setupCloudflare(): Promise<void> {
     info('');
     info('  ┌──────────────────────────────────────────────────┐');
     info('  │  SELECT THE DOMAIN you want for OpenTidy.          │');
-    info('  │  Example: if you want opentidy.loaddr.com,         │');
-    info('  │  click on "loaddr.com" in the list.              │');
+    info('  │  Example: if you want opentidy.yourdomain.com,      │');
+    info('  │  click on "yourdomain.com" in the list.           │');
     info('  └──────────────────────────────────────────────────┘');
     info('');
     await ask('  Press Enter to open the browser...');
@@ -353,7 +353,7 @@ async function setupCloudflare(): Promise<void> {
   info('This must be a subdomain of the domain you selected');
   info('during login (e.g. opentidy.yourdomain.com).');
   console.log('');
-  const hostname = await ask('  Hostname (e.g. opentidy.loaddr.com): ');
+  const hostname = await ask('  Hostname (e.g. opentidy.yourdomain.com): ');
   if (hostname) {
     info(`Creating DNS route: ${hostname} → tunnel "${tunnelName}"...`);
     try {
