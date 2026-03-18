@@ -76,10 +76,14 @@ export function createSpawnClaude(deps: SpawnClaudeDeps): SpawnClaudeFn {
         throw new Error('Process killed before start');
       }
 
+      // Inject --strict-mcp-config to prevent cloud MCP servers from claude.ai account
+      // This ensures OpenTidy sessions have a clean, controlled tool set
+      const finalArgs = ['--strict-mcp-config', '--mcp-config', '{}', ...args];
+
       console.log(`[spawn-claude] starting ${type}${dossierId ? ` (${dossierId})` : ''}`);
 
       return new Promise<string>((resolve, reject) => {
-        proc = spawn('claude', args, {
+        proc = spawn('claude', finalArgs, {
           cwd,
           stdio: ['ignore', 'pipe', 'pipe'],
           ...(deps.claudeConfigDir ? { env: { ...process.env, CLAUDE_CONFIG_DIR: deps.claudeConfigDir } } : {}),
