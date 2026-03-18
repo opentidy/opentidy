@@ -119,7 +119,7 @@ if [ -d "$OPENTIDY_DIR" ]; then
   ok "OpenTidy repo already exists at $OPENTIDY_DIR"
 else
   info "Cloning OpenTidy repo..."
-  git clone git@github.com:ldenblyd/opentidy.git "$OPENTIDY_DIR"
+  git clone git@github.com:opentidy/opentidy.git "$OPENTIDY_DIR"
   ok "Repo cloned"
 fi
 
