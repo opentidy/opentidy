@@ -213,7 +213,7 @@ describe('createLauncher (tmux-only)', () => {
     launcher.markWaiting('test-dossier');
 
     const sessions = launcher.listActiveSessions();
-    expect(sessions[0].waitingType).toBe('lolo');
+    expect(sessions[0].waitingType).toBe('user');
   });
 
   it('markWaiting emits session:idle SSE with waitingType', async () => {
@@ -227,7 +227,7 @@ describe('createLauncher (tmux-only)', () => {
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:idle',
-        data: expect.objectContaining({ dossierId: 'test-dossier', waitingType: 'lolo' }),
+        data: expect.objectContaining({ dossierId: 'test-dossier', waitingType: 'user' }),
       }),
     );
   });

@@ -2,7 +2,7 @@
 
 ## Contexte de création
 
-Lolo a commencé par demander à Claude Code d'automatiser la création de factures
+L'utilisateur a commencé par demander à Claude Code d'automatiser la création de factures
 (aller sur les mails, récupérer les dépenses, les uploader dans le portail bancaire).
 C'est devenu le skill /comptable. En voyant Claude Code travailler, il a constaté
 que Claude est capable d'être quasi 100% autonome — impressionnant sur la plupart
@@ -53,7 +53,7 @@ un event pipeline, des conversations autonomes, un dashboard, etc.
 - **Conversation manager** (src/events/conversations.ts) : machine à états pour
   les conversations autonomes (pending → authorized → active → inactive). Gère
   le buffering de messages, le style mimicry, les escalations. Feature amusante
-  mais pas un besoin réel — Lolo n'a pas besoin que l'assistant chatte à sa place.
+  mais pas un besoin réel — l'utilisateur n'a pas besoin que l'assistant chatte à sa place.
 
 - **Knowledge base** (src/shared/knowledge.ts) : facts plats en SQLite
   (entity, category, fact, confidence). Pas de relations, pas de graph,
@@ -65,7 +65,7 @@ un event pipeline, des conversations autonomes, un dashboard, etc.
 ### Système de tâches trop simple pour les vrais besoins
 
 Le task manager gère des tâches avec cron + confirm mode. Mais les vrais besoins
-de Lolo sont des **workflows multi-étapes** qui durent des jours/semaines :
+de l'utilisateur sont des **workflows multi-étapes** qui durent des jours/semaines :
 - Créer les factures manquantes = chercher → comparer → créer → valider → envoyer
 - Répondre à la comptable = lire l'email → trouver les docs → préparer la réponse → valider
 - Rapport exali = se connecter → remplir le formulaire → valider avant soumission
@@ -78,7 +78,7 @@ avec ce prompt quand on trigger la tâche."
 Extrait 40 messages de l'historique de conversation, les donne à Claude comme
 exemples. Claude imite. Ça marche un peu, mais :
 - Très sensible aux samples (si les samples sont formels → réponse formelle)
-- Pas de vraie compréhension du style de Lolo
+- Pas de vraie compréhension du style de l'utilisateur
 - Detection d'escalation par keyword ("ESCALADE:") — fragile
 
 De toute façon, les conversations autonomes ne sont pas un besoin prioritaire.
@@ -96,7 +96,7 @@ De toute façon, les conversations autonomes ne sont pas un besoin prioritaire.
 - Création de tâches : manuelle
 - Tout ce qui est hors des patterns prévus par le code
 
-## Les vraies tâches de Lolo (ce que V2 doit gérer)
+## Les vraies tâches de l'utilisateur (ce que V2 doit gérer)
 
 1. Remplir les justificatifs de dépenses (portail bancaire)
 2. Vérifier les factures manquantes (1/mois 2025-2026), créer celles qui manquent

@@ -21,7 +21,7 @@ Une mémoire globale persistante, stockée en fichiers markdown, qui est :
 ```
 workspace/_memory/
 ├── INDEX.md                    ← table résumée de toutes les mémoires
-├── business-loaddr.md
+├── business-acme.md
 ├── contacts-sopra.md
 ├── tests-emails-fermeture.md
 ├── tache-42-lecons.md
@@ -38,7 +38,7 @@ Toujours lu en premier par les agents. Format compact :
 
 | fichier | catégorie | mis à jour | description |
 |---------|-----------|------------|-------------|
-| business-loaddr.md | business | 2026-03-16 | Statut Loaddr, pas de fermeture |
+| business-acme.md | business | 2026-03-16 | Statut Acme, pas de fermeture |
 | contacts-sopra.md | contacts | 2026-03-10 | Sopra Steria, contact principal |
 | tests-emails-fermeture.md | contexte | 2026-03-16 | Emails fermeture = tests |
 ```
@@ -50,13 +50,13 @@ Toujours lu en premier par les agents. Format compact :
 created: 2026-03-16
 updated: 2026-03-16
 category: business
-description: Statut Loaddr, pas de fermeture
+description: Statut Acme, pas de fermeture
 ---
 
-Loaddr Ltd est active. Aucune fermeture prévue.
+Acme Corp est active. Aucune fermeture prévue.
 
 - [2026-03-14] Des tests d'envoi d'emails de fermeture sont en cours — ces emails ne sont PAS réels
-- [2026-03-16] Confirmé : tous les emails mentionnant "fermeture Loaddr" sont des tests jusqu'à nouvel ordre
+- [2026-03-16] Confirmé : tous les emails mentionnant "fermeture Acme" sont des tests jusqu'à nouvel ordre
 ```
 
 **Règles :**
@@ -68,7 +68,7 @@ Loaddr Ltd est active. Aucune fermeture prévue.
 
 ### 0. Mémoire dans le triage et le sweep
 
-Le triage et le sweep sont des `claude -p` one-shot. Ils reçoivent **INDEX.md + les fichiers mémoire les plus critiques** dans leur `--system-prompt` ou en contexte. Cela permet au triage de savoir, avant même de router, que "les emails de fermeture Loaddr sont des tests".
+Le triage et le sweep sont des `claude -p` one-shot. Ils reçoivent **INDEX.md + les fichiers mémoire les plus critiques** dans leur `--system-prompt` ou en contexte. Cela permet au triage de savoir, avant même de router, que "les emails de fermeture Acme sont des tests".
 
 Concrètement : le backend lit INDEX.md, et inclut un résumé mémoire condensé dans le prompt du triage/sweep. Pas besoin d'un agent d'injection dédié pour ça — c'est du texte injecté par le code backend directement.
 
@@ -100,8 +100,8 @@ Le bloc appendé dans le CLAUDE.md du dossier :
 ## Contexte mémoire (injecté automatiquement — ne pas modifier)
 Dernière injection : 2026-03-16 14:30
 
-- Loaddr Ltd est active, aucune fermeture prévue
-- Les emails mentionnant "fermeture Loaddr" sont des tests — NE PAS agir dessus
+- Acme Corp est active, aucune fermeture prévue
+- Les emails mentionnant "fermeture Acme" sont des tests — NE PAS agir dessus
 - Sopra Steria est le client principal, contact : Marie D.
 ```
 

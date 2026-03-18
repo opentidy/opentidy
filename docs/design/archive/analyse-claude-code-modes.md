@@ -41,13 +41,13 @@ tool call suivant → ... → réponse finale. Tout ça se passe sans interactio
 
 ### Le gros problème : les interactions mid-session
 
-Cas concret (soulevé par Lolo) : Claude va sur facture.net pour créer une facture.
+Cas concret : Claude va sur facture.net pour créer une facture.
 1. Il va sur le site
 2. Il doit se connecter → récupère le mot de passe via Bitwarden → OK
 3. Le site demande une vérification MFA par SMS → **Claude ne peut pas faire ça**
-4. Il a besoin de Lolo pour entrer le code MFA
+4. Il a besoin de l'utilisateur pour entrer le code MFA
 5. Claude continue, crée la facture
-6. Plus tard, il doit revenir sur le site → la session a expiré → re-MFA → **encore besoin de Lolo**
+6. Plus tard, il doit revenir sur le site → la session a expiré → re-MFA → **encore besoin de l'utilisateur**
 
 En mode print, Claude ne peut PAS demander de l'aide mid-session. Il est fire-and-forget.
 Le résultat sera : "Je n'ai pas pu me connecter à facture.net, MFA requise."
@@ -55,13 +55,13 @@ Et il faudra relancer une nouvelle session, mais l'état browser est perdu (cook
 page ouverte, formulaire à moitié rempli).
 
 Ce n'est pas un cas rare — beaucoup de sites financiers/admin ont du MFA, des captchas,
-des sessions courtes. Pour les tâches admin de Lolo, c'est le quotidien.
+des sessions courtes. Pour les tâches admin de l'utilisateur, c'est le quotidien.
 
 ### Options pour gérer les interactions
 
 **Option 1 : Print + fallback**
 Claude tourne en mode print. Quand il est bloqué, il s'arrête, écrit l'état dans
-un fichier, notifie Telegram. Lolo répond, nouvelle session print reprend.
+un fichier, notifie Telegram. L'utilisateur répond, nouvelle session print reprend.
 
 - ✅ Simple conceptuellement
 - ❌ Perte de l'état browser (cookies, page ouverte, formulaire rempli)
@@ -69,15 +69,15 @@ un fichier, notifie Telegram. Lolo répond, nouvelle session print reprend.
 - ❌ Certaines actions ne sont pas reproductibles (le formulaire a changé, la session a expiré)
 
 **Option 2 : Sessions tmux (ce que V1 fait)**
-Claude tourne dans un tmux détaché. Quand il a besoin d'aide, il notifie Lolo
+Claude tourne dans un tmux détaché. Quand il a besoin d'aide, il notifie l'utilisateur
 qui peut "attacher" le terminal et intervenir directement.
 
 - ✅ L'état browser est préservé (Claude attend, le browser est ouvert)
-- ✅ Lolo intervient en live (entre le code MFA, résout le captcha)
+- ✅ L'utilisateur intervient en live (entre le code MFA, résout le captcha)
 - ✅ Claude reprend immédiatement après l'intervention
 - ✅ Déjà implémenté en V1, le dashboard peut montrer les terminaux
 - ❌ Plus complexe à orchestrer (il faut gérer les sessions tmux)
-- ❌ L'intervention de Lolo nécessite d'attacher un terminal (pas super mobile-friendly)
+- ❌ L'intervention de l'utilisateur nécessite d'attacher un terminal (pas super mobile-friendly)
 
 **Option 3 : Hybride**
 Mode print pour les tâches simples (lecture, analyse, notification, email).
@@ -88,9 +88,9 @@ Tmux pour les tâches qui impliquent du browser/interaction.
 - ❌ Plus de complexité dans l'orchestrateur
 
 ### Question non résolue
-Comment rendre l'intervention de Lolo sur captcha/MFA mobile-friendly ?
+Comment rendre l'intervention de l'utilisateur sur captcha/MFA mobile-friendly ?
 Attacher un tmux depuis un téléphone c'est pas pratique. Peut-être :
-- Screenshot du captcha envoyé via Telegram, Lolo répond avec le texte ?
+- Screenshot du captcha envoyé via Telegram, l'utilisateur répond avec le texte ?
 - Le dashboard web montre le browser en temps réel (VNC, noVNC) ?
 - L'app web montre un screenshot et un champ de saisie ?
 
@@ -100,12 +100,12 @@ Attacher un tmux depuis un téléphone c'est pas pratique. Peut-être :
 
 ### L'analogie du système nerveux
 L'agent ne "commence pas sa journée" comme un humain — il tourne 24/7.
-Mais (remarque de Lolo) il ne faut pas non plus calquer le modèle humain :
+Mais il ne faut pas non plus calquer le modèle humain :
 un humain arrive le matin et part le soir. L'agent, lui, est toujours là.
 
 Il est en permanence vigilant, surveille les stimuli (emails, messages, events),
 réagit quand il y a quelque chose, progresse sur le travail de fond quand c'est calme,
-et peut travailler la nuit (préparer les trucs pour le matin de Lolo).
+et peut travailler la nuit (préparer les trucs pour le matin de l'utilisateur).
 
 ### Boucle continue vs event-driven vs hybride
 

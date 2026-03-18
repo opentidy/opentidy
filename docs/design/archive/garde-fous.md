@@ -19,12 +19,12 @@ a des conséquences réelles et potentiellement graves.
    contournent toute restriction d'outils spécifiques. Et on ne peut pas les
    retirer parce qu'il en a besoin pour travailler.
 
-   Lolo a insisté sur ce point : il vaut mieux que Claude utilise les bons outils
+   L'utilisateur a insisté sur ce point : il vaut mieux que Claude utilise les bons outils
    (MCP Gmail) plutôt que de le forcer à contourner (browser vers gmail.com).
    Restreindre les outils pousse Claude à hacker le système, ce qui est pire.
 
 3. **Les prompts ne sont pas fiables à 100%** — Claude respecte les instructions
-   la plupart du temps, mais pas toujours. D'après l'expérience de Lolo avec les
+   la plupart du temps, mais pas toujours. D'après l'expérience avec les
    skills : "une fois sur deux, il ne fait pas ce qu'on lui demande de faire
    systématiquement." On ne peut pas sécuriser un système financier avec juste
    une instruction en langage naturel.
@@ -50,13 +50,13 @@ a des conséquences réelles et potentiellement graves.
 ## Approches explorées et pourquoi elles ne suffisent pas seules
 
 ### Checkpoint avant chaque action externe
-- ❌ Ça tue l'autonomie. C'est Lolo qui fait le boulot.
+- ❌ Ça tue l'autonomie. C'est l'utilisateur qui fait le boulot.
 
 ### Règles de risque codées (`--allowedTools`, patterns)
 - ✅ Empêche les erreurs accidentelles sur les outils structurés
 - ❌ Claude contourne via browser/bash
 - ❌ Si on retire des outils, il ne peut plus faire sa tâche ou va hacker
-- Conclusion de Lolo : il vaut mieux que Claude utilise les bons outils
+- Conclusion : il vaut mieux que Claude utilise les bons outils
   plutôt que de le forcer à contourner
 
 ### Claude évalue le risque lui-même (prompts)
@@ -67,7 +67,7 @@ a des conséquences réelles et potentiellement graves.
 ### Checks programmatiques (code custom)
 - Ex: "le destinataire est dans les contacts connus ?"
 - ❌ Trop rigide : si Claude doit contacter un nouveau service, il est bloqué
-- Nuance de Lolo : au lieu de bloquer, passer en validation humaine
+- Nuance : au lieu de bloquer, passer en validation humaine
 - Mais : "ça a l'air chiant à maintenir, le projet est déjà complexe"
 
 ### Double-check par un deuxième Claude
@@ -76,9 +76,9 @@ a des conséquences réelles et potentiellement graves.
   Si c'est dans le prompt, il ne le fera pas systématiquement.
 
 ### Délai systématique
-- Lolo : "pourquoi Claude serait meilleur en attendant 5 minutes ?"
-- Ce n'est pas Claude — c'est Lolo qui a une fenêtre pour annuler
-- ❌ Si Lolo ne voit pas la notif, l'action part quand même. C'est un tampon.
+- "Pourquoi Claude serait meilleur en attendant 5 minutes ?"
+- Ce n'est pas Claude — c'est l'utilisateur qui a une fenêtre pour annuler
+- ❌ Si l'utilisateur ne voit pas la notif, l'action part quand même. C'est un tampon.
 
 ---
 
@@ -101,11 +101,11 @@ Claude appelle l'outil : gmail.send(...)
 AUTOMATIQUEMENT, AVANT l'exécution :
     → le hook PreToolUse se déclenche
     → le code du hook analyse l'action
-    → décision : allow / deny / ask (demander à Lolo)
+    → décision : allow / deny / ask (demander à l'utilisateur)
     ↓
 Si allow → l'action s'exécute
 Si deny  → Claude reçoit "action refusée : [raison]"
-Si ask   → Lolo est notifié et doit approuver
+Si ask   → l'utilisateur est notifié et doit approuver
 ```
 
 Claude ne peut pas contourner ça. Même s'il utilise le browser, le hook se
@@ -140,7 +140,7 @@ peut lire "Confirm Payment" et bloquer. Il peut lire "Search" et laisser passer.
 - `exit 0` → allow (continuer)
 - `exit 2` → deny (bloquer, stderr envoyé à Claude comme explication)
 - JSON avec `permissionDecision: "allow" | "deny" | "ask"`
-- `ask` → demande confirmation à Lolo avant de continuer
+- `ask` → demande confirmation à l'utilisateur avant de continuer
 
 **Le hook `type: "prompt"` (la vraie innovation) :**
 Au lieu d'un script shell, le hook peut être un **prompt en langage naturel**
@@ -269,7 +269,7 @@ Claude travaille sur le dossier "factures-2025"
     ↓
     Si ALLOW → email envoyé, PostToolUse log l'action
     Si DENY → Claude reçoit l'explication, crée un checkpoint
-    Si ASK → Lolo reçoit une notification, doit approuver dans l'app web
+    Si ASK → l'utilisateur reçoit une notification, doit approuver dans l'app web
 ```
 
 ### Limites honnêtes
@@ -302,7 +302,7 @@ règles écrites en anglais, bloque ou escalade. Le concept de "constitution"
 ### Reversible Autonomy (Rubrik, IBM STRATUS)
 Concept : chaque action d'agent doit être observable, auditable, et réversible.
 Snapshot avant chaque action, rollback en un clic si erreur.
-Lolo aime cette approche : "ok on a fait une boulette, maintenant comment on répare."
+Approche retenue : "ok on a fait une boulette, maintenant comment on répare."
 Des règles simples comme l'ADN (4 bases → vie complexe).
 
 ### Trust scoring (Cleanlab TLM)
@@ -318,6 +318,6 @@ escalade vers humain. Intéressant mais ajoute de la complexité.
 | Hook prompt sur MCP send/create | Chaque envoi email, facture, etc. | Mini-Claude vérifie cohérence |
 | Hook prompt sur browser click/fill | Chaque clic/soumission significative | Mini-Claude vérifie si c'est dangereux |
 | Prompt système | Toujours actif | Règles générales + spécifiques au dossier |
-| Supervision tmux | Tâches browser | Lolo peut voir/intervenir |
+| Supervision tmux | Tâches browser | L'utilisateur peut voir/intervenir |
 | Audit trail (PostToolUse) | Toute action externe | Log complet, réparable |
 | Human checkpoint | Détecté par hook ou prompt | Notification → app web → validation |

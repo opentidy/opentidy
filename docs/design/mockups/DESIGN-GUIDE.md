@@ -22,7 +22,7 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 
 ### Desktop — Icon rail a gauche
 - Rail vertical etroit (~60px), icones SVG, fond meme que la barre de titre
-- Icones : Home, Dossiers, Terminal, Ameliorations (+ avatar Lolo "L" en bas)
+- Icones : Home, Dossiers, Terminal, Ameliorations (+ avatar utilisateur en bas)
 - Page active = icone en bleu avec fond subtil
 - Barre de titre macOS en haut (traffic lights)
 

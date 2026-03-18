@@ -34,7 +34,7 @@ export interface AppDeps {
     archiveSession(id: string): Promise<void>;
     terminateSession(id: string): Promise<void>;
     sendMessage(id: string, message: string): Promise<void>;
-    setSessionWaitingType?(id: string, type: 'lolo' | 'tiers'): void;
+    setSessionWaitingType?(id: string, type: 'user' | 'tiers'): void;
   };
   hooks: { handleHook(body: unknown): { status: string } };
   receiver: { handleGmailWebhook(body: unknown): Promise<{ accepted: boolean; reason?: string }> };
@@ -174,8 +174,8 @@ export function createApp(deps?: AppDeps) {
       const id = c.req.param('id');
       const body = await c.req.json();
       const type = body.type;
-      if (type !== 'lolo' && type !== 'tiers') {
-        return c.json({ error: 'type must be "lolo" or "tiers"' }, 400);
+      if (type !== 'user' && type !== 'tiers') {
+        return c.json({ error: 'type must be "user" or "tiers"' }, 400);
       }
       const dossierDir = join(deps.workspaceDir, id);
       setWaitingType(dossierDir, type);

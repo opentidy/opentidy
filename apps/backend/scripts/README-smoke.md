@@ -37,7 +37,7 @@ Tests manuels E2E-FULL-01 à E2E-FULL-13. Chaque test est une commande `/test` �
 7. L'app web sur /dossiers affiche le nouveau dossier
 ```
 
-### E2E-FULL-03 — Instruction Lolo → dossier → checkpoint
+### E2E-FULL-03 — Instruction the user → dossier → checkpoint
 
 ```
 /test Dans l'app web, va sur /nouveau. Tape l'instruction "Rapport exali annuel 2025"
@@ -77,7 +77,7 @@ Déclenche un sweep via POST /api/sweep. Vérifie que :
 dossier, vérifie que si Claude tente une action bloquée par le hook (ex: gmail.send
 vers un destinataire inconnu), le hook retourne DENY. Vérifie que :
 1. Le fichier workspace/_audit/actions.log contient une entrée DENY
-2. Un checkpoint.md est créé dans le dossier (Claude demande l'aide de Lolo)
+2. Un checkpoint.md est créé dans le dossier (Claude demande l'aide de the user)
 3. L'app web affiche le checkpoint dans la section "Pour toi"
 4. Le bouton "Ouvrir le terminal" est présent
 ```
@@ -131,7 +131,7 @@ Aucun dossier existant ne matche ces emails. Après traitement, vérifie que :
 4. Chaque suggestion a un fichier .md avec URGENCE, SOURCE, Résumé
 ```
 
-### E2E-FULL-11 — Échange de fichiers Lolo ↔ Claude
+### E2E-FULL-11 — Échange de fichiers the user ↔ Claude
 
 ```
 /test Ouvre un dossier qui a un checkpoint demandant des photos.

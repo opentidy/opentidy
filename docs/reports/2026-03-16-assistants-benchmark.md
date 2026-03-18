@@ -57,18 +57,18 @@
 **Impact pour Alfred** : si un email est une reponse dans un thread deja route vers un dossier, bypasser le triage et relancer directement la session du dossier.
 
 #### 3. Writing style matrix (Mail-0)
-**Le probleme** : les emails rediges par Alfred ne sonnent pas comme Lolo.
+**Le probleme** : les emails rediges par Alfred ne sonnent pas comme l'utilisateur.
 
 **Ce que font les autres** : Mail-0 analyse les emails envoyes avec 52+ metriques (longueur de phrases, densite lexicale, taux de contractions, formalite, emojis, sentiment). Algorithme de Welford pour la variance en ligne. Injecte le profil dans le prompt de draft.
 
-**Impact pour Alfred** : analyser une fois les emails envoyes par Lolo, stocker le profil de style dans la memoire, l'injecter dans le CLAUDE.md des sessions qui redigent des emails.
+**Impact pour Alfred** : analyser une fois les emails envoyes par l'utilisateur, stocker le profil de style dans la memoire, l'injecter dans le CLAUDE.md des sessions qui redigent des emails.
 
 #### 4. Auto-draft pour emails simples (Mail-0)
 **Le probleme** : Alfred lance une session tmux complete pour chaque email, meme un simple accuse de reception.
 
 **Ce que font les autres** : Mail-0 detecte l'intent (question/request/meeting/urgent via regex), genere un brouillon Gmail automatiquement, et notifie l'utilisateur de le valider. Pas de session longue pour un email trivial.
 
-**Impact pour Alfred** : ajouter un fast-path dans le triage : si l'email est simple (accusé de reception, confirmation, remerciement), generer un draft Gmail directement sans lancer de session, puis notifier Lolo.
+**Impact pour Alfred** : ajouter un fast-path dans le triage : si l'email est simple (accusé de reception, confirmation, remerciement), generer un draft Gmail directement sans lancer de session, puis notifier l'utilisateur.
 
 #### 5. Follow-up tracking (Lindy, Perplexity)
 **Le probleme** : Alfred ne sait pas si un email envoye a recu une reponse.
@@ -115,7 +115,7 @@
 - Leon : wake word detection ONNX + STT (Whisper local) + TTS (Flite/ElevenLabs)
 - Sentient : STT (Deepgram/Whisper) + TTS (ElevenLabs/Orpheus local)
 
-**Impact pour Alfred** : pas prioritaire pour le use case admin, mais utile pour les instructions rapides quand Lolo n'est pas devant un ecran.
+**Impact pour Alfred** : pas prioritaire pour le use case admin, mais utile pour les instructions rapides quand l'utilisateur n'est pas devant un ecran.
 
 ---
 
@@ -156,7 +156,7 @@ Demonstrer un workflow browser une fois, l'agent le replique pour les futures oc
 | Amelioration | Source | Detail |
 |---|---|---|
 | **Watchdog auto-compact** | amux (rapport precedent) | Detecter `context < 20%` → `/compact` |
-| **Writing style injection** | Mail-0, Inbox Zero | Profil de style de Lolo injecte dans CLAUDE.md |
+| **Writing style injection** | Mail-0, Inbox Zero | Profil de style de l'utilisateur injecte dans CLAUDE.md |
 | **Form memory injection** | Skyvern | FIELD_MAP des sites recurrents injecte dans CLAUDE.md |
 | **Pre-compaction memory flush** | OpenClaw (rapport precedent) | Prompt de sauvegarde avant compaction |
 | **Approval flow Telegram** | CoPaw, Skyvern | Inline keyboard approve/reject + timeout |
@@ -229,12 +229,12 @@ Avant le triage LLM : lookup dans ce fichier. Si match → route direct.
 Si l'email Gmail a un `threadId` deja associe a un dossier actif → bypass triage, relancer la session.
 
 **3. Fast-path draft** (Mail-0)
-Au triage, si l'email est simple (intent: ack/confirm/thanks) → generer un draft Gmail via MCP, notifier Lolo sur Telegram, pas de session tmux.
+Au triage, si l'email est simple (intent: ack/confirm/thanks) → generer un draft Gmail via MCP, notifier l'utilisateur sur Telegram, pas de session tmux.
 
 ### Sprint 2 — Sessions plus robustes (combinable avec le rapport orchestrateurs)
 
 **4. Writing style profile** (Mail-0, Inbox Zero)
-Analyser ~20 emails envoyes par Lolo, extraire un profil de style, stocker dans `workspace/PROFILE.md`, injecter dans le CLAUDE.md des sessions qui redigent.
+Analyser ~20 emails envoyes par l'utilisateur, extraire un profil de style, stocker dans `workspace/PROFILE.md`, injecter dans le CLAUDE.md des sessions qui redigent.
 
 **5. Action + deadline extraction** (Google Gemini)
 Au triage, extraire explicitement : actions requises + deadlines + contacts impliques. Stocker en section structuree dans `state.md`.
@@ -248,7 +248,7 @@ Quand un hook detecte une action sensible mais non-interdite → inline keyboard
 Le sweep/checkup scanne les threads Gmail envoyes par les sessions sans reponse depuis >N jours → cree suggestion de relance.
 
 **8. Pulse suppression** (Leon)
-Quand Lolo decline une suggestion, backoff exponentiel (24h → 7d → 30d). Quand il accepte, promouvoir en pattern appris.
+Quand l'utilisateur decline une suggestion, backoff exponentiel (24h → 7d → 30d). Quand il accepte, promouvoir en pattern appris.
 
 **9. Triggered workflows** (Sentient)
 `workspace/_config/triggers.json` : regles declaratives (sender X + sujet contient Y → ouvrir dossier type Z). Evaluees avant le triage AI.

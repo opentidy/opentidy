@@ -12,12 +12,12 @@ Source de vérité unique pour le plan d'implémentation.
 ## 1. Vision
 
 Un assistant personnel qui tourne 24/7, capable de gérer des dossiers administratifs
-en autonomie. Il travaille méthodiquement en fond, ne dérange Lolo que quand c'est
+en autonomie. Il travaille méthodiquement en fond, ne dérange l'utilisateur que quand c'est
 nécessaire, et s'améliore au fil du temps.
 
 ### Ce que V1 a prouvé
 
-Lolo a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
+L'utilisateur a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
 voyant Claude Code travailler, il a constaté que Claude est quasi 100% autonome sur
 des tâches admin complexes. Le seul point de blocage : l'authentification (captcha,
 MFA). Le problème n'est pas la capacité de Claude — c'est l'orchestration autour.
@@ -63,7 +63,7 @@ Claude mette 10 secondes ou 2 minutes pour trier un email, le résultat est le m
 **Conséquences** : pas d'optimisation de latence, pas de queue avec priorités
 ultra-fines. On se concentre sur la qualité des résultats.
 
-**Exception** : l'usage interactif direct (Lolo dans un terminal Claude Code) — là
+**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code) — là
 c'est du live, mais c'est géré nativement.
 
 ### Principe 2 — Claude Code est le moteur d'exécution
@@ -160,7 +160,7 @@ Le même Claude, juste des contextes différents. Quand il a fini, il sauvegarde
 ┌────────────────────────────────────────────────────────────────────┐
 │                          APP WEB                                   │
 │                                                                    │
-│  Interface principale de Lolo :                                    │
+│  Interface principale de l'utilisateur :                            │
 │  - Dossiers en cours + statut                                      │
 │  - Valider/refuser des actions (previews avec contexte)            │
 │  - Donner des instructions / créer des dossiers                    │
@@ -192,7 +192,7 @@ Le même Claude, juste des contextes différents. Quand il a fini, il sauvegarde
 │                                                                    │
 │  ┌─────────────────────────────────────────┐                       │
 │  │         NOTIFICATIONS (Telegram)        │                       │
-│  │  Push → Lolo (liens vers app web)       │                       │
+│  │  Push → utilisateur (liens vers app web) │                       │
 │  └─────────────────────────────────────────┘                       │
 │                                                                    │
 └────────────────────────┬───────────────────────────────────────────┘
@@ -225,7 +225,7 @@ Le même Claude, juste des contextes différents. Quand il a fini, il sauvegarde
 │  3. Travaille (skills, MCP, browser)                               │
 │     → les hooks vérifient chaque action sensible                   │
 │  4. Met à jour state.md                                            │
-│  5. Si besoin de Lolo → checkpoint.md + termine                    │
+│  5. Si besoin de l'utilisateur → checkpoint.md + termine           │
 │  6. Si fini → état "terminé" + termine                             │
 │                                                                    │
 └────────────────────────────────────────────────────────────────────┘
@@ -264,9 +264,9 @@ Reçoit tout ce qui peut déclencher du travail et le transforme en event unifor
 | Cron | Travail de fond | "Vérifie les dossiers, avance ce qui peut" |
 | Cron | Deadlines | "Le rapport exali est dû dans 3 jours" |
 | Cron | Relances | "Sopra n'a pas répondu depuis 3 jours" |
-| Instruction Lolo | App web | "Mets le bureau en vente sur 2ememain" |
-| Instruction Lolo | Claude Code interactif | Lolo travaille directement |
-| Instruction Lolo | Telegram | Réponse à un checkpoint |
+| Instruction utilisateur | App web | "Mets le bureau en vente sur 2ememain" |
+| Instruction utilisateur | Claude Code interactif | L'utilisateur travaille directement |
+| Instruction utilisateur | Telegram | Réponse à un checkpoint |
 
 **Format uniforme** : source, contenu, timestamp, métadonnées (expéditeur, etc.).
 
@@ -295,7 +295,7 @@ Notes :
 - Pas de batching — un triage par event, le dedup élimine les doublons en amont
 - Rate limits : si `claude -p` rate-limited (429), backoff exponentiel comme en V1
 
-**Règle fondamentale : Claude ne crée jamais de dossier lui-même.** Seul Lolo peut
+**Règle fondamentale : Claude ne crée jamais de dossier lui-même.** Seul l'utilisateur peut
 créer un dossier (via l'app web) ou approuver une suggestion de Claude.
 
 ### 5.2 WORKSPACE — état des dossiers
@@ -307,7 +307,7 @@ Pas de base de données pour l'état — des fichiers lisibles par l'humain ET p
 workspace/
 ├── factures-2025/
 │   ├── state.md          # état actuel, prochaines étapes, historique condensé
-│   ├── checkpoint.md     # si en attente de Lolo : quoi, pourquoi, options
+│   ├── checkpoint.md     # si en attente de l'utilisateur : quoi, pourquoi, options
 │   └── artifacts/        # fichiers produits (factures PDF, etc.)
 │
 ├── exali-rapport-2025/
@@ -370,25 +370,25 @@ S'il y a trop d'historique, il condense les anciennes entrées.
 
 Section optionnelle de state.md, en texte libre. Claude l'écrit quand il ne peut
 plus avancer parce qu'il attend une info externe (réponse email, document, confirmation
-d'un tiers). Distinct de `checkpoint.md` qui signale un besoin d'intervention de Lolo.
+d'un tiers). Distinct de `checkpoint.md` qui signale un besoin d'intervention de l'utilisateur.
 
 **Rôle dans le système :**
 - **Triage** : le prompt reçoit le state.md complet — la section `## En attente` aide
   Claude à matcher un event entrant avec le bon dossier (ex: "ce dossier attend un
-  email de sophie@comptable.fr" + un email arrive de sophie → match)
+  email de contact@example.com" + un email arrive de ce contact → match)
 - **Checkup** : le prompt sait qu'un dossier avec `## En attente` ne doit pas être
   relancé sauf si une date de relance est mentionnée et dépassée
 - **Launcher** : quand une session est relancée (event ou checkup), le backend efface
   automatiquement la section `## En attente` dans state.md avant de lancer Claude
 - **UI** : la première ligne de la section est affichée sur la card du dossier dans
-  l'app web, pour que Lolo voie d'un coup d'œil ce qu'un dossier attend
+  l'app web, pour que l'utilisateur voie d'un coup d'œil ce qu'un dossier attend
 
 Claude n'a qu'une seule responsabilité : écrire la section quand il part. Le nettoyage
 au retour est géré par le backend, pas par Claude.
 
 #### Le fichier checkpoint.md
 
-Quand Claude a besoin de Lolo (question, validation, info manquante), il écrit
+Quand Claude a besoin de l'utilisateur (question, validation, info manquante), il écrit
 un checkpoint.
 
 ```markdown
@@ -425,19 +425,19 @@ Avantages vs tmux :
 - Post-session agent automatique (extraction mémoire, gaps, journal)
 - Plus simple : pas de tmux capture-pane, pas d'idle detection, pas de nudging
 
-**Mode interactif ("Prendre la main") : tmux pour Lolo.**
+**Mode interactif ("Prendre la main") : tmux pour l'utilisateur.**
 
-Quand Lolo veut interagir directement :
+Quand l'utilisateur veut interagir directement :
 1. Clic "Prendre la main" dans l'app web
 2. Backend kill le child process autonome
 3. Lance `claude --resume <session-id>` dans tmux
-4. Lolo interagit via ttyd (terminal dans l'app web)
+4. L'utilisateur interagit via ttyd (terminal dans l'app web)
 5. "Rendre la main" kill tmux et relance en mode autonome
 
 **Contexte chargé via CLAUDE.md (2 niveaux)** :
 
 Niveau 1 — `workspace/CLAUDE.md` (global, écrit une fois, partagé par toutes les sessions) :
-- Identité (assistant de Lolo, français, style d'écriture)
+- Identité (assistant personnel, français, style d'écriture)
 - Comment travailler (lire state.md, mettre à jour le journal, écrire checkpoint.md si bloqué)
 - Formats attendus (state.md, checkpoint.md, suggestions, gaps)
 - Outils disponibles (Gmail MCP, Camoufox, Bitwarden, etc.)
@@ -492,7 +492,7 @@ Camoufox avec un profil isolé. Avantages :
 - Parallélisme total — plus de lock browser entre agents
 - Anti-détection (pas détecté comme bot par les sites)
 - Sessions persistantes par profil (cookies, login conservés entre sessions)
-- Lolo garde Chrome pour lui, aucune interférence
+- L'utilisateur garde Chrome pour lui, aucune interférence
 
 **Détection d'état** : en mode autonome, le lifecycle est géré par process exit →
 `handleAutonomousExit()`. Les hooks `type: "command"` restent pour l'audit et le mode
@@ -546,7 +546,7 @@ AUTOMATIQUEMENT, AVANT l'exécution :
     ↓
 Si ALLOW → l'action s'exécute
 Si DENY  → Claude reçoit "action refusée : [raison]"
-Si ASK   → Lolo est notifié et doit approuver
+Si ASK   → l'utilisateur est notifié et doit approuver
 ```
 
 Le hook `type: "prompt"` est un mini-Claude vérificateur INTÉGRÉ dans le système
@@ -629,7 +629,7 @@ Les deux cohabitent sur le même matcher (exécution parallèle).
 4. Les hooks prompt utilisent du contexte Claude — à monitorer
 5. Les cas non anticipés — aucun système ne couvre 100%. Le filet ultime c'est l'audit trail + la réparabilité
 
-### 5.5 APP WEB — interface principale de Lolo
+### 5.5 APP WEB — interface principale de l'utilisateur
 
 L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 
@@ -646,7 +646,7 @@ L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 
 **Checkpoints** : quand Claude écrit un checkpoint.md, l'app web affiche un
 résumé court (1-2 lignes) sur la page du dossier et sur la Home, avec un bouton
-"Ouvrir le terminal". Lolo ouvre le terminal, lit le détail, et répond directement
+"Ouvrir le terminal". L'utilisateur ouvre le terminal, lit le détail, et répond directement
 dans la conversation. Pas de pages checkpoint dédiées, pas de boutons d'action
 dans l'UI (le terminal est le bon endroit pour ça).
 
@@ -655,7 +655,7 @@ dans l'UI (le terminal est le bon endroit pour ça).
 ### 5.6 NOTIFICATIONS — Telegram (rôle réduit)
 
 Telegram n'est plus l'interface principale. Il sert uniquement de push notification
-vers Lolo avec un lien vers l'app web.
+vers l'utilisateur avec un lien vers l'app web.
 
 **Types** :
 - "Facture avril prête à valider → [Voir dans l'app]"
@@ -680,7 +680,7 @@ Suggestion: Ajouter un skill pour lire les codes TOTP.
 Visible dans la page "Améliorations" de l'app web. Logs/Audit trail : pas de page
 dédiée, activité récente sur le tableau de bord avec lien "Voir les logs complets".
 
-### 5.8 SUGGESTIONS — Claude propose, Lolo décide
+### 5.8 SUGGESTIONS — Claude propose, l'utilisateur décide
 
 Claude ne peut pas créer de dossiers. Il crée des suggestions dans `workspace/_suggestions/`.
 
@@ -733,7 +733,7 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
       → Mini-Claude vérifie : "réponse cohérente, destinataire connu → ALLOW"
       OU → "montant anormal → DENY" OU → "première interaction → ASK"
    f. Si ALLOW → email envoyé, PostToolUse log l'action
-   g. Si ASK → Lolo notifié, doit approuver dans l'app
+   g. Si ASK → l'utilisateur notifié, doit approuver dans l'app
    h. Met à jour state.md
 5. NOTIFICATION → Telegram si pertinent
 ```
@@ -752,10 +752,10 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
 5. NOTIFICATION → résultats pertinents
 ```
 
-### Flux 3 : Instruction de Lolo
+### Flux 3 : Instruction de l'utilisateur
 
 ```
-1. Lolo ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
+1. L'utilisateur ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
 2. BACKEND crée le dossier workspace/2ememain-bureau/ + state.md initial
 3. LAUNCHER lance Claude avec l'instruction + le state.md
 4. Claude :
@@ -763,10 +763,10 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
    b. Commence sur 2ememain (browser)
    c. A besoin de photos → checkpoint.md
 5. NOTIFICATION → Telegram → lien app web
-6. Lolo envoie les photos via l'app
+6. L'utilisateur envoie les photos via l'app
 7. LAUNCHER relance Claude avec les photos
 8. Claude crée l'annonce, preview → checkpoint.md
-9. Lolo valide → annonce publiée
+9. L'utilisateur valide → annonce publiée
 ```
 
 ### Flux 4 : Blocage MFA/captcha
@@ -777,8 +777,8 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
 3. Le site demande un code MFA
 4. Claude écrit checkpoint.md + STATUT : BLOQUÉ
 5. Process exit → handleAutonomousExit() → notification Telegram
-6. Lolo clique "Prendre la main" → tmux interactif via ttyd
-7. Lolo résout le MFA → "Rendre la main" → relance autonome
+6. L'utilisateur clique "Prendre la main" → tmux interactif via ttyd
+7. L'utilisateur résout le MFA → "Rendre la main" → relance autonome
 ```
 
 ---
@@ -794,15 +794,15 @@ En mode autonome, Claude travaille comme un child process. Quand il est bloqué 
 3. Le process se termine (exit)
 4. `handleAutonomousExit()` détecte l'état → notification Telegram + SSE
 
-**Pour intervenir** : Lolo clique "Prendre la main" dans l'app web.
+**Pour intervenir** : l'utilisateur clique "Prendre la main" dans l'app web.
 Le backend kill le child process et lance `claude --resume <session-id>` dans tmux.
-Lolo interagit via ttyd. Quand il a fini → "Rendre la main" → kill tmux → relance autonome.
+L'utilisateur interagit via ttyd. Quand il a fini → "Rendre la main" → kill tmux → relance autonome.
 
 ### Mode interactif ("Prendre la main")
 
-Quand Lolo est en mode interactif (tmux via ttyd) :
+Quand l'utilisateur est en mode interactif (tmux via ttyd) :
 - Idle timer disponible (1h par défaut) — hook `idle_prompt` → notification
-- Si Lolo ne répond pas (timeout) : `tmux send-keys` pour demander la sauvegarde
+- Si l'utilisateur ne répond pas (timeout) : `tmux send-keys` pour demander la sauvegarde
 - Annulation timer : prochain hook de la session → `cancelIdleTimer()`
 
 ### Post-session agent
@@ -1093,7 +1093,7 @@ Supportent les regex, case-sensitive :
 | E — Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie. "50 lignes" irréaliste. |
 | F — Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser. |
 | G — Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'archi finale (autonome = child process, interactif = tmux). |
-| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire" (Lolo). |
+| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire." |
 
 **Autres décisions écartées** :
 - **Claude API / Agent SDK** : trop cher, pas d'écosystème existant
@@ -1116,7 +1116,7 @@ Supportent les regex, case-sensitive :
 | POST | `/api/webhook/gmail` | Webhook Gmail entrant |
 | POST | `/api/hooks` | Endpoint centralisé hooks Claude Code |
 | POST | `/api/sweep` | Déclenche un sweep manuellement |
-| POST | `/api/dossier` | Créer un dossier (instruction Lolo) |
+| POST | `/api/dossier` | Créer un dossier (instruction utilisateur) |
 | POST | `/api/dossier/:id/resume` | Relance une session avec --resume |
 | POST | `/api/dossier/:id/instruction` | Envoyer une instruction à un dossier |
 | POST | `/api/dossier/:id/upload` | Upload de fichiers vers artifacts/ |
@@ -1331,11 +1331,11 @@ pnpm smoke:cleanup
 ### 18.2 WORKSPACE — État des dossiers 🧪
 
 **E2E-WS-01** — Création de dossier via app web
-- Lolo tape instruction, clique "Lancer"
+- L'utilisateur tape instruction, clique "Lancer"
 - **Attendu** : dossier créé, session active, state.md avec objectif
 
 **E2E-WS-02** — Création via approbation de suggestion
-- Lolo clique "Créer le dossier" sur une suggestion
+- L'utilisateur clique "Créer le dossier" sur une suggestion
 - **Attendu** : dossier créé avec contexte de la suggestion, suggestion supprimée
 
 **E2E-WS-03** — Ignorer une suggestion
@@ -1354,7 +1354,7 @@ pnpm smoke:cleanup
 - **Attendu** : checkpoint visible dans l'UI avec résumé + "Ouvrir le terminal"
 
 **E2E-WS-07** — Checkpoint.md supprimé après réponse
-- Lolo répond, Claude continue et supprime checkpoint.md
+- L'utilisateur répond, Claude continue et supprime checkpoint.md
 - **Attendu** : checkpoint disparaît de l'UI
 
 **E2E-WS-08** — Artifacts stockés dans le bon dossier
@@ -1378,7 +1378,7 @@ pnpm smoke:cleanup
 - **Attendu** : dossier créé, fichiers dans artifacts/, Claude les voit
 
 **E2E-WS-13** — Upload de fichier vers un dossier existant
-- Checkpoint demande des photos, Lolo upload via l'interface
+- Checkpoint demande des photos, l'utilisateur upload via l'interface
 - **Attendu** : Claude reçoit les fichiers et continue
 
 ---
@@ -1487,10 +1487,10 @@ pnpm smoke:cleanup
 - gmail.send() avec typo destinataire → hook corrige
 - **Attendu** : email envoyé avec paramètres corrigés
 
-**E2E-GF-15** — Hook ASK → Lolo approuve
+**E2E-GF-15** — Hook ASK → l'utilisateur approuve
 - **Attendu** : email envoyé, audit log, Claude continue
 
-**E2E-GF-16** — Hook ASK → Lolo refuse
+**E2E-GF-16** — Hook ASK → l'utilisateur refuse
 - **Attendu** : email NON envoyé, Claude s'adapte
 
 **E2E-GF-17** — Hook ASK → timeout sans réponse
@@ -1649,8 +1649,8 @@ pnpm smoke:cleanup
 - **Attendu** : pas de 2e suggestion pour le même sujet
 
 **E2E-SUG-08** — Suggestion approuvée avec instructions personnalisées
-- Lolo ajoute une instruction en approuvant
-- **Attendu** : state.md contient résumé de la suggestion + instruction de Lolo
+- L'utilisateur ajoute une instruction en approuvant
+- **Attendu** : state.md contient résumé de la suggestion + instruction de l'utilisateur
 
 **E2E-SUG-09** — Sweep crée plusieurs suggestions
 - **Attendu** : suggestions distinctes, slugs uniques
@@ -1678,7 +1678,7 @@ pnpm smoke:cleanup
 **E2E-SLC-01** — Claude idle → hook idle_prompt → notification
 - **Attendu** : notification envoyée, timer actif (1h)
 
-**E2E-SLC-02** — Lolo répond avant timeout → prochain hook annule le timer
+**E2E-SLC-02** — L'utilisateur répond avant timeout → prochain hook annule le timer
 - Mécanisme : n'importe quel hook (PreToolUse, Stop, PostToolUse) de la session idle → `cancelIdleTimer()`
 - **Attendu** : session continue, timer annulé, statut repasse à `active`
 
@@ -1784,7 +1784,7 @@ pnpm smoke:start
 7. L'app web sur /dossiers affiche le nouveau dossier
 ```
 
-**E2E-FULL-03** — Instruction Lolo → dossier → checkpoint
+**E2E-FULL-03** — Instruction utilisateur → dossier → checkpoint
 ```
 /test Dans l'app web, va sur /nouveau. Tape "Rapport exali annuel 2025"
 et clique "Lancer". Vérifie que :
@@ -1864,7 +1864,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 4. Chaque suggestion a URGENCE, SOURCE, Résumé
 ```
 
-**E2E-FULL-11** — Échange de fichiers Lolo ↔ Claude
+**E2E-FULL-11** — Échange de fichiers utilisateur ↔ Claude
 ```
 /test Ouvre un dossier avec checkpoint demandant des photos. Vérifie que :
 1. Upload 2 images via le formulaire
@@ -1919,7 +1919,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 **E2E-EDGE-07** — Webhook flood (100 emails en 1 minute)
 - **Attendu** : dedup filtre, pas de crash, pas de sessions infinies
 
-**E2E-EDGE-08** — Lolo modifie state.md manuellement
+**E2E-EDGE-08** — L'utilisateur modifie state.md manuellement
 - **Attendu** : Claude s'adapte aux changements
 
 **E2E-EDGE-09** — Suggestion pour dossier qui vient d'être créé

@@ -97,9 +97,9 @@ Premier test après le refactor `claude -p` child process. **Le lifecycle foncti
 ### Task 12: Mémoire injection (comptable belge) — BLOQUÉ (correct)
 - "mémoire système vide, aucune info sur le comptable belge"
 
-### Task 13: Mémoire extraction (Loaddr) — TERMINÉ
-- Loaddr Ltd trouvée à Chypre (HE 456183, Paphos)
-- Artifact loaddr-status.md
+### Task 13: Mémoire extraction (company) — TERMINÉ
+- Acme Corp trouvée à Chypre (HE 456183, Paphos)
+- Artifact company-status.md
 
 ## Issues
 

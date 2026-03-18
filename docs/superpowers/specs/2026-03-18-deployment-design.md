@@ -2,7 +2,7 @@
 
 ## Context
 
-Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner (Lolo) will be abroad with no physical access — everything must be remotely manageable and self-updating. The project will be open source.
+Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner will be abroad with no physical access — everything must be remotely manageable and self-updating. The project will be open source.
 
 ## Architecture Overview
 
@@ -261,7 +261,7 @@ The auto-updater **cannot run inside the Alfred process** — `brew upgrade` rep
 - **Flow**:
   1. Compare current version with latest release tag
   2. If newer version available → notify via Telegram: "Alfred v1.4.0 disponible. Mise a jour auto dans 5min."
-  3. Wait 5 minutes (allows Lolo to cancel via Telegram if needed)
+  3. Wait 5 minutes (allows the user to cancel via Telegram if needed)
   4. Spawn detached updater script and exit gracefully
 
 ### Detached Updater Script (`opentidy-updater.sh`)

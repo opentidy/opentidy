@@ -18,7 +18,7 @@ Tourne sur **macOS** (Mac Mini dédié, 24/7). Ce choix est intentionnel : macOS
 
 ## Language
 
-Lolo communique en francais. Repondre en francais sauf pour le code/comments/commits (anglais).
+Code, comments, and commits in English. Conversational language: adapt to the user.
 
 ## Commands
 
@@ -73,13 +73,13 @@ opentidy/
 ### Composants backend
 
 **Receiver** (`apps/backend/src/receiver/`):
-- Webhooks (Gmail), watchers (SMS/WhatsApp), cron sweep, instructions Lolo
+- Webhooks (Gmail), watchers (SMS/WhatsApp), cron sweep, user instructions
 - Dedup par content hash
 - Triage via `claude -p --system-prompt` (one-shot, JSON response)
 
 **Launcher** (`apps/backend/src/launcher/`):
 - Mode autonome (defaut) : lance `claude -p --output-format stream-json` comme child process Node.js. Process exit = signal fiable de fin de session.
-- Mode interactif ("Prendre la main") : Lolo clique → backend kill le child process → lance `claude --resume <session-id>` dans tmux → interaction via ttyd. "Rendre la main" kill tmux et relance en autonome.
+- Mode interactif ("Prendre la main") : the user clicks → backend kill le child process → lance `claude --resume <session-id>` dans tmux → interaction via ttyd. "Rendre la main" kill tmux et relance en autonome.
 - Resume via `--resume <session-id>` (persiste dans `workspace/<dossier>/.session-id`)
 - Post-session agent : s'execute automatiquement apres process exit dans `handleAutonomousExit()` — extraction memoire + gaps + verification journal
 - Crash recovery au startup : reconcilie sessions tmux (interactives) + relance dossiers orphelins EN COURS (autonomes)
@@ -97,7 +97,7 @@ opentidy/
   - Triage recoit le state.md complet pour matcher les events entrants
   - Checkup respecte la section (pas de relance sauf date depassee)
   - Launcher efface la section au relancement
-- `_suggestions/` — dossiers suggeres par Claude, en attente d'approbation Lolo
+- `_suggestions/` — dossiers suggeres par Claude, en attente d'approbation utilisateur
 - `_gaps/gaps.md` — lacunes detectees par Claude (backlog d'ameliorations)
 - `_audit/actions.log` — trace de toutes les actions externes
 
@@ -162,13 +162,13 @@ claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
 # stdout = NDJSON (stream events), exit = fin de session
 ```
 
-**Mode interactif ("Prendre la main")** — tmux pour Lolo :
+**Mode interactif ("Prendre la main")** — tmux for the user :
 ```bash
-# Lance quand Lolo clique "Prendre la main" dans l'app web
+# Launched when user clicks "Prendre la main" in the web app
 tmux new-session -d -s opentidy-<dossier-id> \
   "cd workspace/<dossier-id> && claude --dangerously-skip-permissions --resume <session-id>"
-# Lolo interagit via ttyd (terminal dans l'app web)
-# "Rendre la main" → kill tmux → relance en mode autonome
+# User interacts via ttyd (terminal in the web app)
+# "Rendre la main" → kill tmux → relaunch in autonomous mode
 ```
 
 **Appels one-shot** (triage, sweep, memoire) :
@@ -188,7 +188,7 @@ Chaque session a sa propre instance Camoufox avec profil isole. Pas Chrome/Playw
 - Parallelisme total (plus de lock browser)
 - Anti-detection
 - Sessions persistantes par profil (cookies, login conserves)
-- Lolo garde Chrome pour lui
+- The user keeps Chrome for personal use
 
 ## Frontend (App web)
 
@@ -226,12 +226,12 @@ Chaque session a sa propre instance Camoufox avec profil isole. Pas Chrome/Playw
 
 ## Test Tasks Safety
 
-Quand tu generes des taches de test pour OpenTidy (test tasks, debug, validation de features) :
-- **JAMAIS d'actions irreversibles** : pas d'envoi de vrais emails a des tiers, pas de transactions, pas de posts publics
-- **Emails uniquement a Lolo** : `lolo@users.noreply.github.com` — jamais a des contacts reels (comptable, clients, admin)
-- **Destinations fictives** : utiliser `example.com` pour les adresses email fictives
-- **Navigation safe** : sites publics uniquement (Wikipedia, CoinGecko, Booking), pas de login sur des comptes sensibles
-- Le projet est encore en developpement — toute tache de test doit etre sans risque si elle s'execute reellement
+When generating test tasks for OpenTidy (test tasks, debug, feature validation):
+- **NEVER irreversible actions**: no sending real emails to third parties, no transactions, no public posts
+- **Emails only to the configured user** — never to real contacts (accountant, clients, admin)
+- **Fictitious destinations**: use `example.com` for fake email addresses
+- **Safe navigation**: public sites only (Wikipedia, CoinGecko, Booking), no login on sensitive accounts
+- The project is still in development — every test task must be safe if it actually executes
 
 ## Git
 

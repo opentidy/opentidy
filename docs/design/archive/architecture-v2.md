@@ -8,7 +8,7 @@ C'est une vision de ce que le système doit être, basée sur toute notre réfle
 ## Vision
 
 Un assistant personnel qui tourne 24/7, capable de gérer des dossiers administratifs
-en autonomie. Il travaille méthodiquement en fond, ne dérange Lolo que quand c'est
+en autonomie. Il travaille méthodiquement en fond, ne dérange l'utilisateur que quand c'est
 nécessaire, et peut être amélioré au fil du temps.
 
 Claude Code est le moteur d'exécution. Le reste est de la plomberie minimale.
@@ -21,7 +21,7 @@ Claude Code est le moteur d'exécution. Le reste est de la plomberie minimale.
 ┌─────────────────────────────────────────────────────────┐
 │                     APP WEB                              │
 │                                                         │
-│  Interface principale de Lolo :                         │
+│  Interface principale de l'utilisateur :                 │
 │  - Voir les dossiers en cours et leur état              │
 │  - Valider/refuser les actions en attente (previews)    │
 │  - Donner des instructions / créer des dossiers         │
@@ -54,7 +54,7 @@ Claude Code est le moteur d'exécution. Le reste est de la plomberie minimale.
 │                                                         │
 │  ┌────────────────────────────────────────┐             │
 │  │         NOTIFICATION                   │             │
-│  │  Telegram push → Lolo                  │             │
+│  │  Telegram push → l'utilisateur          │             │
 │  │  (liens vers app web pour agir)        │             │
 │  └────────────────────────────────────────┘             │
 │                                                         │
@@ -83,7 +83,7 @@ Claude Code est le moteur d'exécution. Le reste est de la plomberie minimale.
 │  2. Lit l'event/instruction qui l'a déclenchée          │
 │  3. Travaille (skills, MCP, browser)                    │
 │  4. Met à jour son état                                 │
-│  5. Si besoin de Lolo → écrit un checkpoint + termine   │
+│  5. Si besoin de l'utilisateur → écrit un checkpoint + termine   │
 │  6. Si fini → met à jour l'état "terminé" + termine     │
 │                                                         │
 └─────────────────────────────────────────────────────────┘
@@ -113,11 +113,11 @@ uniforme que le système peut traiter.
 - Travail de fond périodique : "vérifie les dossiers, avance ce qui peut avancer"
 - Deadlines qui approchent : "le rapport exali est dû dans 3 jours"
 - Relances : "ça fait 3 jours que Sopra n'a pas répondu au mail"
-- Briefing : "prépare un résumé pour Lolo" (optionnel, fréquence à définir)
+- Briefing : "prépare un résumé pour l'utilisateur" (optionnel, fréquence à définir)
 
-**Instructions de Lolo**
+**Instructions de l'utilisateur**
 - Via l'app web : "fais ceci", "crée un nouveau dossier pour ça"
-- Via Claude Code interactif : Lolo travaille directement avec Claude
+- Via Claude Code interactif : l'utilisateur travaille directement avec Claude
 - Via Telegram : réponse à un checkpoint ("oui envoie", "non modifie X")
 
 ### Format uniforme d'un event
@@ -157,7 +157,7 @@ des dossiers — des fichiers lisibles par l'humain ET par Claude.
 workspace/
 ├── factures-2025/
 │   ├── state.md          # état actuel, prochaines étapes, historique condensé
-│   ├── checkpoint.md     # si en attente de Lolo : quoi, pourquoi, options
+│   ├── checkpoint.md     # si en attente de l'utilisateur : quoi, pourquoi, options
 │   └── artifacts/        # fichiers produits (factures PDF, etc.)
 │
 ├── exali-rapport-2025/
@@ -212,7 +212,7 @@ Dernière action: 2026-03-13
 
 ## Contacts
 - Sopra billing: billing@soprasteria.com
-- Lolo contact Sopra: jean.dupont@soprasteria.com
+- Contact Sopra: jean.dupont@soprasteria.com
 
 ## Notes
 - Format facture: utiliser /comptable avec template Sopra
@@ -230,7 +230,7 @@ Un cron de "nettoyage" ? Une règle de taille max ?
 
 ### Le fichier checkpoint.md
 
-Quand Claude a besoin de Lolo, il écrit un checkpoint :
+Quand Claude a besoin de l'utilisateur, il écrit un checkpoint :
 
 ```markdown
 # Checkpoint — Attente validation
@@ -254,8 +254,8 @@ Valider les factures avant envoi.
 3. [Annuler] → j'annule et j'attends tes instructions
 ```
 
-L'app web lit ce fichier et le présente à Lolo de manière lisible.
-Quand Lolo répond, le backend relance Claude avec la réponse.
+L'app web lit ce fichier et le présente à l'utilisateur de manière lisible.
+Quand l'utilisateur répond, le backend relance Claude avec la réponse.
 
 ---
 
@@ -274,7 +274,7 @@ claude -p --resume "session-factures" "
   Lis workspace/factures-2025/state.md pour comprendre où tu en es.
   Nouvel event: [contenu de l'event]
   Travaille sur ce dossier. Met à jour state.md quand tu as fini.
-  Si tu as besoin de Lolo, écris un checkpoint.md et termine.
+  Si tu as besoin de l'utilisateur, écris un checkpoint.md et termine.
 "
 ```
 - ✅ Clean, programmatique, facile à orchestrer
@@ -282,12 +282,12 @@ claude -p --resume "session-factures" "
 - ❌ Incertain sur le support des skills et du browser en mode print
 
 **Option B : Session tmux**
-Lance Claude dans un tmux détaché. Claude tourne, et si besoin, Lolo peut
+Lance Claude dans un tmux détaché. Claude tourne, et si besoin, l'utilisateur peut
 attacher le terminal pour intervenir.
 - ✅ Interaction possible mid-session
 - ✅ Fonctionne déjà en V1
 - ❌ Plus complexe à orchestrer
-- ❌ L'intervention de Lolo est moins mobile-friendly
+- ❌ L'intervention de l'utilisateur est moins mobile-friendly
 
 **Option C : Hybride**
 - Print pour les tâches sans interaction (lecture, analyse, emails)
@@ -306,7 +306,7 @@ autre chose en attendant — c'est géré par les locks et le retry.
 Pour chaque session, Claude reçoit :
 1. Le fichier state.md du dossier (où j'en suis)
 2. L'event ou l'instruction qui a déclenché la session
-3. Un prompt système minimal ("tu es l'assistant de Lolo, voici comment
+3. Un prompt système minimal ("tu es l'assistant personnel, voici comment
    tu travailles, voici les garde-fous")
 
 C'est tout. Pas de contexte global, pas de tous-les-dossiers-en-même-temps.
@@ -325,7 +325,7 @@ Le cas le plus dangereux : Claude est CONFIANT mais a TORT.
 ### Approche envisagée : défense en couches
 
 **Couche 1 : Hard stops (techniques, incontournables)**
-Certaines actions sont TOUJOURS bloquées sans approbation explicite de Lolo.
+Certaines actions sont TOUJOURS bloquées sans approbation explicite de l'utilisateur.
 Pas de jugement de Claude — c'est un mur technique.
 
 Exemples :
@@ -365,20 +365,20 @@ et signale les anomalies qu'il détecte :
 ```
 
 Le ⚠️ est crucial : Claude détecte ce qui est inhabituel et le flag, même
-s'il n'est pas sûr que c'est un problème. Ça donne à Lolo un signal clair
+s'il n'est pas sûr que c'est un problème. Ça donne à l'utilisateur un signal clair
 pour concentrer son attention.
 
-L'app web affiche ces previews. Lolo peut valider d'un tap sur mobile.
+L'app web affiche ces previews. L'utilisateur peut valider d'un tap sur mobile.
 
 Actions concernées : factures, emails formels, soumissions de formulaires,
 uploads de documents.
 
 **Couche 3 : Faire + informer (pour les actions à faible risque)**
-Claude agit en autonomie et informe Lolo après coup.
+Claude agit en autonomie et informe l'utilisateur après coup.
 "J'ai relancé Sopra pour le timesheet de mai."
 "J'ai archivé les emails traités."
 
-Lolo voit ça dans le résumé quotidien ou dans l'app web. S'il y a un problème,
+L'utilisateur voit ça dans le résumé quotidien ou dans l'app web. S'il y a un problème,
 il peut corriger.
 
 Actions concernées : relances à des contacts connus, organisation de fichiers,
@@ -414,20 +414,20 @@ envoyer directement ?
 
 Intéressant mais dangereux. Un mois, le timesheet est faux et la facture part
 automatiquement. Peut-être que les factures restent TOUJOURS en preview.
-À discuter avec Lolo.
+À discuter.
 
 ---
 
 ## Composant 5 : APP WEB
 
 ### Rôle
-Interface principale de Lolo pour interagir avec l'assistant.
+Interface principale de l'utilisateur pour interagir avec l'assistant.
 Remplace le combo Telegram+Dashboard de V1.
 
 ### Vues principales
 
 **Vue "Tableau de bord"**
-- Dossiers en cours avec leur état (en cours, en attente de Lolo, bloqué, terminé)
+- Dossiers en cours avec leur état (en cours, en attente de l'utilisateur, bloqué, terminé)
 - Actions en attente de validation (previews avec boutons)
 - Notifications récentes
 - Activité en cours (sessions Claude qui tournent)
@@ -452,13 +452,13 @@ Remplace le combo Telegram+Dashboard de V1.
 ### Intervention sur captcha/MFA
 Quand Claude est bloqué par un captcha ou MFA :
 - L'app web montre un screenshot du blocage
-- Lolo peut entrer le code / résoudre le captcha via l'interface
+- L'utilisateur peut entrer le code / résoudre le captcha via l'interface
 - Le backend transmet à Claude qui continue
 
 Question ouverte : comment techniquement ? Options :
 - Screenshot polling (Claude prend des screenshots, l'app les affiche)
 - VNC/noVNC (stream video du browser de Claude)
-- Claude écrit "j'ai besoin du code MFA pour facture.net" et Lolo le tape
+- Claude écrit "j'ai besoin du code MFA pour facture.net" et l'utilisateur le tape
   dans un champ de l'app web
 
 ### Mobile
@@ -471,7 +471,7 @@ Pas besoin d'être une app native — une PWA responsive suffit.
 
 ### Rôle réduit
 Telegram n'est plus l'interface principale. Il sert uniquement de **push notification**
-vers Lolo avec un lien vers l'app web.
+vers l'utilisateur avec un lien vers l'app web.
 
 ### Types de notifications
 - "🔔 Facture avril prête à valider → [Voir dans l'app]"
@@ -480,7 +480,7 @@ vers Lolo avec un lien vers l'app web.
 - "🚨 Email urgent des impôts chypriotes → [Voir]"
 
 ### Pourquoi garder Telegram
-Les push notifications sont essentielles — Lolo ne va pas checker l'app web
+Les push notifications sont essentielles — l'utilisateur ne va pas checker l'app web
 en permanence. Telegram est déjà configuré, fiable, fonctionne sur mobile.
 Alternative future : notifications push de la PWA.
 
@@ -496,7 +496,7 @@ Quand Claude n'arrive pas à faire quelque chose, il l'écrit dans
 ```markdown
 ## 2026-03-14 — Connexion exali.com
 Problème: Le site demande un MFA par app mobile (authenticator).
-Je n'ai pas accès à l'app authenticator de Lolo.
+Je n'ai pas accès à l'app authenticator de l'utilisateur.
 Impact: Je ne peux pas remplir le rapport annuel.
 Suggestion: Ajouter un skill pour lire les codes TOTP, ou configurer
   un accès alternatif.
@@ -511,7 +511,7 @@ Suggestion: Mettre à jour le skill /comptable pour inclure le champ
 ```
 
 ### Usage
-Lolo consulte ce fichier quand il veut améliorer l'assistant. C'est un
+L'utilisateur consulte ce fichier quand il veut améliorer l'assistant. C'est un
 backlog naturel d'améliorations, généré par l'usage réel.
 
 ---
@@ -536,8 +536,8 @@ backlog naturel d'améliorations, généré par l'usage réel.
    f. Met à jour state.md
    g. Se termine
 5. NOTIFICATION → Telegram : "📧 Réponse préparée pour la comptable → [Voir]"
-6. Lolo ouvre l'app web → voit le preview → tape [Envoyer]
-7. LAUNCHER relance Claude avec : "Lolo a validé, envoie la réponse"
+6. L'utilisateur ouvre l'app web → voit le preview → tape [Envoyer]
+7. LAUNCHER relance Claude avec : "L'utilisateur a validé, envoie la réponse"
 8. Claude envoie l'email via Gmail MCP
 9. Met à jour state.md → "réponse envoyée le 14/03"
 10. NOTIFICATION → "✅ Réponse envoyée à la comptable"
@@ -555,16 +555,16 @@ backlog naturel d'améliorations, généré par l'usage réel.
       (action faible risque → fait + informe)
    c. Voit que le rapport exali est dû dans 5 jours → commence à préparer
    d. Voit que la facture d'avril est validée mais pas encore envoyée →
-      ERREUR : ça aurait dû être fait. Notifie Lolo.
+      ERREUR : ça aurait dû être fait. Notifie l'utilisateur.
    e. Met à jour les state.md concernés
 3. NOTIFICATION → "✅ Relance envoyée à Sopra. ⚠️ Facture avril non envoyée (anomalie)."
 ```
 
-### Flux 3 : Instruction de Lolo
+### Flux 3 : Instruction de l'utilisateur
 
 ```
-1. Lolo ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
-2. RECEIVER crée un event "instruction de Lolo"
+1. L'utilisateur ouvre l'app web → "Mets le bureau en vente sur 2ememain, prix 300€"
+2. RECEIVER crée un event "instruction de l'utilisateur"
 3. LAUNCHER lance Claude avec l'instruction
 4. Claude :
    a. Crée un nouveau dossier workspace/2ememain-bureau/
@@ -572,10 +572,10 @@ backlog naturel d'améliorations, généré par l'usage réel.
    c. Commence à créer l'annonce sur 2ememain (browser)
    d. A besoin de photos → checkpoint.md : "J'ai besoin de photos du bureau"
 5. NOTIFICATION → "📷 J'ai besoin de photos du bureau → [Répondre]"
-6. Lolo envoie les photos via l'app web
+6. L'utilisateur envoie les photos via l'app web
 7. LAUNCHER relance Claude avec les photos
 8. Claude crée l'annonce, preview → checkpoint.md
-9. Lolo valide → annonce publiée
+9. L'utilisateur valide → annonce publiée
 ```
 
 ### Flux 4 : Blocage (captcha/MFA)
@@ -587,7 +587,7 @@ backlog naturel d'améliorations, généré par l'usage réel.
 4. Claude prend un screenshot, écrit checkpoint.md :
    "Bloqué sur exali.com — MFA requis. Voir screenshot."
 5. NOTIFICATION → "⚠️ Bloqué sur exali.com (MFA) → [Intervenir]"
-6. Lolo ouvre l'app web → voit le screenshot → entre le code MFA
+6. L'utilisateur ouvre l'app web → voit le screenshot → entre le code MFA
 7. Le code est transmis à Claude (comment exactement ? question ouverte)
 8. Claude continue son travail
 ```
@@ -635,7 +635,7 @@ Comment empêcher TECHNIQUEMENT Claude d'envoyer un paiement sans approbation ?
 - Outils modifiés qui refusent (le plus sûr)
 
 ### 4. App web : intervention captcha/MFA
-Comment permettre à Lolo d'entrer un code MFA depuis l'app web vers
+Comment permettre à l'utilisateur d'entrer un code MFA depuis l'app web vers
 le browser que Claude contrôle ?
 - Screenshot + champ de saisie ?
 - Stream vidéo du browser ?

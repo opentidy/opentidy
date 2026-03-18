@@ -24,7 +24,7 @@ describe('Notifier', () => {
     mock = createMockSendMessage();
     notifier = createNotifier({
       sendMessage: mock.fn,
-      appBaseUrl: 'https://opentidy.yourdomain.com',
+      appBaseUrl: 'https://opentidy.example.com',
     });
   });
 
@@ -34,7 +34,7 @@ describe('Notifier', () => {
     const sseMock = { emit: vi.fn() };
     const notifierWithStore = createNotifier({
       sendMessage: mock.fn,
-      appBaseUrl: 'https://opentidy.yourdomain.com',
+      appBaseUrl: 'https://opentidy.example.com',
       notificationStore: store,
       sse: sseMock,
     });
@@ -47,7 +47,7 @@ describe('Notifier', () => {
     // But notification is recorded in store
     expect(store.record).toHaveBeenCalledWith({
       message: 'Session démarrée',
-      link: 'https://opentidy.yourdomain.com/dossiers/impots-2025',
+      link: 'https://opentidy.example.com/dossiers/impots-2025',
       dossierId: 'impots-2025',
     });
 
@@ -64,7 +64,7 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('MFA');
     expect(mock.sent[0].text).toContain('banque-lcl');
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/dossiers/banque-lcl');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/dossiers/banque-lcl');
   });
 
   // E2E-NTF-03: Dossier terminé → notification
@@ -74,7 +74,7 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('terminé');
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/dossiers/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/dossiers/impots-2025');
   });
 
   // E2E-NTF-04: Suggestion urgente → notification
@@ -84,7 +84,7 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('Renouveler passeport');
     expect(mock.sent[0].text).toContain('urgente');
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/suggestions');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/suggestions');
   });
 
   // E2E-NTF-05: Suggestion normale → PAS de notification
@@ -107,7 +107,7 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('Email envoyé à sopra@billing.com');
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/dossiers/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/dossiers/impots-2025');
   });
 
   // E2E-NTF-06 bis: Escalation
@@ -118,7 +118,7 @@ describe('Notifier', () => {
     expect(mock.sent[0].text).toContain('Escalade');
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('Montant suspect > 5000€');
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/dossiers/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/dossiers/impots-2025');
   });
 
   // E2E-NTF-07: Notification contient lien
@@ -129,10 +129,10 @@ describe('Notifier', () => {
     await notifier.notifyEscalation('d4', 'reason');
 
     expect(mock.sent).toHaveLength(4);
-    expect(mock.sent[0].text).toContain('https://opentidy.yourdomain.com/dossiers/d1');
-    expect(mock.sent[1].text).toContain('https://opentidy.yourdomain.com/dossiers/d2');
-    expect(mock.sent[2].text).toContain('https://opentidy.yourdomain.com/dossiers/d3');
-    expect(mock.sent[3].text).toContain('https://opentidy.yourdomain.com/dossiers/d4');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/dossiers/d1');
+    expect(mock.sent[1].text).toContain('https://opentidy.example.com/dossiers/d2');
+    expect(mock.sent[2].text).toContain('https://opentidy.example.com/dossiers/d3');
+    expect(mock.sent[3].text).toContain('https://opentidy.example.com/dossiers/d4');
   });
 
   // E2E-NTF-08: Retry avec backoff
@@ -146,7 +146,7 @@ describe('Notifier', () => {
 
       const retryNotifier = createNotifier({
         sendMessage: failTwice,
-        appBaseUrl: 'https://opentidy.yourdomain.com',
+        appBaseUrl: 'https://opentidy.example.com',
       });
 
       const promise = retryNotifier.notifyCompleted('test-dossier');
@@ -168,7 +168,7 @@ describe('Notifier', () => {
 
       const failNotifier = createNotifier({
         sendMessage: alwaysFail,
-        appBaseUrl: 'https://opentidy.yourdomain.com',
+        appBaseUrl: 'https://opentidy.example.com',
       });
 
       const promise = failNotifier.notifyCompleted('test-dossier');
@@ -196,7 +196,7 @@ describe('Notifier', () => {
 
       const failNotifier = createNotifier({
         sendMessage: alwaysFail,
-        appBaseUrl: 'https://opentidy.yourdomain.com',
+        appBaseUrl: 'https://opentidy.example.com',
       });
 
       const promise = failNotifier.notifyCompleted('d1');

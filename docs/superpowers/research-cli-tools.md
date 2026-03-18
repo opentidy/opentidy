@@ -1,6 +1,6 @@
 # CLI Tools Research for Alfred
 
-> Research conducted 2026-03-16. Tools evaluated for use by an autonomous AI assistant (Alfred) running Claude Code on macOS Mac Mini 24/7, handling administrative dossiers for a freelance developer (Loaddr Ltd, Belgium).
+> Research conducted 2026-03-16. Tools evaluated for use by an autonomous AI assistant (Alfred) running Claude Code on macOS Mac Mini 24/7, handling administrative dossiers for a freelance developer (Acme Corp, Belgium).
 
 **Evaluation criteria**: Can Claude Code call it non-interactively? Does it work on macOS? Is it actively maintained? Does it require API keys or authentication?
 
@@ -32,7 +32,7 @@
 
 | Tool | Description | Install | Auth | Status | Alfred Use Case |
 |------|-------------|---------|------|--------|-----------------|
-| **invoice** (maaslalani) | Go CLI, generates PDF invoices from flags/env vars. Supports --from, --to, --item, --quantity, --rate, --tax, --discount. | `brew install invoice` or `go install github.com/maaslalani/invoice@main` | None | Active | Generate PDF invoices: `invoice generate --from "Loaddr Ltd" --to "Client" --item "Dev" --quantity 40 --rate 85 --tax 0.21`. Env vars for recurring fields. |
+| **invoice** (maaslalani) | Go CLI, generates PDF invoices from flags/env vars. Supports --from, --to, --item, --quantity, --rate, --tax, --discount. | `brew install invoice` or `go install github.com/maaslalani/invoice@main` | None | Active | Generate PDF invoices: `invoice generate --from "Acme Corp" --to "Client" --item "Dev" --quantity 40 --rate 85 --tax 0.21`. Env vars for recurring fields. |
 | **clinvoice** (bartman) | Shell-based invoicing with templates | Build from source | None | Low activity | Simpler alternative |
 
 **Recommendation for Alfred**: **invoice** (maaslalani) -- installable via brew, generates clean PDFs, supports env vars for company defaults. Perfect for `invoice generate` calls from Claude sessions.
@@ -223,7 +223,7 @@ Both are already available or trivially installable. `openssl rand` is already o
 |------|-------------|---------|------|--------|-----------------|
 | **taskwarrior** | Powerful CLI task manager. Tags, projects, priorities, urgency scoring, recurring tasks, reports. | `brew install task` | None | Very active (v3.4.2) | Could complement Alfred's workspace system for tracking sub-tasks within dossiers. `task add "Send invoice to client" project:dossier-42 due:tomorrow` |
 
-**Recommendation for Alfred**: Alfred already has its own workspace/state.md system. Taskwarrior could be useful for Lolo's personal tasks, but adding it to Alfred's autonomous workflow would create competing state systems.
+**Recommendation for Alfred**: Alfred already has its own workspace/state.md system. Taskwarrior could be useful for the user's personal tasks, but adding it to Alfred's autonomous workflow would create competing state systems.
 
 ### Clipboard
 

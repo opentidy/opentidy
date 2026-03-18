@@ -307,8 +307,8 @@ async function setupCloudflare(): Promise<void> {
     info('');
     info('  ┌──────────────────────────────────────────────────┐');
     info('  │  SELECT THE DOMAIN you want for OpenTidy.          │');
-    info('  │  Example: if you want opentidy.yourdomain.com,         │');
-    info('  │  click on "yourdomain.com" in the list.              │');
+    info('  │  Example: if you want opentidy.yourdomain.com,      │');
+    info('  │  click on "yourdomain.com" in the list.           │');
     info('  └──────────────────────────────────────────────────┘');
     info('');
     await ask('  Press Enter to open the browser...');

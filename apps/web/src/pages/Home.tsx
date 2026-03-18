@@ -26,15 +26,15 @@ export default function Home() {
 
   const idleSessions = sessions.filter((s) => s.status === 'idle');
 
-  // Determine effective waitingType: session > dossier > default 'lolo'
-  const getWaitingType = (s: typeof sessions[0]): 'lolo' | 'tiers' => {
+  // Determine effective waitingType: session > dossier > default 'user'
+  const getWaitingType = (s: typeof sessions[0]): 'user' | 'tiers' => {
     if (s.waitingType) return s.waitingType;
     const dossier = dossiers.find((d) => d.id === s.dossierId);
     if (dossier?.waitingType) return dossier.waitingType;
-    return 'lolo';
+    return 'user';
   };
 
-  const waitingLolo = idleSessions.filter((s) => getWaitingType(s) === 'lolo');
+  const waitingUser = idleSessions.filter((s) => getWaitingType(s) === 'user');
   const waitingTiers = idleSessions.filter((s) => getWaitingType(s) === 'tiers');
 
   const counts = {
@@ -68,17 +68,17 @@ export default function Home() {
     <div className="p-6 md:p-8">
       <Header />
 
-      {/* En attente de toi — sessions idle waiting for Lolo */}
-      {waitingLolo.length > 0 && (
+      {/* En attente de toi — sessions idle waiting for user */}
+      {waitingUser.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
             <span className="w-2.5 h-2.5 rounded-full bg-orange animate-pulse" />
             <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
-              En attente de toi — {waitingLolo.length} dossier{waitingLolo.length !== 1 ? 's' : ''}
+              En attente de toi — {waitingUser.length} dossier{waitingUser.length !== 1 ? 's' : ''}
             </span>
           </div>
           <div className="space-y-3">
-            {waitingLolo.map((s) => {
+            {waitingUser.map((s) => {
               const dossier = dossiers.find((d) => d.id === s.dossierId);
               return (
                 <button
@@ -141,15 +141,15 @@ export default function Home() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-text text-sm truncate">{dossier?.title ?? s.dossierId}</p>
                       {dossier?.waitingFor && (
-                        <p className="text-xs text-text-tertiary mt-0.5 truncate">{dossier.waitingFor.replace(/ATTENTE\s*:\s*(LOLO|TIERS)\n?/i, '').trim()}</p>
+                        <p className="text-xs text-text-tertiary mt-0.5 truncate">{dossier.waitingFor.replace(/ATTENTE\s*:\s*(USER|TIERS)\n?/i, '').trim()}</p>
                       )}
                     </div>
                     <span
                       role="button"
-                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.dossierId, 'lolo'); }}
+                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.dossierId, 'user'); }}
                       className="text-xs text-text-tertiary hover:text-orange font-medium shrink-0 px-2 py-1 rounded hover:bg-orange/10 transition-colors"
                     >
-                      Attente Lolo
+                      Attente utilisateur
                     </span>
                   </div>
                 </button>

@@ -10,7 +10,7 @@ export function createDossierManager(workspaceDir: string) {
     const now = new Date().toISOString().slice(0, 10);
     const displayTitle = title || id;
     const modeLine = confirm ? '\nMODE : CONFIRM\n' : '';
-    const stateMd = `# ${displayTitle}\n\nSTATUT : EN COURS${modeLine}\n\n## Objectif\n${instruction}\n\n## Journal\n- ${now} : Créé\n`;
+    const stateMd = `# ${displayTitle}\n\nSTATUS : IN_PROGRESS${modeLine}\n\n## Objective\n${instruction}\n\n## Log\n- ${now} : Created\n`;
     fs.writeFileSync(path.join(dir, 'state.md'), stateMd);
     console.log(`[workspace] dossier created: ${id} — "${displayTitle}"${confirm ? ' (confirm mode)' : ''}`);
   }
@@ -32,7 +32,7 @@ export function createDossierManager(workspaceDir: string) {
   function markDossierComplete(id: string): void {
     const stateFile = path.join(workspaceDir, id, 'state.md');
     let content = fs.readFileSync(stateFile, 'utf-8');
-    content = content.replace(/STATUT\s*:\s*.+/m, 'STATUT : TERMINÉ');
+    content = content.replace(/(?:STATUT|STATUS)\s*:\s*.+/m, 'STATUS : COMPLETED');
     fs.writeFileSync(stateFile, content);
     console.log(`[workspace] dossier completed: ${id}`);
   }
@@ -50,7 +50,7 @@ export function createDossierManager(workspaceDir: string) {
     const stateFile = path.join(dir, 'state.md');
     if (fs.existsSync(stateFile)) {
       let content = fs.readFileSync(stateFile, 'utf-8');
-      content = content.replace(/STATUT\s*:\s*.+/m, 'STATUT : TERMINÉ');
+      content = content.replace(/(?:STATUT|STATUS)\s*:\s*.+/m, 'STATUS : COMPLETED');
       fs.writeFileSync(stateFile, content);
     }
     console.log(`[workspace] dossier completed: ${id}`);

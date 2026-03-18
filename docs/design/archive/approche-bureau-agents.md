@@ -55,7 +55,7 @@ Boucle d'un agent :
 3. Décider quoi faire (prioriser lui-même)
 4. Exécuter (skills, MCP, browser)
 5. Mettre à jour ses dossiers
-6. Besoin de Lolo → message Telegram + pause
+6. Besoin de l'utilisateur → message Telegram + pause
 7. Plus rien à faire → se terminer
 
 ## Workspace (fichiers markdown, pas DB)

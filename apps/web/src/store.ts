@@ -45,7 +45,7 @@ interface Store {
   approveSuggestion: (slug: string, instruction?: string) => Promise<void>;
   ignoreSuggestion: (slug: string) => Promise<void>;
   completeDossier: (id: string) => Promise<void>;
-  setWaitingType: (id: string, type: 'lolo' | 'tiers') => Promise<void>;
+  setWaitingType: (id: string, type: 'user' | 'tiers') => Promise<void>;
   resolveAmelioration: (id: string) => Promise<void>;
   ignoreAmelioration: (id: string) => Promise<void>;
   triggerCheckup: () => Promise<void>;

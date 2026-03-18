@@ -55,8 +55,8 @@ Second run après les fixes : timeout triage (30min), memory injection (skip si 
 ### Task 12: Mémoire injection (comptable belge)
 - **Status:** PASS — BLOQUÉ + CHECKPOINT "Je n'ai pas les informations du comptable belge"
 
-### Task 13: Mémoire extraction (Loaddr status)
-- **Status:** PASS — TERMINÉ, artifact `loaddr-status.md`
+### Task 13: Mémoire extraction (company status)
+- **Status:** PASS — TERMINÉ, artifact `company-status.md`
 
 ## Issues Found
 

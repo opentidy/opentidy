@@ -4,7 +4,7 @@
 
 **Goal:** Remplacer le mode autonome (child process `claude -p` NDJSON) par des sessions tmux permanentes pour les dossiers. Les utilitaires (triage, title, memory) restent en `claude -p` one-shot.
 
-**Architecture:** Chaque dossier actif = une session tmux avec `claude` interactif + ttyd pour l'accès web. L'interaction se fait via `tmux send-keys` (triage, checkup, instruction Lolo). Le hook `Stop` détecte quand Claude a fini son tour. L'archivage est manuel.
+**Architecture:** Chaque dossier actif = une session tmux avec `claude` interactif + ttyd pour l'accès web. L'interaction se fait via `tmux send-keys` (triage, checkup, instruction utilisateur). Le hook `Stop` détecte quand Claude a fini son tour. L'archivage est manuel.
 
 **Tech Stack:** Node.js, Hono, tmux, ttyd, React 19, Zustand, xterm.js
 
@@ -363,7 +363,7 @@ export function createLauncher(deps: {
       content += `\n## Event declencheur\nSource: ${event.source}\n${event.content}\n`;
     }
     if (state.confirm) {
-      content += `\n## Mode Validation\nCe dossier est en mode validation. Avant toute action externe, tu DOIS ecrire un checkpoint.md et attendre la confirmation de Lolo.\n`;
+      content += `\n## Mode Validation\nCe dossier est en mode validation. Avant toute action externe, tu DOIS ecrire un checkpoint.md et attendre la confirmation de l'utilisateur.\n`;
     }
     content += `\n## Fin de travail\nQuand tu as termine ton travail sur ce dossier, mets a jour STATUT: TERMINE dans state.md.\n`;
     fs.writeFileSync(path.join(dossierDir, 'CLAUDE.md'), content);
@@ -536,7 +536,7 @@ interface Launcher {
 
 ```typescript
   function handleNotification(dossierId: string, payload: HookPayload): void {
-    // idle_prompt — Claude has been idle, notify Lolo
+    // idle_prompt — Claude has been idle, notify the user
     deps.notify.notifyIdle?.(dossierId);
   }
 ```

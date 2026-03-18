@@ -4,7 +4,7 @@
 
 **Goal:** Implémenter Alfred, un assistant personnel autonome qui gère des dossiers administratifs via sessions Claude Code focalisées, avec une app web et des garde-fous hooks.
 
-**Architecture:** Backend léger Hono (~200-400 lignes) qui reçoit des events, lance des sessions Claude Code dans tmux, et gère l'état via des fichiers workspace/. Frontend React 19 SPA pour l'interface de Lolo. Monorepo pnpm workspaces avec packages/shared pour les types Zod.
+**Architecture:** Backend léger Hono (~200-400 lignes) qui reçoit des events, lance des sessions Claude Code dans tmux, et gère l'état via des fichiers workspace/. Frontend React 19 SPA pour l'interface utilisateur. Monorepo pnpm workspaces avec packages/shared pour les types Zod.
 
 **Tech Stack:** TypeScript strict, Hono, grammY, Zod, React 19, Vite, React Router, Tailwind CSS, Zustand, xterm.js, Vitest, Playwright, pnpm workspaces, ESLint+Prettier.
 
@@ -289,7 +289,7 @@ export const GmailWebhookSchema = z.object({
   timestamp: z.string(),
 });
 
-// Instruction Lolo (créer un dossier)
+// Instruction utilisateur (créer un dossier)
 export const CreateDossierSchema = z.object({
   instruction: z.string().min(1),
   confirm: z.boolean().default(false),
@@ -303,7 +303,7 @@ export const DossierInstructionSchema = z.object({
 
 // Approuver une suggestion
 export const ApproveSuggestionSchema = z.object({
-  instruction: z.string().optional(),  // instruction personnalisée de Lolo
+  instruction: z.string().optional(),  // instruction personnalisée de l'utilisateur
 });
 
 // Hook payload (centralisé)
@@ -1506,13 +1506,13 @@ export function createGapsManager(workspaceDir: string) {
 - [ ] **Step 8: Créer workspace/CLAUDE.md — prompt système global (niveau 1)**
 
 ```markdown
-# Alfred — Assistant de Lolo
+# Alfred — Assistant personnel
 
-Tu es l'assistant personnel de Lolo. Tu travailles sur UN dossier à la fois.
+Tu es l'assistant personnel de l'utilisateur. Tu travailles sur UN dossier à la fois.
 Lis state.md pour comprendre où tu en es avant de faire quoi que ce soit.
 
 ## Identité
-- Lolo communique en français
+- L'utilisateur communique en français
 - Tu écris en français sauf le code et les commits (anglais)
 - Style naturel, pas trop formel, max 1 emoji par message
 
@@ -2034,7 +2034,7 @@ export function createLauncher(deps: {
   function handleHookEvent(dossierId: string, hookName: string): void {
     const session = sessions.get(dossierId);
     if (!session || session.status !== 'idle') return;
-    // Session était idle → prochain hook = Lolo a répondu
+    // Session était idle → prochain hook = l'utilisateur a répondu
     cancelIdleTimer(dossierId);
     session.status = 'active';
     deps.sse.emit({ type: 'session:active', data: { dossierId }, timestamp: new Date().toISOString() });
@@ -2419,8 +2419,8 @@ Tests du handler (ce qu'il fait côté backend pour chaque scénario) :
 - E2E-GF-12 : PostToolUse → audit.log contient sessionId, toolName, toolInput, decision
 - E2E-GF-13 : handler timeout → retourne réponse par défaut en <1s
 - E2E-GF-14 : handler retourne `updatedInput` quand applicable
-- E2E-GF-15 : ASK → notification Telegram envoyée, handler attend réponse Lolo
-- E2E-GF-16 : ASK → Lolo refuse → handler retourne DENY
+- E2E-GF-15 : ASK → notification Telegram envoyée, handler attend réponse utilisateur
+- E2E-GF-16 : ASK → l'utilisateur refuse → handler retourne DENY
 - E2E-GF-17 : ASK → timeout → handler retourne DENY par défaut
 - E2E-GF-18 : Plusieurs hooks même appel → tous loggés dans audit
 - E2E-EDGE-11 : 3 DENY consécutifs même outil → notification escalade
@@ -2436,7 +2436,7 @@ Le handler reçoit le JSON hook sur POST /api/hooks, route selon `hook_event_nam
 - `Stop` → push SSE + **si session idle → `cancelIdleTimer()`, statut → `active`**
 
 Note : l'annulation du idle timer se fait via le prochain hook de la session (Option A).
-Quand Lolo répond dans le terminal, Claude recommence à traiter et déclenche un hook.
+Quand l'utilisateur répond dans le terminal, Claude recommence à traiter et déclenche un hook.
 Le handler vérifie si la session est en statut `idle` → si oui, annule le timer.
 
 - [ ] **Step 4: Vérifier pass**
@@ -3238,7 +3238,7 @@ Les edge cases déjà couverts dans d'autres tasks :
 Restent à tester dans edge-cases.test.ts :
 - E2E-EDGE-05 — Plusieurs checkpoints (vérification via API)
 - E2E-EDGE-07 — Webhook flood 100 emails (test de charge dedup + receiver)
-- E2E-EDGE-08 — Lolo modifie state.md manuellement (le parser doit toujours fonctionner)
+- E2E-EDGE-08 — L'utilisateur modifie state.md manuellement (le parser doit toujours fonctionner)
 - E2E-EDGE-12 — Camoufox profil corrompu (Claude gère, mais le backend détecte via gaps.md)
 - E2E-EDGE-17 — Erreur disque (simuler fs.writeFileSync qui throw)
 
@@ -3279,12 +3279,12 @@ it('handles 100 webhooks without crash or memory leak (E2E-EDGE-07)', async () =
 });
 ```
 
-- [ ] **Step 3: Écrire test E2E-EDGE-08 — Lolo modifie state.md manuellement**
+- [ ] **Step 3: Écrire test E2E-EDGE-08 — L'utilisateur modifie state.md manuellement**
 
 ```typescript
 it('parser handles manually edited state.md with extra sections (E2E-EDGE-08)', () => {
   fs.writeFileSync(path.join(dir, 'state.md'),
-    '# Mon Dossier Perso\n\nSTATUT : EN COURS\n\n## Objectif\nFaire un truc\n\n## Notes perso\nCeci est ajouté à la main par Lolo\n\n## Journal\n- 2026-03-14 : Créé\n');
+    '# Mon Dossier Perso\n\nSTATUT : EN COURS\n\n## Objectif\nFaire un truc\n\n## Notes perso\nCeci est ajouté à la main par l'utilisateur\n\n## Journal\n- 2026-03-14 : Créé\n');
   const result = parseStateMd(dir);
   expect(result.title).toBe('Mon Dossier Perso');
   expect(result.status).toBe('EN COURS');

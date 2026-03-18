@@ -51,7 +51,7 @@ describe('Edge cases', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(
       path.join(dir, 'state.md'),
-      '# Mon Dossier Perso\n\nSTATUT : EN COURS\n\n## Objectif\nFaire un truc\n\n## Notes perso\nCeci est ajouté à la main par Lolo\n\n## Journal\n- 2026-03-14 : Créé\n',
+      '# Mon Dossier Perso\n\nSTATUT : EN COURS\n\n## Objectif\nFaire un truc\n\n## Notes perso\nCeci est ajouté à la main\n\n## Journal\n- 2026-03-14 : Créé\n',
     );
 
     const result = parseStateMd(dir);

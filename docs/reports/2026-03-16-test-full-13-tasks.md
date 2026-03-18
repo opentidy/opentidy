@@ -62,8 +62,8 @@
 - **Checkpoint:** "Je n'ai pas les informations — pas de section Contexte mémoire dans CLAUDE.md, INDEX.md vide"
 - **Notes:** Comportement parfait : sans mémoire → checkpoint. Valide que l'injection sera testable une fois implémentée
 
-### Task 13: Mémoire — extraction de faits (Loaddr status)
-- **Status:** PASS — TERMINÉ, artifact `loaddr-status.md`
+### Task 13: Mémoire — extraction de faits (company status)
+- **Status:** PASS — TERMINÉ, artifact `company-status.md`
 - **Notes:** Statut Companies House récupéré. L'extraction mémoire ne peut pas encore être validée (agent mémoire pas implémenté)
 
 ## Issues Found

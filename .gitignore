@@ -9,3 +9,10 @@ dist/
 /tmp/
 .DS_Store
 .playwright-mcp/
+
+# Claude Code local files (keep settings.json for project hooks)
+/.claude/*
+!/.claude/settings.json
+
+# Development session files
+/ralf/

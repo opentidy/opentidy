@@ -53,7 +53,7 @@ GET    /api/schedule/next         — prochain déclenchement prévu
 | Source | Comment |
 |--------|---------|
 | Claude (en session) | `curl POST localhost:5174/api/schedule` via Bash tool |
-| Lolo (UI) | Bouton dans le détail dossier |
+| L'utilisateur (UI) | Bouton dans le détail dossier |
 | Checkup | Filet de sécurité si date détectée |
 
 ### Exemples
@@ -66,7 +66,7 @@ GET    /api/schedule/next         — prochain déclenchement prévu
 - SQLite = survit aux restarts
 - setTimeout = précision milliseconde
 - API structurée = pas de regex sur markdown
-- Visible dans l'UI = Lolo peut voir/annuler
+- Visible dans l'UI = l'utilisateur peut voir/annuler
 - Crash recovery = fire les overdue au startup
 
 ### Cohérence avec les principes

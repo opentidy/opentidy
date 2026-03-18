@@ -18,7 +18,7 @@ factures-mensuelles:
   1. [auto]  Lister les mois, vérifier quelles factures existent
   2. [auto]  Chercher les timesheets pour les mois manquants
   3. [auto]  Créer les factures manquantes
-  4. [CHECK] Montrer les factures à Lolo pour validation
+  4. [CHECK] Montrer les factures à l'utilisateur pour validation
   5. [auto]  Envoyer les mails après OK
 ```
 
@@ -78,7 +78,7 @@ quoi faire.
 - Un échec sur un dossier bloque tout le reste
 - Pas de parallélisme
 
-C'est le feedback clé de Lolo : le vrai problème c'est que le contexte est fini.
+C'est le feedback clé de l'utilisateur : le vrai problème c'est que le contexte est fini.
 Un Claude ne peut pas avoir tous les dossiers en tête en même temps. Et une session
 qui tourne trop longtemps dérive.
 
@@ -174,7 +174,7 @@ En y réfléchissant, c'est juste reformater ce qui existe déjà :
   de la logique métier dans le CLI. Or Claude sait déjà faire ce raisonnement.
   Les outils doivent être des ponts vers les services, pas de la logique métier.
 
-Lolo a souligné que ça revenait à "programmer ce que Claude est déjà capable de faire."
+L'utilisateur a souligné que ça revenait à "programmer ce que Claude est déjà capable de faire."
 
 ---
 
