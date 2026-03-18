@@ -20,17 +20,17 @@ for prefix in /opt/homebrew /usr/local; do
   fi
 done
 
-# 2. Fall back to any `node` in PATH if it's the right major version
+# 2. Fall back to any `node` in PATH if it's >= required major version
 if [ -z "$NODE" ] && command -v node >/dev/null 2>&1; then
   SYS_NODE="$(command -v node)"
   SYS_MAJOR="$(node --version 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')"
-  if [ "$SYS_MAJOR" = "$REQUIRED_MAJOR" ]; then
+  if [ "$SYS_MAJOR" -ge "$REQUIRED_MAJOR" ] 2>/dev/null; then
     NODE="$SYS_NODE"
   fi
 fi
 
 if [ -z "$NODE" ]; then
-  echo "Error: Node.js $REQUIRED_MAJOR.x not found." >&2
+  echo "Error: Node.js >= $REQUIRED_MAJOR.x not found." >&2
   echo "Install with: brew install node@$REQUIRED_MAJOR" >&2
   exit 1
 fi
