@@ -220,12 +220,14 @@ export function createLauncher(deps: {
     const pluginDir = path.resolve(deps.workspaceDir, '..', 'plugins', 'opentidy-hooks');
     const pluginFlag = fs.existsSync(pluginDir) ? ` --plugin-dir ${pluginDir}` : '';
     const resumeFlag = resumeId ? ` --resume ${resumeId}` : '';
+    // --strict-mcp-config prevents cloud MCP servers from claude.ai account
+    const mcpFlag = " --strict-mcp-config --mcp-config '{}'";
     if (instruction) {
       const escapedInstruction = instruction.replace(/'/g, "'\\''");
-      return `cd ${dossierDir} && claude --dangerously-skip-permissions${pluginFlag}${resumeFlag} '${escapedInstruction}'`;
+      return `cd ${dossierDir} && claude --dangerously-skip-permissions${mcpFlag}${pluginFlag}${resumeFlag} '${escapedInstruction}'`;
     }
     // No instruction — open interactive Claude, waiting for user input
-    return `cd ${dossierDir} && claude --dangerously-skip-permissions${pluginFlag}${resumeFlag}`;
+    return `cd ${dossierDir} && claude --dangerously-skip-permissions${mcpFlag}${pluginFlag}${resumeFlag}`;
   }
 
   return {
