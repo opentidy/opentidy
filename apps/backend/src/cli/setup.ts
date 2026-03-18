@@ -632,7 +632,7 @@ export async function runSetup(moduleArg?: string): Promise<void> {
     saveConfig(configPath, loadConfig(configPath));
   }
 
-  // Direct module from CLI arg: tidy setup telegram
+  // Direct module from CLI arg: opentidy setup telegram
   if (moduleArg && moduleArg !== '--all') {
     const fn = MODULES[moduleArg];
     if (!fn) {
@@ -708,6 +708,6 @@ function printSummary(configPath: string): void {
     console.log('');
   }
 
-  console.log('  Start: tidy start');
-  console.log('  Check: tidy doctor');
+  console.log('  Start: opentidy start');
+  console.log('  Check: opentidy doctor');
 }

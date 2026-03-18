@@ -63,8 +63,8 @@ jobs:
 
           # Add CLI wrapper
           mkdir -p ./release/bin
-          cp bin/tidy ./release/bin/tidy
-          chmod +x ./release/bin/tidy
+          cp bin/opentidy ./release/bin/opentidy
+          chmod +x ./release/bin/opentidy
 
           # Add LaunchAgent template
           cp com.opentidy.agent.plist ./release/com.opentidy.agent.plist

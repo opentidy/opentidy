@@ -34,7 +34,7 @@ async function main() {
 
   switch (cmd) {
     case 'version':
-      console.log(`tidy ${getVersion()}`);
+      console.log(`opentidy ${getVersion()}`);
       break;
     case 'start': {
       const { boot } = await import('./index.js');
@@ -72,7 +72,7 @@ async function main() {
       break;
     }
     case 'help':
-      console.log(`Usage: tidy <command>
+      console.log(`Usage: opentidy <command>
 
 Commands:
   start       Start the backend server (default)
