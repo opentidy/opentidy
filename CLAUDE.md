@@ -2,12 +2,15 @@
 
 ## Project: OpenTidy
 
-Assistant personnel autonome de Lolo (V2). Gère des dossiers administratifs via sessions Claude Code autonomes (`claude -p` child processes), avec garde-fous hooks et une app web.
+Open-source personal AI assistant. Gère des dossiers administratifs via sessions Claude Code autonomes (`claude -p` child processes), avec garde-fous hooks et une app web. Distribué via Homebrew.
 
-**Repo:** `opentidy` (clean break avec AI-assistant/V1)
+**Repo:** `opentidy/opentidy` (GitHub org)
+**Homebrew tap:** `opentidy/homebrew-opentidy`
+**CLI:** `opentidy` (`opentidy setup`, `opentidy start`, `opentidy doctor`, etc.)
 **Spec complète:** `docs/design/opentidy-spec.md`
 **Plan d'implémentation:** `docs/plans/opentidy-plan.md`
 **Architecture V2:** `docs/design/v2-final.md`
+**Deployment spec:** `docs/superpowers/specs/2026-03-18-deployment-design.md`
 
 ## Platform
 
@@ -237,23 +240,60 @@ Quand tu generes des taches de test pour OpenTidy (test tasks, debug, validation
 - Ne pas commit sauf si demande
 - Ne pas push sauf si demande
 
+## Distribution & Deployment
+
+**Installation:**
+```bash
+brew tap opentidy/opentidy
+brew install opentidy
+opentidy setup       # interactive setup wizard (Telegram, Claude auth, Cloudflare, permissions)
+brew services start opentidy
+```
+
+**CLI commands:**
+```bash
+opentidy start       # start the backend server
+opentidy setup       # interactive setup wizard (modular, rerunnable)
+opentidy doctor      # verify deps, config, permissions, connectivity
+opentidy status      # service state, version, uptime
+opentidy update      # check and apply updates
+opentidy logs        # tail log files
+opentidy uninstall   # scoped removal (service, config, data, tunnel)
+```
+
+**CI/CD:** GitHub Actions (`release.yml`) — tag `v*` → test → build → `pnpm deploy` → tarball → GitHub Release → update Homebrew tap
+
+**Config:** `~/.config/opentidy/config.json` (secrets, bearer token, port, update prefs)
+
+**Claude Code isolation:** `CLAUDE_CONFIG_DIR=~/.config/opentidy/claude-config` — config template dans `apps/backend/config/claude/`
+
+**Remote access:** Cloudflare Tunnel (Zero Trust) + bearer token auth
+
+**Auto-update:** Backend check GitHub Releases toutes les 6h → detached updater script → brew upgrade → health check → rollback si echec
+
 ## Secrets & Auth
 
 - **Claude**: Claude Max subscription via OAuth — jamais d'API keys, jamais `ANTHROPIC_API_KEY`
-- **Secrets**: Infisical (self-hosted at infisical.loaddr.com) ou Bitwarden/Vaultwarden via `bw` CLI
-- **Telegram**: credentials dans le LaunchAgent plist environment
-- **Jamais hardcoder de secrets** dans le code, .env committes, ou docker-compose
+- **Config**: `~/.config/opentidy/config.json` (Telegram tokens, bearer token, port) — jamais commité
+- **Cloudflare**: credentials gérées par `cloudflared` lui-même
+- **Jamais hardcoder de secrets** dans le code, .env committés, ou docker-compose
 
 ## Key Paths
 
 - `apps/backend/src/` — source backend
 - `apps/web/src/` — source frontend
 - `packages/shared/src/` — types partages, Zod schemas
+- `bin/opentidy` — CLI wrapper (resolve node@22, lance dist/cli.js)
+- `apps/backend/src/cli/` — CLI commands (setup, doctor, status, update, logs, uninstall)
+- `apps/backend/src/config.ts` — config loader (~/.config/opentidy/)
+- `apps/backend/config/claude/` — Claude Code config template
+- `plugins/opentidy-hooks/` — hooks PreToolUse (sécurité)
 - `workspace/` — runtime data (dossiers, state.md, artifacts) — **gitignored**
 - `workspace/CLAUDE.md` — prompt global niveau 1 (pas gitignored)
 - `/tmp/opentidy-locks/` — PID lock files runtime
 - `docs/design/` — architecture, spec, reflexion V2
 - `docs/plans/` — plan d'implementation
+- `.github/workflows/release.yml` — CI/CD pipeline
 
 ## Design Docs
 
