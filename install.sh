@@ -1,11 +1,11 @@
 #!/bin/bash
 # OpenTidy installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/ldenblyd/opentidy/main/install.sh | bash
+# Usage: curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
 #
 # Idempotent: safe to re-run at any time.
 set -euo pipefail
 
-REPO="https://github.com/ldenblyd/opentidy.git"
+REPO="https://github.com/opentidy/opentidy.git"
 INSTALL_DIR="${OPENTIDY_INSTALL_DIR:-$HOME/Documents/opentidy}"
 REQUIRED_NODE_MAJOR=22
 

@@ -92,6 +92,6 @@ jobs:
       - uses: dawidd6/action-homebrew-bump-formula@v4
         with:
           token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          tap: ldenblyd/opentidy
+          tap: opentidy/opentidy
           formula: opentidy
           tag: ${{ github.ref_name }}
