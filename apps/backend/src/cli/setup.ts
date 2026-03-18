@@ -5,13 +5,15 @@ import { execFileSync } from 'child_process';
 import { loadConfig, saveConfig, getConfigPath } from '../config.js';
 import { randomBytes } from 'crypto';
 
-let rl: ReturnType<typeof createInterface>;
+let rl: ReturnType<typeof createInterface> | null = null;
 function ensureRl() {
-  if (!rl) rl = createInterface({ input: process.stdin, output: process.stdout });
+  // Always recreate — previous instance may be broken after raw mode
+  if (rl) { try { rl.close(); } catch {} }
+  rl = createInterface({ input: process.stdin, output: process.stdout });
 }
 const ask = (q: string): Promise<string> => {
   ensureRl();
-  return new Promise(r => rl.question(q, r));
+  return new Promise(r => rl!.question(q, r));
 };
 
 function run(cmd: string, args: string[]): string {
@@ -153,15 +155,33 @@ async function setupTelegram(): Promise<void> {
   console.log('');
   const botToken = await ask('  Bot token: ');
 
+  // Auto-detect Chat ID
   console.log('');
-  info('How to find your Chat ID:');
-  info('  1. Add the bot to a group (or message it directly)');
-  info(`  2. Open: https://api.telegram.org/bot${botToken}/getUpdates`);
-  info('  3. Send a message, refresh the page');
-  info('  4. Find "chat":{"id": NUMBER } in the response');
-  info('  Tip: Group IDs start with - (e.g. -1001234567890)');
+  info('Send a message to the bot in Telegram (any text).');
+  info('Then press Enter here to auto-detect your Chat ID.');
   console.log('');
-  const chatId = await ask('  Chat ID: ');
+  await ask('  Press Enter after sending a message to the bot...');
+
+  let chatId = '';
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/getUpdates`);
+    const data = await res.json() as { result?: Array<{ message?: { chat?: { id?: number } } }> };
+    const updates = data.result || [];
+    if (updates.length > 0) {
+      const lastChat = updates[updates.length - 1]?.message?.chat;
+      if (lastChat?.id) {
+        chatId = String(lastChat.id);
+        success(`Chat ID detected: ${chatId}`);
+      }
+    }
+  } catch { /* ignore */ }
+
+  if (!chatId) {
+    warn('Could not auto-detect. Enter manually:');
+    info(`  Open: https://api.telegram.org/bot${botToken}/getUpdates`);
+    info('  Find "chat":{"id": NUMBER } in the response');
+    chatId = await ask('  Chat ID: ');
+  }
 
   config.telegram.botToken = botToken;
   config.telegram.chatId = chatId;
@@ -178,44 +198,27 @@ async function setupAuth(): Promise<void> {
   console.log('  │  API Authentication                  │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('OpenTidy has an HTTP API. A bearer token protects it');
-  info('so only you (and your web app) can access it.');
-  console.log('');
 
   if (config.auth.bearerToken) {
-    info(`Current token: ...${config.auth.bearerToken.slice(-8)}`);
-    const keep = await ask('  Keep current token? (Y/n) ');
-    if (keep.toLowerCase() !== 'n') {
-      success('Auth config unchanged.');
-
-      // Still check port
-      info(`Current port: ${config.server.port}`);
-      const keepPort = await ask('  Keep current port? (Y/n) ');
-      if (keepPort.toLowerCase() !== 'n') return;
-    }
+    success(`Token already configured: ...${config.auth.bearerToken.slice(-8)}`);
+    info(`Port: ${config.server.port || 5175}`);
+    return;
   }
 
-  info('Press Enter to auto-generate a secure 64-char token,');
-  info('or paste your own.');
-  console.log('');
-  const defaultToken = randomBytes(32).toString('hex');
-  const bearerInput = await ask('  Bearer token (Enter = auto-generate): ');
-  const bearerToken = bearerInput || defaultToken;
-  if (!bearerInput) {
-    console.log('');
-    success(`Generated: ${bearerToken}`);
-    warn('Save this token! You need it for the web app.');
-  }
-
-  console.log('');
-  info(`Current port: ${config.server.port || 5175}`);
-  const portStr = await ask('  Port (Enter = keep current): ');
-  const port = parseInt(portStr) || config.server.port || 5175;
-
+  // Auto-generate — no questions asked
+  const bearerToken = randomBytes(32).toString('hex');
   config.auth.bearerToken = bearerToken;
-  config.server.port = port;
+  config.server.port = config.server.port || 5175;
   saveConfig(configPath, config);
-  success('Auth configured.');
+
+  success('Bearer token generated automatically.');
+  console.log('');
+  console.log(`  ┌──────────────────────────────────────────────────────────────────┐`);
+  console.log(`  │  ${bearerToken}  │`);
+  console.log(`  └──────────────────────────────────────────────────────────────────┘`);
+  console.log('');
+  info('Save this token — you need it for the web app.');
+  info(`Port: ${config.server.port}`);
 }
 
 async function setupClaude(): Promise<void> {
