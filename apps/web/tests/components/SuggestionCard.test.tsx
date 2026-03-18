@@ -32,18 +32,19 @@ beforeEach(() => {
 });
 
 describe('SuggestionCard', () => {
-  it('displays title, summary, and urgency badge', () => {
+  it('displays title, why, and urgency badge', () => {
     render(<SuggestionCard suggestion={makeSuggestion()} />);
 
     expect(screen.getByText('Impots chypriotes')).toBeDefined();
-    expect(screen.getByText('Deadline approaching for tax filing')).toBeDefined();
+    expect(screen.getByText('Tax deadline is next week')).toBeDefined();
     expect(screen.getByText('normal')).toBeDefined();
   });
 
-  it('displays source and date', () => {
+  it('displays source label and date', () => {
     render(<SuggestionCard suggestion={makeSuggestion()} />);
 
-    expect(screen.getByText('gmail - 2026-03-14')).toBeDefined();
+    expect(screen.getByText('Email')).toBeDefined();
+    expect(screen.getByText('2026-03-14')).toBeDefined();
   });
 
   it('renders urgent urgency with red classes', () => {
