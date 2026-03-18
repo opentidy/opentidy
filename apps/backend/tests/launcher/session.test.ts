@@ -47,7 +47,7 @@ describe('createLauncher (tmux-only)', () => {
   let wsDir: string;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     // Create a dossier directory with state.md
     const dossierDir = path.join(wsDir, 'test-dossier');
     fs.mkdirSync(dossierDir, { recursive: true });
@@ -69,10 +69,10 @@ describe('createLauncher (tmux-only)', () => {
 
     expect(deps.locks.acquire).toHaveBeenCalledWith('test-dossier');
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'alfred-test-dossier',
+      'opentidy-test-dossier',
       expect.stringContaining('claude'),
     );
-    expect(deps.terminal.ensureReady).toHaveBeenCalledWith('alfred-test-dossier');
+    expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-dossier');
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'session:started' }),
     );
@@ -135,7 +135,7 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.launchSession('test-dossier');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'alfred-test-dossier',
+      'opentidy-test-dossier',
       expect.stringContaining('claude --dangerously-skip-permissions'),
     );
   });
@@ -148,7 +148,7 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.launchSession('test-dossier');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'alfred-test-dossier',
+      'opentidy-test-dossier',
       expect.stringContaining('--resume session-abc-123'),
     );
   });
@@ -161,7 +161,7 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.sendMessage('test-dossier', 'Nouvel email de X');
 
     expect(deps.tmuxExecutor.sendKeys).toHaveBeenCalledWith(
-      'alfred-test-dossier',
+      'opentidy-test-dossier',
       'Nouvel email de X\n',
     );
   });
@@ -258,7 +258,7 @@ describe('createLauncher (tmux-only)', () => {
     launcher.handleSessionEnd('test-dossier');
 
     expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
-    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('alfred-test-dossier');
+    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-dossier');
     expect(launcher.listActiveSessions()).toHaveLength(0);
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'session:ended' }),
@@ -272,8 +272,8 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.launchSession('test-dossier');
     await launcher.archiveSession('test-dossier');
 
-    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('alfred-test-dossier');
-    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('alfred-test-dossier');
+    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('opentidy-test-dossier');
+    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-dossier');
     expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
     expect(launcher.listActiveSessions()).toHaveLength(0);
   });
@@ -285,7 +285,7 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.launchSession('test-dossier');
     await launcher.terminateSession('test-dossier');
 
-    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('alfred-test-dossier');
+    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('opentidy-test-dossier');
     expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
     expect(launcher.listActiveSessions()).toHaveLength(0);
   });
@@ -339,8 +339,8 @@ describe('createLauncher (tmux-only)', () => {
     it('reconciles existing tmux sessions', async () => {
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([
-        'alfred-test-dossier',
-        'alfred-other-dossier',
+        'opentidy-test-dossier',
+        'opentidy-other-dossier',
         'unrelated-session',
       ]);
       // Create other-dossier dir so it passes existsSync check
@@ -356,7 +356,7 @@ describe('createLauncher (tmux-only)', () => {
 
     it('skips tmux sessions without matching dossier directory', async () => {
       const deps = createMockDeps(wsDir);
-      deps.tmuxExecutor.listSessions.mockResolvedValue(['alfred-nonexistent']);
+      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-nonexistent']);
       const launcher = createLauncher(deps);
 
       await launcher.recover();
@@ -366,12 +366,12 @@ describe('createLauncher (tmux-only)', () => {
 
     it('starts ttyd for recovered sessions', async () => {
       const deps = createMockDeps(wsDir);
-      deps.tmuxExecutor.listSessions.mockResolvedValue(['alfred-test-dossier']);
+      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-test-dossier']);
       const launcher = createLauncher(deps);
 
       await launcher.recover();
 
-      expect(deps.terminal.ensureReady).toHaveBeenCalledWith('alfred-test-dossier');
+      expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-dossier');
     });
 
     it('calls cleanupStaleLocks', async () => {

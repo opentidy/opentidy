@@ -57,7 +57,7 @@ function safeRemove(p: string, label: string, toTrash = false): void {
   }
   if (toTrash) {
     const trashDir = join(process.env.HOME || '', '.Trash');
-    const trashName = `${basename(p)}-alfred-${Date.now()}`;
+    const trashName = `${basename(p)}-opentidy-${Date.now()}`;
     try {
       renameSync(p, join(trashDir, trashName));
       console.log(`  ✓  ${label} → moved to Trash`);
@@ -92,14 +92,14 @@ function resolveCleanupItems(): CleanupItem[] {
   // --- Service ---
   const plistName = 'com.opentidy.agent.plist';
   const plistPath = join(home, 'Library/LaunchAgents', plistName);
-  const brewPlist = join(home, 'Library/LaunchAgents/homebrew.mxcl.alfred.plist');
+  const brewPlist = join(home, 'Library/LaunchAgents/homebrew.mxcl.opentidy.plist');
 
   items.push({
     scope: 'service',
-    label: 'Stop Alfred process',
+    label: 'Stop OpenTidy process',
     exists: true, // always attempt
     action: () => {
-      // Try kill any running alfred/node process on our port
+      // Try kill any running opentidy/node process on our port
       const port = config?.server.port || 5175;
       try {
         const pid = execFileSync('lsof', ['-ti', `:${port}`], { encoding: 'utf-8', timeout: 5000 }).trim();
@@ -134,15 +134,15 @@ function resolveCleanupItems(): CleanupItem[] {
   items.push({
     scope: 'service',
     label: 'Remove PID locks',
-    path: '/tmp/assistant-locks',
-    exists: existsSync('/tmp/assistant-locks'),
-    action: () => safeRemove('/tmp/assistant-locks', 'PID locks'),
+    path: '/tmp/opentidy-locks',
+    exists: existsSync('/tmp/opentidy-locks'),
+    action: () => safeRemove('/tmp/opentidy-locks', 'PID locks'),
   });
 
   // --- Config ---
   items.push({
     scope: 'config',
-    label: 'Alfred config',
+    label: 'OpenTidy config',
     path: configDir,
     exists: existsSync(configDir),
     action: () => safeRemove(configDir, `Config dir (${configDir})`, true),
@@ -159,10 +159,10 @@ function resolveCleanupItems(): CleanupItem[] {
 
   // Log files
   const logPaths = [
-    join(home, 'Library/Logs/alfred-stdout.log'),
-    join(home, 'Library/Logs/alfred-stderr.log'),
-    '/opt/homebrew/var/log/alfred.log',
-    '/opt/homebrew/var/log/alfred-error.log',
+    join(home, 'Library/Logs/opentidy-stdout.log'),
+    join(home, 'Library/Logs/opentidy-stderr.log'),
+    '/opt/homebrew/var/log/opentidy.log',
+    '/opt/homebrew/var/log/opentidy-error.log',
   ];
   for (const logPath of logPaths) {
     if (existsSync(logPath)) {
@@ -209,7 +209,7 @@ function resolveCleanupItems(): CleanupItem[] {
 
 const ALL_SCOPES: { key: Scope; label: string; description: string }[] = [
   { key: 'service', label: 'Service', description: 'Stop process, remove LaunchAgent, PID locks' },
-  { key: 'config', label: 'Config', description: '~/.config/alfred/ (config + Claude Code config)' },
+  { key: 'config', label: 'Config', description: '~/.config/opentidy/ (config + Claude Code config)' },
   { key: 'data', label: 'Data', description: 'workspace/ (dossiers, SQLite, memory, logs)' },
   { key: 'tunnel', label: 'Tunnel', description: 'Cloudflare Tunnel service + config' },
 ];
@@ -223,7 +223,7 @@ function showMultiselect(): Promise<Scope[]> {
       process.stdout.write('\x1B[2J\x1B[H');
       console.log('');
       console.log('  ╔═══════════════════════════════════════╗');
-      console.log('  ║          Alfred Uninstall              ║');
+      console.log('  ║          OpenTidy Uninstall              ║');
       console.log('  ╚═══════════════════════════════════════╝');
       console.log('');
       console.log('  Select what to remove (Space to toggle, Enter to confirm):');
@@ -399,7 +399,7 @@ export async function runUninstall(args: string[]): Promise<void> {
     console.log('');
   }
 
-  console.log('  Alfred source code is still at: ' + process.cwd());
+  console.log('  OpenTidy source code is still at: ' + process.cwd());
   console.log('  To remove it: rm -rf ' + process.cwd());
   console.log('');
   console.log('  System dependencies (node, tmux, ttyd, etc.) were not removed.');

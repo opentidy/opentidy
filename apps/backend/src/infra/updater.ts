@@ -56,7 +56,7 @@ export function createUpdater(deps: UpdaterDeps) {
   }
 
   function spawnDetachedUpdater(newVersion: string): void {
-    const cacheDir = `${process.env.HOME}/.cache/alfred/releases`;
+    const cacheDir = `${process.env.HOME}/.cache/opentidy/releases`;
     mkdirSync(cacheDir, { recursive: true });
 
     const child = spawn('bash', [deps.updaterScriptPath], {
@@ -81,7 +81,7 @@ export function createUpdater(deps: UpdaterDeps) {
     console.log(`[updater] New version available: v${version}`);
 
     if (deps.notifyBeforeUpdate) {
-      await deps.sendTelegram(`Alfred v${version} disponible. Mise a jour auto dans ${deps.delayBeforeUpdate}.`);
+      await deps.sendTelegram(`OpenTidy v${version} disponible. Mise a jour auto dans ${deps.delayBeforeUpdate}.`);
     }
 
     if (deps.autoUpdate) {

@@ -1,5 +1,5 @@
 // src/receiver/webhook.ts
-import { GmailWebhookSchema } from '@alfred/shared';
+import { GmailWebhookSchema } from '@opentidy/shared';
 
 export function createWebhookReceiver(deps: {
   dedup: { isDuplicate: (c: string) => boolean; record: (c: string) => void };

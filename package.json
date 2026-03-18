@@ -1,5 +1,5 @@
 {
-  "name": "alfred",
+  "name": "opentidy",
   "private": true,
   "packageManager": "pnpm@10.6.5",
   "pnpm": {
@@ -8,12 +8,12 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm -r build",
-    "test": "pnpm --filter @alfred/backend test && pnpm --filter @alfred/web test",
-    "test:e2e": "pnpm --filter @alfred/web test:e2e",
+    "test": "pnpm --filter @opentidy/backend test && pnpm --filter @opentidy/web test",
+    "test:e2e": "pnpm --filter @opentidy/web test:e2e",
     "dev": "pnpm -r --parallel dev",
     "lint": "pnpm -r lint",
-    "smoke:setup": "pnpm --filter @alfred/backend smoke:setup",
-    "smoke:start": "pnpm --filter @alfred/backend smoke:start",
-    "smoke:cleanup": "pnpm --filter @alfred/backend smoke:cleanup"
+    "smoke:setup": "pnpm --filter @opentidy/backend smoke:setup",
+    "smoke:start": "pnpm --filter @opentidy/backend smoke:start",
+    "smoke:cleanup": "pnpm --filter @opentidy/backend smoke:cleanup"
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
-import type { Amelioration, AmeliorationStatus, AmeliorationCategory } from '@alfred/shared';
+import type { Amelioration, AmeliorationStatus, AmeliorationCategory } from '@opentidy/shared';
 
 type Filter = 'ouverts' | 'resolus' | 'ignores';
 

@@ -8,7 +8,7 @@ describe('config', () => {
   let configDir: string;
 
   beforeEach(() => {
-    configDir = mkdtempSync(join(tmpdir(), 'alfred-config-'));
+    configDir = mkdtempSync(join(tmpdir(), 'opentidy-config-'));
   });
 
   afterEach(() => {

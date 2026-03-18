@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store';
 import SuggestionCard from '../components/SuggestionCard';
 import DossierCard from '../components/DossierCard';
-import type { DossierStatus } from '@alfred/shared';
+import type { DossierStatus } from '@opentidy/shared';
 
 type Filter = 'actifs' | 'termines';
 
@@ -255,7 +255,7 @@ function Header() {
   return (
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-bold text-text">Alfred</h1>
+        <h1 className="text-xl font-bold text-text">OpenTidy</h1>
       </div>
       <div className="flex items-center gap-4">
         <span className={`text-xs hidden md:inline ${checkupRunning ? 'text-accent animate-pulse' : 'text-text-tertiary'}`}>

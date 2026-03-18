@@ -1,4 +1,4 @@
-// types.ts — SSOT pour tous les types Alfred
+// types.ts — SSOT pour tous les types OpenTidy
 
 // === Dossier (workspace/) ===
 export type DossierStatus = 'EN COURS' | 'TERMINÉ';
@@ -163,7 +163,7 @@ export interface MemoryIndexEntry {
 }
 
 // === Config ===
-export interface AlfredConfig {
+export interface OpenTidyConfig {
   version: number;
   telegram: {
     botToken: string;

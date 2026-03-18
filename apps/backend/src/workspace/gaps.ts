@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import type { Amelioration, AmeliorationStatus, AmeliorationSource, AmeliorationCategory } from '@alfred/shared';
+import type { Amelioration, AmeliorationStatus, AmeliorationSource, AmeliorationCategory } from '@opentidy/shared';
 
 export function createGapsManager(workspaceDir: string) {
   const gapsFile = path.join(workspaceDir, '_gaps', 'gaps.md');

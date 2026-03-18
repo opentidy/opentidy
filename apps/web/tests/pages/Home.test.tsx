@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Dossier, Suggestion, Session } from '@alfred/shared';
+import type { Dossier, Suggestion, Session } from '@opentidy/shared';
 import Home from '../../src/pages/Home';
 
 const mockNavigate = vi.fn();
@@ -50,7 +50,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
 
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
-    id: 'alfred-sopra',
+    id: 'opentidy-sopra',
     dossierId: 'sopra',
     status: 'active',
     startedAt: new Date().toISOString(),
@@ -124,8 +124,8 @@ describe('Home page', () => {
     expect(screen.queryByText(/En fond/)).toBeNull();
   });
 
-  it('header shows Alfred title, not session count', async () => {
-    storeState.sessions = [makeSession(), makeSession({ id: 'alfred-impots', dossierId: 'impots' })];
+  it('header shows OpenTidy title, not session count', async () => {
+    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-impots', dossierId: 'impots' })];
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -135,7 +135,7 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Alfred')).toBeDefined();
+      expect(screen.getByText('OpenTidy')).toBeDefined();
     });
     // Current header does not display session count
     expect(screen.queryByText('2 sessions')).toBeNull();

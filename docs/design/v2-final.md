@@ -434,7 +434,7 @@ Pourquoi pas `claude -p` :
 C'est tout. Pas de contexte global, pas de tous-les-dossiers. Session focalisée.
 
 **Parallélisme** : plusieurs sessions tmux en même temps, chacune sur un dossier
-différent. Locks de dossier (PID, `/tmp/assistant-locks/`) pour empêcher deux
+différent. Locks de dossier (PID, `/tmp/opentidy-locks/`) pour empêcher deux
 sessions de travailler sur le même dossier. Le sweep ignore les dossiers lockés.
 
 **Browser : Camoufox** (pas Chrome/Playwright). Chaque session a sa propre instance
@@ -796,7 +796,7 @@ Lolo garde le contrôle de ce sur quoi l'assistant passe du temps.
 |---|---|---|
 | Skills Claude Code | ✅ Intégralement | /comptable, /navigate, /sms, /whatsapp, etc. |
 | MCP servers | ✅ Intégralement | Gmail, Calendar, Notion, Coolify, etc. |
-| Resource locks (PID) | ✅ Mécanisme | /tmp/assistant-locks/ |
+| Resource locks (PID) | ✅ Mécanisme | /tmp/opentidy-locks/ |
 | Dedup par hash | ✅ Concept | Éviter les doublons webhook |
 | Tmux sessions | ✅ Mécanisme | Sessions Claude détachées |
 | React dashboard | ❌ Refaire | UI repensée de zéro |

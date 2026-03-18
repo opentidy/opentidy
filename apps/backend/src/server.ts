@@ -6,8 +6,8 @@ import { readFileSync, existsSync } from 'fs';
 import { createAuthMiddleware } from './middleware/auth.js';
 import { setWaitingType } from './workspace/state.js';
 import { ZodError } from 'zod';
-import type { Dossier, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@alfred/shared';
-import { MemoryCreateSchema, MemoryUpdateSchema, MemoryPromptSchema } from '@alfred/shared';
+import type { Dossier, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
+import { MemoryCreateSchema, MemoryUpdateSchema, MemoryPromptSchema } from '@opentidy/shared';
 import { generateSlug } from './utils/slug.js';
 
 interface SSEClient {
@@ -431,14 +431,14 @@ export function createApp(deps?: AppDeps) {
 
     // POST /api/reset — kill all sessions, wipe workspace, clean locks
     app.post('/api/reset', async (c) => {
-      console.log('[alfred] RESET — wiping everything');
+      console.log('[opentidy] RESET — wiping everything');
       const { execFileSync } = await import('child_process');
       const { readdirSync, rmSync, statSync } = await import('fs');
 
-      // 1. Kill all alfred tmux sessions
+      // 1. Kill all opentidy tmux sessions
       try {
         const raw = execFileSync('tmux', ['list-sessions', '-F', '#{session_name}'], { encoding: 'utf-8' });
-        for (const name of raw.trim().split('\n').filter(n => n.startsWith('alfred-'))) {
+        for (const name of raw.trim().split('\n').filter(n => n.startsWith('opentidy-'))) {
           try { execFileSync('tmux', ['kill-session', '-t', name]); } catch {}
         }
       } catch {}
@@ -462,7 +462,7 @@ export function createApp(deps?: AppDeps) {
 
       // 3. Clean locks
       try {
-        const lockDir = '/tmp/assistant-locks';
+        const lockDir = '/tmp/opentidy-locks';
         if (statSync(lockDir).isDirectory()) {
           for (const f of readdirSync(lockDir)) rmSync(join(lockDir, f), { force: true });
         }
@@ -476,12 +476,12 @@ export function createApp(deps?: AppDeps) {
         }
       } catch {}
 
-      console.log('[alfred] RESET complete — restarting in 1s');
+      console.log('[opentidy] RESET complete — restarting in 1s');
       c.header('Content-Type', 'application/json');
 
       // 5. Schedule self-restart after response is sent
       setTimeout(() => {
-        console.log('[alfred] Restarting process...');
+        console.log('[opentidy] Restarting process...');
         process.exit(0); // tsx watch or launchctl will restart us
       }, 1000);
 
@@ -499,7 +499,7 @@ export function createApp(deps?: AppDeps) {
     // Title generation is skipped for test tasks — the task description is used instead.
     app.post('/api/test-tasks', async (c) => {
       const { TEST_TASKS } = await import('./fixtures/test-tasks.js');
-      console.log(`[alfred] Launching ${TEST_TASKS.length} test tasks`);
+      console.log(`[opentidy] Launching ${TEST_TASKS.length} test tasks`);
       const created: string[] = [];
 
       // Step 1: create all dossiers (fast, no claude -p)
@@ -569,6 +569,6 @@ export function createApp(deps?: AppDeps) {
 
 export function startServer(app: Hono, port = 5175) {
   return serve({ fetch: app.fetch, port }, (info) => {
-    console.log(`[alfred] Backend listening on http://localhost:${info.port}`);
+    console.log(`[opentidy] Backend listening on http://localhost:${info.port}`);
   });
 }

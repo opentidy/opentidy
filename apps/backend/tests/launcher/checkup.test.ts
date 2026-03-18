@@ -1,7 +1,7 @@
 // tests/launcher/checkup.test.ts
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createCheckup } from '../../src/launcher/checkup.js';
-import type { MemoryEntry } from '@alfred/shared';
+import type { MemoryEntry } from '@opentidy/shared';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -10,7 +10,7 @@ describe('Checkup', () => {
   let wsDir: string;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     // Créer quelques dossiers
     for (const id of ['factures-sopra', 'exali-rapport']) {
       const dir = path.join(wsDir, id);
@@ -233,7 +233,7 @@ describe('Checkup — memory context', () => {
   ];
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     fs.mkdirSync(path.join(wsDir, '_suggestions'), { recursive: true });
   });
 

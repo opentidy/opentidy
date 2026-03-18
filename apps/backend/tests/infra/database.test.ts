@@ -8,7 +8,7 @@ describe('createDatabase', () => {
   const tmpdirs: string[] = [];
 
   function makeTmpDir(): string {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-db-test-'));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-db-test-'));
     tmpdirs.push(dir);
     return dir;
   }
@@ -24,7 +24,7 @@ describe('createDatabase', () => {
     const dataDir = makeTmpDir();
     const db = createDatabase(dataDir);
 
-    expect(fs.existsSync(path.join(dataDir, 'alfred.db'))).toBe(true);
+    expect(fs.existsSync(path.join(dataDir, 'opentidy.db'))).toBe(true);
 
     const tables = db
       .prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")

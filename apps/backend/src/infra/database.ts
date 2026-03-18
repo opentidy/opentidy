@@ -4,7 +4,7 @@ import path from 'path';
 
 export function createDatabase(dataDir: string): Database.Database {
   fs.mkdirSync(dataDir, { recursive: true });
-  const dbPath = path.join(dataDir, 'alfred.db');
+  const dbPath = path.join(dataDir, 'opentidy.db');
   const db = new Database(dbPath);
 
   db.pragma('journal_mode = WAL');

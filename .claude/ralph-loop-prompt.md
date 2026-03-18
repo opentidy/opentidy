@@ -9,13 +9,13 @@
 Avant de commencer l'implementation, tu DOIS lire et comprendre ces documents dans l'ordre :
 
 1. `CLAUDE.md` — instructions projet, architecture, conventions, commandes
-2. `docs/design/alfred-spec.md` — spec complete, en particulier :
+2. `docs/design/opentidy-spec.md` — spec complete, en particulier :
    - Section 18 (Tests E2E) — tous les 148 tests avec descriptions
    - Section 9 (Infrastructure) — setup.sh, LaunchAgent, permissions macOS
    - Section 5.4 (Garde-fous) — config hooks JSON exacte
 3. `docs/design/e2e-tests.md` — structure complete des tests, mocks, niveaux
 4. `docs/design/hooks-techniques.md` — reference technique pour la config hooks (Task 28)
-5. `docs/plans/alfred-plan.md` — section "Chunk 5" (lignes 3155-fin)
+5. `docs/plans/opentidy-plan.md` — section "Chunk 5" (lignes 3155-fin)
 
 ## Execution
 

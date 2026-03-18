@@ -1,4 +1,4 @@
-// Fixture: 13 test tasks that cover all Alfred features
+// Fixture: 13 test tasks that cover all OpenTidy features
 // SAFE: all emails go to lolo@users.noreply.github.com only, no real third-party contacts
 
 export interface TestTask {
@@ -13,7 +13,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Cycle rapide — fichier local, pas de browser ni email',
     instruction:
-      "Lis le fichier docs/design/alfred-spec.md (il est dans le repo alfred, pas dans ton workspace — chemin relatif : ../../docs/design/alfred-spec.md). Fais un résumé en 10 bullet points dans artifacts/spec-resume.md. C'est tout.",
+      "Lis le fichier docs/design/opentidy-spec.md (il est dans le repo opentidy, pas dans ton workspace — chemin relatif : ../../docs/design/opentidy-spec.md). Fais un résumé en 10 bullet points dans artifacts/spec-resume.md. C'est tout.",
     confirm: false,
     tests: ['fast-cycle', 'artifacts', 'filesystem', 'exit'],
   },
@@ -40,7 +40,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Email envoi + En attente + relance par triage + extraction mémoire',
     instruction:
-      'Envoie un email à lolo@users.noreply.github.com avec le sujet "Test Alfred — réponds-moi" et le contenu "Ceci est un test du système de suivi. Réponds simplement OK.". Ensuite, mets la section "## En attente" dans state.md en expliquant que tu attends la réponse à cet email. Quand ta session reprend (le système te relancera quand la réponse arrive), lis la réponse via Gmail MCP, note-la dans le journal et termine.',
+      'Envoie un email à lolo@users.noreply.github.com avec le sujet "Test OpenTidy — réponds-moi" et le contenu "Ceci est un test du système de suivi. Réponds simplement OK.". Ensuite, mets la section "## En attente" dans state.md en expliquant que tu attends la réponse à cet email. Quand ta session reprend (le système te relancera quand la réponse arrive), lis la réponse via Gmail MCP, note-la dans le journal et termine.',
     confirm: false,
     tests: ['apple-mail', 'en-attente', 'triage-relance', 'gmail-read', 'resume', 'memory-extraction', 'exit'],
   },
@@ -76,7 +76,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Monitoring email conditionnel (Gmail watch, action)',
     instruction:
-      'Surveille mes emails pendant les prochaines 2 heures. Si je reçois un email avec "URGENT" dans le sujet, résume-le et envoie-moi un récap à lolo@users.noreply.github.com avec le sujet "Alfred — Email urgent détecté". Note chaque vérification dans state.md.',
+      'Surveille mes emails pendant les prochaines 2 heures. Si je reçois un email avec "URGENT" dans le sujet, résume-le et envoie-moi un récap à lolo@users.noreply.github.com avec le sujet "OpenTidy — Email urgent détecté". Note chaque vérification dans state.md.',
     confirm: false,
     tests: ['gmail-read', 'conditional', 'recurrence', 'apple-mail'],
   },

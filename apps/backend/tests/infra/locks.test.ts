@@ -9,7 +9,7 @@ describe('LockManager', () => {
   let locks: ReturnType<typeof createLockManager>;
 
   beforeEach(() => {
-    lockDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-locks-'));
+    lockDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-locks-'));
     locks = createLockManager(lockDir);
   });
 

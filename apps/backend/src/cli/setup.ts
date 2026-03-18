@@ -122,7 +122,7 @@ async function setupTelegram(): Promise<void> {
   console.log('  │  Telegram Notifications              │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('Alfred sends you notifications via Telegram.');
+  info('OpenTidy sends you notifications via Telegram.');
   info('You need a bot and a chat/group to send to.');
   console.log('');
 
@@ -178,7 +178,7 @@ async function setupAuth(): Promise<void> {
   console.log('  │  API Authentication                  │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('Alfred has an HTTP API. A bearer token protects it');
+  info('OpenTidy has an HTTP API. A bearer token protects it');
   info('so only you (and your web app) can access it.');
   console.log('');
 
@@ -227,7 +227,7 @@ async function setupClaude(): Promise<void> {
   console.log('  │  Claude Code                         │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('Alfred runs Claude Code sessions autonomously.');
+  info('OpenTidy runs Claude Code sessions autonomously.');
   info('It uses an isolated config (separate from yours).');
   console.log('');
 
@@ -282,7 +282,7 @@ async function setupCloudflare(): Promise<void> {
   console.log('  │  Cloudflare Tunnel                   │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('A Cloudflare Tunnel lets you access Alfred from anywhere');
+  info('A Cloudflare Tunnel lets you access OpenTidy from anywhere');
   info('without opening ports on your router. Free, secure, fast.');
   console.log('');
   info('Prerequisites:');
@@ -303,7 +303,7 @@ async function setupCloudflare(): Promise<void> {
     info('A browser will open with your Cloudflare domains.');
     info('');
     info('  ┌──────────────────────────────────────────────────┐');
-    info('  │  SELECT THE DOMAIN you want for Alfred.          │');
+    info('  │  SELECT THE DOMAIN you want for OpenTidy.          │');
     info('  │  Example: if you want opentidy.yourdomain.com,         │');
     info('  │  click on "yourdomain.com" in the list.              │');
     info('  └──────────────────────────────────────────────────┘');
@@ -326,7 +326,7 @@ async function setupCloudflare(): Promise<void> {
   console.log('  Step B: Create a tunnel');
   info('A tunnel is a persistent secure connection to Cloudflare.');
   console.log('');
-  const tunnelName = await ask('  Tunnel name (Enter = "alfred"): ') || 'alfred';
+  const tunnelName = await ask('  Tunnel name (Enter = "opentidy"): ') || 'opentidy';
 
   const existingTunnels = run('cloudflared', ['tunnel', 'list', '--output', 'json']);
   const tunnelExists = existingTunnels.includes(`"${tunnelName}"`);
@@ -346,9 +346,9 @@ async function setupCloudflare(): Promise<void> {
   // --- Step C: DNS ---
   console.log('');
   console.log('  Step C: DNS route');
-  info('Choose the hostname people will use to reach Alfred.');
+  info('Choose the hostname people will use to reach OpenTidy.');
   info('This must be a subdomain of the domain you selected');
-  info('during login (e.g. alfred.yourdomain.com).');
+  info('during login (e.g. opentidy.yourdomain.com).');
   console.log('');
   const hostname = await ask('  Hostname (e.g. opentidy.yourdomain.com): ');
   if (hostname) {
@@ -402,7 +402,7 @@ function writeCloudflaredConfig(cfConfigPath: string, cfConfigDir: string, tunne
 credentials-file: ${cfConfigDir}/${tunnelName}.json
 
 ingress:
-  - hostname: ${hostname || 'alfred.example.com'}
+  - hostname: ${hostname || 'opentidy.example.com'}
     service: http://localhost:${port}
   - service: http_status:404
 `;
@@ -416,7 +416,7 @@ async function setupPermissions(): Promise<void> {
   console.log('  │  macOS Permissions                   │');
   console.log('  └─────────────────────────────────────┘');
   console.log('');
-  info('Alfred uses AppleScript to control Messages, Mail,');
+  info('OpenTidy uses AppleScript to control Messages, Mail,');
   info('Finder, Calendar, etc. macOS will ask for permission');
   info('the first time each app is accessed.');
   console.log('');
@@ -465,7 +465,7 @@ async function setupPermissions(): Promise<void> {
   info('  1. System Settings > Privacy & Security > Full Disk Access');
   info('  2. Click +');
   info('  3. Add the terminal you use (Terminal.app or iTerm)');
-  info('  4. If Alfred runs via launchd, also add /opt/homebrew/bin/node');
+  info('  4. If OpenTidy runs via launchd, also add /opt/homebrew/bin/node');
   console.log('');
   const openFda = await ask('  Open Full Disk Access settings? (Y/n) ');
   if (openFda.toLowerCase() !== 'n') {
@@ -552,7 +552,7 @@ function showInteractiveMenu(): Promise<string> {
       process.stdout.write('\x1B[2J\x1B[H');
       console.log('');
       console.log('  ╔═══════════════════════════════════════╗');
-      console.log('  ║          Alfred Setup                  ║');
+      console.log('  ║          OpenTidy Setup                  ║');
       console.log('  ╚═══════════════════════════════════════╝');
       console.log('');
       console.log('  Use ↑↓ arrows to navigate, Enter to select.');
@@ -632,7 +632,7 @@ export async function runSetup(moduleArg?: string): Promise<void> {
     saveConfig(configPath, loadConfig(configPath));
   }
 
-  // Direct module from CLI arg: alfred setup telegram
+  // Direct module from CLI arg: tidy setup telegram
   if (moduleArg && moduleArg !== '--all') {
     const fn = MODULES[moduleArg];
     if (!fn) {
@@ -708,6 +708,6 @@ function printSummary(configPath: string): void {
     console.log('');
   }
 
-  console.log('  Start: alfred start');
-  console.log('  Check: alfred doctor');
+  console.log('  Start: tidy start');
+  console.log('  Check: tidy doctor');
 }

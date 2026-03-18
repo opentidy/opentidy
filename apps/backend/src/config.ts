@@ -1,13 +1,13 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
-import type { AlfredConfig } from '@alfred/shared';
+import type { OpenTidyConfig } from '@opentidy/shared';
 
-const DEFAULT_CONFIG: AlfredConfig = {
+const DEFAULT_CONFIG: OpenTidyConfig = {
   version: 1,
   telegram: { botToken: '', chatId: '', userId: '' },
   auth: { bearerToken: '' },
   server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
-  workspace: { dir: '', lockDir: '/tmp/assistant-locks' },
+  workspace: { dir: '', lockDir: '/tmp/opentidy-locks' },
   update: {
     autoUpdate: true,
     checkInterval: '6h',
@@ -34,11 +34,11 @@ function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record
 }
 
 export function getConfigPath(): string {
-  return process.env.ALFRED_CONFIG_PATH
-    || `${process.env.HOME}/.config/alfred/config.json`;
+  return process.env.OPENTIDY_CONFIG_PATH
+    || `${process.env.HOME}/.config/opentidy/config.json`;
 }
 
-export function loadConfig(configPath?: string): AlfredConfig {
+export function loadConfig(configPath?: string): OpenTidyConfig {
   const path = configPath || getConfigPath();
   try {
     const raw = readFileSync(path, 'utf-8');
@@ -49,7 +49,7 @@ export function loadConfig(configPath?: string): AlfredConfig {
   }
 }
 
-export function saveConfig(configPath: string, config: AlfredConfig): void {
+export function saveConfig(configPath: string, config: OpenTidyConfig): void {
   mkdirSync(dirname(configPath), { recursive: true });
   writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n');
 }

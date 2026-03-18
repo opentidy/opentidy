@@ -41,7 +41,7 @@ test.describe('E2E-APP-14: Terminal shows status bar', () => {
     await page.goto('/terminal');
 
     // Status bar shows session id and "tmux"
-    await expect(page.getByText('alfred-factures-sopra - tmux')).toBeVisible();
+    await expect(page.getByText('opentidy-factures-sopra - tmux')).toBeVisible();
 
     // Status text for active session
     await expect(page.getByText(/Active/)).toBeVisible();

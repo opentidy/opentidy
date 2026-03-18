@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import type { Session } from '@alfred/shared';
+import type { Session } from '@opentidy/shared';
 import { useStore } from '../store';
 
 const statusColors: Record<string, string> = {

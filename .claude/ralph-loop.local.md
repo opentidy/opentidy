@@ -16,13 +16,13 @@ started_at: "2026-03-14T22:06:09Z"
 Avant de commencer l'implementation, tu DOIS lire et comprendre ces documents dans l'ordre :
 
 1. `CLAUDE.md` — instructions projet, architecture, conventions, commandes
-2. `docs/design/alfred-spec.md` — spec complete, en particulier :
+2. `docs/design/opentidy-spec.md` — spec complete, en particulier :
    - Section 18 (Tests E2E) — tous les 148 tests avec descriptions
    - Section 9 (Infrastructure) — setup.sh, LaunchAgent, permissions macOS
    - Section 5.4 (Garde-fous) — config hooks JSON exacte
 3. `docs/design/e2e-tests.md` — structure complete des tests, mocks, niveaux
 4. `docs/design/hooks-techniques.md` — reference technique pour la config hooks (Task 28)
-5. `docs/plans/alfred-plan.md` — section "Chunk 5" (lignes 3155-fin)
+5. `docs/plans/opentidy-plan.md` — section "Chunk 5" (lignes 3155-fin)
 
 ## Execution
 
@@ -55,14 +55,14 @@ Full : E2E-FULL-01 a -07 (smoke tests)
 
 ```bash
 # TOUT doit passer :
-pnpm --filter @alfred/shared build     # types OK
-pnpm --filter @alfred/backend build    # backend OK
-pnpm --filter @alfred/backend test     # unit + edge case tests OK
-pnpm --filter @alfred/web build        # frontend OK
+pnpm --filter @opentidy/shared build     # types OK
+pnpm --filter @opentidy/backend build    # backend OK
+pnpm --filter @opentidy/backend test     # unit + edge case tests OK
+pnpm --filter @opentidy/web build        # frontend OK
 
 # Demarrer et tester :
 pnpm dev &
-pnpm --filter @alfred/web test:e2e     # Playwright E2E tests
+pnpm --filter @opentidy/web test:e2e     # Playwright E2E tests
 
 # Verifier l'infrastructure :
 test -f setup.sh && echo "setup.sh present"
@@ -101,7 +101,7 @@ WHEN DONE (0 failures): Update `.claude/ralf-checklist.md` — check STEP 3.
 
 ### Step 4: Run E2E tests (if applicable)
 If your changes affect the dashboard, API, or any user-facing flow, run ALL end-to-end tests:
-Run: pnpm --filter @alfred/web test:e2e
+Run: pnpm --filter @opentidy/web test:e2e
 If no E2E tests exist for the affected flow, write them.
 WHEN DONE: Update `.claude/ralf-checklist.md` — check STEP 4.
 

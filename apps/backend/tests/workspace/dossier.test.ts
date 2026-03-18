@@ -9,7 +9,7 @@ describe('DossierManager', () => {
   let mgr: ReturnType<typeof createDossierManager>;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     fs.mkdirSync(path.join(wsDir, '_suggestions'), { recursive: true });
     mgr = createDossierManager(wsDir);
   });

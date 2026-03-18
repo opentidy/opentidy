@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import type { ClaudeProcessType } from '@alfred/shared';
+import type { ClaudeProcessType } from '@opentidy/shared';
 import { createClaudeSemaphore, type ClaudeSemaphore } from './claude-semaphore.js';
 
 interface SpawnClaudeDeps {

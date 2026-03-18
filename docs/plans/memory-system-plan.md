@@ -102,7 +102,7 @@ export const MemoryCreateSchema = z.object({
 
 - [ ] **Step 3: Build shared package**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/shared build`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/shared build`
 Expected: Build success
 
 - [ ] **Step 4: Commit**
@@ -174,7 +174,7 @@ describe('MemoryLock', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/lock.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement lock manager**
@@ -217,7 +217,7 @@ export function createMemoryLock(memoryDir: string) {
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/lock.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/lock.test.ts`
 Expected: 3 tests PASS
 
 - [ ] **Step 5: Commit**
@@ -413,7 +413,7 @@ Content A
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/manager.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement memory manager**
@@ -422,7 +422,7 @@ Expected: FAIL — module not found
 // apps/backend/src/memory/manager.ts
 import fs from 'node:fs'
 import path from 'node:path'
-import type { MemoryEntry, MemoryIndexEntry } from '@alfred/shared'
+import type { MemoryEntry, MemoryIndexEntry } from '@opentidy/shared'
 
 interface WriteFileInput {
   filename: string
@@ -586,7 +586,7 @@ ${input.content}
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/manager.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/manager.test.ts`
 Expected: All tests PASS
 
 - [ ] **Step 5: Commit**
@@ -683,7 +683,7 @@ describe('MemoryAgents', () => {
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/agents.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
 Expected: FAIL — module not found
 
 - [ ] **Step 3: Implement memory agents**
@@ -879,7 +879,7 @@ Contenu libre avec entrées datées [YYYY-MM-DD].
 
 - [ ] **Step 4: Run tests to verify they pass**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test -- tests/memory/agents.test.ts`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/memory/agents.test.ts`
 Expected: All tests PASS
 
 - [ ] **Step 5: Create index re-export**
@@ -959,7 +959,7 @@ const hooksHandler = createHooksHandler({
 
 - [ ] **Step 4: Run existing hook tests to check nothing is broken**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1016,7 +1016,7 @@ Update `createLauncher` to receive `memoryManager` and `memoryAgents`.
 
 - [ ] **Step 4: Run existing tests**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1062,7 +1062,7 @@ Add memory context to the checkup prompt in the same way.
 
 - [ ] **Step 4: Run existing tests**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
 Expected: All existing tests still PASS
 
 - [ ] **Step 5: Commit**
@@ -1160,7 +1160,7 @@ Pass these to hook handler and launcher factories.
 
 - [ ] **Step 4: Run all backend tests**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm --filter @alfred/backend test`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test`
 Expected: All tests PASS
 
 - [ ] **Step 5: Commit**
@@ -1308,7 +1308,7 @@ Add "Mémoire" to the `links` array in `DesktopNav.tsx` and `MobileNav.tsx`. Add
 
 - [ ] **Step 5: Test manually**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm dev`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm dev`
 Navigate to `/memory` in browser. Verify:
 - Page loads without errors
 - Empty state shows correctly
@@ -1378,7 +1378,7 @@ git commit -m "feat(memory): initialize memory directory structure"
 
 - [ ] **Step 1: Start the backend**
 
-Run: `cd /Users/lolo/Documents/alfred && pnpm dev`
+Run: `cd /Users/lolo/Documents/opentidy && pnpm dev`
 
 - [ ] **Step 2: Test memory API endpoints**
 

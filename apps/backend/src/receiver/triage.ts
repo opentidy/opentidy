@@ -1,5 +1,5 @@
 // src/receiver/triage.ts
-import type { DossierStatus, MemoryEntry } from '@alfred/shared';
+import type { DossierStatus, MemoryEntry } from '@opentidy/shared';
 import type { SpawnClaudeSimpleFn } from '../infra/spawn-claude.js';
 import { buildMemoryContext } from '../utils/memory-context.js';
 

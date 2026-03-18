@@ -40,13 +40,13 @@ mkdir alfred && cd alfred && git init
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "build": "pnpm -r build",
-    "test": "pnpm --filter @alfred/backend test",
-    "test:e2e": "pnpm --filter @alfred/web test:e2e",
+    "test": "pnpm --filter @opentidy/backend test",
+    "test:e2e": "pnpm --filter @opentidy/web test:e2e",
     "dev": "pnpm -r --parallel dev",
     "lint": "pnpm -r lint",
-    "smoke:setup": "pnpm --filter @alfred/backend smoke:setup",
-    "smoke:start": "pnpm --filter @alfred/backend smoke:start",
-    "smoke:cleanup": "pnpm --filter @alfred/backend smoke:cleanup"
+    "smoke:setup": "pnpm --filter @opentidy/backend smoke:setup",
+    "smoke:start": "pnpm --filter @opentidy/backend smoke:start",
+    "smoke:cleanup": "pnpm --filter @opentidy/backend smoke:cleanup"
   }
 }
 ```
@@ -140,7 +140,7 @@ Les types sont la fondation de tout — ils définissent les interfaces entre ba
 
 ```json
 {
-  "name": "@alfred/shared",
+  "name": "@opentidy/shared",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -373,7 +373,7 @@ git add -A && git commit -m "feat(shared): types et Zod schemas — foundation S
 
 ```json
 {
-  "name": "@alfred/backend",
+  "name": "@opentidy/backend",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -386,7 +386,7 @@ git add -A && git commit -m "feat(shared): types et Zod schemas — foundation S
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@alfred/shared": "workspace:*",
+    "@opentidy/shared": "workspace:*",
     "hono": "^4.7.0",
     "@hono/node-server": "^1.13.0",
     "grammy": "^1.30.0",
@@ -418,7 +418,7 @@ export function createApp() {
 
 export function startServer(app: Hono, port = 3001) {
   return serve({ fetch: app.fetch, port }, (info) => {
-    console.log(`[alfred] Backend listening on http://localhost:${info.port}`);
+    console.log(`[opentidy] Backend listening on http://localhost:${info.port}`);
   });
 }
 ```
@@ -461,7 +461,7 @@ export default defineConfig({
 - [ ] **Step 6: pnpm install, build, run**
 
 ```bash
-pnpm install && pnpm build && pnpm --filter @alfred/backend dev
+pnpm install && pnpm build && pnpm --filter @opentidy/backend dev
 ```
 Expected: "Backend listening on http://localhost:3001"
 
@@ -495,7 +495,7 @@ git add -A && git commit -m "feat(backend): Hono server skeleton avec health che
 
 ```json
 {
-  "name": "@alfred/web",
+  "name": "@opentidy/web",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -507,7 +507,7 @@ git add -A && git commit -m "feat(backend): Hono server skeleton avec health che
     "lint": "eslint src/"
   },
   "dependencies": {
-    "@alfred/shared": "workspace:*",
+    "@opentidy/shared": "workspace:*",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router": "^7.0.0",
@@ -616,7 +616,7 @@ Note : Tailwind v4 utilise le plugin Vite (`@tailwindcss/vite` déjà dans vite.
 - [ ] **Step 5: pnpm install, dev, vérifier le rendu**
 
 ```bash
-pnpm install && pnpm --filter @alfred/web dev
+pnpm install && pnpm --filter @opentidy/web dev
 ```
 Expected: app accessible sur http://localhost:5173, routing fonctionne
 
@@ -709,7 +709,7 @@ describe('LockManager', () => {
 - [ ] **Step 2: Lancer les tests — vérifier qu'ils échouent**
 
 ```bash
-pnpm --filter @alfred/backend test tests/infra/locks.test.ts
+pnpm --filter @opentidy/backend test tests/infra/locks.test.ts
 ```
 Expected: FAIL — `createLockManager` not found
 
@@ -786,7 +786,7 @@ export function createLockManager(lockDir: string) {
 - [ ] **Step 4: Lancer les tests — vérifier qu'ils passent**
 
 ```bash
-pnpm --filter @alfred/backend test tests/infra/locks.test.ts
+pnpm --filter @opentidy/backend test tests/infra/locks.test.ts
 ```
 Expected: PASS
 
@@ -1295,7 +1295,7 @@ describe('GapsManager', () => {
 - [ ] **Step 3: Vérifier échecs**
 
 ```bash
-pnpm --filter @alfred/backend test tests/workspace/
+pnpm --filter @opentidy/backend test tests/workspace/
 ```
 Expected: FAIL — modules not found
 
@@ -1305,7 +1305,7 @@ Expected: FAIL — modules not found
 // src/workspace/state.ts
 import fs from 'fs';
 import path from 'path';
-import type { DossierStatus, Dossier } from '@alfred/shared';
+import type { DossierStatus, Dossier } from '@opentidy/shared';
 
 const VALID_STATUSES: DossierStatus[] = ['EN COURS', 'TERMINÉ', 'BLOQUÉ'];
 
@@ -1414,7 +1414,7 @@ export function createDossierManager(workspaceDir: string) {
 // src/workspace/suggestions.ts
 import fs from 'fs';
 import path from 'path';
-import type { Suggestion, UrgencyLevel } from '@alfred/shared';
+import type { Suggestion, UrgencyLevel } from '@opentidy/shared';
 
 const URGENCY_ORDER: Record<UrgencyLevel, number> = { urgent: 0, normal: 1, faible: 2 };
 const MAX_SUGGESTIONS = 20;
@@ -1458,7 +1458,7 @@ export function createSuggestionsManager(workspaceDir: string) {
 // src/workspace/gaps.ts
 import fs from 'fs';
 import path from 'path';
-import type { Amelioration } from '@alfred/shared';
+import type { Amelioration } from '@opentidy/shared';
 
 export function createGapsManager(workspaceDir: string) {
   const gapsFile = path.join(workspaceDir, '_gaps', 'gaps.md');
@@ -2237,8 +2237,8 @@ Tests pour : WhatsApp watcher routing (E2E-RCV-04), SMS watcher suggestion (E2E-
 
 ```typescript
 // src/receiver/webhook.ts
-import type { GmailWebhook } from '@alfred/shared';
-import { GmailWebhookSchema } from '@alfred/shared';
+import type { GmailWebhook } from '@opentidy/shared';
+import { GmailWebhookSchema } from '@opentidy/shared';
 
 export function createWebhookReceiver(deps: {
   dedup: { isDuplicate: (c: string) => boolean; record: (c: string) => void };
@@ -2317,7 +2317,7 @@ export function createWatcher(config: WatcherConfig, deps: {
 // src/receiver/triage.ts
 import { execFile as execFileCb } from 'child_process';
 import { promisify } from 'util';
-import type { DossierStatus } from '@alfred/shared';
+import type { DossierStatus } from '@opentidy/shared';
 
 const execFile = promisify(execFileCb);
 
@@ -2539,7 +2539,7 @@ describe('SSEEmitter', () => {
 
 ```typescript
 // src/sse/emitter.ts
-import type { SSEEvent } from '@alfred/shared';
+import type { SSEEvent } from '@opentidy/shared';
 
 interface SSEClient {
   write: (data: string) => void;
@@ -2718,7 +2718,7 @@ import { createNotifier } from './notifications/telegram.js';
 import { createSSEEmitter } from './sse/emitter.js';
 
 const WORKSPACE_DIR = process.env.WORKSPACE_DIR || './workspace';
-const LOCK_DIR = process.env.LOCK_DIR || '/tmp/assistant-locks';
+const LOCK_DIR = process.env.LOCK_DIR || '/tmp/opentidy-locks';
 const PORT = parseInt(process.env.PORT || '3001', 10);
 const SWEEP_INTERVAL = parseInt(process.env.SWEEP_INTERVAL_MS || '3600000', 10);
 
@@ -2740,15 +2740,15 @@ startServer(app, PORT);
 
 // Cron sweep
 setInterval(() => sweep.runSweep(), SWEEP_INTERVAL);
-console.log(`[alfred] Sweep every ${SWEEP_INTERVAL / 1000}s`);
+console.log(`[opentidy] Sweep every ${SWEEP_INTERVAL / 1000}s`);
 ```
 
 - [ ] **Step 3: Vérifier le boot**
 
 ```bash
-WORKSPACE_DIR=/tmp/alfred-test pnpm --filter @alfred/backend dev
+WORKSPACE_DIR=/tmp/alfred-test pnpm --filter @opentidy/backend dev
 ```
-Expected: "[alfred] Backend listening on http://localhost:3001" + "[alfred] Sweep every 3600s"
+Expected: "[opentidy] Backend listening on http://localhost:3001" + "[opentidy] Sweep every 3600s"
 
 - [ ] **Step 4: Commit**
 
@@ -2770,7 +2770,7 @@ git add -A && git commit -m "feat(backend): entrypoint — boot, wiring, sweep i
 
 ```typescript
 // src/api.ts
-import type { Dossier, Suggestion, Amelioration, Session, NotificationRecord } from '@alfred/shared';
+import type { Dossier, Suggestion, Amelioration, Session, NotificationRecord } from '@opentidy/shared';
 
 const BASE = '/api';
 
@@ -2816,7 +2816,7 @@ export const triggerSweep = () =>
 
 ```typescript
 import { create } from 'zustand';
-import type { Dossier, Suggestion, Amelioration, Session, NotificationRecord } from '@alfred/shared';
+import type { Dossier, Suggestion, Amelioration, Session, NotificationRecord } from '@opentidy/shared';
 import * as api from './api';
 
 interface Store {
@@ -3202,7 +3202,7 @@ git add -A && git commit -m "feat(web): navigation complète + PWA manifest + se
 - [ ] **Step 14: Lancer tous les tests Playwright — vérifier qu'ils passent**
 
 ```bash
-pnpm --filter @alfred/web test:e2e
+pnpm --filter @opentidy/web test:e2e
 ```
 
 - [ ] **Step 15: Commit**
@@ -3320,7 +3320,7 @@ it('handles disk error gracefully (E2E-EDGE-17)', () => {
 - [ ] **Step 6: Vérifier pass**
 
 ```bash
-pnpm --filter @alfred/backend test tests/edge-cases/
+pnpm --filter @opentidy/backend test tests/edge-cases/
 ```
 
 - [ ] **Step 7: Commit**

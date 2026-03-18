@@ -36,7 +36,7 @@ import { getVersion } from './cli.js';
 
 const config = loadConfig(getConfigPath());
 const WORKSPACE_DIR = config.workspace.dir || process.env.WORKSPACE_DIR || path.resolve(import.meta.dirname, '../../..', 'workspace');
-const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || '/tmp/assistant-locks';
+const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || '/tmp/opentidy-locks';
 const PORT = config.server.port || parseInt(process.env.PORT || '5175', 10);
 const CHECKUP_INTERVAL = parseInt(process.env.CHECKUP_INTERVAL_MS || '3600000', 10);
 const TELEGRAM_TOKEN = config.telegram.botToken || process.env.TELEGRAM_BOT_TOKEN || '';
@@ -57,44 +57,44 @@ memoryManager.ensureDir();
 // Clean stale memory lock from previous run
 try { fs.rmSync(path.join(WORKSPACE_DIR, '_memory', '.lock'), { force: true }); } catch {}
 
-// Hooks are defined in the alfred-hooks plugin (plugins/alfred-hooks/hooks/hooks.json)
+// Hooks are defined in the opentidy-hooks plugin (plugins/opentidy-hooks/hooks/hooks.json)
 // Plugin hooks are loaded by Claude Code via --plugin-dir flag in launchSession()
 // This bypasses the known bug where settings.json hooks aren't loaded (GitHub #11544)
-const pluginHooksPath = path.resolve(import.meta.dirname, '../../../plugins/alfred-hooks/hooks/hooks.json');
+const pluginHooksPath = path.resolve(import.meta.dirname, '../../../plugins/opentidy-hooks/hooks/hooks.json');
 if (fs.existsSync(pluginHooksPath)) {
-  console.log(`[alfred] Hooks plugin found at ${pluginHooksPath}`);
+  console.log(`[opentidy] Hooks plugin found at ${pluginHooksPath}`);
 } else {
-  console.warn(`[alfred] WARNING: hooks plugin not found at ${pluginHooksPath}`);
+  console.warn(`[opentidy] WARNING: hooks plugin not found at ${pluginHooksPath}`);
 }
 
 
 // Boot infrastructure
-console.log(`[alfred] Starting with workspace: ${WORKSPACE_DIR}`);
+console.log(`[opentidy] Starting with workspace: ${WORKSPACE_DIR}`);
 const DATA_DIR = path.join(WORKSPACE_DIR, '_data');
 const db = createDatabase(DATA_DIR);
 const tracker = createClaudeTracker(db);
 const locks = createLockManager(LOCK_DIR);
 const cleaned = locks.cleanupStaleLocks();
-if (cleaned.length) console.log(`[alfred] Cleaned ${cleaned.length} stale locks`);
+if (cleaned.length) console.log(`[opentidy] Cleaned ${cleaned.length} stale locks`);
 
 // Camoufox profile cleanup — prevent "older version" dialog blocking sessions
 try {
   const health = execFileSync('curl', ['-fsS', 'http://localhost:9377/health'], { encoding: 'utf-8', timeout: 5000 });
   const data = JSON.parse(health);
   if (data.ok) {
-    console.log(`[alfred] Camoufox server healthy (v${data.version})`);
+    console.log(`[opentidy] Camoufox server healthy (v${data.version})`);
     const profileDir = path.join(os.homedir(), '.camofox', 'profiles', 'default');
     if (fs.existsSync(path.join(profileDir, 'compatibility.ini'))) {
       const compat = fs.readFileSync(path.join(profileDir, 'compatibility.ini'), 'utf-8');
       const lastVersion = compat.match(/LastVersion=(.+)/)?.[1];
       if (lastVersion && !lastVersion.includes(data.version)) {
         fs.rmSync(profileDir, { recursive: true, force: true });
-        console.log(`[alfred] Removed incompatible Camoufox profile (was ${lastVersion}, server is ${data.version})`);
+        console.log(`[opentidy] Removed incompatible Camoufox profile (was ${lastVersion}, server is ${data.version})`);
       }
     }
   }
 } catch {
-  console.log('[alfred] Camoufox server not running or not reachable — skipping profile check');
+  console.log('[opentidy] Camoufox server not running or not reachable — skipping profile check');
 }
 
 const dedup = createDedupStore(db);
@@ -197,7 +197,7 @@ const smsWatcher = createWatcher(
   { dedup, triage: triageAndHandle },
 );
 smsWatcher.start();
-console.log('[alfred] SMS watcher started (5min poll)');
+console.log('[opentidy] SMS watcher started (5min poll)');
 
 // Mail watcher (Mail.app via osascript — Gmail account connected)
 const mailReader = createMailReader();
@@ -206,7 +206,7 @@ const mailWatcher = createWatcher(
   { dedup, triage: triageAndHandle },
 );
 mailWatcher.start();
-console.log('[alfred] Mail watcher started (5min poll)');
+console.log('[opentidy] Mail watcher started (5min poll)');
 
 // Checkup
 const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnClaude, sse, notificationStore, memoryManager, suggestionsManager });
@@ -245,45 +245,45 @@ const server = startServer(app, PORT);
 
 // Recovery — reconcile tmux sessions with workspace state
 launcher.recover().then(() => {
-  console.log('[alfred] Recovery complete');
+  console.log('[opentidy] Recovery complete');
 }).catch((err: unknown) => {
-  console.error('[alfred] Recovery failed:', err);
+  console.error('[opentidy] Recovery failed:', err);
 });
 
 // Checkup périodique
 setInterval(() => {
-  checkup.runCheckup().catch((err: unknown) => console.error('[alfred] Checkup failed:', err));
+  checkup.runCheckup().catch((err: unknown) => console.error('[opentidy] Checkup failed:', err));
 }, CHECKUP_INTERVAL);
-console.log(`[alfred] Checkup every ${CHECKUP_INTERVAL / 1000}s`);
+console.log(`[opentidy] Checkup every ${CHECKUP_INTERVAL / 1000}s`);
 
 // Daily cleanup — remove old claude processes and dedup hashes
 setInterval(() => {
   tracker.cleanup(30); // processes older than 30 days
   dedup.cleanup();     // hashes older than 7 days
-  console.log('[alfred] Daily cleanup complete');
+  console.log('[opentidy] Daily cleanup complete');
 }, 86_400_000);
-console.log('[alfred] Daily cleanup scheduled');
+console.log('[opentidy] Daily cleanup scheduled');
 
 // Workspace watcher — fs.watch for dossier:updated SSE events
 const watchdog = createWorkspaceWatcher({ sse, workspaceDir: WORKSPACE_DIR });
 watchdog.start();
-console.log('[alfred] Workspace watcher started (fs.watch)');
+console.log('[opentidy] Workspace watcher started (fs.watch)');
 
 // Graceful shutdown — clean up resources on SIGTERM/SIGINT
 function gracefulShutdown(signal: string): void {
-  console.log(`[alfred] ${signal} received, shutting down gracefully...`);
+  console.log(`[opentidy] ${signal} received, shutting down gracefully...`);
   smsWatcher.stop();
   mailWatcher.stop();
   watchdog.stop();
   server.close(() => {
     db.close();
-    console.log('[alfred] Database closed');
-    console.log('[alfred] Server closed');
+    console.log('[opentidy] Database closed');
+    console.log('[opentidy] Server closed');
     process.exit(0);
   });
   // Force exit if server doesn't close within 5s
   setTimeout(() => {
-    console.warn('[alfred] Forced shutdown after timeout');
+    console.warn('[opentidy] Forced shutdown after timeout');
     process.exit(1);
   }, 5000);
 }

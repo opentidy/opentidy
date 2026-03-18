@@ -11,7 +11,7 @@ describe('DedupStore', () => {
   let tmpDir: string;
 
   beforeEach(() => {
-    tmpDir = mkdtempSync(`${tmpdir()}/alfred-dedup-test-`);
+    tmpDir = mkdtempSync(`${tmpdir()}/opentidy-dedup-test-`);
     db = createDatabase(tmpDir);
     dedup = createDedupStore(db);
   });

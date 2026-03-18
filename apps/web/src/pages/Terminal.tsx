@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore, useProcessOutput } from '../store';
 import { SessionOutput } from '../components/SessionOutput';
 import * as api from '../api';
-import type { ClaudeProcessType } from '@alfred/shared';
+import type { ClaudeProcessType } from '@opentidy/shared';
 
 interface ParsedEvent {
   type: 'text' | 'tool_use' | 'tool_result' | 'thinking' | 'result';

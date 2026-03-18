@@ -40,7 +40,7 @@ describe('API Routes', () => {
   let app: ReturnType<typeof createApp>;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-api-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-api-'));
     fs.mkdirSync(path.join(wsDir, '_suggestions'), { recursive: true });
     fs.mkdirSync(path.join(wsDir, '_gaps'), { recursive: true });
     app = createApp(createMockDeps(wsDir));

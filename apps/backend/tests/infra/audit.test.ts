@@ -9,7 +9,7 @@ describe('AuditLogger', () => {
   let audit: ReturnType<typeof createAuditLogger>;
 
   beforeEach(() => {
-    auditDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-audit-'));
+    auditDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-audit-'));
     audit = createAuditLogger(auditDir);
   });
 

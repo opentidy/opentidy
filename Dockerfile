@@ -5,8 +5,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/ packages/shared/
 COPY apps/web/ apps/web/
 RUN corepack enable && pnpm install --frozen-lockfile
-RUN pnpm --filter @alfred/shared build
-RUN pnpm --filter @alfred/web build
+RUN pnpm --filter @opentidy/shared build
+RUN pnpm --filter @opentidy/web build
 
 # Stage 2: Serve
 FROM nginx:alpine

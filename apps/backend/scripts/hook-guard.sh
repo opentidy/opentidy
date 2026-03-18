@@ -1,6 +1,6 @@
 #!/bin/bash
-# Wrapper for PreToolUse guard hooks — only runs for Alfred sessions.
-# Dev sessions (no alfred- prefix) get an immediate ALLOW.
+# Wrapper for PreToolUse guard hooks — only runs for OpenTidy sessions.
+# Dev sessions (no opentidy- prefix) get an immediate ALLOW.
 #
 # Usage: hook-guard.sh <prompt-text>
 # Receives hook payload as JSON on stdin.
@@ -8,10 +8,10 @@
 set -euo pipefail
 
 PAYLOAD=$(cat)
-WORKSPACE_DIR="${ALFRED_WORKSPACE:-/Users/lolo/Documents/alfred/workspace}"
+WORKSPACE_DIR="${OPENTIDY_WORKSPACE:-/Users/lolo/Documents/opentidy/workspace}"
 CWD=$(echo "$PAYLOAD" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd',''))" 2>/dev/null)
 
-# Not an Alfred session (cwd not inside workspace) → ALLOW immediately
+# Not an OpenTidy session (cwd not inside workspace) → ALLOW immediately
 if [[ -z "$CWD" || ! "$CWD" == *"$WORKSPACE_DIR"* ]]; then
   exit 0
 fi

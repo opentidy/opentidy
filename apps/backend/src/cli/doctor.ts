@@ -49,7 +49,7 @@ export function checkDependency(bin: string): CheckResult {
 
 export function checkConfig(configPath: string): CheckResult {
   if (!existsSync(configPath)) {
-    return { ok: false, name: 'config', detail: `${configPath} not found — run alfred setup` };
+    return { ok: false, name: 'config', detail: `${configPath} not found — run tidy setup` };
   }
   const config = loadConfig(configPath);
   if (!config.telegram.botToken) {
@@ -60,7 +60,7 @@ export function checkConfig(configPath: string): CheckResult {
 
 export function checkClaudeConfig(claudeConfigDir: string): CheckResult {
   if (!claudeConfigDir || !existsSync(claudeConfigDir)) {
-    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run alfred setup` };
+    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run tidy setup` };
   }
   if (!existsSync(`${claudeConfigDir}/settings.json`)) {
     return { ok: false, name: 'claude-config', detail: 'settings.json missing' };
@@ -69,7 +69,7 @@ export function checkClaudeConfig(claudeConfigDir: string): CheckResult {
 }
 
 export async function runDoctor(): Promise<void> {
-  console.log(`\n  Alfred Doctor (v${getVersion()})\n`);
+  console.log(`\n  OpenTidy Doctor (v${getVersion()})\n`);
   const results: CheckResult[] = [];
 
   // Node version check (special — validates major version)

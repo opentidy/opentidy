@@ -7,7 +7,7 @@ import { createClaudeTracker } from '../../src/infra/claude-tracker.js';
 import type Database from 'better-sqlite3';
 
 function makeTmpDir(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-tracker-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-tracker-test-'));
 }
 
 function makeDb(tmpDir: string): Database.Database {

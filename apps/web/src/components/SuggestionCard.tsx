@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Suggestion } from '@alfred/shared';
+import type { Suggestion } from '@opentidy/shared';
 import { useStore } from '../store';
 
 const urgencyColors: Record<string, { border: string; badge: string; badgeBg: string; dot: string }> = {

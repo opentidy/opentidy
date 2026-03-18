@@ -1,0 +1,8 @@
+{
+  "name": "opentidy-hooks",
+  "description": "Hooks for OpenTidy sessions — Stop detection, audit trail, session lifecycle",
+  "version": "1.0.0",
+  "author": {
+    "name": "Lolo"
+  }
+}

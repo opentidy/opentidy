@@ -11,7 +11,7 @@ describe('MemoryAgents', () => {
   let workspaceDir: string
 
   beforeEach(() => {
-    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-agents-test-'))
+    workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-agents-test-'))
     const manager = createMemoryManager(workspaceDir)
     manager.ensureDir()
   })

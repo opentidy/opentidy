@@ -74,11 +74,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "touch /tmp/alfred-stop-fired-$(date +%s)"
+            "command": "touch /tmp/opentidy-stop-fired-$(date +%s)"
           },
           {
             "type": "command",
-            "command": "ALFRED_WORKSPACE=$HOME/Documents/alfred/workspace ALFRED_PORT=5174 $HOME/Documents/alfred/apps/backend/scripts/on-stop.sh"
+            "command": "OPENTIDY_WORKSPACE=$HOME/Documents/opentidy/workspace OPENTIDY_PORT=5174 $HOME/Documents/opentidy/apps/backend/scripts/on-stop.sh"
           }
         ]
       }

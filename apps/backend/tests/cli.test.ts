@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { route, getVersion } from '../src/cli.js';
 
 describe('cli', () => {
-  it('returns "start" for alfred start', () => {
+  it('returns "start" for tidy start', () => {
     expect(route(['start'])).toBe('start');
   });
 

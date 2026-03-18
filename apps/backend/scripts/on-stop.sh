@@ -5,22 +5,22 @@
 set -euo pipefail
 
 PAYLOAD=$(cat)
-WORKSPACE_DIR="${ALFRED_WORKSPACE:-$HOME/Documents/alfred/workspace}"
-BACKEND_PORT="${ALFRED_PORT:-5174}"
-LOG_FILE="$HOME/Library/Logs/alfred-hooks.log"
+WORKSPACE_DIR="${OPENTIDY_WORKSPACE:-$HOME/Documents/opentidy/workspace}"
+BACKEND_PORT="${OPENTIDY_PORT:-5174}"
+LOG_FILE="$HOME/Library/Logs/opentidy-hooks.log"
 
 log() { echo "[on-stop $(date '+%H:%M:%S')] $*" >> "$LOG_FILE"; }
 
 # Extract dossier ID from cwd
 CWD=$(echo "$PAYLOAD" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd',''))" 2>/dev/null)
 
-# Only Alfred sessions (cwd must be inside the workspace)
+# Only OpenTidy sessions (cwd must be inside the workspace)
 if [[ -z "$CWD" || ! "$CWD" == *"/workspace/"* ]]; then
   exit 0
 fi
 
 DOSSIER_ID=$(basename "$CWD")
-SESSION_ID="alfred-${DOSSIER_ID}"
+SESSION_ID="opentidy-${DOSSIER_ID}"
 STATE_FILE="$WORKSPACE_DIR/$DOSSIER_ID/state.md"
 
 if [[ ! -f "$STATE_FILE" ]]; then

@@ -36,7 +36,7 @@ function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
     },
     notify: { notifySuggestion: async () => {} },
     sse: { emit: () => {}, addClient: () => {}, removeClient: () => {} },
-    workspaceDir: '/tmp/alfred-test',
+    workspaceDir: '/tmp/opentidy-test',
     ...overrides,
   }
 }
@@ -69,7 +69,7 @@ describe('Memory API routes', () => {
   let memoryAgents: AppDeps['memoryAgents']
 
   beforeEach(() => {
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-mem-test-'))
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-mem-test-'))
     memoryManager = createMemoryManager(tmpDir)
     memoryManager.ensureDir()
     memoryAgents = { runPromptAgent: vi.fn(async () => {}) }

@@ -9,7 +9,7 @@ describe('SuggestionsManager', () => {
   let sugg: ReturnType<typeof createSuggestionsManager>;
 
   beforeEach(() => {
-    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'alfred-ws-'));
+    wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
     fs.mkdirSync(path.join(wsDir, '_suggestions'), { recursive: true });
     sugg = createSuggestionsManager(wsDir);
   });

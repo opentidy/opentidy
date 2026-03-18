@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import type { Dossier, Session } from '@alfred/shared';
+import type { Dossier, Session } from '@opentidy/shared';
 import { useStore } from '../store';
 import { getArtifactUrl } from '../api';
 

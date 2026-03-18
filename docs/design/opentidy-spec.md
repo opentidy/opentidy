@@ -456,7 +456,7 @@ les `--resume`. Pas besoin de repasser le contexte via CLI.
 ```
 # Child process Node.js (spawn)
 claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
-  [--plugin-dir plugins/alfred-hooks] [--resume <session-id>] "<instruction>"
+  [--plugin-dir plugins/opentidy-hooks] [--resume <session-id>] "<instruction>"
 # cwd = workspace/<dossier-id>/
 ```
 L'instruction/event est passée en argument CLI. Le CLAUDE.md du dossier fournit le contexte.
@@ -475,7 +475,7 @@ claude -p --system-prompt "Mode triage." "Event: email de comptable@sopra.com...
 Pas de CLAUDE.md dédié — `--system-prompt` suffit pour les appels one-shot.
 
 **Parallélisme** : plusieurs child processes en même temps, chacun sur un dossier
-différent. Locks de dossier (PID, `/tmp/assistant-locks/`) pour empêcher deux
+différent. Locks de dossier (PID, `/tmp/opentidy-locks/`) pour empêcher deux
 sessions de travailler sur le même dossier.
 
 **Sessions Claude** :
@@ -483,7 +483,7 @@ sessions de travailler sur le même dossier.
   prompts de permission Claude Code. La sécurité est assurée par les hooks
   PreToolUse (garde-fous), pas par le système de permissions intégré.
   Les hooks firent AVANT le check de permissions, donc restent actifs.
-- Lock PID par dossier dans `/tmp/assistant-locks/`
+- Lock PID par dossier dans `/tmp/opentidy-locks/`
 - Crash recovery : reconcilie tmux survivors (interactives) + relance dossiers orphelins EN COURS (autonomes)
 - Session ID persisté dans `workspace/<dossier>/.session-id` pour resume
 
@@ -882,7 +882,7 @@ distincts car ils n'ont pas de contexte CLAUDE.md ni de resume.
 | Frontend hosting | Coolify | Dockerfile multi-stage, deploy automatique |
 | Réseau | Tunnel Cloudflare | Pas de port ouvert, accès sécurisé |
 | Logs | `~/Library/Logs/` | Rotation 5MB |
-| Locks | PID dans `/tmp/assistant-locks/` | Crash recovery via détection PID mort |
+| Locks | PID dans `/tmp/opentidy-locks/` | Crash recovery via détection PID mort |
 
 ### 9.2 setup.sh — installation Mac Mini
 
@@ -924,7 +924,7 @@ même avec MDM.
 | Telegram bot | grammY | Mature, retry/rate limiting |
 | Validation | Zod | Partagé frontend/backend via shared/ |
 | Cron sweep | `setInterval` + `claude -p` | Voir section 8 |
-| State (planifié) | `better-sqlite3` (`workspace/_data/alfred.db`) | 4 tables : `claude_processes`, `notifications`, `dedup_hashes`, `sessions` — remplace l'état in-memory |
+| State (planifié) | `better-sqlite3` (`workspace/_data/opentidy.db`) | 4 tables : `claude_processes`, `notifications`, `dedup_hashes`, `sessions` — remplace l'état in-memory |
 
 **Ce que le backend fait (~200-400 lignes)** :
 1. Receiver — webhooks Gmail, watchers SMS/WhatsApp, instructions app web
@@ -1068,7 +1068,7 @@ Supportent les regex, case-sensitive :
 |---|---|---|
 | Skills Claude Code | ✅ Intégralement | /comptable, /navigate, /sms, /whatsapp, etc. |
 | MCP servers | ✅ Intégralement | Gmail, Calendar, Notion, Coolify, etc. |
-| Resource locks (PID) | ✅ Mécanisme | /tmp/assistant-locks/ |
+| Resource locks (PID) | ✅ Mécanisme | /tmp/opentidy-locks/ |
 | Dedup par hash | ✅ Concept | Éviter les doublons webhook |
 | Tmux sessions | 🔄 Mode interactif uniquement | "Prendre la main" — autonome = child process |
 | React dashboard | ❌ Refaire | UI repensée de zéro |
@@ -1701,7 +1701,7 @@ pnpm smoke:cleanup
 - **Attendu** : sessions reconstruites dans la Map, hooks fonctionnent à nouveau
 
 **E2E-SLC-08** — Crash recovery → locks stales nettoyés
-- Backend redémarre, lock file avec PID mort dans `/tmp/assistant-locks/`
+- Backend redémarre, lock file avec PID mort dans `/tmp/opentidy-locks/`
 - **Attendu** : lock supprimé, dossier disponible
 
 ---
@@ -1792,7 +1792,7 @@ et clique "Lancer". Vérifie que :
 2. L'app redirige vers la page du dossier
 3. Le state.md contient l'objectif "Rapport exali"
 4. Une session tmux existe pour ce dossier
-5. Un lock existe dans /tmp/assistant-locks/
+5. Un lock existe dans /tmp/opentidy-locks/
 ```
 
 **E2E-FULL-04** — Sweep → deadline → travail autonome

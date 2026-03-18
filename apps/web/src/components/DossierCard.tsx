@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import type { Dossier, Session } from '@alfred/shared';
+import type { Dossier, Session } from '@opentidy/shared';
 
 const statusConfig: Record<string, { dot: string; badge: string; badgeBg: string; label: string }> = {
   'EN COURS': { dot: 'bg-green', badge: 'text-green', badgeBg: 'bg-green/20', label: 'En cours' },

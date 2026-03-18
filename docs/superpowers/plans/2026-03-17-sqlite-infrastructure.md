@@ -4,7 +4,7 @@
 
 **Goal:** Replace all volatile in-memory state (notifications, dedup, sessions) with SQLite persistence, and add a claude process tracker for full observability of all Claude invocations.
 
-**Architecture:** Single `better-sqlite3` database at `workspace/_data/alfred.db`. 4 tables. Existing module interfaces preserved — callers don't change. New `claude-tracker` module wraps all 5 places that invoke Claude.
+**Architecture:** Single `better-sqlite3` database at `workspace/_data/opentidy.db`. 4 tables. Existing module interfaces preserved — callers don't change. New `claude-tracker` module wraps all 5 places that invoke Claude.
 
 **Tech Stack:** `better-sqlite3` (sync, no async overhead), existing factory function pattern.
 
