@@ -10,6 +10,13 @@ export function createAuthMiddleware(bearerToken: string): MiddlewareHandler {
     // Skip auth for public endpoints
     if (PUBLIC_PATHS.some(p => c.req.path.startsWith(p))) return next();
 
+    // Skip auth for same-origin requests (SPA served by this server)
+    // These are already protected by Cloudflare Access at the network level
+    const origin = c.req.header('Origin') || '';
+    const referer = c.req.header('Referer') || '';
+    const host = c.req.header('Host') || '';
+    if (origin.includes(host) || referer.includes(host)) return next();
+
     const authHeader = c.req.header('Authorization');
     if (!authHeader || authHeader !== `Bearer ${bearerToken}`) {
       return c.json({ error: 'Unauthorized' }, 401);
