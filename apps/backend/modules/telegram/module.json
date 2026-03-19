@@ -1,0 +1,19 @@
+{
+  "name": "telegram",
+  "label": "Telegram",
+  "description": "Send notifications via Telegram bot",
+  "icon": "📨",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "telegram",
+    "command": "npx",
+    "args": ["-y", "telegram-mcp"],
+    "envFromConfig": { "BOT_TOKEN": "botToken" }
+  }],
+  "setup": {
+    "configFields": [
+      { "key": "botToken", "label": "Bot Token", "type": "password", "required": true, "placeholder": "123456:ABC-..." },
+      { "key": "chatId", "label": "Chat ID", "type": "text", "required": true, "placeholder": "123456789" }
+    ]
+  }
+}

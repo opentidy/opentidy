@@ -1,0 +1,19 @@
+{
+  "name": "browser",
+  "label": "Browser",
+  "description": "Web browsing via anti-detection browser (Camoufox)",
+  "icon": "🌐",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "camoufox",
+    "command": "npx",
+    "args": ["-y", "camofox-mcp@latest"]
+  }],
+  "skills": [{
+    "name": "browser-skill",
+    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins."
+  }],
+  "setup": {
+    "authCommand": "pipx install camoufox"
+  }
+}

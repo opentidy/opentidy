@@ -1,0 +1,21 @@
+{
+  "name": "gmail",
+  "label": "Gmail",
+  "description": "Read, search, and draft emails via Gmail",
+  "icon": "📧",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "gmail",
+    "command": "npx",
+    "args": ["-y", "@gongrzhe/server-gmail-autoauth-mcp"]
+  }],
+  "receivers": [{
+    "name": "gmail-webhook",
+    "mode": "webhook",
+    "source": "gmail",
+    "transform": "./transform.ts"
+  }],
+  "setup": {
+    "authCommand": "npx @gongrzhe/server-gmail-autoauth-mcp"
+  }
+}

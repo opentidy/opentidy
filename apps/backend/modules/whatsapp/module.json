@@ -1,0 +1,25 @@
+{
+  "name": "whatsapp",
+  "label": "WhatsApp",
+  "description": "Send and receive WhatsApp messages",
+  "icon": "💬",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "whatsapp",
+    "command": "npx",
+    "args": ["-y", "whatsapp-mcp"],
+    "envFromConfig": { "WACLI_PATH": "wacliPath" }
+  }],
+  "receivers": [{
+    "name": "whatsapp-wacli",
+    "mode": "long-running",
+    "source": "whatsapp",
+    "entry": "./receiver.ts"
+  }],
+  "setup": {
+    "authCommand": "wacli auth",
+    "configFields": [
+      { "key": "wacliPath", "label": "wacli path", "type": "text", "placeholder": "/usr/local/bin/wacli" }
+    ]
+  }
+}

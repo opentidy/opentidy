@@ -1,0 +1,14 @@
+{
+  "name": "cloudflare",
+  "label": "Cloudflare Tunnel",
+  "description": "Secure remote access via Cloudflare Tunnel",
+  "icon": "🔒",
+  "version": "1.0.0",
+  "setup": {
+    "authCommand": "cloudflared tunnel login",
+    "configFields": [
+      { "key": "tunnelName", "label": "Tunnel Name", "type": "text", "required": true, "placeholder": "opentidy" },
+      { "key": "hostname", "label": "Hostname", "type": "text", "required": true, "placeholder": "opentidy.yourdomain.com" }
+    ]
+  }
+}
