@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './shared/Layout';
 import Home from './features/home/Home';
 import DossierDetail from './features/dossiers/DossierDetail';
@@ -11,12 +12,35 @@ import Ameliorations from './features/ameliorations/Ameliorations';
 import SchedulePage from './features/schedule/SchedulePage';
 import Memory from './features/memory/Memory';
 import Settings from './features/settings/Settings';
+import SetupWizard from './features/setup/SetupWizard';
+
+function SetupGuard({ children }: { children: React.ReactNode }) {
+  const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    fetch('/api/setup/status')
+      .then((res) => res.json())
+      .then((data) => setSetupComplete(data.setupComplete ?? false))
+      .catch(() => setSetupComplete(false));
+  }, []);
+
+  if (setupComplete === null) return null;
+  if (!setupComplete) return <Navigate to="/setup" replace />;
+  return <>{children}</>;
+}
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route element={<Layout />}>
+        <Route path="/setup" element={<SetupWizard />} />
+        <Route
+          element={
+            <SetupGuard>
+              <Layout />
+            </SetupGuard>
+          }
+        >
           <Route path="/" element={<Home />} />
           <Route path="/dossier/:id" element={<DossierDetail />} />
           <Route path="/terminal" element={<Terminal />} />
