@@ -15,7 +15,7 @@ const PERMISSIONS = [
 
 const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
 
-function defaultCheckPermission(name: string): boolean {
+export function defaultCheckPermission(name: string): boolean {
   const def = PERMISSIONS.find((p) => p.name === name);
   if (!def) return false;
   try {
