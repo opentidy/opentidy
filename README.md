@@ -57,6 +57,15 @@ opentidy logs        # what's happening?
 
 **Guardrails the AI can't see.** Every sensitive action — sending an email, submitting a form, making a payment — is intercepted by system-level hooks *before* it happens. The AI doesn't know they exist, can't bypass them, can't argue with them. You define the rules once, they're enforced every time.
 
+**Built for real-world browsing.** Agents, MCP servers, and skills are optimized for fully autonomous web navigation:
+- **[Camoufox](https://camoufox.com)** — anti-detection Firefox browser, one isolated instance per session, undetectable by bot protection
+- **Persistent profiles** — cookies and logins are preserved across sessions. Log in once, OpenTidy reuses the session forever
+- **CAPTCHA solving** — optional solver integration, handles challenges without human intervention
+- **Parallel browsing** — ten dossiers, ten independent browser instances, with shared session profiles for efficient navigation
+- **Full page interaction** — click, fill forms, upload files, download documents, navigate multi-step flows
+
+"Download all my invoices from every provider" is a one-line instruction. OpenTidy logs into each site, navigates to the billing section, downloads the PDFs, and organizes them in your dossier.
+
 **Agent-agnostic.** Claude Code today, Gemini CLI or Copilot CLI tomorrow. Swap your AI engine without changing your setup, your dossiers, or your guardrails.
 
 **Self-improving.** When OpenTidy can't handle something, it logs the gap. Over time, these gaps become your natural backlog — driven by real usage, not guesswork.
@@ -105,6 +114,7 @@ When a session ends, a post-session agent extracts learnings into memory — so 
 | **Security** | System-level hooks, fail-closed, invisible to AI | DM pairing + allowlists |
 | **Interface** | Web dashboard + Telegram notifications | Messaging apps as primary UI |
 | **Agent** | Agent-agnostic (Claude, Gemini, Copilot) | Model-agnostic, single-agent |
+| **Browser** | Camoufox (anti-detection, persistent sessions, parallel) | Chrome/Playwright (detectable, no session persistence) |
 | **Improvement** | Automatic gap logging → natural backlog | Manual skill authoring |
 
 **TL;DR** — OpenClaw is chat-first: you talk to it, it does things. OpenTidy is task-first: it receives events, manages dossiers, and only talks to you when it needs to. If you want to ask your AI to play Spotify, use OpenClaw. If you want an AI that silently processes your insurance claim over three weeks, use OpenTidy.
