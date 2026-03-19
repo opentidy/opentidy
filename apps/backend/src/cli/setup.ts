@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
+import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import { loadConfig, saveConfig, getConfigPath } from '../shared/config.js';
@@ -130,6 +131,21 @@ async function showInteractiveMenu(): Promise<string> {
 // ═══════════════════════════════════════
 
 export async function runSetup(moduleArg?: string): Promise<void> {
+  // If the server is running, redirect to the browser setup UI
+  const config = loadConfig();
+  const port = config.server?.port || 5175;
+  try {
+    execFileSync('curl', ['-sf', `http://localhost:${port}/api/health`], { timeout: 3000 });
+    // Server is running — redirect to browser
+    const section = moduleArg ? `?section=${moduleArg}` : '';
+    const url = `http://localhost:${port}/setup${section}`;
+    console.log(`Opening setup in browser: ${url}`);
+    execFileSync('open', [url]);
+    return;
+  } catch {
+    // Server not running — fall through to CLI setup
+  }
+
   // Ensure base config file exists
   const configPath = getConfigPath();
   if (!existsSync(configPath)) {
