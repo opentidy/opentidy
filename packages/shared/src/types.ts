@@ -353,4 +353,16 @@ export interface OpenTidyConfig {
     owner?: string;  // defaults to 'opentidy'
     repo?: string;   // defaults to 'opentidy'
   };
+  setupComplete?: boolean;
+}
+
+export interface SetupStatus {
+  setupComplete: boolean;
+  userInfo: { done: boolean };
+  agents: { done: boolean; connected: string[]; active: string | null };
+  permissions: { done: boolean; granted: string[]; missing: string[] };
+  services: Record<string, {
+    status: 'connected' | 'error' | 'not_configured';
+    error?: string;
+  }>;
 }
