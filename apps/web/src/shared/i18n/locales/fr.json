@@ -263,6 +263,16 @@
     "system": "Système",
     "noSchedules": "Aucun événement planifié"
   },
+  "setup": {
+    "terminal": {
+      "connecting": "Connexion...",
+      "running": "En cours...",
+      "completed": "Terminé",
+      "error": "Erreur",
+      "retry": "Réessayer",
+      "close": "Fermer"
+    }
+  },
   "helpTooltip": {
     "dossier": "Une tâche administrative que l'assistant gère pour toi, de A à Z.",
     "waitingUser": "L'assistant est bloqué et a besoin de ta réponse pour continuer.",

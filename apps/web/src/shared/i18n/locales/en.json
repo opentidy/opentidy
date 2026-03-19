@@ -263,6 +263,16 @@
     "system": "System",
     "noSchedules": "No scheduled events"
   },
+  "setup": {
+    "terminal": {
+      "connecting": "Connecting...",
+      "running": "Running...",
+      "completed": "Completed",
+      "error": "Error",
+      "retry": "Retry",
+      "close": "Close"
+    }
+  },
   "helpTooltip": {
     "dossier": "An administrative task that the assistant manages for you, from start to finish.",
     "waitingUser": "The assistant is stuck and needs your response to continue.",
