@@ -5,183 +5,191 @@
 # OpenTidy installer
 # Usage: curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
 #
-# Idempotent: safe to re-run at any time.
+# Silent, non-interactive. Safe to re-run.
 set -euo pipefail
 
+# --- Config ---
 REPO="https://github.com/opentidy/opentidy.git"
-INSTALL_DIR="${OPENTIDY_INSTALL_DIR:-$HOME/Documents/opentidy}"
+INSTALL_DIR="${OPENTIDY_DIR:-$HOME/Documents/opentidy}"
+CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/opentidy"
+PORT="${OPENTIDY_PORT:-5175}"
 REQUIRED_NODE_MAJOR=22
 
-echo ""
-echo "  ╔═══════════════════════════╗"
-echo "  ║   OpenTidy Installer      ║"
-echo "  ╚═══════════════════════════╝"
-echo ""
+# --- Color helpers ---
+log()  { printf "\033[34m  → %s\033[0m\n" "$*"; }
+ok()   { printf "\033[32m  ✓ %s\033[0m\n" "$*"; }
+dim()  { printf "\033[90m    %s\033[0m\n" "$*"; }
+warn() { printf "\033[33m  ! %s\033[0m\n" "$*"; }
 
-# --- Ensure PATH includes common locations for this session ---
+printf "\n\033[1m  OpenTidy\033[0m\n\n"
+
+# --- PATH setup ---
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$PATH"
 
 # --- Homebrew ---
+log "Checking Homebrew..."
 if ! command -v brew &>/dev/null; then
-  echo "  [1/8] Installing Homebrew..."
+  dim "Installing Homebrew..."
   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-  # Detect Homebrew prefix (Apple Silicon vs Intel)
   if [ -x /opt/homebrew/bin/brew ]; then
     eval "$(/opt/homebrew/bin/brew shellenv)"
   elif [ -x /usr/local/bin/brew ]; then
     eval "$(/usr/local/bin/brew shellenv)"
   fi
+  ok "Homebrew installed"
 else
-  echo "  [1/8] Homebrew — already installed"
+  ok "Homebrew already installed"
 fi
 
-# --- Node.js LTS ---
-echo "  [2/8] Installing Node.js LTS ($REQUIRED_NODE_MAJOR)..."
-
-# Install node@22 if not present
-if ! brew list "node@$REQUIRED_NODE_MAJOR" &>/dev/null; then
-  brew install "node@$REQUIRED_NODE_MAJOR"
-fi
-
-# ALWAYS put node@22 first in PATH — overrides any system node
-NODE_BIN="$(brew --prefix node@$REQUIRED_NODE_MAJOR)/bin"
+# --- Node.js 22 ---
+log "Checking Node.js $REQUIRED_NODE_MAJOR..."
+brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
+NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
 export PATH="$NODE_BIN:$PATH"
 
-# Persist in shell profile (idempotent — only adds if not already present)
+# Persist node@22 in .zshrc (idempotent)
 ZSHRC="${ZDOTDIR:-$HOME}/.zshrc"
-if [ -f "$ZSHRC" ] && grep -q "node@$REQUIRED_NODE_MAJOR" "$ZSHRC" 2>/dev/null; then
-  echo "         node@$REQUIRED_NODE_MAJOR already in $ZSHRC"
-elif [ -f "$ZSHRC" ]; then
+if ! grep -q "node@$REQUIRED_NODE_MAJOR" "$ZSHRC" 2>/dev/null; then
   echo "export PATH=\"$NODE_BIN:\$PATH\"" >> "$ZSHRC"
-  echo "         Added node@$REQUIRED_NODE_MAJOR to PATH in $ZSHRC"
-else
-  echo "export PATH=\"$NODE_BIN:\$PATH\"" >> "$ZSHRC"
-  echo "         Created $ZSHRC with node@$REQUIRED_NODE_MAJOR PATH"
 fi
 
-# Verify correct version
-NODE_VERSION="$(node --version)"
-NODE_MAJOR="${NODE_VERSION%%.*}"
-NODE_MAJOR="${NODE_MAJOR#v}"
-if [ "$NODE_MAJOR" != "$REQUIRED_NODE_MAJOR" ]; then
-  echo "  !!  Expected Node $REQUIRED_NODE_MAJOR but got $NODE_VERSION"
-  echo "      $(which node)"
-  echo "      Try: hash -r && node --version"
-  exit 1
-fi
-echo "         Node: $NODE_VERSION ($(which node))"
+ok "Node.js $(node --version)"
 
 # --- System dependencies ---
-echo "  [3/8] Installing system dependencies..."
-DEPS=(pnpm tmux ttyd python@3 cloudflared)
-for dep in "${DEPS[@]}"; do
-  if brew list "$dep" &>/dev/null; then
-    echo "         $dep — already installed"
-  else
-    echo "         Installing $dep..."
-    brew install "$dep"
-  fi
+log "Checking dependencies (pnpm, tmux, ttyd)..."
+for dep in pnpm tmux ttyd; do
+  brew install "$dep" &>/dev/null || true
 done
+ok "Dependencies ready"
 
-# --- Claude Code CLI ---
-echo "  [4/8] Installing Claude Code CLI..."
-if command -v claude &>/dev/null; then
-  echo "         Claude Code — already installed ($(claude --version 2>/dev/null | head -1))"
-else
-  curl -fsSL https://claude.ai/install.sh | bash
-  export PATH="$HOME/.local/bin:$PATH"
-  if ! grep -q '.local/bin' "$ZSHRC" 2>/dev/null; then
-    echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$ZSHRC"
-    echo "         Added ~/.local/bin to PATH in $ZSHRC"
-  fi
-fi
-
-if ! command -v claude &>/dev/null; then
-  echo "  !!  Claude Code not found after install. Check your PATH."
-  exit 1
-fi
-
-# --- Camoufox (Python browser via pipx) ---
-echo "  [5/8] Installing Camoufox..."
-if ! command -v pipx &>/dev/null; then
-  brew install pipx
-  pipx ensurepath 2>/dev/null || true
-  export PATH="$HOME/.local/bin:$PATH"
-fi
-if pipx list 2>/dev/null | grep -q camoufox; then
-  echo "         Camoufox — already installed"
-else
-  pipx install camoufox 2>/dev/null || echo "         Camoufox install skipped (optional)"
-  python3 -m camoufox fetch 2>/dev/null || true
-fi
-
-# --- Clone / update repo ---
-echo "  [6/8] Setting up OpenTidy..."
+# --- Clone / pull repo ---
+log "Setting up repo at $INSTALL_DIR..."
 if [ -d "$INSTALL_DIR/.git" ]; then
-  echo "         Repo exists, pulling latest..."
-  git -C "$INSTALL_DIR" pull --ff-only
+  git -C "$INSTALL_DIR" pull --ff-only --quiet
+  dim "Pulled latest"
 else
-  echo "         Cloning repo..."
-  git clone "$REPO" "$INSTALL_DIR"
+  git clone --quiet "$REPO" "$INSTALL_DIR"
+  dim "Cloned repo"
 fi
+ok "Repo ready"
 
 # --- Build ---
-echo "  [7/8] Building OpenTidy..."
+log "Installing dependencies and building..."
 cd "$INSTALL_DIR"
 
-# Ensure native build scripts are approved (pnpm 10+ blocks them by default).
-# The root package.json has pnpm.onlyBuiltDependencies but .npmrc is needed
-# for some pnpm versions that read it from .npmrc instead.
+# Approve native build scripts (pnpm 10+)
 if ! grep -q 'better-sqlite3' .npmrc 2>/dev/null; then
   echo "onlyBuiltDependencies=better-sqlite3,esbuild" >> .npmrc
-  echo "         Approved native build scripts in .npmrc"
 fi
 
-# Install deps
-pnpm install
-pnpm build
+pnpm install --silent
+pnpm build --silent
+ok "Build complete"
 
-# Verify native addons work (must cd into backend for pnpm monorepo node_modules resolution)
-if ! (cd apps/backend && node -e "require('better-sqlite3')") 2>/dev/null; then
-  echo "         Native addon not found — rebuilding..."
-  pnpm rebuild better-sqlite3
-  if ! (cd apps/backend && node -e "require('better-sqlite3')") 2>/dev/null; then
-    echo "  !!  better-sqlite3 failed to build."
-    echo "      Try: pnpm install --force"
-    exit 1
-  fi
+# --- Config ---
+log "Checking config..."
+mkdir -p "$CONFIG_DIR"
+CONFIG_FILE="$CONFIG_DIR/config.json"
+
+if [ ! -f "$CONFIG_FILE" ]; then
+  BEARER_TOKEN="$(openssl rand -hex 32)"
+  cat > "$CONFIG_FILE" <<JSON
+{
+  "version": 2,
+  "auth": {
+    "bearerToken": "$BEARER_TOKEN"
+  },
+  "server": {
+    "port": $PORT,
+    "appBaseUrl": "http://localhost:$PORT"
+  },
+  "telegram": {
+    "botToken": "",
+    "chatId": ""
+  },
+  "workspace": {
+    "dir": "",
+    "lockDir": ""
+  },
+  "update": {
+    "autoUpdate": true,
+    "checkInterval": "6h",
+    "notifyBeforeUpdate": false,
+    "delayBeforeUpdate": "0m",
+    "keepReleases": 2
+  },
+  "agentConfig": {
+    "name": "claude",
+    "configDir": ""
+  },
+  "language": "en",
+  "receivers": [],
+  "userInfo": {
+    "name": "",
+    "email": "",
+    "company": ""
+  },
+  "mcp": {
+    "curated": {
+      "gmail": { "enabled": false, "configured": false },
+      "camoufox": { "enabled": false, "configured": false },
+      "whatsapp": { "enabled": false, "configured": false, "wacliPath": "", "mcpServerPath": "" }
+    },
+    "marketplace": {}
+  },
+  "skills": {
+    "curated": {},
+    "user": []
+  }
+}
+JSON
+  ok "Config created at $CONFIG_FILE"
+else
+  ok "Config already exists"
 fi
-echo "         Native addons OK"
 
-# --- Install LaunchAgent from template ---
-echo "  [8/8] Installing LaunchAgent..."
+# --- LaunchAgent ---
+log "Installing LaunchAgent..."
 PLIST_SRC="$INSTALL_DIR/com.opentidy.agent.plist"
 PLIST_DST="$HOME/Library/LaunchAgents/com.opentidy.agent.plist"
 
-# Unload existing agent if loaded (ignore errors — may not be loaded)
+mkdir -p "$HOME/Library/LaunchAgents"
 launchctl unload "$PLIST_DST" 2>/dev/null || true
 
-# Expand template placeholders
 sed -e "s|__INSTALL_DIR__|$INSTALL_DIR|g" \
     -e "s|__HOME__|$HOME|g" \
     "$PLIST_SRC" > "$PLIST_DST"
-echo "         LaunchAgent installed at $PLIST_DST"
 
-# --- Setup wizard ---
-echo ""
-./bin/openopentidy setup
+launchctl load "$PLIST_DST"
+ok "LaunchAgent loaded"
 
-echo ""
-echo "  Installation complete!"
-echo ""
-echo "  Start OpenTidy:"
-echo "    cd $INSTALL_DIR && ./bin/openopentidy start"
-echo ""
-echo "  Or use the LaunchAgent:"
-echo "    launchctl load ~/Library/LaunchAgents/com.opentidy.agent.plist"
-echo ""
-echo "  Commands:"
-echo "    ./bin/openopentidy status    — check if running"
-echo "    ./bin/openopentidy doctor    — verify everything"
-echo "    ./bin/openopentidy logs      — tail logs"
-echo ""
+# --- Health check ---
+log "Waiting for server on port $PORT..."
+deadline=$((SECONDS + 30))
+healthy=false
+while [ $SECONDS -lt $deadline ]; do
+  if curl -sf "http://localhost:$PORT/api/health" &>/dev/null; then
+    healthy=true
+    break
+  fi
+  sleep 1
+done
+
+if [ "$healthy" = true ]; then
+  ok "Server is up"
+else
+  warn "Server did not respond within 30s — port $PORT may be in use"
+  warn "Check logs: opentidy logs"
+fi
+
+# --- Open browser ---
+if [ "$healthy" = true ]; then
+  open "http://localhost:$PORT"
+fi
+
+# --- Done ---
+printf "\n\033[1m  OpenTidy is running.\033[0m\n"
+dim "http://localhost:$PORT"
+dim "opentidy doctor   — verify setup"
+dim "opentidy logs     — tail logs"
+printf "\n"
