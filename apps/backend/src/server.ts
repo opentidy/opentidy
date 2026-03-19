@@ -68,6 +68,12 @@ import { listSkillsRoute, type SkillsDeps } from './features/skills/list.js';
 import { toggleSkillRoute } from './features/skills/toggle.js';
 import { addSkillRoute } from './features/skills/add.js';
 import { removeSkillRoute } from './features/skills/remove.js';
+// Setup routes
+import { setupStatusRoute, type SetupDeps } from './features/setup/status.js';
+import { setupUserInfoRoute, type UserInfoDeps } from './features/setup/user-info.js';
+import { setupCompleteRoute } from './features/setup/complete.js';
+import { setupPermissionsRoute, defaultCheckPermission, type PermissionsDeps } from './features/setup/permissions.js';
+import { setupAgentsRoute, type AgentSetupDeps } from './features/setup/agents.js';
 
 interface SSEClient {
   write: (data: string) => void;
@@ -126,6 +132,12 @@ export interface AppDeps {
   mcpServer?: { handleRequest(request: Request): Promise<Response> };
   mcpConfig?: McpDeps;
   skillsConfig?: SkillsDeps;
+  setupDeps?: SetupDeps;
+  agentSetupDeps?: AgentSetupDeps;
+  configFns?: {
+    loadConfig: () => any;
+    saveConfig: (config: any) => void;
+  };
 }
 
 export function createApp(deps?: AppDeps) {
@@ -226,6 +238,18 @@ export function createApp(deps?: AppDeps) {
       app.route('/api', toggleSkillRoute(deps.skillsConfig));
       app.route('/api', addSkillRoute(deps.skillsConfig));
       app.route('/api', removeSkillRoute(deps.skillsConfig));
+    }
+    // Setup routes
+    if (deps.setupDeps) {
+      app.route('/api', setupStatusRoute(deps.setupDeps));
+    }
+    if (deps.configFns) {
+      app.route('/api', setupUserInfoRoute(deps.configFns));
+      app.route('/api', setupCompleteRoute(deps.configFns));
+    }
+    app.route('/api', setupPermissionsRoute({ checkPermission: defaultCheckPermission }));
+    if (deps.agentSetupDeps) {
+      app.route('/api', setupAgentsRoute(deps.agentSetupDeps));
     }
   }
 

@@ -38,7 +38,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { loadConfig, getConfigPath } from './shared/config.js';
+import { loadConfig, saveConfig, getConfigPath } from './shared/config.js';
 import { regenerateAgentConfig } from './shared/agent-config.js';
 import { getVersion } from './cli.js';
 import { getOpenTidyPaths } from './shared/paths.js';
@@ -300,6 +300,28 @@ const app = createApp({
   skillsConfig: {
     configPath: getConfigPath(),
     agentConfigDir: AGENT_CONFIG_DIR,
+  },
+  setupDeps: {
+    loadConfig: () => loadConfig(getConfigPath()),
+    checkAgentInstalled: (agent) => {
+      try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
+    },
+    checkAgentAuth: (agent) => {
+      try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
+    },
+  },
+  configFns: {
+    loadConfig: () => loadConfig(getConfigPath()),
+    saveConfig: (cfg) => saveConfig(getConfigPath(), cfg),
+  },
+  agentSetupDeps: {
+    checkInstalled: (name) => {
+      try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
+    },
+    checkAuth: (name) => {
+      try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
+    },
+    getActiveAgent: () => config.agentConfig?.name ?? 'claude',
   },
 });
 
