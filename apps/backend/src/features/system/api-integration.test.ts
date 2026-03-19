@@ -71,6 +71,13 @@ describe('API Routes', () => {
     expect(dossiers[0].id).toBe('test-dossier');
   });
 
+  it('GET /api/dossier/:id returns 404 for non-existent dossier', async () => {
+    const res = await app.request('/api/dossier/nonexistent-id');
+    expect(res.status).toBe(404);
+    const body = await res.json() as any;
+    expect(body.error).toBe('Dossier not found');
+  });
+
   it('GET /api/dossier/:id returns detail', async () => {
     // Create dossier first
     await app.request('/api/dossier', {

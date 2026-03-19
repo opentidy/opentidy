@@ -7,6 +7,8 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from '../../shared/store';
 import SuggestionCard from '../../shared/SuggestionCard';
 import DossierCard from '../dossiers/DossierCard';
+import WelcomeCard from './WelcomeCard';
+import HelpTooltip from '../../shared/HelpTooltip';
 type Filter = 'active' | 'completed';
 
 
@@ -17,11 +19,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('active');
   const [search, setSearch] = useState('');
+  const [onboardingSeen, setOnboardingSeen] = useState(
+    () => localStorage.getItem('opentidy-onboarding-seen') === 'true'
+  );
 
   useEffect(() => {
     Promise.all([fetchDossiers(), fetchSuggestions(), fetchSessions()])
       .finally(() => setLoading(false));
   }, [fetchDossiers, fetchSuggestions, fetchSessions]);
+
+  const showWelcome = !onboardingSeen && dossiers.length === 0 && !loading;
+
+  function dismissOnboarding() {
+    localStorage.setItem('opentidy-onboarding-seen', 'true');
+    setOnboardingSeen(true);
+  }
 
   const dossiersById = new Map(dossiers.map(d => [d.id, d]));
   const idleSessions = sessions.filter((s) => s.status === 'idle');
@@ -68,6 +80,8 @@ export default function Home() {
     <div className="p-6 md:p-8">
       <Header />
 
+      {showWelcome && <WelcomeCard onDismiss={dismissOnboarding} />}
+
       {/* En attente de toi — sessions idle waiting for user */}
       {waitingUser.length > 0 && (
         <section className="mb-8">
@@ -110,6 +124,18 @@ export default function Home() {
               );
             })}
           </div>
+        </section>
+      )}
+      {waitingUser.length === 0 && !showWelcome && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-orange/30" />
+            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+              {t('home.waitingForYou')}
+            </span>
+            <HelpTooltip text={t('helpTooltip.waitingUser')} />
+          </div>
+          <p className="text-text-tertiary text-xs pl-5">{t('onboarding.emptyWaitingUser')}</p>
         </section>
       )}
 
@@ -158,6 +184,17 @@ export default function Home() {
           </div>
         </section>
       )}
+      {waitingTiers.length === 0 && !showWelcome && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-accent/30" />
+            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+              {t('home.waitingForResponse')}
+            </span>
+          </div>
+          <p className="text-text-tertiary text-xs pl-5">{t('onboarding.emptyWaitingTiers')}</p>
+        </section>
+      )}
 
       {/* Suggestions */}
       {suggestions.length > 0 && (
@@ -171,6 +208,18 @@ export default function Home() {
           <div className="space-y-3">
             {suggestions.map((s) => <SuggestionCard key={s.slug} suggestion={s} />)}
           </div>
+        </section>
+      )}
+      {suggestions.length === 0 && !showWelcome && (
+        <section className="mb-6">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="w-2 h-2 rotate-45 bg-accent/30" />
+            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+              {t('home.suggestions')}
+            </span>
+            <HelpTooltip text={t('helpTooltip.suggestion')} />
+          </div>
+          <p className="text-text-tertiary text-xs pl-5">{t('onboarding.emptySuggestions')}</p>
         </section>
       )}
 
@@ -209,9 +258,19 @@ export default function Home() {
         <div className="space-y-3">
           {filtered.map((d) => <DossierCard key={d.id} dossier={d} session={sessions.find((s) => s.dossierId === d.id)} />)}
           {!loading && filtered.length === 0 && (
-            <p className="text-text-tertiary text-sm py-4 text-center">
-              {t('home.noDossiers', { filter: filters.find(f => f.key === filter)?.label.toLowerCase() })}
-            </p>
+            <div className="text-center py-8">
+              <p className="text-text-tertiary text-sm mb-3">
+                {filter === 'active' ? t('onboarding.emptyDossiers') : t('home.noDossiers', { filter: t('home.completed').toLowerCase() })}
+              </p>
+              {filter === 'active' && (
+                <button
+                  onClick={() => navigate('/nouveau')}
+                  className="px-4 py-2 rounded-lg bg-green text-white text-sm font-medium hover:bg-green/90 transition-colors"
+                >
+                  {t('onboarding.emptyCreateCta')}
+                </button>
+              )}
+            </div>
           )}
         </div>
       </section>
@@ -222,10 +281,8 @@ export default function Home() {
 function Header() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { checkupStatus, fetchCheckupStatus, triggerCheckup, resetEverything, launchTestTasks } = useStore();
+  const { checkupStatus, fetchCheckupStatus, triggerCheckup } = useStore();
   const [checkupRunning, setCheckupRunning] = useState(false);
-  const [resetting, setResetting] = useState(false);
-  const [launching, setLaunching] = useState(false);
 
   useEffect(() => { fetchCheckupStatus(); }, [fetchCheckupStatus]);
 
@@ -262,32 +319,6 @@ function Header() {
         <span className={`text-xs hidden md:inline ${checkupRunning ? 'text-accent animate-pulse' : 'text-text-tertiary'}`}>
           {checkupLabel}
         </span>
-        <button
-          onClick={async () => {
-            if (!confirm(t('home.deleteConfirm'))) return;
-            setResetting(true);
-            try { await resetEverything(); } finally { setResetting(false); }
-          }}
-          disabled={resetting}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hidden md:block ${
-            resetting ? 'bg-red/20 text-red cursor-wait' : 'bg-surface-hover text-red/70 hover:bg-red/10 hover:text-red'
-          }`}
-        >
-          {resetting ? 'Reset...' : 'Reset'}
-        </button>
-        <button
-          onClick={async () => {
-            if (!confirm(t('home.launchTestConfirm'))) return;
-            setLaunching(true);
-            try { await launchTestTasks(); } finally { setLaunching(false); }
-          }}
-          disabled={launching}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hidden md:block ${
-            launching ? 'bg-accent/20 text-accent cursor-wait' : 'bg-surface-hover text-accent/70 hover:bg-accent/10 hover:text-accent'
-          }`}
-        >
-          {launching ? t('common.launching') : 'Test tasks'}
-        </button>
         <button
           onClick={handleCheckup}
           disabled={checkupRunning}

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -8,19 +11,19 @@ export default defineConfig({
     proxy: {
       // SSE endpoint needs special handling — Vite's default proxy buffers streaming responses
       '/api/events': {
-        target: 'http://localhost:5174',
-        selfHandleResponse: true,
+        target: 'http://localhost:5175',
+        // Disable response buffering so SSE chunks flow through immediately
         configure: (proxy) => {
-          proxy.on('proxyRes', (proxyRes, _req, res) => {
-            // Bypass Vite's response processing — pipe SSE stream directly
-            res.writeHead(proxyRes.statusCode ?? 200, proxyRes.headers);
-            proxyRes.pipe(res);
+          proxy.on('proxyRes', (proxyRes) => {
+            // Force flush by disabling compression/buffering on the proxy response
+            proxyRes.headers['cache-control'] = 'no-cache';
+            proxyRes.headers['x-accel-buffering'] = 'no';
           });
         },
       },
-      '/api': 'http://localhost:5174',
+      '/api': 'http://localhost:5175',
       '/ws': {
-        target: 'http://localhost:5174',
+        target: 'http://localhost:5175',
         ws: true,
       },
     },

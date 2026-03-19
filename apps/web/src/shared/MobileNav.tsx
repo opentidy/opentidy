@@ -3,13 +3,15 @@
 
 import { NavLink } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useStore } from './store';
 
 const tabs = [
-  { to: '/', icon: 'home', labelKey: 'nav.home' },
-  { to: '/nouveau', icon: 'nouveau', labelKey: 'nav.new' },
-  { to: '/terminal', icon: 'terminal', labelKey: 'nav.terminal' },
-  { to: '/ameliorations', icon: 'plus', labelKey: 'nav.analyses' },
-  { to: '/memory', icon: 'memory', labelKey: 'nav.memory' },
+  { to: '/', icon: 'home', labelKey: 'nav.home', unlockedKey: null },
+  { to: '/nouveau', icon: 'nouveau', labelKey: 'nav.new', unlockedKey: null },
+  { to: '/schedule', icon: 'schedule', labelKey: 'nav.schedule', unlockedKey: null },
+  { to: '/terminal', icon: 'terminal', labelKey: 'nav.terminal', unlockedKey: null },
+  { to: '/ameliorations', icon: 'plus', labelKey: 'nav.analyses', unlockedKey: 'ameliorations' as const },
+  { to: '/memory', icon: 'memory', labelKey: 'nav.memory', unlockedKey: null },
 ];
 
 function TabIcon({ icon, active }: { icon: string; active: boolean }) {
@@ -33,6 +35,15 @@ function TabIcon({ icon, active }: { icon: string; active: boolean }) {
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="5" x2="12" y2="19" />
           <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      );
+    case 'schedule':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+          <line x1="16" y1="2" x2="16" y2="6" />
+          <line x1="8" y1="2" x2="8" y2="6" />
+          <line x1="3" y1="10" x2="21" y2="10" />
         </svg>
       );
     case 'terminal':
@@ -64,26 +75,36 @@ function TabIcon({ icon, active }: { icon: string; active: boolean }) {
 
 export default function MobileNav() {
   const { t } = useTranslation();
+  const { ameliorations } = useStore();
+  const hasContent: Record<string, boolean> = {
+    ameliorations: ameliorations.length > 0,
+  };
+
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border flex justify-around items-center h-16 z-50">
-      {tabs.map(({ to, icon, labelKey }) => (
-        <NavLink
-          key={to}
-          to={to}
-          className={({ isActive }) =>
-            `flex flex-col items-center gap-1 text-[10px] ${
-              isActive ? 'text-accent' : 'text-text-tertiary'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              <TabIcon icon={icon} active={isActive} />
-              <span>{t(labelKey)}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
+      {tabs.map(({ to, icon, labelKey, unlockedKey }) => {
+        const locked = unlockedKey !== null && !hasContent[unlockedKey];
+        return (
+          <NavLink
+            key={to}
+            to={to}
+            onClick={locked ? (e) => e.preventDefault() : undefined}
+            aria-disabled={locked || undefined}
+            className={({ isActive }) =>
+              `flex flex-col items-center gap-1 text-[10px] ${
+                isActive ? 'text-accent' : 'text-text-tertiary'
+              } ${locked ? 'opacity-40 cursor-default' : ''}`
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <TabIcon icon={icon} active={isActive} />
+                <span>{t(labelKey)}</span>
+              </>
+            )}
+          </NavLink>
+        );
+      })}
     </nav>
   );
 }

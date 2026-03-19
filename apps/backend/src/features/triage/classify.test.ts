@@ -3,7 +3,7 @@
 
 // src/features/triage/classify.test.ts
 import { describe, it, expect, vi } from 'vitest';
-import { createTriager, createClaudeRunner } from './classify.js';
+import { createTriager, createAgentRunner } from './classify.js';
 import type { MemoryEntry } from '@opentidy/shared';
 
 describe('Triager', () => {
@@ -81,7 +81,7 @@ describe('Triager', () => {
   });
 });
 
-describe('createClaudeRunner — memory context', () => {
+describe('createAgentRunner — memory context', () => {
   const memoryEntries: MemoryEntry[] = [
     {
       filename: 'contacts.md',
@@ -101,14 +101,26 @@ describe('createClaudeRunner — memory context', () => {
     },
   ];
 
-  async function captureSystemPrompt(entries: MemoryEntry[]): Promise<string> {
-    const mockSpawnClaude = vi.fn().mockResolvedValue('{ "ignore": true, "reason": "test" }');
-    const memoryManager = { readAllFiles: () => entries };
-    const runClaude = createClaudeRunner('/tmp/test-workspace', { memoryManager, spawnClaude: mockSpawnClaude });
-    await runClaude('test prompt');
+  const mockAdapter = {
+    name: 'claude' as const,
+    binary: 'claude',
+    instructionFile: 'CLAUDE.md',
+    configEnvVar: 'CLAUDE_CONFIG_DIR',
+    experimental: false,
+    buildArgs: vi.fn(({ systemPrompt, instruction }: any) => ['-p', '--system-prompt', systemPrompt, instruction]),
+    getEnv: vi.fn(() => ({})),
+    readSessionId: vi.fn(() => null),
+    writeConfig: vi.fn(),
+  };
 
-    // spawnClaude is called with { args: ['-p', '--system-prompt', <systemPrompt>, <prompt>], ... }
-    const callArgs = mockSpawnClaude.mock.calls[0][0];
+  async function captureSystemPrompt(entries: MemoryEntry[]): Promise<string> {
+    const mockSpawnAgent = vi.fn().mockReturnValue({ promise: Promise.resolve('{ "ignore": true, "reason": "test" }'), kill: vi.fn(), pid: undefined, trackId: undefined });
+    const memoryManager = { readAllFiles: () => entries };
+    const runAgent = createAgentRunner('/tmp/test-workspace', { memoryManager, spawnAgent: mockSpawnAgent, adapter: mockAdapter });
+    await runAgent('test prompt');
+
+    // spawnAgent is called with { args: ['-p', '--system-prompt', <systemPrompt>, <prompt>], ... }
+    const callArgs = mockSpawnAgent.mock.calls[0][0];
     const cliArgs = callArgs.args as string[];
     const systemPromptIdx = cliArgs.indexOf('--system-prompt');
     return cliArgs[systemPromptIdx + 1];

@@ -22,7 +22,8 @@ function InfoPanel({ dossier }: { dossier: Dossier }) {
         <StateRenderer dossier={dossier} />
       </div>
 
-      {dossier.artifacts.length > 0 && (
+      {/* Only show artifacts/journal when stateRaw is absent — StateRenderer already renders them from the markdown */}
+      {!dossier.stateRaw && dossier.artifacts.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('common.files')} ({dossier.artifacts.length})</h4>
           <ul className="space-y-1">
@@ -36,7 +37,7 @@ function InfoPanel({ dossier }: { dossier: Dossier }) {
         </div>
       )}
 
-      {dossier.journal && dossier.journal.length > 0 && (
+      {!dossier.stateRaw && dossier.journal && dossier.journal.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('dossierDetail.log')}</h4>
           <div className="space-y-1">
@@ -59,10 +60,14 @@ export default function DossierDetail() {
   const { t } = useTranslation();
   const { dossiers, sessions, fetchDossiers, fetchSessions, completeDossier, stopSession } = useStore();
   const [ttydPort, setTtydPort] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showBanner, setShowBanner] = useState(
+    () => localStorage.getItem('opentidy-first-task') === 'true'
+  );
 
   useEffect(() => {
-    fetchDossiers();
-    fetchSessions();
+    Promise.all([fetchDossiers(), fetchSessions()])
+      .finally(() => setLoading(false));
   }, [fetchDossiers, fetchSessions]);
 
   const dossier = dossiers.find((d) => d.id === id);
@@ -73,8 +78,19 @@ export default function DossierDetail() {
     getTerminalPort(session.id).then(setTtydPort).catch(() => setTtydPort(null));
   }, [session?.id]);
 
-  if (!dossier) {
+  if (!dossier && loading) {
     return <div className="p-6 md:p-8 text-text-secondary">{t('common.loading')}</div>;
+  }
+
+  if (!dossier) {
+    return (
+      <div className="p-6 md:p-8 flex flex-col items-center justify-center gap-4 text-center">
+        <p className="text-text-secondary text-sm">{t('dossierDetail.notFound')}</p>
+        <button onClick={() => navigate('/')} className="text-accent text-sm hover:underline">
+          {t('nav.home')}
+        </button>
+      </div>
+    );
   }
 
   const isWaiting = session?.status === 'idle';
@@ -119,8 +135,24 @@ export default function DossierDetail() {
             )}
           </div>
         </div>
-
       </div>
+
+      {/* Post-creation banner */}
+      {showBanner && (
+        <div className="mx-4 md:mx-6 mt-2 bg-green/10 border border-green/20 rounded-lg px-4 py-3 flex items-start gap-3">
+          <p className="text-sm text-text-secondary flex-1">{t('onboarding.postCreationBanner')}</p>
+          <button
+            aria-label="dismiss"
+            onClick={() => {
+              localStorage.removeItem('opentidy-first-task');
+              setShowBanner(false);
+            }}
+            className="text-text-tertiary hover:text-text transition-colors text-lg leading-none"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Content — resizable split */}
       <div className="flex-1 overflow-hidden">

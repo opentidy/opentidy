@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
@@ -77,9 +80,9 @@ test.describe('E2E-APP-16: Suggestions shown below the form', () => {
     await expect(page.getByText("Recommandations de l'assistant")).toBeVisible();
 
     // Suggestion cards
-    await expect(page.getByText('Impots Chypre')).toBeVisible();
-    await expect(page.getByText('Timesheet Juin')).toBeVisible();
-    await expect(page.getByText('Assurance Auto')).toBeVisible();
+    await expect(page.getByText('Tax Filing Follow-up')).toBeVisible();
+    await expect(page.getByText('Timesheet June')).toBeVisible();
+    await expect(page.getByText('Car Insurance')).toBeVisible();
   });
 
   test('no suggestions section when suggestions are empty', async ({ page }) => {

@@ -3,8 +3,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { MemoryEntry } from '@opentidy/shared';
-import type { SpawnClaudeSimpleFn } from '../../shared/spawn-claude.js';
+import type { MemoryEntry, AgentAdapter } from '@opentidy/shared';
+import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
 import { generateSlug } from '../../shared/slug.js';
 import { buildMemoryContext } from '../../shared/memory-context.js';
 
@@ -27,7 +27,7 @@ If you detect a technical issue or system improvement → write it in _gaps/gaps
 Respond ONLY in JSON:
 { "launch": ["dossier-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
 
-type RunClaudeFn = (args: string[], opts: { cwd: string; timeout?: number }) => Promise<string>;
+type RunAgentFn = (args: string[], opts: { cwd: string; timeout?: number }) => Promise<string>;
 
 interface CheckupStatus {
   lastRun: string | null;
@@ -40,13 +40,13 @@ interface CheckupStatus {
 export function createCheckup(deps: {
   launcher: {
     launchSession: (id: string) => Promise<void>;
-    sendMessage: (id: string, message: string) => Promise<void>;
     listActiveSessions: () => Array<{ dossierId: string }>;
   };
   workspaceDir: string;
   intervalMs: number;
-  runClaude?: RunClaudeFn;
-  spawnClaude?: SpawnClaudeSimpleFn;
+  runAgent?: RunAgentFn;
+  spawnAgent?: SpawnAgentFn;
+  adapter?: AgentAdapter;
   sse?: { emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void };
   notificationStore?: { record(input: { message: string; link: string; dossierId?: string }): unknown };
   memoryManager?: { readAllFiles: () => MemoryEntry[] };
@@ -80,14 +80,17 @@ export function createCheckup(deps: {
     let stdout: string;
 
     try {
-    const clArgs = ['-p', '--system-prompt', systemPrompt, '--allowedTools', 'Read,Glob,Grep,Write', '--', prompt];
-
-    if (deps.runClaude) {
-      stdout = await deps.runClaude(clArgs, { cwd: deps.workspaceDir, timeout: 3_600_000 });
-    } else if (deps.spawnClaude) {
-      stdout = await deps.spawnClaude({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' });
+    if (deps.adapter && deps.spawnAgent) {
+      const clArgs = deps.adapter.buildArgs({
+        mode: 'one-shot', cwd: deps.workspaceDir, systemPrompt,
+        instruction: prompt, allowedTools: ['Read', 'Glob', 'Grep', 'Write'],
+      });
+      stdout = await deps.spawnAgent({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' }).promise;
+    } else if (deps.runAgent) {
+      const clArgs = ['-p', '--system-prompt', systemPrompt, '--allowedTools', 'Read,Glob,Grep,Write', '--', prompt];
+      stdout = await deps.runAgent(clArgs, { cwd: deps.workspaceDir, timeout: 3_600_000 });
     } else {
-      throw new Error('[checkup] No Claude runner provided — pass runClaude or spawnClaude');
+      throw new Error('[checkup] No agent runner provided — pass spawnAgent+adapter or runAgent');
     }
     } catch (err) {
       throw err;
@@ -105,27 +108,17 @@ export function createCheckup(deps: {
       suggestions: Array<{ title: string; urgency: string; why: string }>;
     };
 
-    // Launch sessions (with NEXT ACTION date guard)
+    // Launch sessions — skip active sessions (scheduler handles precise timing)
     const activeDossierIds = new Set(deps.launcher.listActiveSessions().map(s => s.dossierId));
     const validLaunches: string[] = [];
     for (const dossierId of result.launch) {
       try {
-        const statePath = path.join(deps.workspaceDir, dossierId, 'state.md');
-        const stateContent = fs.readFileSync(statePath, 'utf-8');
-        const prochaineMatch = stateContent.match(/(?:PROCHAINE ACTION|NEXT ACTION)\s*:\s*(\d{4}-\d{2}-\d{2}[\sT]\d{2}:\d{2})/);
-        if (prochaineMatch) {
-          const nextDate = new Date(prochaineMatch[1].replace(' ', 'T'));
-          if (nextDate.getTime() > Date.now()) {
-            console.log(`[checkup] ${dossierId} NEXT ACTION ${prochaineMatch[1]} not reached yet, skipping`);
-            continue;
-          }
+        if (activeDossierIds.has(dossierId)) {
+          console.log(`[checkup] ${dossierId} has active session, skipping`);
+          continue;
         }
         validLaunches.push(dossierId);
-        if (activeDossierIds.has(dossierId)) {
-          await deps.launcher.sendMessage(dossierId, 'Checkup: resume your work, conditions are met.');
-        } else {
-          await deps.launcher.launchSession(dossierId);
-        }
+        await deps.launcher.launchSession(dossierId);
       } catch (err) {
         console.warn(`[checkup] failed to launch ${dossierId}:`, err);
       }

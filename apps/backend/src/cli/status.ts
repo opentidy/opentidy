@@ -1,5 +1,8 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { execFileSync } from 'child_process';
-import { loadConfig, getConfigPath } from '../config.js';
+import { loadConfig, getConfigPath } from '../shared/config.js';
 import { getVersion } from '../cli.js';
 
 export async function runStatus(): Promise<void> {

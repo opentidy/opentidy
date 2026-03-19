@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi, mockDossiers } from './fixtures/mock-api';
 
@@ -29,7 +32,7 @@ test.describe('E2E-APP-22: SSE event triggers UI update', () => {
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
         },
-        body: 'event: dossier:updated\ndata: {"dossierId":"factures-sopra"}\n\n',
+        body: 'event: dossier:updated\ndata: {"dossierId":"invoices-acme"}\n\n',
       });
       sseResolve?.();
     });
@@ -40,7 +43,7 @@ test.describe('E2E-APP-22: SSE event triggers UI update', () => {
     // Wait for the initial fetch + SSE-triggered refetch
     // The initial page load triggers fetchDossiers, and the SSE event body triggers another
     // We verify the page loaded successfully with the data
-    await expect(page.getByText('Factures Sopra').first()).toBeVisible();
+    await expect(page.getByText('Invoices Acme').first()).toBeVisible();
 
     // Verify at least the initial fetch happened
     expect(dossiersFetchCount).toBeGreaterThanOrEqual(1);

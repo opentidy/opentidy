@@ -1,42 +1,52 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { createApp, startServer } from './server.js';
-import { createLockManager } from './infra/locks.js';
-import { createDedupStore } from './infra/dedup.js';
-import { createAuditLogger } from './infra/audit.js';
-import { listDossierIds, getDossier } from './workspace/state.js';
-import { createDossierManager } from './workspace/dossier.js';
-import { createSuggestionsManager } from './workspace/suggestions.js';
-import { createGapsManager } from './workspace/gaps.js';
-import { createLauncher } from './launcher/session.js';
-import { createCheckup } from './launcher/checkup.js';
-import { createWorkspaceWatcher } from './launcher/watchdog.js';
-import { createTmuxExecutor } from './launcher/tmux-executor.js';
-import { createNotifier } from './notifications/telegram.js';
-import { createSSEEmitter } from './sse/emitter.js';
-import { createHooksHandler } from './hooks/handler.js';
-import { createMemoryManager, createMemoryAgents } from './memory/index.js';
-import { createWebhookReceiver } from './receiver/webhook.js';
-import { createTriager, createClaudeRunner } from './receiver/triage.js';
-import { createTitleGenerator } from './workspace/title.js';
-import { createTerminalManager } from './terminal/bridge.js';
-import { createSmsReader } from './receiver/sms-reader.js';
-import { createMailReader } from './receiver/mail-reader.js';
-import { createWatcher } from './receiver/watchers.js';
-import { createNotificationStore } from './infra/notification-store.js';
-import { createDatabase } from './infra/database.js';
-import { createClaudeTracker } from './infra/claude-tracker.js';
-import { createTriageHandler } from './utils/triage-handler.js';
-import { createSpawnClaude } from './infra/spawn-claude.js';
+import { createLockManager } from './shared/locks.js';
+import { createDedupStore } from './shared/dedup.js';
+import { createAuditLogger } from './features/system/audit.js';
+import { listDossierIds, getDossier } from './features/dossiers/state.js';
+import { createDossierManager } from './features/dossiers/create-manager.js';
+import { createSuggestionsManager } from './features/suggestions/parser.js';
+import { createGapsManager } from './features/ameliorations/gaps.js';
+import { createLauncher } from './features/sessions/launch.js';
+import { createCheckup } from './features/checkup/sweep.js';
+import { startPeriodicTasks } from './boot/periodic-tasks.js';
+import { createTmuxExecutor } from './features/sessions/executor.js';
+import { createNotifier } from './features/notifications/telegram.js';
+import { createSSEEmitter } from './shared/sse.js';
+import { createHooksHandler } from './features/hooks/handler.js';
+import { createMemoryManager } from './features/memory/manager.js';
+import { createMemoryAgents } from './features/memory/agents.js';
+import { createWebhookReceiver } from './features/triage/webhook.js';
+import { createTriager, createAgentRunner } from './features/triage/classify.js';
+import { createTitleGenerator } from './features/dossiers/title.js';
+import { createTerminalManager } from './features/terminal/bridge.js';
+import { loadReceiverPlugins, type ReceiverPlugin } from './features/triage/plugin.js';
+import { createNotificationStore } from './features/notifications/store.js';
+import { createDatabase } from './shared/database.js';
+import { createAgentTracker } from './shared/agent-tracker.js';
+import { createTriageHandler } from './features/triage/route.js';
+import { createSpawnAgent } from './shared/spawn-agent.js';
+import { resolveAgent } from './shared/agents/index.js';
+import { createGitHubIssueManager } from './features/ameliorations/github-issue.js';
+import { createScheduler } from './features/scheduler/scheduler.js';
+import { createMcpServer } from './features/mcp-server/server.js';
+import { createGapRouter } from './features/ameliorations/route-gap.js';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { loadConfig, getConfigPath } from './config.js';
+import { loadConfig, getConfigPath } from './shared/config.js';
+import { regenerateAgentConfig } from './shared/agent-config.js';
 import { getVersion } from './cli.js';
+import { getOpenTidyPaths } from './shared/paths.js';
 
 const config = loadConfig(getConfigPath());
+const openTidyPaths = getOpenTidyPaths();
 const WORKSPACE_DIR = config.workspace.dir || process.env.WORKSPACE_DIR || path.resolve(import.meta.dirname, '../../..', 'workspace');
-const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || '/tmp/opentidy-locks';
+const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || openTidyPaths.lockDir;
 const PORT = config.server.port || parseInt(process.env.PORT || '5175', 10);
 const CHECKUP_INTERVAL = parseInt(process.env.CHECKUP_INTERVAL_MS || '3600000', 10);
 const TELEGRAM_TOKEN = config.telegram.botToken || process.env.TELEGRAM_BOT_TOKEN || '';
@@ -72,29 +82,31 @@ if (fs.existsSync(pluginHooksPath)) {
 console.log(`[opentidy] Starting with workspace: ${WORKSPACE_DIR}`);
 const DATA_DIR = path.join(WORKSPACE_DIR, '_data');
 const db = createDatabase(DATA_DIR);
-const tracker = createClaudeTracker(db);
+const tracker = createAgentTracker(db);
 const locks = createLockManager(LOCK_DIR);
 const cleaned = locks.cleanupStaleLocks();
 if (cleaned.length) console.log(`[opentidy] Cleaned ${cleaned.length} stale locks`);
 
-// Camoufox profile cleanup — prevent "older version" dialog blocking sessions
-try {
-  const health = execFileSync('curl', ['-fsS', 'http://localhost:9377/health'], { encoding: 'utf-8', timeout: 5000 });
-  const data = JSON.parse(health);
-  if (data.ok) {
-    console.log(`[opentidy] Camoufox server healthy (v${data.version})`);
-    const profileDir = path.join(os.homedir(), '.camofox', 'profiles', 'default');
-    if (fs.existsSync(path.join(profileDir, 'compatibility.ini'))) {
-      const compat = fs.readFileSync(path.join(profileDir, 'compatibility.ini'), 'utf-8');
-      const lastVersion = compat.match(/LastVersion=(.+)/)?.[1];
-      if (lastVersion && !lastVersion.includes(data.version)) {
-        fs.rmSync(profileDir, { recursive: true, force: true });
-        console.log(`[opentidy] Removed incompatible Camoufox profile (was ${lastVersion}, server is ${data.version})`);
+// Camoufox profile cleanup — only on macOS where Camoufox is used
+if (process.platform === 'darwin') {
+  try {
+    const health = execFileSync('curl', ['-fsS', 'http://localhost:9377/health'], { encoding: 'utf-8', timeout: 5000 });
+    const data = JSON.parse(health);
+    if (data.ok) {
+      console.log(`[opentidy] Camoufox server healthy (v${data.version})`);
+      const profileDir = path.join(os.homedir(), '.camofox', 'profiles', 'default');
+      if (fs.existsSync(path.join(profileDir, 'compatibility.ini'))) {
+        const compat = fs.readFileSync(path.join(profileDir, 'compatibility.ini'), 'utf-8');
+        const lastVersion = compat.match(/LastVersion=(.+)/)?.[1];
+        if (lastVersion && !lastVersion.includes(data.version)) {
+          fs.rmSync(profileDir, { recursive: true, force: true });
+          console.log(`[opentidy] Removed incompatible Camoufox profile (was ${lastVersion}, server is ${data.version})`);
+        }
       }
     }
+  } catch {
+    console.log('[opentidy] Camoufox server not running or not reachable — skipping profile check');
   }
-} catch {
-  console.log('[opentidy] Camoufox server not running or not reachable — skipping profile check');
 }
 
 const dedup = createDedupStore(db);
@@ -102,19 +114,55 @@ const audit = createAuditLogger(`${WORKSPACE_DIR}/_audit`);
 const sse = createSSEEmitter();
 const notificationStore = createNotificationStore(db);
 
-// Centralized Claude spawner — ONE semaphore shared by all callers (max 3 concurrent)
-const CLAUDE_CONFIG_DIR = config.claudeConfig.dir || '';
-const spawnClaudeFull = createSpawnClaude({
+// Agent adapter — resolves from config (claude by default)
+const AGENT_CONFIG_DIR = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
+const adapter = resolveAgent({ configDir: path.dirname(AGENT_CONFIG_DIR) || path.join(os.homedir(), '.config', 'opentidy'), configAgent: config.agentConfig?.name });
+
+// Ensure agent settings.json is up-to-date on startup (MCP servers + skills)
+const MCP_ENV_DIR = path.join(path.dirname(getConfigPath()), 'mcp');
+regenerateAgentConfig(config, MCP_ENV_DIR);
+
+// Centralized agent spawner — ONE semaphore shared by all callers (max 3 concurrent)
+const spawnAgentFull = createSpawnAgent({
+  adapter,
   tracker,
   sse,
   outputDir: path.join(WORKSPACE_DIR, '_outputs'),
   maxConcurrent: 3,
-  claudeConfigDir: CLAUDE_CONFIG_DIR || undefined,
 });
-// Simple wrapper for one-shot callers (triage, title, checkup, memory) — returns Promise<string>
-const spawnClaude = (opts: Parameters<typeof spawnClaudeFull>[0]) => spawnClaudeFull(opts).promise;
 
-const memoryAgents = createMemoryAgents(WORKSPACE_DIR, { spawnClaude });
+// Workspace managers (before memoryAgents — gap router needs gapsManager)
+const dossierManager = createDossierManager(WORKSPACE_DIR);
+const suggestionsManager = createSuggestionsManager(WORKSPACE_DIR);
+const gapsManager = createGapsManager(WORKSPACE_DIR);
+
+// GitHub Issue manager (optional — only if token configured)
+const gitHubIssueManager = config.github?.token
+  ? createGitHubIssueManager({
+      token: config.github.token,
+      owner: config.github.owner || 'opentidy',
+      repo: config.github.repo || 'opentidy',
+    })
+  : null;
+
+const gapRouter = gitHubIssueManager
+  ? createGapRouter({
+      gapsManager,
+      gitHub: gitHubIssueManager,
+      suggestionsDir: path.join(WORKSPACE_DIR, '_suggestions'),
+      isDuplicateSuggestion: suggestionsManager.isDuplicateSuggestion,
+    })
+  : null;
+
+if (gitHubIssueManager) {
+  console.log(`[opentidy] GitHub integration enabled (${config.github!.owner}/${config.github!.repo})`);
+}
+
+const memoryAgents = createMemoryAgents(WORKSPACE_DIR, {
+  spawnAgent: spawnAgentFull,
+  adapter,
+  onGapsWritten: gapRouter ? () => gapRouter.routeNewGaps() : undefined,
+});
 
 // Notifications (no-op if no token)
 const sendMessage: (chatId: string, text: string, opts?: { parse_mode?: string }) => Promise<void> = TELEGRAM_TOKEN
@@ -125,11 +173,6 @@ const sendMessage: (chatId: string, text: string, opts?: { parse_mode?: string }
     }
   : async () => { console.log('[notifications] No Telegram token, skipping'); };
 const notify = createNotifier({ sendMessage, appBaseUrl: APP_BASE_URL, chatId: TELEGRAM_CHAT_ID, notificationStore, sse });
-
-// Workspace managers
-const dossierManager = createDossierManager(WORKSPACE_DIR);
-const suggestionsManager = createSuggestionsManager(WORKSPACE_DIR);
-const gapsManager = createGapsManager(WORKSPACE_DIR);
 
 // Launcher
 const tmuxExecutor = createTmuxExecutor();
@@ -150,6 +193,8 @@ const launcher = createLauncher({
     ensureReady: (name: string) => terminalRef?.ensureReady(name) ?? Promise.resolve(undefined),
     killTtyd: (name: string) => terminalRef?.killTtyd(name),
   },
+  adapter,
+  memoryAgents,
 });
 
 // Terminal manager — ttyd spawner
@@ -167,9 +212,9 @@ const hooks = createHooksHandler({
 });
 
 // Receiver — triage + webhook
-const claudeRunner = createClaudeRunner(WORKSPACE_DIR, { memoryManager, spawnClaude });
+const agentRunner = createAgentRunner(WORKSPACE_DIR, { memoryManager, spawnAgent: spawnAgentFull, adapter });
 const triager = createTriager({
-  runClaude: claudeRunner,
+  runClaude: agentRunner,
   listDossiers: () => listDossierIds(WORKSPACE_DIR).map(id => {
     const d = getDossier(WORKSPACE_DIR, id);
     return { id: d.id, title: d.title, status: d.status, stateRaw: d.stateRaw ?? '' };
@@ -190,29 +235,35 @@ const receiver = createWebhookReceiver({
   triage: triageAndHandle,
 });
 
-// SMS watcher (Messages.app via osascript)
-const smsReader = createSmsReader();
-const smsWatcher = createWatcher(
-  { pollIntervalMs: 300_000, source: 'sms', getNewMessages: () => smsReader.getNewMessages() },
-  { dedup, triage: triageAndHandle },
-);
-smsWatcher.start();
-console.log('[opentidy] SMS watcher started (5min poll)');
-
-// Mail watcher (Mail.app via osascript — Gmail account connected)
-const mailReader = createMailReader();
-const mailWatcher = createWatcher(
-  { pollIntervalMs: 300_000, source: 'mail', getNewMessages: () => mailReader.getNewMessages() },
-  { dedup, triage: triageAndHandle },
-);
-mailWatcher.start();
-console.log('[opentidy] Mail watcher started (5min poll)');
+// Dynamic receiver loading — config-driven
+const receiverPlugins: ReceiverPlugin[] = await loadReceiverPlugins({ receivers: config.receivers ?? [] });
+for (const plugin of receiverPlugins) {
+  await plugin.init();
+  plugin.start((msg) => {
+    // Dedup on JSON.stringify to match existing createWatcher behavior
+    const raw = JSON.stringify(msg);
+    if (dedup.isDuplicate(raw)) return;
+    dedup.record(raw);
+    console.log(`[receiver] ${plugin.source} message from ${msg.from}`);
+    triageAndHandle({
+      source: plugin.source,
+      content: `${plugin.source} de ${msg.from}: ${msg.body}`,
+    });
+  });
+  console.log(`[opentidy] Receiver started: ${plugin.name}`);
+}
 
 // Checkup
-const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnClaude, sse, notificationStore, memoryManager, suggestionsManager });
+const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnAgent: spawnAgentFull, adapter, sse, notificationStore, memoryManager, suggestionsManager });
 
-// Title generator — claude -p one-shot for descriptive dossier titles
-const generateTitle = createTitleGenerator(WORKSPACE_DIR, { spawnClaude });
+// Scheduler — unified scheduling engine (replaces checkup setInterval)
+const scheduler = createScheduler({ db, launcher, checkup, locks, sse });
+
+// MCP server — embedded in Hono, exposes schedule/suggestion/gap tools
+const mcpServer = createMcpServer({ scheduler, suggestionsManager, gapsManager, sse });
+
+// Title generator — agent one-shot for descriptive dossier titles
+const generateTitle = createTitleGenerator(WORKSPACE_DIR, { spawnAgent: spawnAgentFull, adapter });
 
 // API
 const app = createApp({
@@ -236,45 +287,39 @@ const app = createApp({
   memoryManager,
   memoryAgents,
   tracker,
+  scheduler,
+  mcpServer,
   workspaceDir: WORKSPACE_DIR,
   bearerToken: config.auth.bearerToken || '',
   version: getVersion(),
+  mcpConfig: {
+    configPath: getConfigPath(),
+    agentConfigDir: AGENT_CONFIG_DIR,
+    mcpEnvDir: MCP_ENV_DIR,
+  },
+  skillsConfig: {
+    configPath: getConfigPath(),
+    agentConfigDir: AGENT_CONFIG_DIR,
+  },
 });
 
 const server = startServer(app, PORT);
 
-// Recovery — reconcile tmux sessions with workspace state
-launcher.recover().then(() => {
-  console.log('[opentidy] Recovery complete');
-}).catch((err: unknown) => {
-  console.error('[opentidy] Recovery failed:', err);
+// Periodic tasks — recovery, checkup sweep, daily cleanup, workspace watcher
+const periodic = startPeriodicTasks({
+  launcher,
+  scheduler,
+  tracker,
+  dedup,
+  sse,
+  workspaceDir: WORKSPACE_DIR,
 });
-
-// Checkup périodique
-setInterval(() => {
-  checkup.runCheckup().catch((err: unknown) => console.error('[opentidy] Checkup failed:', err));
-}, CHECKUP_INTERVAL);
-console.log(`[opentidy] Checkup every ${CHECKUP_INTERVAL / 1000}s`);
-
-// Daily cleanup — remove old claude processes and dedup hashes
-setInterval(() => {
-  tracker.cleanup(30); // processes older than 30 days
-  dedup.cleanup();     // hashes older than 7 days
-  console.log('[opentidy] Daily cleanup complete');
-}, 86_400_000);
-console.log('[opentidy] Daily cleanup scheduled');
-
-// Workspace watcher — fs.watch for dossier:updated SSE events
-const watchdog = createWorkspaceWatcher({ sse, workspaceDir: WORKSPACE_DIR });
-watchdog.start();
-console.log('[opentidy] Workspace watcher started (fs.watch)');
 
 // Graceful shutdown — clean up resources on SIGTERM/SIGINT
 function gracefulShutdown(signal: string): void {
   console.log(`[opentidy] ${signal} received, shutting down gracefully...`);
-  smsWatcher.stop();
-  mailWatcher.stop();
-  watchdog.stop();
+  for (const plugin of receiverPlugins) { plugin.stop(); }
+  periodic.stop();
   server.close(() => {
     db.close();
     console.log('[opentidy] Database closed');

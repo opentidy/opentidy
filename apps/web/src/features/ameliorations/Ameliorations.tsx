@@ -48,11 +48,11 @@ export default function Ameliorations() {
 
   return (
     <div className="p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-text">{t('ameliorations.title')}</h1>
           <span className="text-xs px-2 py-0.5 rounded-md bg-text-tertiary/20 text-text-tertiary font-medium">
-            {loading ? '...' : t('ameliorations.openCount', { count: openCount })}
+            {loading ? '...' : t('ameliorations.open', { count: openCount })}
           </span>
         </div>
         <div className="flex gap-2">

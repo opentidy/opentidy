@@ -1,6 +1,8 @@
-// src/features/triage/classify.ts
-import type { DossierStatus, MemoryEntry } from '@opentidy/shared';
-import type { SpawnClaudeSimpleFn } from '../../shared/spawn-claude.js';
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
+import type { DossierStatus, MemoryEntry, AgentAdapter } from '@opentidy/shared';
+import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
 import { buildMemoryContext } from '../../shared/memory-context.js';
 
 const TRIAGE_SYSTEM_PROMPT = `Triage mode. You receive an event and the list of active dossiers (with their full state.md).
@@ -68,13 +70,14 @@ export function createTriager(deps: {
   return { triage };
 }
 
-// Production: runClaude calls claude -p via spawnClaude
-export function createClaudeRunner(workspaceDir: string, deps: {
+// Production: runAgent calls agent CLI via spawnAgent
+export function createAgentRunner(workspaceDir: string, deps: {
   memoryManager?: { readAllFiles: () => MemoryEntry[] };
-  spawnClaude: SpawnClaudeSimpleFn;
+  spawnAgent: SpawnAgentFn;
+  adapter: AgentAdapter;
 }) {
-  return async function runClaude(prompt: string): Promise<string> {
-    console.log('[triage] Running claude -p for triage');
+  return async function runAgent(prompt: string): Promise<string> {
+    console.log('[triage] Running agent for triage');
 
     const memoryContext = deps.memoryManager
       ? buildMemoryContext(deps.memoryManager.readAllFiles())
@@ -84,7 +87,7 @@ export function createClaudeRunner(workspaceDir: string, deps: {
       ? `${TRIAGE_SYSTEM_PROMPT}\n\n## Global memory (persistent context)\n${memoryContext}`
       : TRIAGE_SYSTEM_PROMPT;
 
-    const args = ['-p', '--system-prompt', systemPrompt, prompt];
-    return deps.spawnClaude({ args, cwd: workspaceDir, type: 'triage', description: 'Triage incoming email/event' });
+    const args = deps.adapter.buildArgs({ mode: 'one-shot', cwd: workspaceDir, systemPrompt, instruction: prompt });
+    return deps.spawnAgent({ args, cwd: workspaceDir, type: 'triage', description: 'Triage incoming email/event' }).promise;
   };
 }

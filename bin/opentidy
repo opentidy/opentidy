@@ -1,4 +1,7 @@
 #!/bin/sh
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2026 Loaddr Ltd
+
 # OpenTidy CLI wrapper — resolves node@22 and launches the backend CLI.
 # Works on Apple Silicon (/opt/homebrew), Intel (/usr/local), and non-Homebrew setups.
 set -e

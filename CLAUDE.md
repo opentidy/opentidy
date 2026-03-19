@@ -2,23 +2,45 @@
 
 ## Project: OpenTidy
 
-Open-source personal AI assistant. Gère des dossiers administratifs via sessions Claude Code autonomes (`claude -p` child processes), avec garde-fous hooks et une app web. Distribué via Homebrew.
+Open-source personal AI assistant. Manages administrative dossiers via autonomous AI agent sessions (agent-agnostic — Claude Code, Gemini CLI, Copilot CLI), with hook-based guardrails and a web app. Distributed via Homebrew.
 
 **Repo:** `opentidy/opentidy` (GitHub org)
 **Homebrew tap:** `opentidy/homebrew-opentidy`
 **CLI:** `opentidy` (`opentidy setup`, `opentidy start`, `opentidy doctor`, etc.)
-**Spec complète:** `docs/design/opentidy-spec.md`
-**Plan d'implémentation:** `docs/plans/opentidy-plan.md`
-**Architecture V2:** `docs/design/v2-final.md`
-**Deployment spec:** `docs/superpowers/specs/2026-03-18-deployment-design.md`
+**License:** AGPL-3.0-only
+**Specification:** `docs/specification.md`
 
-## Platform
+## CRITICAL: Open-Source & Privacy
 
-Tourne sur **macOS** (Mac Mini dédié, 24/7). Ce choix est intentionnel : macOS offre le plus de permissions et d'accès système parmi les OS grand public — AppleScript/osascript, Shortcuts, accès direct aux apps (Messages, Calendar, Contacts, Finder, etc.), controle d'accessibilite, et integration native avec l'ecosysteme Apple. Toujours privilegier les APIs et outils natifs macOS (osascript, `open`, Automator, Shortcuts CLI, `defaults`, `launchctl`) quand c'est possible.
+**This is a PUBLIC open-source repository. Every file, every commit, every diff is visible to everyone on the internet.**
 
-## Language
+### Zero personal information — no exceptions
 
-Code, comments, and commits in English. Conversational language: adapt to the user.
+- **NEVER** commit real names (except copyright holder in LICENSE/CLA), email addresses, phone numbers, physical addresses, account IDs, chat IDs, or any PII
+- **NEVER** commit API keys, tokens, bearer tokens, passwords, or secrets of any kind
+- **NEVER** commit URLs pointing to personal infrastructure (Cloudflare tunnels, self-hosted services, personal domains)
+- **NEVER** reference specific user accounts, Telegram chat IDs, Gmail addresses, or real contacts in code, comments, configs, or fixtures
+- **Fixtures and test data** must use only fictitious data: `example.com` emails, placeholder names ("Alice", "Bob"), fake IDs (`chat-123`), generic URLs
+- **Config files** committed to the repo must contain only placeholders or empty values — real config lives in `~/.config/opentidy/` (gitignored)
+
+### Before every commit
+
+Review the full diff. If **any** of the following appear, **stop and sanitize**:
+- Real email addresses or phone numbers
+- Telegram/WhatsApp chat IDs or bot tokens
+- Bearer tokens, API keys, or OAuth credentials
+- Personal domain names or tunnel URLs
+- Real company names in fixtures (use generic alternatives)
+- Paths containing usernames (use `~` or `$HOME` notation)
+
+### License headers
+
+Every source file (`.ts`, `.tsx`) must have this SPDX header as the first lines:
+
+```typescript
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+```
 
 ## Commands
 
@@ -28,33 +50,23 @@ pnpm build                             # build all packages
 pnpm dev                               # dev mode (backend + web parallel)
 pnpm test                              # vitest (backend)
 pnpm test:e2e                          # playwright (web)
-pnpm --filter @opentidy/backend test     # backend tests only
-pnpm --filter @opentidy/web dev          # web dev only
-pnpm --filter @opentidy/shared build     # shared types only
+pnpm --filter @opentidy/backend test   # backend tests only
+pnpm --filter @opentidy/web dev        # web dev only
+pnpm --filter @opentidy/shared build   # shared types only
 ```
-
-### LaunchAgent (production)
-
-```bash
-launchctl load ~/Library/LaunchAgents/com.opentidy.agent.plist
-launchctl unload ~/Library/LaunchAgents/com.opentidy.agent.plist
-launchctl kickstart -k gui/$(id -u)/com.opentidy.agent   # restart
-```
-
-Logs: `~/Library/Logs/opentidy.log` (app), `~/Library/Logs/opentidy-stdout.log` / `opentidy-stderr.log` (launchd).
 
 ## Architecture
 
-### 8 principes directeurs
+### 8 guiding principles
 
-1. **La vitesse n'est pas un critere** — taches admin, pas du temps reel
-2. **Claude Code est le moteur d'execution** — skills, MCP, browser, session resume
-3. **Le budget n'est pas une contrainte** — Claude Max, pas de compromis tokens
-4. **L'intelligence est dans Claude, pas dans le code** — le backend fait de la plomberie, Claude decide
-5. **Pas d'interruption — parallelisme isole** — chaque dossier = sa propre session
-6. **L'assistant tourne en fond, tranquillement** — hybride events + crons
-7. **Actions rapides/interactives = outil specialise** — pas le systeme principal
-8. **Amelioration continue** — gaps.md = backlog naturel
+1. **Speed is not a criterion** — admin tasks, not real-time
+2. **AI agent CLI is the execution engine** — agent-agnostic (Claude Code, Gemini CLI, Copilot CLI), skills, MCP, browser, session resume
+3. **Budget is not a constraint** — Claude Max, no token compromises
+4. **Intelligence lives in Claude, not the code** — backend does plumbing, Claude decides
+5. **No interruption — isolated parallelism** — each dossier = its own session
+6. **The assistant runs quietly in the background** — hybrid events + crons
+7. **Quick/interactive actions = specialized tool** — not the core system
+8. **Continuous improvement** — gaps.md = natural backlog
 
 ### Monorepo
 
@@ -62,183 +74,256 @@ Logs: `~/Library/Logs/opentidy.log` (app), `~/Library/Logs/opentidy-stdout.log` 
 opentidy/
 ├── pnpm-workspace.yaml
 ├── packages/
-│   └── shared/              # types TypeScript, Zod schemas
+│   └── shared/              # TypeScript types, Zod schemas
 ├── apps/
-│   ├── backend/             # Hono API, daemon, launcher, receiver
-│   └── web/                 # React SPA, Vite
+│   ├── backend/             # Hono API, daemon, features (VSA)
+│   └── web/                 # React SPA, Vite, features (VSA)
 ├── workspace/               # runtime — dossiers, state.md, artifacts (gitignored)
-└── docs/                    # design docs, specs, plans
+└── docs/                    # public documentation
 ```
 
-### Composants backend
+### Vertical Slice Architecture (VSA)
 
-**Receiver** (`apps/backend/src/receiver/`):
-- Webhooks (Gmail), watchers (SMS/WhatsApp), cron sweep, user instructions
-- Dedup par content hash
-- Triage via `claude -p --system-prompt` (one-shot, JSON response)
+Backend and frontend follow VSA — code is organized by feature/domain, not by technical layer. Each feature directory is self-contained: route + handler + logic + colocated tests. An agent opens one directory and has full context.
 
-**Launcher** (`apps/backend/src/launcher/`):
-- Mode autonome (defaut) : lance `claude -p --output-format stream-json` comme child process Node.js. Process exit = signal fiable de fin de session.
-- Mode interactif ("Prendre la main") : the user clicks → backend kill le child process → lance `claude --resume <session-id>` dans tmux → interaction via ttyd. "Rendre la main" kill tmux et relance en autonome.
-- Resume via `--resume <session-id>` (persiste dans `workspace/<dossier>/.session-id`)
-- Post-session agent : s'execute automatiquement apres process exit dans `handleAutonomousExit()` — extraction memoire + gaps + verification journal
-- Crash recovery au startup : reconcilie sessions tmux (interactives) + relance dossiers orphelins EN COURS (autonomes)
-- Sweep periodique : `setInterval` + `claude -p` pour scan workspace
+**Backend** (`apps/backend/src/`):
+```
+features/
+  dossiers/       # CRUD, state.md parsing, title generation
+  sessions/       # launch, stop, take-over, hand-back, post-session, crash recovery
+  triage/         # webhook, mail/SMS readers, classify, route dispatch
+  memory/         # CRUD, extraction agents, injection, lock
+  suggestions/    # list, approve, dismiss, file parser
+  ameliorations/  # list, resolve, ignore, gaps.md parser
+  hooks/          # POST /api/hooks handler
+  notifications/  # Telegram sender, notification store
+  checkup/        # periodic sweep, workspace watcher
+  terminal/       # ttyd bridge, port route
+  system/         # health, reset, audit, processes, SSE events, test tasks
+shared/           # cross-cutting: database, locks, dedup, spawn-agent, agents/, SSE, auth, config, paths
+cli/              # CLI commands (setup/, doctor, status, logs, update, uninstall)
+boot/             # periodic tasks setup (intervals, watchdog, crash recovery)
+```
 
-**Autonomous Executor** (`apps/backend/src/launcher/autonomous-executor.ts`):
-- Spawn `claude -p --output-format stream-json --dangerously-skip-permissions` comme child process
-- Parse le stdout NDJSON en temps reel (StreamEvent : assistant, tool_use, tool_result, result, system)
-- Capture le session_id depuis l'event `result` pour future resume
-- ProcessHandle : pid, kill(), onExit(), onOutput()
+**Frontend** (`apps/web/src/`):
+```
+features/
+  dossiers/       # DossierCard, DossierDetail, Sidebar, StateRenderer
+  sessions/       # SessionCard, SessionOutput
+  ameliorations/  # AmeliorationCard, Ameliorations page
+  memory/         # Memory page
+  terminal/       # Terminal page, ProcessOutput, PlainTextOutput, LiveProcessOutput
+  nouveau/        # Nouveau page
+  home/           # Home page
+shared/           # Layout, nav, ErrorBanner, InstructionBar, SuggestionCard, store, api, i18n, utils
+```
 
-**Workspace** (`apps/backend/src/workspace/`):
-- Fichiers markdown = etat des dossiers (state.md, checkpoint.md, artifacts/)
-- Section optionnelle `## En attente` dans state.md = criteres de reprise (attente info externe)
-  - Triage recoit le state.md complet pour matcher les events entrants
-  - Checkup respecte la section (pas de relance sauf date depassee)
-  - Launcher efface la section au relancement
-- `_suggestions/` — dossiers suggeres par Claude, en attente d'approbation utilisateur
-- `_gaps/gaps.md` — lacunes detectees par Claude (backlog d'ameliorations)
-- `_audit/actions.log` — trace de toutes les actions externes
+**Cross-feature dependency rules** (unidirectional):
+```
+triage → sessions → dossiers
+checkup → sessions → dossiers
+```
+All other features are standalone. Cross-feature deps are injected via `deps` parameter, not direct imports.
 
-**Infrastructure** (`apps/backend/src/infra/`):
-- Locks PID par dossier (`/tmp/opentidy-locks/`)
-- Dedup store (content hash)
-- Audit logger
-- SSE emitter (event types : session:started/ended/idle/active/output/mode-changed, dossier:updated/completed, suggestion:created, checkpoint:created/resolved, amelioration:created)
-- **SQLite (planifie)** : `better-sqlite3` dans `workspace/_data/opentidy.db` — 4 tables (`claude_processes`, `notifications`, `dedup_hashes`, `sessions`) pour remplacer l'etat in-memory. Les fichiers (state.md, checkpoint.md, artifacts, memory) restent pour ce que Claude touche.
+### Backend features detail
 
-**Hooks handler** (`apps/backend/src/hooks/`):
-- Endpoint unique `POST /api/hooks` — tous les hooks `type: "command"` appellent ca
-- Route selon `hook_event_name` : PreToolUse/PostToolUse → audit, Notification/idle_prompt → timer (mode interactif seulement), SessionEnd/Stop → audit + SSE
-- En mode autonome, le lifecycle est gere par process exit, pas par les hooks — les hooks sont audit-only pour Stop/SessionEnd
+**Triage** (`features/triage/`):
+- Webhooks (Gmail), watchers (SMS/WhatsApp), user instructions
+- Dedup by content hash, classify via agent one-shot, dispatch results
 
-**Notifications** (`apps/backend/src/notifications/`):
-- Telegram (grammy) — notifications checkpoints, completions, escalades
-- Liens vers l'app web dans les messages
+**Sessions** (`features/sessions/`):
+- Autonomous mode (default): spawns agent CLI as child process via `spawn-agent.ts`
+- Interactive mode ("Take Over"): kill process → tmux → ttyd → "Hand Back"
+- Post-session agent: memory extraction + gaps + journal verification
+- Crash recovery at startup
 
-### CLAUDE.md 2 niveaux (contexte sessions)
+**Dossiers** (`features/dossiers/`):
+- Markdown files = dossier state (state.md, checkpoint.md, artifacts/)
+- `## Waiting For` section = resume criteria
+- Title generation via agent one-shot
 
-**Niveau 1** — `workspace/CLAUDE.md` (global, ecrit une fois) :
-- Identite, style, regles de securite, formats attendus, outils disponibles
+**Hooks** (`features/hooks/`):
+- `POST /api/hooks` — audit + SSE for lifecycle events
 
-**Niveau 2** — `workspace/<dossier>/CLAUDE.md` (genere par le backend a chaque lancement) :
-- Objectif du dossier, mode confirm, event/instruction, contacts
+**Notifications** (`features/notifications/`):
+- Telegram (grammy) — checkpoint notifications, completions, escalations
 
-### Garde-fous (hooks PreToolUse)
+**Shared** (`shared/`):
+- SQLite (`better-sqlite3`), PID locks, dedup, agent spawner + semaphore, SSE emitter, auth middleware, config, paths
+- Agent abstraction: `shared/agents/` — `AgentAdapter` interface, `resolveAgent()` registry, Claude adapter
 
-Hooks `type: "prompt"` — mini-Claude verificateur, cote SYSTEME, avant chaque outil sensible.
-Claude ne les appelle pas, ne peut pas les skipper, ne sait meme pas qu'ils existent.
-Fonctionnent en mode autonome (`claude -p`) comme en mode interactif (tmux).
+### Agent Abstraction
 
-**Matchers critiques:**
-- `mcp__gmail__send|reply|draft` — verifie email (pas de paiement sans approbation)
-- `mcp__camofox__click|fill_form|evaluate_js` — verifie clic/formulaire (DENY si paiement)
-- `Bash` → `curl -X POST`, `ssh`, `scp` (3 matchers separes, substring match)
+OpenTidy is agent-agnostic. The `AgentAdapter` interface (`shared/agents/types.ts`) abstracts CLI differences:
+- **Claude Code** (stable): `claude -p`, `--system-prompt`, `--resume`, `--dangerously-skip-permissions`, PreToolUse hooks
+- **Gemini CLI** (experimental, not yet implemented): candidate
+- **Copilot CLI** (experimental, not yet implemented): candidate
 
-Hooks `type: "command"` — detection + audit (non-bloquant), notifie le backend. En mode autonome, les hooks Stop/SessionEnd sont audit-only — le lifecycle est gere par process exit.
+Resolution order: `OPENTIDY_AGENT` env → `--agent` flag → `config.json.agent` → fallback `claude`
+
+Key files: `spawn-agent.ts` (spawner), `agents/claude.ts` (adapter), `agents/registry.ts` (resolver)
+
+### Instruction files (2 levels of session context)
+
+**Level 1** — `workspace/INSTRUCTIONS.md` (global, written once):
+- Identity, style, security rules, expected formats, available tools
+- Copied to agent-native file (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`) at spawn time
+
+**Level 2** — `workspace/<dossier>/INSTRUCTIONS.md` (generated by backend at each launch):
+- Dossier objective, confirm mode, event/instruction, contacts
+- Copied to agent-native file at spawn time, stale files from other agents cleaned up
+
+### Guardrails
+
+**Source of truth:** `plugins/opentidy-hooks/guardrails.json` (unified format)
+**Generated output:** `hooks/hooks.json` (Claude-native, generated by `adapter.writeConfig()`)
+
+`type: "prompt"` hooks — mini-agent verifier, SYSTEM-side, before each sensitive tool.
+The agent doesn't call them, can't skip them, doesn't know they exist.
+Work in autonomous and interactive mode. **Fail-closed:** untranslatable rules deny by default.
+
+**Critical matchers:**
+- `mcp__gmail__send|reply|draft` — verify email (no payments without approval)
+- `mcp__camofox__click|fill_form|evaluate_js` — verify click/form (DENY if payment)
+- `Bash` → `curl -X POST`, `ssh`, `scp` (3 separate matchers, substring match)
+
+`type: "command"` hooks — detection + audit (non-blocking), notify backend. In autonomous mode, Stop/SessionEnd hooks are audit-only — lifecycle is managed by process exit.
 
 ### Data flow
 
 ```
-Gmail webhook / SMS watcher / WhatsApp watcher / Telegram / App web
-    → Receiver (dedup + triage Claude)
-    → Launcher (claude -p child process, mode autonome)
-    → Claude travaille (hooks PreToolUse verifient chaque action sensible)
-    → state.md mis a jour / checkpoint.md si bloque / ## En attente si attente externe
-    → Process exit → handleAutonomousExit() → cleanup lock, notification, post-session agent (memoire)
-    → Optionnel : "Prendre la main" → kill process → tmux interactif → "Rendre la main" → relance autonome
-    → Sweep periodique → verifie dossiers, lance sessions
+Gmail webhook / SMS watcher / WhatsApp watcher / Telegram / Web app
+    → Receiver (dedup + agent triage)
+    → Launcher (agent child process, autonomous mode)
+    → Agent works (PreToolUse hooks verify each sensitive action)
+    → state.md updated / checkpoint.md if blocked / ## Waiting For if waiting for external
+    → Process exit → handleAutonomousExit() → cleanup lock, notification, post-session agent (memory)
+    → Optional: "Take Over" → kill process → interactive tmux → "Hand Back" → autonomous relaunch
+    → Periodic sweep → check dossiers, launch sessions
 ```
 
-### Sessions Claude
+### Agent sessions
 
-**Mode autonome (defaut)** — child process Node.js :
+Sessions are spawned via `spawn-agent.ts` which delegates to the active `AgentAdapter`. The adapter builds CLI args for its agent.
+
+**Autonomous mode (default)** — Node.js child process via `adapter.buildArgs({ mode: 'one-shot', ... })`:
 ```bash
-# Lancement autonome (child process, pas tmux)
-claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
-  [--plugin-dir plugins/opentidy-hooks] [--resume <session-id>] "<instruction>"
-# Le process tourne dans le cwd du dossier (workspace/<dossier-id>/)
-# stdout = NDJSON (stream events), exit = fin de session
+# Example with Claude adapter:
+claude -p --strict-mcp-config --mcp-config '{}' --system-prompt "..." "<instruction>"
+# Process runs in the dossier cwd, exit = end of session
 ```
 
-**Mode interactif ("Prendre la main")** — tmux for the user :
+**Interactive mode ("Take Over")** — tmux via `adapter.buildArgs({ mode: 'interactive', ... })`:
 ```bash
-# Launched when user clicks "Prendre la main" in the web app
 tmux new-session -d -s opentidy-<dossier-id> \
-  "cd workspace/<dossier-id> && claude --dangerously-skip-permissions --resume <session-id>"
-# User interacts via ttyd (terminal in the web app)
-# "Rendre la main" → kill tmux → relaunch in autonomous mode
+  "cd workspace/<dossier-id> && <agent-binary> <adapter-generated-args>"
 ```
 
-**Appels one-shot** (triage, sweep, memoire) :
-```bash
-# Triage
-claude -p --system-prompt "Mode triage. Reponds en JSON." "Event: ..."
+**One-shot calls** (triage, sweep, memory) — all use `adapter.buildArgs({ mode: 'one-shot', ... })` then `spawnAgent()`.
 
-# Sweep
-claude -p --system-prompt "Mode sweep." --allowedTools "Read,Glob,Grep,Write" "Lis workspace/*/state.md..."
-```
+**Permission bypass** — security is ensured by guardrail hooks, not the built-in permission system.
 
-**`--dangerously-skip-permissions`** sur toutes les sessions — la securite est assuree par les hooks PreToolUse, pas par le systeme de permissions integre.
+### Browser: Camoufox
 
-### Browser : Camoufox
-
-Chaque session a sa propre instance Camoufox avec profil isole. Pas Chrome/Playwright.
-- Parallelisme total (plus de lock browser)
+Each session has its own Camoufox instance with an isolated profile. Not Chrome/Playwright.
+- Full parallelism (no browser lock)
 - Anti-detection
-- Sessions persistantes par profil (cookies, login conserves)
-- The user keeps Chrome for personal use
+- Persistent sessions per profile (cookies, logins preserved)
 
-## Frontend (App web)
+## Frontend (Web app)
 
 **Tech:** React 19, Vite, React Router v7, Tailwind CSS v4 (CSS-first), Zustand, xterm.js
 
 **Pages:**
-- Home — dossiers actifs + suggestions + gaps
-- Dossier detail — state.md, checkpoint, terminal (xterm.js → ttyd/tmux, mode interactif uniquement), artifacts
-- Nouveau dossier — instruction + mode confirm
-- Notifications — historique
+- Home — active dossiers + suggestions + gaps
+- Dossier detail — state.md, checkpoint, terminal (xterm.js → ttyd/tmux, interactive mode only), artifacts
+- New dossier — instruction + confirm mode
+- Notifications — history
 
-**SSE** : EventSource natif → store Zustand en temps reel
+**SSE**: native EventSource → Zustand store in real-time
 
-**React 19** : Ne JAMAIS utiliser `useMemo`, `useCallback`, ou `React.memo` — React Compiler gere la memoization.
+**React 19**: NEVER use `useMemo`, `useCallback`, or `React.memo` — React Compiler handles memoization.
 
 ## Code Style
 
-- **TypeScript strict** partout
-- **Zod** pour validation (schemas dans `packages/shared`)
-- **Factory functions** — pas de classes. Chaque module exporte `createX()` retournant une interface. Permet le mocking facile en tests.
-- **SSOT** — jamais de duplication de types, constantes, ou etat
-- **Progressive Logging** — `console.error`/`console.warn` avec contexte. `console.log` aux frontieres (API route entry, hook handler, Claude spawn). Prefix `[service]` (ex: `[launcher]`, `[receiver]`, `[triage]`). Pas de logs dans les boucles.
-- **Timeouts Claude** — Tous les appels `claude -p` (triage, checkup, title gen, memory agents) doivent avoir un timeout de **1h minimum** (`3_600_000`). Claude peut etre lent sous charge (rate limits, queue). Le timeout est un garde-fou zombie, pas une contrainte de perf. Ne JAMAIS mettre un timeout court (30s, 60s) sur un appel Claude.
+- **TypeScript strict** everywhere
+- **Zod** for validation (schemas in `packages/shared`)
+- **Factory functions** — no classes. Each module exports `createX()` returning an interface. Enables easy mocking in tests.
+- **SSOT** — never duplicate types, constants, or state
+- **Progressive Logging** — `console.error`/`console.warn` with context. `console.log` at boundaries (API route entry, hook handler, Claude spawn). Prefix `[service]` (e.g., `[launcher]`, `[receiver]`, `[triage]`). No logs in loops.
+- **Agent Timeouts** — All agent one-shot calls (triage, checkup, title gen, memory agents) must have a timeout of **1h minimum** (`3_600_000`). Agents can be slow under load (rate limits, queue). The timeout is a zombie guard, not a perf constraint. NEVER set a short timeout (30s, 60s) on an agent call.
 
 ## Testing
 
-**Vitest** pour le backend, **Playwright** pour le frontend E2E.
+**Vitest** for backend, **Playwright** for frontend E2E.
 
-148 tests E2E definis dans `docs/design/e2e-tests.md` — tracabilite parfaite spec → plan → code → tests.
-
-- Tests miroir `src/` structure sous `tests/`
-- Factory function mocking (pas de DI framework)
-- DB tests : fichiers workspace + SQLite (planifie) en tmpdir, tests utilisent des tmpdir
-- **Chaque changement de code doit inclure les tests appropriés**
+- Tests are **colocated** with source files (`create.ts` + `create.test.ts` in same directory)
+- Factory function mocking (no DI framework)
+- DB tests: workspace files + SQLite (planned) in tmpdir
+- **Every code change must include appropriate tests**
 
 ## Test Tasks Safety
 
 When generating test tasks for OpenTidy (test tasks, debug, feature validation):
 - **NEVER irreversible actions**: no sending real emails to third parties, no transactions, no public posts
-- **Emails only to the configured user** — never to real contacts (accountant, clients, admin)
+- **Emails only to the configured user** — never to real contacts
 - **Fictitious destinations**: use `example.com` for fake email addresses
 - **Safe navigation**: public sites only (Wikipedia, CoinGecko, Booking), no login on sensitive accounts
-- The project is still in development — every test task must be safe if it actually executes
 
 ## Git
 
-- Conventional commits: `type(scope): message`
-- Ne jamais ajouter de `Co-Authored-By`
-- Ne pas commit sauf si demande
-- Ne pas push sauf si demande
+### Conventional commits (required — Release Please generates changelogs from them)
+
+Format: `type(scope): message`
+
+| Type | When | Version bump |
+|------|------|-------------|
+| `feat` | New feature or capability | patch (pre-1.0), minor (post-1.0) |
+| `fix` | Bug fix | patch |
+| `refactor` | Code change that neither fixes a bug nor adds a feature | none |
+| `test` | Adding or updating tests | none |
+| `docs` | Documentation only | none |
+| `chore` | Maintenance, deps, CI config | none |
+| `ci` | CI/CD changes | none |
+
+Scopes: `backend`, `web`, `shared`, `cli`, `hooks`, `docs`
+
+Breaking changes: add `!` after scope → `feat(backend)!: redesign triage pipeline` or add `BREAKING CHANGE:` in commit body.
+
+### Commit frequently
+
+**Commit after every logical unit of work** — don't accumulate changes. Examples:
+- Added a new function + its tests → commit
+- Fixed a bug → commit
+- Refactored a module → commit
+- Updated config or docs → commit
+
+Small, focused commits make PRs easy to review and give Release Please good material for changelogs.
+
+### Workflow
+
+**Admin (Lolo)** can push directly to `main` for quick fixes.
+
+**Everyone else (agents, contributors):**
+1. Create a feature branch from `main`: `feat/short-description`, `fix/short-description`, `refactor/short-description`
+2. Commit frequently with conventional commits
+3. Push the branch and open a PR to `main`
+4. PRs must pass all tests, follow conventional commits, contain zero secrets/PII
+5. Never push directly to `main`
+
+**Agents (Claude Code sessions):**
+- Always work on a feature branch, never on `main`
+- Commit as you go — after each logical step, not at the end
+- Push and open a PR when done (use `gh pr create`)
+- Never add `Co-Authored-By`
+- Never force-push or rewrite history
+
+### Contributor specifics
+
+- External contributors: fork → feature branch → PR to `main`
+- CLA signature required on first PR (CLA Assistant bot)
+- PR template: `.github/PULL_REQUEST_TEMPLATE.md`
+- Contributing guide: `docs/contributing.md`
 
 ## Distribution & Deployment
 
@@ -246,7 +331,7 @@ When generating test tasks for OpenTidy (test tasks, debug, feature validation):
 ```bash
 brew tap opentidy/opentidy
 brew install opentidy
-opentidy setup       # interactive setup wizard (Telegram, Claude auth, Cloudflare, permissions)
+opentidy setup       # interactive setup wizard (user info, Telegram, Gmail, Camoufox, WhatsApp, Claude, Cloudflare, permissions)
 brew services start opentidy
 ```
 
@@ -263,46 +348,40 @@ opentidy uninstall   # scoped removal (service, config, data, tunnel)
 
 **CI/CD:** GitHub Actions (`release.yml`) — tag `v*` → test → build → `pnpm deploy` → tarball → GitHub Release → update Homebrew tap
 
-**Config:** `~/.config/opentidy/config.json` (secrets, bearer token, port, update prefs)
+**Config:** `~/.config/opentidy/config.json` (secrets, bearer token, port, update prefs, user info, MCP service states)
 
-**Claude Code isolation:** `CLAUDE_CONFIG_DIR=~/.config/opentidy/claude-config` — config template dans `apps/backend/config/claude/`
+**Agent isolation:** each agent gets its own config directory under `~/.config/opentidy/agents/<name>/` (e.g., `CLAUDE_CONFIG_DIR=~/.config/opentidy/agents/claude/`). Config generated by `adapter.writeConfig()` during `opentidy setup` — hooks, permissions, MCP servers. User's personal agent config is never touched.
 
 **Remote access:** Cloudflare Tunnel (Zero Trust) + bearer token auth
 
-**Auto-update:** Backend check GitHub Releases toutes les 6h → detached updater script → brew upgrade → health check → rollback si echec
+**Auto-update:** Backend checks GitHub Releases every 6h → detached updater script → brew upgrade → health check → rollback on failure
 
 ## Secrets & Auth
 
-- **Claude**: Claude Max subscription via OAuth — jamais d'API keys, jamais `ANTHROPIC_API_KEY`
-- **Config**: `~/.config/opentidy/config.json` (Telegram tokens, bearer token, port) — jamais commité
-- **Cloudflare**: credentials gérées par `cloudflared` lui-même
-- **Jamais hardcoder de secrets** dans le code, .env committés, ou docker-compose
+- **Agent auth**: each agent uses its own auth mechanism (Claude = OAuth/Max subscription, Gemini = Google account, Copilot = GitHub subscription). Never hardcode API keys.
+- **Config**: `~/.config/opentidy/config.json` (Telegram tokens, bearer token, port, user info, MCP states) — never committed
+- **Cloudflare**: credentials managed by `cloudflared` itself
+- **Never hardcode secrets** in code, committed .env files, or docker-compose
+- **Public repo rule**: if a value is secret or personal, it goes in runtime config (`~/.config/opentidy/`), never in the repo. Code must read from config at runtime, not from hardcoded values.
 
 ## Key Paths
 
-- `apps/backend/src/` — source backend
-- `apps/web/src/` — source frontend
-- `packages/shared/src/` — types partages, Zod schemas
-- `bin/opentidy` — CLI wrapper (resolve node@22, lance dist/cli.js)
+- `apps/backend/src/features/` — backend feature slices (VSA)
+- `apps/backend/src/shared/` — backend cross-cutting code (db, locks, auth, config, sse)
 - `apps/backend/src/cli/` — CLI commands (setup, doctor, status, update, logs, uninstall)
-- `apps/backend/src/config.ts` — config loader (~/.config/opentidy/)
+- `apps/backend/src/server.ts` — route assembler (imports from features/, mounts on Hono)
+- `apps/backend/src/index.ts` — boot orchestrator (deps → server → periodic → listen)
+- `apps/web/src/features/` — frontend feature slices (VSA)
+- `apps/web/src/shared/` — frontend shared (Layout, store, api, i18n, utils)
+- `packages/shared/src/` — shared types, Zod schemas
+- `bin/opentidy` — CLI wrapper (resolves node@22, launches dist/cli.js)
 - `apps/backend/config/claude/` — Claude Code config template
-- `plugins/opentidy-hooks/` — hooks PreToolUse (sécurité)
+- `plugins/opentidy-hooks/` — PreToolUse hooks (security)
 - `workspace/` — runtime data (dossiers, state.md, artifacts) — **gitignored**
-- `workspace/CLAUDE.md` — prompt global niveau 1 (pas gitignored)
+- `workspace/INSTRUCTIONS.md` — global level 1 prompt (source of truth, not gitignored)
+- `apps/backend/src/shared/agents/` — agent adapters (claude.ts, registry.ts)
+- `apps/backend/src/shared/spawn-agent.ts` — agent-agnostic process spawner
+- `plugins/opentidy-hooks/guardrails.json` — unified guardrail rules (source of truth)
 - `/tmp/opentidy-locks/` — PID lock files runtime
-- `docs/design/` — architecture, spec, reflexion V2
-- `docs/plans/` — plan d'implementation
+- `docs/` — public documentation
 - `.github/workflows/release.yml` — CI/CD pipeline
-
-## Design Docs
-
-| Document | Contenu |
-|----------|---------|
-| `docs/design/opentidy-spec.md` | Spec complete consolidee (SSOT pour le plan) |
-| `docs/design/v2-final.md` | Architecture V2, principes, benchmark tasks |
-| `docs/design/implementation.md` | Decisions techniques, monorepo, infra |
-| `docs/design/hooks-techniques.md` | Reference technique hooks Claude Code |
-| `docs/design/e2e-tests.md` | 148 tests E2E structures |
-| `docs/plans/opentidy-plan.md` | Plan d'implementation (5 chunks, 28 tasks) |
-| `docs/design/archive/` | Historique de reflexion (approches explorees, decisions ecartees) |

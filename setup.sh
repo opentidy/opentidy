@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2026 Loaddr Ltd
+
 # setup.sh — OpenTidy installation script for Mac Mini
 # Usage: curl -fsSL <url>/setup.sh | bash  (or just ./setup.sh)
 set -euo pipefail
