@@ -80,10 +80,11 @@ jobs:
           mv ./release "opentidy-$VERSION"
           tar -czf "opentidy-$VERSION.tar.gz" "opentidy-$VERSION/"
 
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: opentidy-*.tar.gz
-          generate_release_notes: true
+      - name: Upload tarball to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION_TAG: ${{ github.ref_name }}
+        run: gh release upload "$VERSION_TAG" opentidy-*.tar.gz --clobber
 
   update-tap:
     needs: release

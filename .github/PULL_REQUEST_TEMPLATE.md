@@ -21,3 +21,4 @@
 - [ ] Follows conventional commits (`type(scope): message`)
 - [ ] No secrets or credentials in the diff
 - [ ] Documentation updated (if applicable)
+- [ ] [CLA signed](CLA.md) (CLA Assistant will prompt on first PR)

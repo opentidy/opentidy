@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 

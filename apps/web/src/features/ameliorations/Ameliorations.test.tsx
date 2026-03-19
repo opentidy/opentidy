@@ -76,38 +76,43 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Auto-analyses')).toBeDefined();
+    expect(screen.getByText(/Improvements|Améliorations/)).toBeDefined();
+    // The count badge should show the translated plural form (e.g. "2 open")
     await waitFor(() => {
-      expect(screen.getByText('2 ouvertes')).toBeDefined();
+      expect(screen.getByText('2 open')).toBeDefined();
     });
   });
 
-  it('shows filter buttons for ouverts and resolus', () => {
+  it('shows filter buttons for Open and Resolved', () => {
     render(
       <MemoryRouter>
         <Ameliorations />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Ouverts')).toBeDefined();
-    expect(screen.getByText('Résolus')).toBeDefined();
+    expect(screen.getByText('Open')).toBeDefined();
+    // "Resolved" appears in both filter tab and card action buttons
+    expect(screen.getAllByText('Resolved').length).toBeGreaterThan(0);
   });
 
-  it('clicking "Résolus" filter shows only resolved ameliorations', () => {
+  it('clicking "Resolved" filter shows only resolved ameliorations', () => {
     render(
       <MemoryRouter>
         <Ameliorations />
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText('Résolus'));
+    // "Resolved" appears in both filter tab and card action buttons — use getAllByText
+    const resolvedButtons = screen.getAllByText('Resolved');
+    // Click the filter tab (first occurrence, in the filter bar)
+    fireEvent.click(resolvedButtons[0]);
 
     expect(screen.getByText('Old fix')).toBeDefined();
     expect(screen.queryByText('Error handling')).toBeNull();
     expect(screen.queryByText('Add retry logic')).toBeNull();
   });
 
-  it('"Résolu" button calls resolveAmelioration', () => {
+  it('"Resolved" action button calls resolveAmelioration', () => {
     storeState.ameliorations = [
       makeAmelioration({ id: 'amel-42', title: 'Specific fix', resolved: false, status: 'open' }),
     ];
@@ -118,12 +123,14 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText('Résolu'));
+    // The card's "Resolved" button is the last one (filter tab is first)
+    const resolvedButtons = screen.getAllByText('Resolved');
+    fireEvent.click(resolvedButtons[resolvedButtons.length - 1]);
 
     expect(mockResolveAmelioration).toHaveBeenCalledWith('amel-42');
   });
 
-  it('"Résolu" button not shown for resolved items', () => {
+  it('"Resolved" action button not shown for resolved items', () => {
     storeState.ameliorations = [
       makeAmelioration({ id: 'amel-3', title: 'Old fix', resolved: true, status: 'resolved' }),
     ];
@@ -134,9 +141,14 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText('Résolus'));
+    // Click the "Resolved" filter tab
+    const resolvedButtons = screen.getAllByText('Resolved');
+    fireEvent.click(resolvedButtons[0]);
 
-    expect(screen.queryByText('Résolu')).toBeNull();
+    // After filtering to resolved items, the card action button should not appear
+    // Only the filter tab "Resolved" should remain (no card-level "Resolved" action)
+    const afterFilterButtons = screen.getAllByText('Resolved');
+    expect(afterFilterButtons.length).toBe(1); // Only the filter tab
   });
 
   it('dossier link navigates to /dossier/{dossierId}', () => {
@@ -183,7 +195,7 @@ describe('Ameliorations page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Aucune analyse ouverte')).toBeDefined();
+      expect(screen.getByText('No open analyses')).toBeDefined();
     });
   });
 
@@ -198,10 +210,12 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    fireEvent.click(screen.getByText('Résolus'));
+    // "Resolved" appears in filter tab and card action — click the filter tab
+    const resolvedButtons = screen.getAllByText('Resolved');
+    fireEvent.click(resolvedButtons[0]);
 
     await waitFor(() => {
-      expect(screen.getByText('Aucune analyse résolue')).toBeDefined();
+      expect(screen.getByText('No resolved analyses')).toBeDefined();
     });
   });
 

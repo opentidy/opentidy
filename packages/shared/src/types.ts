@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 // types.ts — SSOT for all OpenTidy types
 
 // === Dossier (workspace/) ===
@@ -42,6 +45,7 @@ export interface Suggestion {
 export type AmeliorationStatus = 'open' | 'resolved' | 'ignored';
 export type AmeliorationSource = 'post-session' | 'checkup' | 'session';
 export type AmeliorationCategory = 'capability' | 'access' | 'config' | 'process' | 'data';
+export type AmeliorationFixType = 'code' | 'config' | 'external';
 
 export interface Amelioration {
   id: string;           // hash ou index
@@ -57,10 +61,16 @@ export interface Amelioration {
   category?: AmeliorationCategory; // type of gap
   resolved: boolean;           // kept for backward compat
   status: AmeliorationStatus;
+  fixType?: AmeliorationFixType;
+  sanitizedTitle?: string;
+  sanitizedBody?: string;
+  githubIssueNumber?: number;
+  suggestionSlug?: string;
 }
 
 // === Event (receiver) ===
-export type EventSource = 'gmail' | 'whatsapp' | 'sms' | 'app' | 'telegram' | 'checkup';
+export type BuiltinEventSource = 'gmail' | 'whatsapp' | 'sms' | 'app' | 'telegram' | 'checkup';
+export type EventSource = BuiltinEventSource | 'mail' | 'imap';
 
 export interface AppEvent {
   id: string;
@@ -79,9 +89,26 @@ export interface Session {
   dossierId: string;
   status: SessionStatus;
   startedAt: string;
-  claudeSessionId?: string;   // pour --resume
+  agentSessionId?: string;    // pour --resume
   pid?: number;
   waitingType?: 'user' | 'tiers'; // type of wait when idle
+}
+
+// === Schedule (scheduler) ===
+export type ScheduleType = 'once' | 'recurring';
+export type ScheduleCreatedBy = 'system' | 'agent' | 'user';
+
+export interface Schedule {
+  id: number;
+  dossierId: string | null;
+  type: ScheduleType;
+  runAt: string | null;
+  intervalMs: number | null;
+  lastRunAt: string | null;
+  instruction: string | null;
+  label: string;
+  createdBy: ScheduleCreatedBy;
+  createdAt: string;
 }
 
 // === Hook (centralisé) ===
@@ -110,7 +137,10 @@ export type SSEEventType =
   | 'dossier:completed'
   | 'amelioration:created'
   | 'process:output'
-  | 'notification:sent';
+  | 'notification:sent'
+  | 'schedule:created'
+  | 'schedule:fired'
+  | 'schedule:deleted';
 
 export interface SSEEvent {
   type: SSEEventType;
@@ -128,22 +158,29 @@ export interface AuditEntry {
   result?: string;
 }
 
-// === Claude Process (infra/claude-tracker) ===
-export type ClaudeProcessType = 'triage' | 'checkup' | 'title' | 'memory-injection' | 'memory-extraction' | 'memory-prompt';
-export type ClaudeProcessStatus = 'queued' | 'running' | 'done' | 'error';
+// === Agent Process (infra/agent-tracker) ===
+export type AgentProcessType = 'triage' | 'checkup' | 'title' | 'memory-injection' | 'memory-extraction' | 'memory-prompt';
+export type AgentProcessStatus = 'queued' | 'running' | 'done' | 'error';
 
-export interface ClaudeProcess {
+export interface AgentProcess {
   id: number;
-  type: ClaudeProcessType;
+  type: AgentProcessType;
   dossierId?: string;
   pid?: number;
   startedAt: string;
   endedAt?: string;
-  status: ClaudeProcessStatus;
+  status: AgentProcessStatus;
   exitCode?: number;
   outputPath?: string;
   description?: string;
 }
+
+/** @deprecated Use AgentProcessType */
+export type ClaudeProcessType = AgentProcessType;
+/** @deprecated Use AgentProcessStatus */
+export type ClaudeProcessStatus = AgentProcessStatus;
+/** @deprecated Use AgentProcess */
+export type ClaudeProcess = AgentProcess;
 
 // === Memory ===
 export interface MemoryEntry {
@@ -160,6 +197,116 @@ export interface MemoryIndexEntry {
   category: string
   updated: string
   description: string
+}
+
+// === Agent Abstraction ===
+export type AgentName = 'claude' | 'gemini' | 'copilot';
+
+export interface SpawnOpts {
+  mode: 'autonomous' | 'interactive' | 'one-shot';
+  cwd: string;
+  systemPrompt?: string;
+  instruction?: string;
+  resumeSessionId?: string;
+  allowedTools?: string[];
+  outputFormat?: 'text' | 'json' | 'stream-json';
+  pluginDir?: string;
+  skipPermissions?: boolean;
+}
+
+export interface SetupOpts {
+  guardrails: GuardrailRule[];
+  mcpServices: McpServicesConfig;
+  configDir: string;
+}
+
+export interface GuardrailRule {
+  event: 'pre-tool' | 'post-tool' | 'stop' | 'session-end';
+  type: 'prompt' | 'command' | 'http';
+  match: string | { tool: string; input_contains: string };
+  prompt?: string;
+  command?: string;
+  url?: string;
+}
+
+export interface AgentAdapter {
+  readonly name: AgentName;
+  readonly binary: string;
+  readonly instructionFile: string;
+  readonly configEnvVar: string;
+  readonly experimental: boolean;
+
+  buildArgs(opts: SpawnOpts): string[];
+  getEnv(): Record<string, string>;
+  readSessionId(dossierDir: string): string | null;
+  writeConfig(opts: SetupOpts): void;
+}
+
+// === MCP Service Config ===
+export interface McpServiceState {
+  enabled: boolean;
+  configured: boolean;
+}
+
+export interface WhatsAppMcpState extends McpServiceState {
+  wacliPath: string;
+  mcpServerPath: string;
+}
+
+/** @deprecated Use McpConfigV2 for OpenTidyConfig.mcp */
+export interface McpServicesConfig {
+  gmail: McpServiceState;
+  camoufox: McpServiceState;
+  whatsapp: WhatsAppMcpState;
+}
+
+// === MCP Config V2 (nested curated/marketplace) ===
+export interface MarketplaceMcp {
+  label: string;
+  command: string;
+  args: string[];
+  envFile?: string;
+  permissions: string[];
+  source: 'registry.modelcontextprotocol.io' | 'custom';
+}
+
+export interface McpConfigV2 {
+  curated: {
+    gmail: McpServiceState;
+    camoufox: McpServiceState;
+    whatsapp: WhatsAppMcpState;
+    opentidy?: McpServiceState;
+  };
+  marketplace: Record<string, MarketplaceMcp>;
+}
+
+// === Skills Config ===
+export interface CuratedSkillState {
+  enabled: boolean;
+}
+
+export interface UserSkill {
+  name: string;
+  source: string;
+  enabled: boolean;
+}
+
+export interface SkillsConfig {
+  curated: Record<string, CuratedSkillState>;
+  user: UserSkill[];
+}
+
+export interface UserInfo {
+  name: string;
+  email: string;
+  company: string;
+}
+
+// === Receiver Config ===
+export interface ReceiverConfigEntry {
+  type: string;
+  enabled: boolean;
+  options?: Record<string, unknown>;
 }
 
 // === Config ===
@@ -188,9 +335,22 @@ export interface OpenTidyConfig {
     delayBeforeUpdate: string;
     keepReleases: number;
   };
-  claudeConfig: {
+  agentConfig: {
+    name: AgentName;
+    configDir: string;
+  };
+  /** @deprecated Use agentConfig.configDir */
+  claudeConfig?: {
     dir: string;
   };
   language: string; // language for Claude responses (e.g. 'en', 'fr')
+  receivers: ReceiverConfigEntry[];
+  userInfo: UserInfo;
+  mcp: McpConfigV2;
+  skills: SkillsConfig;
+  github?: {
+    token: string;
+    owner?: string;  // defaults to 'opentidy'
+    repo?: string;   // defaults to 'opentidy'
+  };
 }
-

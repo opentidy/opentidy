@@ -1,7 +1,12 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { existsSync, rmSync, renameSync, mkdirSync, readdirSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { execFileSync } from 'child_process';
-import { loadConfig, getConfigPath } from '../config.js';
+import { loadConfig, getConfigPath } from '../shared/config.js';
+import { getOpenTidyPaths } from '../shared/paths.js';
+import { createRawModeSelector } from './interactive-select.js';
 
 // ═══════════════════════════════════════
 // Types
@@ -55,7 +60,7 @@ function safeRemove(p: string, label: string, toTrash = false): void {
     console.log(`  ⚠  Refusing to remove unsafe path: ${p}`);
     return;
   }
-  if (toTrash) {
+  if (toTrash && process.platform === 'darwin') {
     const trashDir = join(process.env.HOME || '', '.Trash');
     const trashName = `${basename(p)}-opentidy-${Date.now()}`;
     try {
@@ -89,54 +94,64 @@ function resolveCleanupItems(): CleanupItem[] {
 
   const items: CleanupItem[] = [];
 
-  // --- Service ---
-  const plistName = 'com.lolo.assistant.plist';
-  const plistPath = join(home, 'Library/LaunchAgents', plistName);
-  const brewPlist = join(home, 'Library/LaunchAgents/homebrew.mxcl.opentidy.plist');
+  const paths = getOpenTidyPaths();
 
+  // --- Service ---
   items.push({
     scope: 'service',
     label: 'Stop OpenTidy process',
     exists: true, // always attempt
     action: () => {
-      // Try kill any running opentidy/node process on our port
       const port = config?.server.port || 5175;
-      try {
-        const pid = execFileSync('lsof', ['-ti', `:${port}`], { encoding: 'utf-8', timeout: 5000 }).trim();
-        if (pid) {
-          execFileSync('kill', [pid], { timeout: 5000 });
-          console.log(`  ✓  Stopped process on port ${port} (PID ${pid})`);
-        }
-      } catch { /* not running */ }
-    },
-  });
-
-  items.push({
-    scope: 'service',
-    label: 'Unload LaunchAgent',
-    path: existsSync(plistPath) ? plistPath : existsSync(brewPlist) ? brewPlist : undefined,
-    exists: existsSync(plistPath) || existsSync(brewPlist),
-    action: () => {
-      const uid = process.getuid?.() || 501;
-      for (const p of [plistPath, brewPlist]) {
-        if (existsSync(p)) {
-          try {
-            execFileSync('launchctl', ['bootout', `gui/${uid}`, p], { timeout: 10_000, stdio: 'pipe' });
-          } catch {
-            try { execFileSync('launchctl', ['unload', p], { timeout: 10_000, stdio: 'pipe' }); } catch { /* ignore */ }
+      if (process.platform !== 'win32') {
+        try {
+          const pid = execFileSync('lsof', ['-ti', `:${port}`], { encoding: 'utf-8', timeout: 5000 }).trim();
+          if (pid) {
+            execFileSync('kill', [pid], { timeout: 5000 });
+            console.log(`  ✓  Stopped process on port ${port} (PID ${pid})`);
           }
-          safeRemove(p, `LaunchAgent (${basename(p)})`, true);
-        }
+        } catch { /* not running */ }
+      } else {
+        try {
+          execFileSync('taskkill', ['/F', '/IM', 'node.exe'], { timeout: 5000, stdio: 'pipe' });
+        } catch { /* not running */ }
       }
     },
   });
 
+  // LaunchAgent (macOS only)
+  if (process.platform === 'darwin') {
+    const plistName = 'com.opentidy.agent.plist';
+    const plistPath = join(home, 'Library/LaunchAgents', plistName);
+    const brewPlist = join(home, 'Library/LaunchAgents/homebrew.mxcl.opentidy.plist');
+
+    items.push({
+      scope: 'service',
+      label: 'Unload LaunchAgent',
+      path: existsSync(plistPath) ? plistPath : existsSync(brewPlist) ? brewPlist : undefined,
+      exists: existsSync(plistPath) || existsSync(brewPlist),
+      action: () => {
+        const uid = process.getuid?.() || 501;
+        for (const p of [plistPath, brewPlist]) {
+          if (existsSync(p)) {
+            try {
+              execFileSync('launchctl', ['bootout', `gui/${uid}`, p], { timeout: 10_000, stdio: 'pipe' });
+            } catch {
+              try { execFileSync('launchctl', ['unload', p], { timeout: 10_000, stdio: 'pipe' }); } catch { /* ignore */ }
+            }
+            safeRemove(p, `LaunchAgent (${basename(p)})`, true);
+          }
+        }
+      },
+    });
+  }
+
   items.push({
     scope: 'service',
     label: 'Remove PID locks',
-    path: '/tmp/opentidy-locks',
-    exists: existsSync('/tmp/opentidy-locks'),
-    action: () => safeRemove('/tmp/opentidy-locks', 'PID locks'),
+    path: paths.lockDir,
+    exists: existsSync(paths.lockDir),
+    action: () => safeRemove(paths.lockDir, 'PID locks'),
   });
 
   // --- Config ---
@@ -159,10 +174,14 @@ function resolveCleanupItems(): CleanupItem[] {
 
   // Log files
   const logPaths = [
-    join(home, 'Library/Logs/opentidy-stdout.log'),
-    join(home, 'Library/Logs/opentidy-stderr.log'),
-    '/opt/homebrew/var/log/opentidy.log',
-    '/opt/homebrew/var/log/opentidy-error.log',
+    join(paths.log, 'opentidy-stdout.log'),
+    join(paths.log, 'opentidy-stderr.log'),
+    join(paths.log, 'opentidy.log'),
+    // Legacy Homebrew paths (macOS only)
+    ...(process.platform === 'darwin' ? [
+      '/opt/homebrew/var/log/opentidy.log',
+      '/opt/homebrew/var/log/opentidy-error.log',
+    ] : []),
   ];
   for (const logPath of logPaths) {
     if (existsSync(logPath)) {
@@ -214,93 +233,60 @@ const ALL_SCOPES: { key: Scope; label: string; description: string }[] = [
   { key: 'tunnel', label: 'Tunnel', description: 'Cloudflare Tunnel service + config' },
 ];
 
-function showMultiselect(): Promise<Scope[]> {
-  return new Promise((resolve) => {
-    const selected = new Set<number>([0, 1, 2]); // service, config, data pre-selected
-    let cursor = 0;
+async function showMultiselect(): Promise<Scope[]> {
+  const selected = new Set<number>([0, 1, 2]); // service, config, data pre-selected
+  const totalItems = ALL_SCOPES.length + 2; // scopes + confirm + cancel
 
-    const render = () => {
-      process.stdout.write('\x1B[2J\x1B[H');
-      console.log('');
-      console.log('  ╔═══════════════════════════════════════╗');
-      console.log('  ║          OpenTidy Uninstall              ║');
-      console.log('  ╚═══════════════════════════════════════╝');
-      console.log('');
-      console.log('  Select what to remove (Space to toggle, Enter to confirm):');
-      console.log('');
+  const render = (cursor: number) => {
+    process.stdout.write('\x1B[2J\x1B[H');
+    console.log('');
+    console.log('  ╔═══════════════════════════════════════╗');
+    console.log('  ║          OpenTidy Uninstall              ║');
+    console.log('  ╚═══════════════════════════════════════╝');
+    console.log('');
+    console.log('  Select what to remove (Space to toggle, Enter to confirm):');
+    console.log('');
 
-      for (let i = 0; i < ALL_SCOPES.length; i++) {
-        const s = ALL_SCOPES[i];
-        const pointer = i === cursor ? '❯' : ' ';
-        const check = selected.has(i) ? '✓' : '○';
-        console.log(`  ${pointer} ${check}  ${s.label.padEnd(12)} ${s.description}`);
-      }
-
-      console.log('');
-      console.log('  ─────────────────────────────────────────');
-      const pointer5 = cursor === ALL_SCOPES.length ? '❯' : ' ';
-      const pointer6 = cursor === ALL_SCOPES.length + 1 ? '❯' : ' ';
-      console.log(`  ${pointer5} ▶  Confirm`);
-      console.log(`  ${pointer6}    Cancel`);
-      console.log('');
-    };
-
-    render();
-
-    const stdin = process.stdin;
-    if (!stdin.isTTY) {
-      // Non-interactive fallback — select service + config + data
-      resolve(['service', 'config', 'data']);
-      return;
+    for (let i = 0; i < ALL_SCOPES.length; i++) {
+      const s = ALL_SCOPES[i];
+      const pointer = i === cursor ? '❯' : ' ';
+      const check = selected.has(i) ? '✓' : '○';
+      console.log(`  ${pointer} ${check}  ${s.label.padEnd(12)} ${s.description}`);
     }
 
-    stdin.setRawMode(true);
-    stdin.resume();
-    stdin.setEncoding('utf-8');
+    console.log('');
+    console.log('  ─────────────────────────────────────────');
+    console.log(`  ${cursor === ALL_SCOPES.length ? '❯' : ' '} ▶  Confirm`);
+    console.log(`  ${cursor === ALL_SCOPES.length + 1 ? '❯' : ' '}    Cancel`);
+    console.log('');
+  };
 
-    const totalItems = ALL_SCOPES.length + 2; // scopes + confirm + cancel
-
-    const onKey = (key: string) => {
-      if (key === '\x1B[A' || key === 'k') {
-        cursor = (cursor - 1 + totalItems) % totalItems;
-        render();
-      } else if (key === '\x1B[B' || key === 'j') {
-        cursor = (cursor + 1) % totalItems;
-        render();
-      } else if (key === ' ' && cursor < ALL_SCOPES.length) {
-        // Toggle selection
-        if (selected.has(cursor)) selected.delete(cursor);
-        else selected.add(cursor);
-        render();
-      } else if (key === '\r' || key === '\n') {
-        stdin.setRawMode(false);
-        stdin.pause();
-        stdin.removeListener('data', onKey);
-        process.stdout.write('\x1B[2J\x1B[H');
-
-        if (cursor === ALL_SCOPES.length) {
-          // Confirm
-          resolve([...selected].map(i => ALL_SCOPES[i].key));
-        } else if (cursor === ALL_SCOPES.length + 1) {
-          // Cancel
-          resolve([]);
-        } else {
-          // Enter on a scope item = toggle + confirm
-          if (selected.has(cursor)) selected.delete(cursor);
-          else selected.add(cursor);
-          resolve([...selected].map(i => ALL_SCOPES[i].key));
-        }
-      } else if (key === 'q' || key === '\x03') {
-        stdin.setRawMode(false);
-        stdin.pause();
-        stdin.removeListener('data', onKey);
-        process.stdout.write('\x1B[2J\x1B[H');
-        resolve([]);
+  const { cursor, action } = await createRawModeSelector({
+    totalItems,
+    initialCursor: 0,
+    render,
+    onSpace: (i) => {
+      if (i < ALL_SCOPES.length) {
+        if (selected.has(i)) selected.delete(i);
+        else selected.add(i);
       }
-    };
-
-    stdin.on('data', onKey);
+    },
   });
+
+  if (action === 'cancel') return [];
+
+  if (cursor === ALL_SCOPES.length) {
+    // Confirm button
+    return [...selected].map(i => ALL_SCOPES[i].key);
+  } else if (cursor === ALL_SCOPES.length + 1) {
+    // Cancel button
+    return [];
+  } else {
+    // Enter on a scope item = toggle + confirm
+    if (selected.has(cursor)) selected.delete(cursor);
+    else selected.add(cursor);
+    return [...selected].map(i => ALL_SCOPES[i].key);
+  }
 }
 
 // ═══════════════════════════════════════

@@ -14,16 +14,19 @@ export default function InstructionBar({ dossierId }: InstructionBarProps) {
   const [instruction, setInstruction] = useState('');
   const [confirm, setConfirm] = useState(false);
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { sendInstruction, uploadFile } = useStore();
 
   async function handleSend() {
-    if (!instruction.trim() || sending) return;
+    if (!instruction.trim() || sendingRef.current) return;
+    sendingRef.current = true;
     setSending(true);
     try {
       await sendInstruction(dossierId, instruction, confirm);
       setInstruction('');
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   }

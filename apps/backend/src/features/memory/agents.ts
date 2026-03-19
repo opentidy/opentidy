@@ -3,8 +3,8 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
-import type { ClaudeProcessType } from '@opentidy/shared'
-import type { SpawnClaudeSimpleFn } from '../../shared/spawn-claude.js'
+import type { AgentProcessType, AgentAdapter } from '@opentidy/shared'
+import type { SpawnAgentFn } from '../../shared/spawn-agent.js'
 import { createMemoryLock } from './lock.js'
 import { createMemoryManager } from './manager.js'
 
@@ -24,7 +24,9 @@ interface ExtractionInput {
 }
 
 export function createMemoryAgents(workspaceDir: string, deps: {
-  spawnClaude: SpawnClaudeSimpleFn;
+  spawnAgent: SpawnAgentFn;
+  adapter: AgentAdapter;
+  onGapsWritten?: () => Promise<void> | void;
 }) {
   const memDir = path.join(workspaceDir, '_memory')
   const lock = createMemoryLock(memDir)
@@ -133,6 +135,9 @@ Format for each gap:
 **Problem:** <What concretely happened>
 **Impact:** <Business or operational consequence>
 **Category:** <capability|access|config|process|data>
+**Fix type:** <code|config|external>
+**Sanitized title:** <PII-free short title — ONLY if fixType is code>
+**Sanitized:** <PII-free one-line technical summary — ONLY if fixType is code>
 **Recommended actions:**
 - <Concrete action 1 the user can take>
 - <Concrete action 2 (optional)>
@@ -140,6 +145,12 @@ Format for each gap:
 **Session:** <session_id if found in transcript>
 **Source:** post-session
 \`\`\`
+
+**Fix type rules:**
+- \`code\`: the problem is in OpenTidy's source code (bug, missing feature, architectural limitation in the opentidy codebase itself)
+- \`config\`: the problem is in Claude's configuration, prompts, hooks, or workspace setup
+- \`external\`: the problem is an external limitation (third-party API, physical access, credentials the user must provide)
+- The **Sanitized title** and **Sanitized** fields must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, dossier context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized fields.
 
 **If nothing actionable → write nothing.** It's OK to find no gaps.
 
@@ -198,10 +209,13 @@ Free-form content with dated entries [YYYY-MM-DD].
     }
   }
 
-  async function runAgent(systemPrompt: string, userPrompt: string, type?: ClaudeProcessType, description?: string): Promise<string> {
+  async function runAgent(systemPrompt: string, userPrompt: string, type?: AgentProcessType, description?: string): Promise<string> {
     const agentType = type ?? 'memory-extraction';
-    const args = ['-p', '--allowedTools', 'Read,Write,Glob', '--system-prompt', systemPrompt, '--', userPrompt];
-    return deps.spawnClaude({ args, cwd: workspaceDir, type: agentType, description });
+    const args = deps.adapter.buildArgs({
+      mode: 'one-shot', cwd: workspaceDir, systemPrompt,
+      instruction: userPrompt, allowedTools: ['Read', 'Write', 'Glob'],
+    });
+    return deps.spawnAgent({ args, cwd: workspaceDir, type: agentType, description }).promise;
   }
 
   async function runInjection(input: InjectionInput): Promise<string> {
@@ -214,6 +228,15 @@ Free-form content with dated entries [YYYY-MM-DD].
     try {
       const prompt = buildExtractionPrompt(input)
       await runAgent(prompt, `Post-session analysis for dossier ${input.dossierId}. Perform all 3 missions: memory, gaps, log.`, 'memory-extraction', 'Post-session memory extraction')
+
+      // Route newly written gaps (GitHub Issues, suggestions)
+      if (deps.onGapsWritten) {
+        try {
+          await deps.onGapsWritten()
+        } catch (err) {
+          console.error('[memory] gap routing failed (non-blocking):', (err as Error).message)
+        }
+      }
     } finally {
       lock.release()
     }

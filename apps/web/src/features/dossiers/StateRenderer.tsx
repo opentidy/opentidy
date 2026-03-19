@@ -19,8 +19,8 @@ function MarkdownContent({ raw }: { raw: string }) {
         if (trimmed.startsWith('## ')) return <h3 key={i} className="text-sm font-semibold text-text-tertiary uppercase tracking-wider mt-4 mb-1">{trimmed.slice(3)}</h3>;
         // H3
         if (trimmed.startsWith('### ')) return <h4 key={i} className="text-sm font-semibold text-text mt-3 mb-1">{trimmed.slice(4)}</h4>;
-        // Status line
-        if (trimmed.startsWith('STATUT') || trimmed.startsWith('MODE')) return null;
+        // Status/mode metadata lines (both EN and FR)
+        if (trimmed.startsWith('STATUT') || trimmed.startsWith('STATUS') || trimmed.startsWith('MODE')) return null;
         // List item
         if (trimmed.startsWith('- ')) {
           const indent = line.length - trimmed.length;

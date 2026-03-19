@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
@@ -7,9 +10,9 @@ test.describe('E2E-APP-12: Terminal shows session tabs with status indicators', 
     await page.goto('/terminal');
 
     // Session tabs — dossierId with hyphens replaced by spaces
-    await expect(page.getByRole('button', { name: /factures sopra/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /exali rapport/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: /bloque test/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /invoices acme/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /insurance report/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /blocked test/i })).toBeVisible();
 
     // MFA label on the mfa session
     await expect(page.getByText('MFA')).toBeVisible();
@@ -41,7 +44,7 @@ test.describe('E2E-APP-14: Terminal shows status bar', () => {
     await page.goto('/terminal');
 
     // Status bar shows session id and "tmux"
-    await expect(page.getByText('opentidy-factures-sopra - tmux')).toBeVisible();
+    await expect(page.getByText('opentidy-invoices-acme - tmux')).toBeVisible();
 
     // Status text for active session
     await expect(page.getByText(/Active/)).toBeVisible();
@@ -60,7 +63,7 @@ test.describe('E2E-APP-24: Terminal on mobile viewport', () => {
     await page.goto('/terminal');
 
     // Tabs should still be visible
-    await expect(page.getByRole('button', { name: /factures sopra/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: /invoices acme/i })).toBeVisible();
 
     // Terminal pane should render
     const terminalArea = page.locator('.xterm');

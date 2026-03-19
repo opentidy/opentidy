@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi, mockDossiers, mockSuggestions, mockSessions } from './fixtures/mock-api';
 
@@ -10,20 +13,20 @@ test.describe('E2E-APP-02: Home shows suggestions', () => {
     await expect(page.getByText('Suggestions', { exact: false })).toBeVisible();
 
     // 3 suggestion cards
-    await expect(page.getByText('Impots Chypre')).toBeVisible();
-    await expect(page.getByText('Timesheet Juin')).toBeVisible();
-    await expect(page.getByText('Assurance Auto')).toBeVisible();
+    await expect(page.getByText('Tax Filing Follow-up')).toBeVisible();
+    await expect(page.getByText('Timesheet June')).toBeVisible();
+    await expect(page.getByText('Car Insurance')).toBeVisible();
 
-    // "Creer le dossier" and "Ignorer" buttons on each card
-    const createButtons = page.getByRole('button', { name: 'Creer le dossier' });
+    // "Create dossier" and "Ignore" buttons on each card
+    const createButtons = page.getByRole('button', { name: 'Create dossier' });
     await expect(createButtons).toHaveCount(3);
-    const ignoreButtons = page.getByRole('button', { name: 'Ignorer' });
+    const ignoreButtons = page.getByRole('button', { name: 'Ignore' });
     await expect(ignoreButtons).toHaveCount(3);
 
     // Urgency badges
     await expect(page.getByText('urgent', { exact: true })).toBeVisible();
     await expect(page.getByText('normal', { exact: true })).toBeVisible();
-    await expect(page.getByText('faible', { exact: true })).toBeVisible();
+    await expect(page.getByText('low', { exact: true })).toBeVisible();
   });
 });
 
@@ -36,9 +39,9 @@ test.describe('E2E-APP-03: Home shows active sessions in "En fond" section', () 
     await expect(page.getByText('En fond', { exact: false })).toBeVisible();
 
     // 3 sessions — SessionCard shows capitalized dossier name
-    await expect(page.getByText('Factures Sopra').nth(1)).toBeVisible();
-    await expect(page.getByText('Exali Rapport')).toBeVisible();
-    await expect(page.getByText('Bloque Test')).toBeVisible();
+    await expect(page.getByText('Invoices Acme').nth(1)).toBeVisible();
+    await expect(page.getByText('Insurance Report')).toBeVisible();
+    await expect(page.getByText('Test Blocked')).toBeVisible();
   });
 });
 

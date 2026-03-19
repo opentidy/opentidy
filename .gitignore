@@ -10,9 +10,24 @@ dist/
 .DS_Store
 .playwright-mcp/
 
+# Playwright outputs
+test-results/
+playwright-report/
+blob-report/
+
+# Screenshots (Playwright failures, debug captures, browser-bridge)
+.screenshots/
+*.png
+
 # Claude Code local files (keep settings.json for project hooks)
 /.claude/*
 !/.claude/settings.json
+
+# Internal docs (contain personal info, not for public repo)
+/docs/design/
+/docs/plans/
+/docs/reports/
+/docs/superpowers/
 
 # Development session files
 /ralf/

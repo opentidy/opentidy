@@ -273,12 +273,12 @@ Reçoit tout ce qui peut déclencher du travail et le transforme en event unifor
 **Triage / routing** : Claude fait le triage (principe #4).
 Un appel `claude -p` par event. Le backend passe le **contenu complet de chaque
 state.md** dans le prompt — Claude voit l'objectif, le journal, et surtout les
-sections `## En attente` (critères de reprise), ce qui permet un matching bien
+sections `## Waiting` (critères de reprise), ce qui permet un matching bien
 plus précis entre un event entrant et le bon dossier.
 
 ```
 claude -p --system-prompt "Mode triage. Réponds en JSON uniquement." \
-  "Dossiers actifs (contenu complet de chaque state.md):\n\n--- factures-sopra ---\n# Factures Sopra\nSTATUT : EN COURS\n## En attente\nEmail envoyé à billing@sopra.com...\n\n---\n\nEvent:\nEmail de billing@sopra.com: Facture mars"
+  "Dossiers actifs (contenu complet de chaque state.md):\n\n--- factures-sopra ---\n# Factures Sopra\nSTATUS: IN_PROGRESS\n## Waiting\nEmail envoyé à billing@sopra.com...\n\n---\n\nEvent:\nEmail de billing@sopra.com: Facture mars"
 ```
 
 Réponse JSON attendue (3 cas) :
@@ -336,11 +336,11 @@ pour reprendre le travail dans une nouvelle session.
 ```markdown
 # Factures Sopra 2025-2026
 
-## Objectif
+## Objective
 Vérifier que toutes les factures mensuelles Sopra ont été envoyées.
 
 ## État actuel
-STATUT: EN COURS
+STATUS: IN_PROGRESS
 Dernière action: 2026-03-13
 
 ## Ce qui est fait
@@ -351,7 +351,7 @@ Dernière action: 2026-03-13
 - Avr 2025: timesheet trouvé (152h), facture à créer
 - Mai 2025: timesheet MANQUANT — email envoyé à Sopra le 12/03
 
-## En attente
+## Waiting
 Email envoyé à billing@soprasteria.com le 12/03 pour le timesheet de mai.
 Relancer si pas de réponse avant le 2026-03-16.
 
@@ -366,20 +366,20 @@ Relancer si pas de réponse avant le 2026-03-16.
 **Condensation** : Claude gère lui-même la taille de state.md (principe #4).
 S'il y a trop d'historique, il condense les anciennes entrées.
 
-#### La section `## En attente` (critères de reprise)
+#### The `## Waiting` section (critères de reprise)
 
 Section optionnelle de state.md, en texte libre. Claude l'écrit quand il ne peut
 plus avancer parce qu'il attend une info externe (réponse email, document, confirmation
 d'un tiers). Distinct de `checkpoint.md` qui signale un besoin d'intervention de l'utilisateur.
 
 **Rôle dans le système :**
-- **Triage** : le prompt reçoit le state.md complet — la section `## En attente` aide
+- **Triage** : le prompt reçoit le state.md complet — the `## Waiting` section aide
   Claude à matcher un event entrant avec le bon dossier (ex: "ce dossier attend un
   email de contact@example.com" + un email arrive de ce contact → match)
-- **Checkup** : le prompt sait qu'un dossier avec `## En attente` ne doit pas être
+- **Checkup** : le prompt sait qu'un dossier avec `## Waiting` ne doit pas être
   relancé sauf si une date de relance est mentionnée et dépassée
 - **Launcher** : quand une session est relancée (event ou checkup), le backend efface
-  automatiquement la section `## En attente` dans state.md avant de lancer Claude
+  automatiquement the `## Waiting` section dans state.md avant de lancer Claude
 - **UI** : la première ligne de la section est affichée sur la card du dossier dans
   l'app web, pour que l'utilisateur voie d'un coup d'œil ce qu'un dossier attend
 
@@ -484,7 +484,7 @@ sessions de travailler sur le même dossier.
   PreToolUse (garde-fous), pas par le système de permissions intégré.
   Les hooks firent AVANT le check de permissions, donc restent actifs.
 - Lock PID par dossier dans `/tmp/opentidy-locks/`
-- Crash recovery : reconcilie tmux survivors (interactives) + relance dossiers orphelins EN COURS (autonomes)
+- Crash recovery : reconcilie tmux survivors (interactives) + relance orphan IN_PROGRESS dossiers (autonomes)
 - Session ID persisté dans `workspace/<dossier>/.session-id` pour resume
 
 **Browser : Camoufox** (pas Chrome/Playwright). Chaque session a sa propre instance
@@ -510,7 +510,7 @@ interactif.
 uniquement si le transcript est substantiel.
 
 **Checkpoint.md** : optionnel (best-effort). Si Claude l'écrit → résumé structuré dans l'app.
-En mode autonome, le process exit déclenche la vérification de l'état (TERMINÉ, BLOQUÉ, checkpoint).
+En mode autonome, le process exit déclenche la vérification de l'état (COMPLETED, BLOCKED, checkpoint).
 
 ### 5.4 GARDE-FOUS — hooks PreToolUse
 
@@ -708,7 +708,7 @@ Deadline fiscale fin mars. Pas de dossier existant pour le suivi.
 Créer un dossier, analyser l'email, préparer les documents demandés.
 ```
 
-**Niveaux d'urgence** : `urgent` (deadline proche), `normal` (à traiter quand possible), `faible` (opportunité).
+**Niveaux d'urgence** : `urgent` (deadline proche), `normal` (à traiter quand possible), `low` (opportunité).
 
 **Dans l'app web** : section dédiée sur la Home. Deux actions : "Créer le dossier" ou "Ignorer".
 Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclenchent une notification Telegram.
@@ -775,7 +775,7 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
 1. Claude travaille sur le rapport exali (session autonome)
 2. Va sur exali.com → login → Bitwarden → OK
 3. Le site demande un code MFA
-4. Claude écrit checkpoint.md + STATUT : BLOQUÉ
+4. Claude écrit checkpoint.md + STATUS: BLOCKED
 5. Process exit → handleAutonomousExit() → notification Telegram
 6. L'utilisateur clique "Prendre la main" → tmux interactif via ttyd
 7. L'utilisateur résout le MFA → "Rendre la main" → relance autonome
@@ -790,7 +790,7 @@ Urgence indiquée visuellement par bordure gauche colorée. Les urgentes déclen
 En mode autonome, Claude travaille comme un child process. Quand il est bloqué :
 
 1. Il écrit checkpoint.md avec ce qu'il attend
-2. Il met `STATUT : BLOQUÉ` dans state.md
+2. Il met `STATUS: BLOCKED` dans state.md
 3. Le process se termine (exit)
 4. `handleAutonomousExit()` détecte l'état → notification Telegram + SSE
 
@@ -808,7 +808,7 @@ Quand l'utilisateur est en mode interactif (tmux via ttyd) :
 ### Post-session agent
 
 Après chaque process exit en mode autonome, `handleAutonomousExit()` :
-1. Lit le state.md → détermine TERMINÉ / BLOQUÉ / EN COURS
+1. Lit le state.md → détermine COMPLETED / BLOCKED / IN_PROGRESS
 2. Cleanup : release lock, cancel timer, kill ttyd, SSE events
 3. Si transcript substantiel → lance l'agent mémoire (extraction)
 4. Notifications appropriées (completed, checkpoint, etc.)
@@ -825,7 +825,7 @@ Au startup, le backend réconcilie en deux passes :
 1. **Sessions tmux (interactives)** : `tmux list-sessions` → filtre `alfred-*` →
    reconstruit les sessions avec mode `interactive`
 2. **Dossiers orphelins (autonomes)** : scan `workspace/*/state.md` → relance
-   ceux qui sont EN COURS et pas en attente
+   ceux qui sont IN_PROGRESS et pas en attente
 3. Cleanup locks stales via `cleanupStaleLocks()`
 
 ---
@@ -840,7 +840,7 @@ setInterval(sweep, SWEEP_INTERVAL_MS)  // défaut: 1h, configurable env var
 sweep():
   claude -p \
     --system-prompt "Mode checkup. Analyse workspace/. Si un dossier a une section
-    '## En attente', ne le relance PAS sauf si une date de relance y est mentionnée
+    '## Waiting', ne le relance PAS sauf si une date de relance y est mentionnée
     et qu'elle est dépassée. Réponds en JSON : { launch: [...], suggestions: [...] }" \
     --allowedTools "Read,Glob,Grep,Write" \
     "Lis workspace/*/state.md. Pour chaque dossier actif, dis-moi
@@ -1322,8 +1322,8 @@ pnpm smoke:cleanup
 - Email marketing, aucun dossier, pas matière à suggestion
 - **Attendu** : event ignoré
 
-**E2E-RCV-08** — Event pour un dossier TERMINÉ
-- Email pour un dossier au statut TERMINÉ
+**E2E-RCV-08** — Event pour un dossier COMPLETED
+- Email pour un dossier au statut COMPLETED
 - **Attendu** : suggestion créée (pas de réouverture automatique)
 
 ---
@@ -1362,7 +1362,7 @@ pnpm smoke:cleanup
 - **Attendu** : fichier dans `workspace/<dossier>/artifacts/`, accessible dans l'app
 
 **E2E-WS-09** — Dossier terminé
-- Claude met `STATUT: TERMINÉ`, hook SessionEnd détecte
+- Claude met `STATUS: COMPLETED`, hook SessionEnd détecte
 - **Attendu** : dossier "terminé" dans l'app, notification Telegram
 
 **E2E-WS-10** — _inbox/events.md — events non rattachés
@@ -1370,7 +1370,7 @@ pnpm smoke:cleanup
 - **Attendu** : event loggé dans l'inbox
 
 **E2E-WS-11** — Validation du format state.md
-- App web parse `STATUT:` (EN COURS, TERMINÉ, BLOQUÉ)
+- App web parse `STATUS:` (IN_PROGRESS, COMPLETED, BLOCKED)
 - **Attendu** : statut correctement parsé et affiché
 
 **E2E-WS-12** — Création de dossier avec fichier joint
@@ -1806,7 +1806,7 @@ Déclenche un sweep via POST /api/sweep. Vérifie que :
 
 **E2E-FULL-05** — Sweep → rien à faire → silence
 ```
-/test Vérifie que tous les dossiers sont TERMINÉ ou à jour.
+/test Vérifie que tous les dossiers sont COMPLETED ou à jour.
 Déclenche un sweep via POST /api/sweep. Vérifie que :
 1. Aucune nouvelle session tmux
 2. Aucune notification (GET /api/notifications/recent → vide)

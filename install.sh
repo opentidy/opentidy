@@ -1,4 +1,7 @@
 #!/bin/bash
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (c) 2026 Loaddr Ltd
+
 # OpenTidy installer
 # Usage: curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
 #

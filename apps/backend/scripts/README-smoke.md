@@ -1,6 +1,6 @@
 # Smoke Tests — /test Commands
 
-Tests manuels E2E-FULL-01 à E2E-FULL-13. Chaque test est une commande `/test` à lancer dans Claude Code avec le backend et le frontend démarrés.
+Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to run in Claude Code with the backend and frontend started.
 
 ## Prerequisites
 
@@ -11,163 +11,163 @@ Tests manuels E2E-FULL-01 à E2E-FULL-13. Chaque test est une commande `/test` �
 
 ## Tests
 
-### E2E-FULL-01 — Email → dossier existant → action → audit
+### E2E-FULL-01 — Email → existing dossier → action → audit
 
 ```
-/test Envoie un webhook Gmail POST /api/webhook/gmail avec un email de billing@soprasteria.com
-(sujet: "Timesheet juin"). Vérifie que :
-1. Le backend accepte le webhook (200)
-2. Le fichier workspace/factures-sopra/state.md est modifié (nouvelle entrée)
-3. Une session tmux "factures-sopra" existe (tmux list-sessions)
-4. Le fichier workspace/_audit/actions.log contient une entrée récente
-5. L'app web sur / affiche une session active pour "factures-sopra"
+/test Send a Gmail webhook POST /api/webhook/gmail with an email from billing@example-client.com
+(subject: "June timesheet"). Verify that:
+1. The backend accepts the webhook (200)
+2. The file workspace/invoices-acme/state.md is modified (new entry)
+3. A session exists for "invoices-acme"
+4. The file workspace/_audit/actions.log contains a recent entry
+5. The web app on / shows an active session for "invoices-acme"
 ```
 
-### E2E-FULL-02 — Email nouveau → suggestion → approbation → travail → terminé
+### E2E-FULL-02 — New email → suggestion → approval → work → completed
 
 ```
-/test Envoie un webhook Gmail POST /api/webhook/gmail avec un email de tax@cyprus.gov.cy
-(sujet: "Tax declaration deadline"). Vérifie que :
-1. Aucun dossier "impots-chypre" n'est créé dans workspace/
-2. Un fichier workspace/_suggestions/impots-chypre*.md existe avec URGENCE: urgent
-3. L'app web sur / affiche la suggestion dans la section "Suggestions"
-4. Clique sur "Créer le dossier" dans l'app web
-5. Vérifie qu'un dossier workspace/impots-chypre/ existe maintenant avec un state.md
-6. La suggestion a été supprimée de workspace/_suggestions/
-7. L'app web sur /dossiers affiche le nouveau dossier
+/test Send a Gmail webhook POST /api/webhook/gmail with an email from tax@example-authority.gov
+(subject: "Tax declaration deadline"). Verify that:
+1. No "tax-filing" dossier is created in workspace/
+2. A file workspace/_suggestions/tax-filing*.md exists with URGENCY: urgent
+3. The web app on / shows the suggestion in the "Suggestions" section
+4. Click "Create Dossier" in the web app
+5. Verify that a workspace/tax-filing/ dossier now exists with a state.md
+6. The suggestion has been removed from workspace/_suggestions/
+7. The web app on /dossiers shows the new dossier
 ```
 
-### E2E-FULL-03 — Instruction the user → dossier → checkpoint
+### E2E-FULL-03 — User instruction → dossier → checkpoint
 
 ```
-/test Dans l'app web, va sur /nouveau. Tape l'instruction "Rapport exali annuel 2025"
-et clique "Lancer". Vérifie que :
-1. Un dossier workspace/rapport-exali*/ est créé avec un state.md
-2. L'app redirige vers la page du dossier /dossier/<id>
-3. Le state.md contient l'objectif "Rapport exali"
-4. Une session tmux existe pour ce dossier (tmux list-sessions)
-5. Un lock existe dans /tmp/assistant-locks/
+/test In the web app, go to /new. Type the instruction "Annual insurance report 2025"
+and click "Launch". Verify that:
+1. A dossier workspace/insurance-report*/ is created with a state.md
+2. The app redirects to the dossier page /dossier/<id>
+3. The state.md contains the objective "insurance report"
+4. A session exists for this dossier
+5. A lock exists in /tmp/opentidy-locks/
 ```
 
-### E2E-FULL-04 — Sweep → détection deadline → travail autonome
+### E2E-FULL-04 — Sweep → deadline detection → autonomous work
 
 ```
-/test Vérifie le workspace : le dossier workspace/exali-rapport/ a un state.md qui
-mentionne une deadline dans 3 jours. Déclenche un sweep via POST /api/sweep.
-Vérifie que :
-1. Une session tmux est lancée pour exali-rapport
-2. Le state.md est mis à jour après le traitement
-3. L'app web sur / montre une session active pour exali-rapport dans "En fond"
+/test Check the workspace: the dossier workspace/insurance-report/ has a state.md that
+mentions a deadline in 3 days. Trigger a sweep via POST /api/sweep.
+Verify that:
+1. A session is launched for insurance-report
+2. The state.md is updated after processing
+3. The web app on / shows an active session for insurance-report
 ```
 
-### E2E-FULL-05 — Sweep → rien à faire → silence
+### E2E-FULL-05 — Sweep → nothing to do → silence
 
 ```
-/test Vérifie que tous les dossiers dans workspace/ ont STATUT: TERMINÉ ou sont à jour.
-Déclenche un sweep via POST /api/sweep. Vérifie que :
-1. Aucune nouvelle session tmux n'est créée
-2. Aucune notification n'est envoyée (vérifier GET /api/notifications/recent → vide)
-3. L'app web sur / affiche le mode zen (orbe, "Tout roule")
+/test Verify that all dossiers in workspace/ have STATUS: COMPLETED or are up to date.
+Trigger a sweep via POST /api/sweep. Verify that:
+1. No new session is created
+2. No notification is sent (check GET /api/notifications/recent → empty)
+3. The web app on / shows zen mode (orb, "All good")
 ```
 
-### E2E-FULL-06 — Hook DENY → Claude s'adapte
+### E2E-FULL-06 — Hook DENY → Claude adapts
 
 ```
-/test Vérifie qu'un dossier avec une session active existe. Dans le workspace de ce
-dossier, vérifie que si Claude tente une action bloquée par le hook (ex: gmail.send
-vers un destinataire inconnu), le hook retourne DENY. Vérifie que :
-1. Le fichier workspace/_audit/actions.log contient une entrée DENY
-2. Un checkpoint.md est créé dans le dossier (Claude demande l'aide de the user)
-3. L'app web affiche le checkpoint dans la section "Pour toi"
-4. Le bouton "Ouvrir le terminal" est présent
+/test Verify that a dossier with an active session exists. In that dossier's workspace,
+verify that if Claude attempts a blocked action (e.g. gmail.send to an unknown recipient),
+the hook returns DENY. Verify that:
+1. The file workspace/_audit/actions.log contains a DENY entry
+2. A checkpoint.md is created in the dossier (Claude asks for user help)
+3. The web app shows the checkpoint in the "For you" section
+4. The "Open terminal" button is present
 ```
 
-### E2E-FULL-07 — Timeout idle → resume → continuation
+### E2E-FULL-07 — Idle timeout → resume → continuation
 
 ```
-/test Vérifie qu'un dossier a un checkpoint.md en attente et un fichier .session-id.
-Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
-1. Le state.md est mis à jour avec l'état de sauvegarde
-2. Le lock est libéré
-3. Le .session-id est préservé
-4. Déclenche un resume via POST /api/dossier/<id>/resume
-5. Une nouvelle session tmux est lancée avec --resume
-6. L'app web montre la session comme active à nouveau
+/test Verify that a dossier has a pending checkpoint.md and a .session-id file.
+Simulate a timeout via POST /api/session/<id>/timeout. Verify that:
+1. The state.md is updated with the save state
+2. The lock is released
+3. The .session-id is preserved
+4. Trigger a resume via POST /api/dossier/<id>/resume
+5. A new session is launched with --resume
+6. The web app shows the session as active again
 ```
 
-### E2E-FULL-08 — 3 sessions parallèles sans interférence
+### E2E-FULL-08 — 3 parallel sessions without interference
 
 ```
-/test Crée 3 dossiers via l'app web /nouveau : "Test A", "Test B", "Test C".
-Vérifie que :
-1. 3 dossiers distincts existent dans workspace/
-2. 3 sessions tmux distinctes tournent (tmux list-sessions | grep test)
-3. 3 locks PID distincts existent dans /tmp/assistant-locks/
-4. L'app web sur / affiche 3 sessions actives dans "En fond"
-5. Chaque dossier a son propre state.md indépendant
+/test Create 3 dossiers via the web app /new: "Test A", "Test B", "Test C".
+Verify that:
+1. 3 distinct dossiers exist in workspace/
+2. 3 distinct sessions are running
+3. 3 distinct PID locks exist in /tmp/opentidy-locks/
+4. The web app on / shows 3 active sessions
+5. Each dossier has its own independent state.md
 ```
 
-### E2E-FULL-09 — Claude découvre un gap en travaillant
+### E2E-FULL-09 — Claude discovers a gap while working
 
 ```
-/test Vérifie qu'un dossier a une session active. Après le travail de Claude,
-vérifie que :
-1. workspace/_gaps/gaps.md contient une nouvelle entrée (si Claude a rencontré une limite)
-2. Un checkpoint.md existe dans le dossier (intervention manuelle)
-3. L'app web /ameliorations affiche la nouvelle entrée dans gaps
-4. L'app web / affiche le checkpoint dans "Pour toi"
-5. Les deux sont indépendants (résoudre le checkpoint ne résout pas le gap)
+/test Verify that a dossier has an active session. After Claude's work,
+verify that:
+1. workspace/_gaps/gaps.md contains a new entry (if Claude hit a limitation)
+2. A checkpoint.md exists in the dossier (manual intervention needed)
+3. The web app /improvements shows the new gaps entry
+4. The web app / shows the checkpoint in "For you"
+5. Both are independent (resolving the checkpoint doesn't resolve the gap)
 ```
 
-### E2E-FULL-10 — Claude ne crée jamais de dossier seul
+### E2E-FULL-10 — Claude never creates a dossier on its own
 
 ```
-/test Envoie 5 webhooks Gmail différents avec des sujets variés (facture, impôts,
-assurance, rendez-vous, demande client) vers POST /api/webhook/gmail.
-Aucun dossier existant ne matche ces emails. Après traitement, vérifie que :
-1. AUCUN nouveau dossier n'a été créé dans workspace/ (ls workspace/ sans _*)
-2. Des suggestions existent dans workspace/_suggestions/ (au moins 3)
-3. L'app web / affiche les suggestions, pas des dossiers actifs
-4. Chaque suggestion a un fichier .md avec URGENCE, SOURCE, Résumé
+/test Send 5 different Gmail webhooks with varied subjects (invoice, tax,
+insurance, appointment, client request) to POST /api/webhook/gmail.
+No existing dossier matches these emails. After processing, verify that:
+1. NO new dossier has been created in workspace/ (ls workspace/ without _*)
+2. Suggestions exist in workspace/_suggestions/ (at least 3)
+3. The web app / shows suggestions, not active dossiers
+4. Each suggestion has a .md file with URGENCY, SOURCE, Summary
 ```
 
-### E2E-FULL-11 — Échange de fichiers the user ↔ Claude
+### E2E-FULL-11 — File exchange user ↔ Claude
 
 ```
-/test Ouvre un dossier qui a un checkpoint demandant des photos.
-Dans l'app web /dossier/<id> :
-1. Upload 2 images via le formulaire d'upload
-2. Vérifie que les fichiers apparaissent dans workspace/<dossier>/artifacts/
-3. Vérifie que les fichiers sont listés dans la sidebar de la page dossier
-4. Déclenche un resume de la session
-5. Vérifie que le state.md mentionne les fichiers reçus après traitement
+/test Open a dossier that has a checkpoint requesting photos.
+In the web app /dossier/<id>:
+1. Upload 2 images via the upload form
+2. Verify that the files appear in workspace/<dossier>/artifacts/
+3. Verify that the files are listed in the dossier page sidebar
+4. Trigger a session resume
+5. Verify that the state.md mentions the received files after processing
 ```
 
-### E2E-FULL-12 — Premier lancement — workspace vide
+### E2E-FULL-12 — First launch — empty workspace
 
 ```
-/test Supprime le workspace de test (rm -rf workspace/*).
-Redémarre le backend (POST /api/restart ou relance le process).
-Ouvre l'app web. Vérifie que :
-1. Pas de crash, pas d'erreur dans la console
-2. La home affiche le mode zen (pas de checkpoints, pas de suggestions)
-3. La page /dossiers affiche un état vide avec un message d'accueil
-4. Aller sur /nouveau, créer un dossier "Premier test"
-5. Le dossier est créé, workspace/ contient la structure complète
-6. Retour sur / → le dossier apparaît dans "En fond"
+/test Delete the test workspace (rm -rf workspace/*).
+Restart the backend (POST /api/restart or relaunch the process).
+Open the web app. Verify that:
+1. No crash, no errors in the console
+2. The home shows zen mode (no checkpoints, no suggestions)
+3. The /dossiers page shows an empty state with a welcome message
+4. Go to /new, create a dossier "First test"
+5. The dossier is created, workspace/ contains the full structure
+6. Back on / → the dossier appears in the active section
 ```
 
-### E2E-FULL-13 — Backend restart avec sessions en cours
+### E2E-FULL-13 — Backend restart with active sessions
 
 ```
-/test Vérifie que des sessions tmux sont actives (tmux list-sessions).
-Note les sessions et locks actuels.
-Redémarre le backend (kill + restart ou POST /api/restart).
-Après redémarrage, vérifie que :
-1. Les sessions tmux sont toujours actives (indépendantes du backend)
-2. Les locks dans /tmp/assistant-locks/ sont cohérents avec les sessions tmux
-3. L'app web / affiche les sessions actives correctement
-4. Aucun lock orphelin (PID mort) ne persiste
+/test Verify that active sessions exist.
+Note the current sessions and locks.
+Restart the backend (kill + restart or POST /api/restart).
+After restart, verify that:
+1. Sessions are still active (independent of the backend)
+2. Locks in /tmp/opentidy-locks/ are consistent with active sessions
+3. The web app / shows active sessions correctly
+4. No orphaned locks (dead PID) persist
 ```
 
 ## Cleanup
@@ -178,8 +178,8 @@ Après redémarrage, vérifie que :
 
 ## Notes
 
-- Le backend tourne sur le port **3099** (pas 3001) pour éviter les conflits
-- Le frontend tourne sur le port **5173** (Vite standard)
-- Le sweep automatique est désactivé (`SWEEP_INTERVAL_MS=999999999`)
-- Les fixtures sont dans `apps/backend/fixtures/smoke-workspace/`
-- `smoke-cleanup.sh` recrée les fixtures à l'état initial
+- The backend runs on port **3099** (not 5175) to avoid conflicts
+- The frontend runs on port **5173** (Vite standard)
+- Auto-sweep is disabled (`SWEEP_INTERVAL_MS=999999999`)
+- Fixtures are in `apps/backend/fixtures/smoke-workspace/`
+- `smoke-cleanup.sh` recreates fixtures to their initial state

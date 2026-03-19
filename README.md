@@ -66,6 +66,8 @@ opentidy logs        # what's happening?
 
 "Download all my invoices from every provider" is a one-line instruction. OpenTidy logs into each site, navigates to the billing section, downloads the PDFs, and organizes them in your dossier.
 
+**Your CLI, your subscription, zero gray area.** OpenTidy doesn't wrap APIs, doesn't proxy tokens, doesn't reverse-engineer anything. It spawns the official CLI you already have installed — Claude Code, Gemini CLI, Copilot CLI — using your own subscription, exactly as the vendor intended. No API keys to manage, no token costs to monitor, no ToS to worry about. If you can run `claude` in your terminal, OpenTidy can use it.
+
 **Agent-agnostic.** Claude Code today, Gemini CLI or Copilot CLI tomorrow. Swap your AI engine without changing your setup, your dossiers, or your guardrails.
 
 **Self-improving.** When OpenTidy can't handle something, it logs the gap. Over time, these gaps become your natural backlog — driven by real usage, not guesswork.
@@ -118,6 +120,44 @@ When a session ends, a post-session agent extracts learnings into memory — so 
 | **Improvement** | Automatic gap logging → natural backlog | Manual skill authoring |
 
 **TL;DR** — OpenClaw is chat-first: you talk to it, it does things. OpenTidy is task-first: it receives events, manages dossiers, and only talks to you when it needs to. If you want to ask your AI to play Spotify, use OpenClaw. If you want an AI that silently processes your insurance claim over three weeks, use OpenTidy.
+
+## Compatibility
+
+### Operating systems
+
+| OS | Status | Install method | Notes |
+|---|---|---|---|
+| **macOS** | ✅ Supported | `brew install opentidy` | Primary platform |
+| **Linux** | 🚧 In progress | — | Planned for Homebrew on Linux |
+| **Windows** | 🚧 In progress | — | WSL2 recommended when available |
+
+### AI agents
+
+OpenTidy is agent-agnostic — it spawns the CLI you already have installed, using your own subscription.
+
+| Agent | Status | Subscription | Guardrails |
+|---|---|---|---|
+| **[Claude Code](https://docs.anthropic.com/en/docs/claude-code)** | ✅ Supported | Claude Max / Pro | PreToolUse hooks (fail-closed) |
+| **[Gemini CLI](https://github.com/google-gemini/gemini-cli)** | 🚧 In progress | Google AI / Vertex | Planned |
+| **[GitHub Copilot CLI](https://docs.github.com/en/copilot)** | 🚧 In progress | Copilot subscription | Planned |
+
+### Notification channels
+
+| Channel | Status | Notes |
+|---|---|---|
+| **Telegram** | ✅ Supported | Bot notifications, completions, escalations |
+| **Web dashboard** | ✅ Supported | Real-time SSE at `localhost:4800` |
+| **WhatsApp** | 🚧 In progress | Receiver implemented, notifications planned |
+| **Email** | 🚧 In progress | Gmail receiver implemented, notifications planned |
+
+### Input receivers
+
+| Source | Status | Notes |
+|---|---|---|
+| **Gmail** (webhook) | ✅ Supported | Incoming emails triaged to dossiers |
+| **SMS** (macOS Messages) | ✅ Supported | Reads iMessage/SMS via Messages.app |
+| **WhatsApp** (Camoufox) | 🚧 In progress | Browser-based reader |
+| **Web app** (manual) | ✅ Supported | Create dossiers via the dashboard |
 
 ## Architecture
 

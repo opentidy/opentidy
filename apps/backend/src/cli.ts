@@ -1,7 +1,10 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const COMMANDS = ['start', 'setup', 'doctor', 'status', 'update', 'logs', 'uninstall'] as const;
+const COMMANDS = ['start', 'setup', 'doctor', 'status', 'update', 'logs', 'uninstall', 'install-service'] as const;
 type Command = typeof COMMANDS[number] | 'version' | 'help';
 
 export function route(args: string[]): Command {
@@ -71,17 +74,23 @@ async function main() {
       await runUninstall(args.slice(1));
       break;
     }
+    case 'install-service': {
+      const { runInstallService } = await import('./cli/install-service.js');
+      await runInstallService();
+      break;
+    }
     case 'help':
       console.log(`Usage: opentidy <command>
 
 Commands:
-  start       Start the backend server (default)
-  setup       Interactive first-time setup
-  doctor      Verify deps, permissions, config
-  status      Show service state, version, uptime
-  update      Check and apply updates
-  logs        Tail log files
-  uninstall   Remove OpenTidy (config, data, services)
+  start            Start the backend server (default)
+  setup            Interactive first-time setup
+  doctor           Verify deps, permissions, config
+  status           Show service state, version, uptime
+  update           Check and apply updates
+  logs             Tail log files
+  uninstall        Remove OpenTidy (config, data, services)
+  install-service  Generate and install native service file (LaunchAgent/systemd/Windows)
 
 Options:
   --version  Show version

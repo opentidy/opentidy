@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { SpawnClaudeSimpleFn } from '../../shared/spawn-claude.js';
+import type { AgentAdapter } from '@opentidy/shared';
+import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
 
 const TITLE_SYSTEM_PROMPT = `Generate a short, descriptive title (max 50 characters) for this dossier.
 The title should summarize the main action and key subject.
@@ -36,13 +37,17 @@ export function fallbackTitle(instruction: string): string {
 }
 
 export function createTitleGenerator(workspaceDir: string, deps: {
-  spawnClaude: SpawnClaudeSimpleFn;
+  spawnAgent: SpawnAgentFn;
+  adapter: AgentAdapter;
 }) {
   return async function generateTitle(instruction: string): Promise<string> {
     try {
-      console.log('[opentidy] Generating title via claude -p');
-      const args = ['-p', '--output-format', 'text', '--system-prompt', TITLE_SYSTEM_PROMPT, `Dossier instruction:\n${instruction}`];
-      const stdout = await deps.spawnClaude({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}` });
+      console.log('[opentidy] Generating title via agent');
+      const args = deps.adapter.buildArgs({
+        mode: 'one-shot', cwd: workspaceDir, systemPrompt: TITLE_SYSTEM_PROMPT,
+        instruction: `Dossier instruction:\n${instruction}`, outputFormat: 'text',
+      });
+      const stdout = await deps.spawnAgent({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}` }).promise;
 
       const title = cleanTitle(stdout);
       if (!title) {

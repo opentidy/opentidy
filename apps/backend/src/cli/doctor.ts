@@ -1,6 +1,9 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
-import { loadConfig, getConfigPath } from '../config.js';
+import { loadConfig, getConfigPath } from '../shared/config.js';
 import { getVersion } from '../cli.js';
 
 const REQUIRED_NODE_MAJOR = 22;
@@ -58,7 +61,7 @@ export function checkConfig(configPath: string): CheckResult {
   return { ok: true, name: 'config', detail: configPath };
 }
 
-export function checkClaudeConfig(claudeConfigDir: string): CheckResult {
+export function checkClaudeConfig(claudeConfigDir: string | undefined): CheckResult {
   if (!claudeConfigDir || !existsSync(claudeConfigDir)) {
     return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run opentidy setup` };
   }
@@ -86,7 +89,7 @@ export async function runDoctor(): Promise<void> {
 
   // Claude Code config
   const config = loadConfig(configPath);
-  results.push(checkClaudeConfig(config.claudeConfig.dir));
+  results.push(checkClaudeConfig(config.claudeConfig?.dir));
 
   // Health check (if server running)
   try {

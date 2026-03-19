@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
@@ -10,7 +13,7 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     await expect(page.getByRole('heading', { name: 'Ameliorations' })).toBeVisible();
 
     // Default filter is "ouverts" — 2 unresolved ameliorations
-    await expect(page.getByText('MFA TOTP exali')).toBeVisible();
+    await expect(page.getByText('MFA TOTP insurance portal')).toBeVisible();
     await expect(page.getByText('Rate limit Gmail')).toBeVisible();
 
     // Problem text
@@ -18,7 +21,7 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     await expect(page.getByText('Too many API calls')).toBeVisible();
 
     // Impact sections
-    await expect(page.getByText('Cannot access exali.com')).toBeVisible();
+    await expect(page.getByText('Cannot access insurance portal')).toBeVisible();
     await expect(page.getByText('Delays in processing')).toBeVisible();
 
     // Suggestion sections
@@ -30,7 +33,7 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     await expect(resolveButtons).toHaveCount(2);
 
     // Dossier link button — first amelioration has dossierId
-    await expect(page.getByRole('button', { name: /Dossier: exali-rapport/ })).toBeVisible();
+    await expect(page.getByRole('button', { name: /Dossier: insurance-report/ })).toBeVisible();
   });
 });
 
@@ -40,7 +43,7 @@ test.describe('E2E-APP-18: Filter buttons Ouverts/Resolus', () => {
     await page.goto('/ameliorations');
 
     // Default: Ouverts — 2 items
-    await expect(page.getByText('MFA TOTP exali')).toBeVisible();
+    await expect(page.getByText('MFA TOTP insurance portal')).toBeVisible();
     await expect(page.getByText('Rate limit Gmail')).toBeVisible();
     await expect(page.getByText('Old issue fixed')).not.toBeVisible();
 
@@ -49,7 +52,7 @@ test.describe('E2E-APP-18: Filter buttons Ouverts/Resolus', () => {
 
     // Only resolved item
     await expect(page.getByText('Old issue fixed')).toBeVisible();
-    await expect(page.getByText('MFA TOTP exali')).not.toBeVisible();
+    await expect(page.getByText('MFA TOTP insurance portal')).not.toBeVisible();
     await expect(page.getByText('Rate limit Gmail')).not.toBeVisible();
 
     // No "Marquer resolu" button for resolved items

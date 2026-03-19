@@ -9,138 +9,138 @@ echo "[smoke-setup] Creating fixture workspace at $FIXTURE_DIR"
 rm -rf "$FIXTURE_DIR"
 
 # Create directory structure
-mkdir -p "$FIXTURE_DIR/factures-sopra/artifacts"
-mkdir -p "$FIXTURE_DIR/exali-rapport"
+mkdir -p "$FIXTURE_DIR/invoices-acme/artifacts"
+mkdir -p "$FIXTURE_DIR/insurance-report"
 mkdir -p "$FIXTURE_DIR/_suggestions"
 mkdir -p "$FIXTURE_DIR/_gaps"
 mkdir -p "$FIXTURE_DIR/_audit"
 
-# --- factures-sopra/state.md ---
-cat > "$FIXTURE_DIR/factures-sopra/state.md" << 'STATE'
-# Factures Sopra 2025-2026
+# --- invoices-acme/state.md ---
+cat > "$FIXTURE_DIR/invoices-acme/state.md" << 'STATE'
+# Invoices Acme Corp 2025-2026
 
-## Objectif
-Générer et envoyer les factures mensuelles Sopra Steria.
+## Objective
+Generate and send monthly invoices to Acme Corp.
 
-## État actuel
-STATUT: EN COURS
-Dernière action: 2026-03-13
+## Current State
+STATUS: IN PROGRESS
+Last action: 2026-03-13
 
-## Ce qui est fait
-- Jan 2025: facture #2025-001 envoyée le 05/02 ✓
-- Fév 2025: facture #2025-002 envoyée le 03/03 ✓
-- Mar 2025: facture #2025-003 envoyée le 04/04 ✓
+## Completed
+- Jan 2025: invoice #2025-001 sent on 02/05
+- Feb 2025: invoice #2025-002 sent on 03/03
+- Mar 2025: invoice #2025-003 sent on 04/04
 
-## Ce qui reste à faire
-- Avr 2025: timesheet trouvé (152h), facture à créer
-- Mai 2025: timesheet MANQUANT — email envoyé à Sopra le 12/03
+## Remaining
+- Apr 2025: timesheet found (152h), invoice to create
+- May 2025: timesheet MISSING — email sent to client on 03/12
 
-## En attente
-- Réponse de Sopra pour le timesheet de mai (relancer si pas de réponse avant le 16/03)
+## Waiting For
+- Response from Acme Corp for May timesheet (follow up if no response by 03/16)
 
 ## Contacts
-- Sopra billing: billing@soprasteria.com
+- Acme billing: billing@example-client.com
 
 ## Notes
-- Taux: 80€/h HT, devise EUR
-- Format facture: utiliser /comptable avec template Sopra
+- Rate: 80/h, currency EUR
+- Invoice format: use accounting template
 
 ## Journal
-- 2026-03-13 — Relance envoyée à billing@soprasteria.com pour timesheet mai
-- 2026-03-10 — Facture mars envoyée, confirmation reçue
+- 2026-03-13 — Follow-up sent to billing@example-client.com for May timesheet
+- 2026-03-10 — March invoice sent, confirmation received
 STATE
 
 # .gitkeep for artifacts
-touch "$FIXTURE_DIR/factures-sopra/artifacts/.gitkeep"
+touch "$FIXTURE_DIR/invoices-acme/artifacts/.gitkeep"
 
-# --- exali-rapport/state.md (deadline proche) ---
+# --- insurance-report/state.md (deadline soon) ---
 DEADLINE=$(date -v+3d '+%Y-%m-%d' 2>/dev/null || date -d '+3 days' '+%Y-%m-%d')
-cat > "$FIXTURE_DIR/exali-rapport/state.md" << STATE
-# Rapport annuel Exali
+cat > "$FIXTURE_DIR/insurance-report/state.md" << STATE
+# Annual Insurance Report
 
-## Objectif
-Remplir et soumettre le rapport annuel d'activité sur exali.com.
+## Objective
+Fill and submit the annual activity report on the insurance portal.
 
-## État actuel
-STATUT: EN COURS
-Dernière action: 2026-03-12
+## Current State
+STATUS: IN PROGRESS
+Last action: 2026-03-12
 DEADLINE: $DEADLINE
 
-## Ce qui est fait
-- Connexion à exali.com réussie
-- Téléchargement du formulaire PDF
+## Completed
+- Login to insurance portal successful
+- Downloaded the PDF form
 
-## Ce qui reste à faire
-- Remplir les champs chiffre d'affaires et effectifs
-- Uploader les justificatifs
-- Soumettre avant la deadline du $DEADLINE
+## Remaining
+- Fill in revenue and headcount fields
+- Upload supporting documents
+- Submit before $DEADLINE deadline
 
-## En attente
-- Rien
+## Waiting For
+- Nothing
 
 ## Contacts
-- Exali support: support@exali.de
+- Insurance support: support@example-insurance.com
 
 ## Journal
-- 2026-03-12 — Formulaire téléchargé, début du remplissage
-- 2026-03-10 — Première connexion, navigation du portail
+- 2026-03-12 — Form downloaded, started filling
+- 2026-03-10 — First login, portal navigation
 STATE
 
-# --- _suggestions/impots-chypre.md ---
-cat > "$FIXTURE_DIR/_suggestions/impots-chypre.md" << 'SUGGESTION'
-# Suggestion — Relance impôts chypriotes
+# --- _suggestions/tax-filing-followup.md ---
+cat > "$FIXTURE_DIR/_suggestions/tax-filing-followup.md" << 'SUGGESTION'
+# Suggestion — Tax Filing Follow-up
 
-URGENCE: urgent
-SOURCE: Email reçu de tax@cyprus.gov.cy le 12/03
+URGENCY: urgent
+SOURCE: Email received from tax@example-authority.gov on 03/12
 DATE: 2026-03-14
 
-## Résumé
-Email des impôts chypriotes reçu il y a 2 semaines, sans réponse.
-Deadline fiscale fin mars approche.
+## Summary
+Email from tax authority received 2 weeks ago, no response.
+Filing deadline end of March approaching.
 
-## Pourquoi
-Deadline fiscale fin mars. Pas de dossier existant pour le suivi.
-Risque de pénalités si non traité rapidement.
+## Why
+Tax deadline end of March. No existing dossier for tracking.
+Risk of penalties if not handled promptly.
 
-## Ce que je ferais
-Créer un dossier, analyser l'email, préparer les documents demandés,
-et soumettre la déclaration avant la deadline.
+## What I Would Do
+Create a dossier, analyze the email, prepare the requested documents,
+and submit the filing before the deadline.
 SUGGESTION
 
 # --- _gaps/gaps.md ---
 cat > "$FIXTURE_DIR/_gaps/gaps.md" << 'GAPS'
-## 2026-03-14 — MFA TOTP exali.com
-Problème: Le site exali.com demande un code MFA par app mobile (authenticator).
-Impact: Je ne peux pas me connecter automatiquement pour remplir le rapport annuel.
-Suggestion: Ajouter un skill pour lire les codes TOTP depuis l'app d'authentification.
+## 2026-03-14 — MFA TOTP on insurance portal
+Problem: The insurance portal requires MFA via a mobile authenticator app.
+Impact: Cannot log in automatically to fill the annual report.
+Suggestion: Add a skill to read TOTP codes from the authenticator app.
 
 ---
 
-## 2026-03-12 — Rate limit Gmail API
-Problème: L'API Gmail retourne 429 après ~50 requêtes en 1 minute.
-Impact: Le traitement de lots d'emails est ralenti, certains emails peuvent être manqués.
-Suggestion: Implémenter un backoff exponentiel et un cache des emails déjà lus.
+## 2026-03-12 — Gmail API rate limit
+Problem: Gmail API returns 429 after ~50 requests in 1 minute.
+Impact: Batch email processing is slowed, some emails may be missed.
+Suggestion: Implement exponential backoff and a cache for already-read emails.
 
 ---
 
-## ~~2026-03-08 — Certificat SSL expiré example.com~~ ✅ RÉSOLU
-Problème: Le certificat SSL du site example.com avait expiré.
-Impact: Les requêtes HTTPS échouaient.
-Résolu: Certificat renouvelé via Let's Encrypt le 2026-03-09.
+## ~~2026-03-08 — Expired SSL certificate on example.com~~ RESOLVED
+Problem: The SSL certificate on example.com had expired.
+Impact: HTTPS requests were failing.
+Resolved: Certificate renewed via Let's Encrypt on 2026-03-09.
 GAPS
 
 # --- _audit/actions.log ---
 cat > "$FIXTURE_DIR/_audit/actions.log" << 'AUDIT'
-{"sessionId":"sess-abc-001","toolName":"mcp__gmail__search","toolInput":{"query":"from:billing@soprasteria.com"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:00.000Z"}
+{"sessionId":"sess-abc-001","toolName":"mcp__gmail__search","toolInput":{"query":"from:billing@example-client.com"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:00.000Z"}
 {"sessionId":"sess-abc-001","toolName":"mcp__gmail__read","toolInput":{"messageId":"msg-123"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:05.000Z"}
-{"sessionId":"sess-abc-001","toolName":"mcp__gmail__send","toolInput":{"to":"billing@soprasteria.com","subject":"Relance timesheet mai"},"decision":"ALLOW","result":"sent","timestamp":"2026-03-13T10:16:00.000Z"}
-{"sessionId":"sess-def-002","toolName":"Bash","toolInput":{"command":"curl https://exali.com/login"},"decision":"ALLOW","timestamp":"2026-03-12T14:30:00.000Z"}
-{"sessionId":"sess-def-002","toolName":"mcp__camofox__navigate","toolInput":{"url":"https://exali.com/report"},"decision":"ALLOW","timestamp":"2026-03-12T14:31:00.000Z"}
+{"sessionId":"sess-abc-001","toolName":"mcp__gmail__send","toolInput":{"to":"billing@example-client.com","subject":"Follow-up May timesheet"},"decision":"ALLOW","result":"sent","timestamp":"2026-03-13T10:16:00.000Z"}
+{"sessionId":"sess-def-002","toolName":"Bash","toolInput":{"command":"curl https://insurance-portal.example.com/login"},"decision":"ALLOW","timestamp":"2026-03-12T14:30:00.000Z"}
+{"sessionId":"sess-def-002","toolName":"mcp__camofox__navigate","toolInput":{"url":"https://insurance-portal.example.com/report"},"decision":"ALLOW","timestamp":"2026-03-12T14:31:00.000Z"}
 AUDIT
 
 echo "[smoke-setup] Fixture workspace created successfully"
-echo "  - factures-sopra/ (active dossier)"
-echo "  - exali-rapport/ (deadline in 3 days)"
-echo "  - _suggestions/impots-chypre.md (urgent suggestion)"
+echo "  - invoices-acme/ (active dossier)"
+echo "  - insurance-report/ (deadline in 3 days)"
+echo "  - _suggestions/tax-filing-followup.md (urgent suggestion)"
 echo "  - _gaps/gaps.md (3 entries, 1 resolved)"
 echo "  - _audit/actions.log (5 audit entries)"

@@ -30,7 +30,6 @@ describe('Checkup', () => {
   function makeMockLauncher(activeDossierIds: string[] = []) {
     return {
       launchSession: vi.fn().mockResolvedValue(undefined),
-      sendMessage: vi.fn().mockResolvedValue(undefined),
       listActiveSessions: vi.fn().mockReturnValue(activeDossierIds.map(id => ({ dossierId: id }))),
     };
   }
@@ -42,40 +41,38 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('invoices-acme');
     expect(result.launched).toEqual(['invoices-acme']);
   });
 
-  it('sends message to active terminal instead of launching new session', async () => {
+  it('skips active sessions instead of sending messages', async () => {
     const mockLauncher = makeMockLauncher(['invoices-acme']);
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
     });
     const result = await checkup.runCheckup();
-    expect(mockLauncher.sendMessage).toHaveBeenCalledWith('invoices-acme', 'Checkup: resume your work, conditions are met.');
     expect(mockLauncher.launchSession).not.toHaveBeenCalled();
-    expect(result.launched).toEqual(['invoices-acme']);
+    expect(result.launched).toEqual([]);
   });
 
-  it('launches inactive dossier and sends message to active dossier', async () => {
+  it('launches inactive dossier and skips active dossier', async () => {
     const mockLauncher = makeMockLauncher(['invoices-acme']);
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme', 'insurance-report'], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme', 'insurance-report'], suggestions: [] })),
     });
     const result = await checkup.runCheckup();
-    expect(mockLauncher.sendMessage).toHaveBeenCalledWith('invoices-acme', 'Checkup: resume your work, conditions are met.');
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('insurance-report');
     expect(mockLauncher.launchSession).not.toHaveBeenCalledWith('invoices-acme');
-    expect(result.launched).toEqual(['invoices-acme', 'insurance-report']);
+    expect(result.launched).toEqual(['insurance-report']);
   });
 
   // E2E-CRN-05
@@ -89,7 +86,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(checkupResponse),
+      runAgent: vi.fn().mockResolvedValue(checkupResponse),
     });
 
     const result = await checkup.runCheckup();
@@ -109,7 +106,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('invoices-acme');
@@ -123,7 +120,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).not.toHaveBeenCalled();
@@ -149,7 +146,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
     });
     await checkup.runCheckup();
     const afterRun = checkup.getStatus();
@@ -168,7 +165,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({
         launch: ['invoices-acme'],
         suggestions: [{ title: 'Timesheet', urgency: 'normal', why: 'Missing' }],
       })),
@@ -194,7 +191,7 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
       notificationStore: mockNotificationStore,
     });
 
@@ -244,56 +241,55 @@ describe('Checkup — memory context', () => {
     fs.rmSync(wsDir, { recursive: true, force: true });
   });
 
-  function captureSystemPrompt(entries: MemoryEntry[]): { runClaude: ReturnType<typeof vi.fn>; checkup: ReturnType<typeof createCheckup> } {
-    const runClaude = vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] }));
+  function captureSystemPrompt(entries: MemoryEntry[]): { runAgent: ReturnType<typeof vi.fn>; checkup: ReturnType<typeof createCheckup> } {
+    const runAgent = vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] }));
     const checkup = createCheckup({
       launcher: {
         launchSession: vi.fn().mockResolvedValue(undefined),
-        sendMessage: vi.fn().mockResolvedValue(undefined),
         listActiveSessions: vi.fn().mockReturnValue([]),
       },
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runClaude,
+      runAgent,
       memoryManager: { readAllFiles: () => entries },
     });
-    return { runClaude, checkup };
+    return { runAgent, checkup };
   }
 
   it('includes "Global memory" section when memoryManager has files', async () => {
-    const { runClaude, checkup } = captureSystemPrompt(memoryEntries);
+    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runClaude.mock.calls[0][0] as string[];
+    const args = runAgent.mock.calls[0][0] as string[];
     const systemPrompt = args[args.indexOf('--system-prompt') + 1];
     expect(systemPrompt).toContain('## Global memory (persistent context)');
   });
 
   it('does not include memory section when memoryManager has no files', async () => {
-    const { runClaude, checkup } = captureSystemPrompt([]);
+    const { runAgent, checkup } = captureSystemPrompt([]);
     await checkup.runCheckup();
 
-    const args = runClaude.mock.calls[0][0] as string[];
+    const args = runAgent.mock.calls[0][0] as string[];
     const systemPrompt = args[args.indexOf('--system-prompt') + 1];
     expect(systemPrompt).not.toContain('Global memory');
     expect(systemPrompt).toContain('Checkup mode');
   });
 
   it('includes category and description from memory files', async () => {
-    const { runClaude, checkup } = captureSystemPrompt(memoryEntries);
+    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runClaude.mock.calls[0][0] as string[];
+    const args = runAgent.mock.calls[0][0] as string[];
     const systemPrompt = args[args.indexOf('--system-prompt') + 1];
     expect(systemPrompt).toContain('[contacts] Important contacts');
     expect(systemPrompt).toContain('[preferences] User preferences');
   });
 
   it('includes last 3 lines of each file content', async () => {
-    const { runClaude, checkup } = captureSystemPrompt(memoryEntries);
+    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runClaude.mock.calls[0][0] as string[];
+    const args = runAgent.mock.calls[0][0] as string[];
     const systemPrompt = args[args.indexOf('--system-prompt') + 1];
     // contacts.md has 5 lines → last 3 are ligne3, ligne4, ligne5
     expect(systemPrompt).toContain('ligne3 ligne4 ligne5');

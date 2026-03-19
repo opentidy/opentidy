@@ -336,7 +336,7 @@ Last action: 2026-03-13
 - Feb 2025: invoice #2025-002 sent on 03/03 ✓
 
 ## Remaining
-- Apr 2025: timesheet found (152h), invoice to create
+- Apr 2025: timesheet found (120h), invoice to create
 - May 2025: timesheet MISSING — email sent to vendor on 03/12
 
 ## Waiting for
@@ -347,7 +347,7 @@ Follow up if no response before 2026-03-16.
 - Vendor billing: billing@vendor.com
 
 ## Notes
-- Rate: 80€/h excl. VAT, currency EUR
+- Rate: [hourly rate], currency EUR
 - Invoice format: use /accounting skill with vendor template
 ```
 
@@ -392,8 +392,8 @@ Created 2 invoices for April and May 2025.
 Validate the invoices before sending.
 
 ## Details
-- April invoice: 152h × 80€ = 12,160€ excl. VAT → artifacts/invoice-2025-04.pdf
-- May invoice: 160h × 80€ = 12,800€ excl. VAT → artifacts/invoice-2025-05.pdf
+- April invoice: 120h × $100 = $12,000 → artifacts/invoice-2025-04.pdf
+- May invoice: 140h × $100 = $14,000 → artifacts/invoice-2025-05.pdf
 
 ## Options
 1. [Send both] → I send to billing@vendor.com
@@ -871,7 +871,7 @@ because they have no CLAUDE.md context nor resume.
 |---|---|---|
 | Machine | Dedicated Mac Mini, 24/7 | Native macOS for AppleScript, Contacts, Messages, full system access |
 | Backend daemon | macOS LaunchAgent (`com.opentidy.agent.plist`) | Automatic restart, system logs |
-| Claude sessions | `claude -p` child process (autonomous) + tmux (interactive) | Reliable lifecycle via process exit, tmux for human intervention |
+| Agent sessions | Agent-agnostic via `AgentAdapter` (Claude stable, Gemini/Copilot experimental) | Child process (autonomous) + tmux (interactive), reliable lifecycle via process exit |
 | Browser | Camoufox | Anti-detection, isolated profiles, parallelism |
 | Frontend hosting | Coolify | Multi-stage Dockerfile, automatic deploy |
 | Network | Cloudflare Tunnel | No open ports, secure access |
@@ -879,6 +879,22 @@ because they have no CLAUDE.md context nor resume.
 | Locks | PID in `/tmp/opentidy-locks/` | Crash recovery via dead PID detection |
 
 ### 9.2 Setup — Machine Installation
+
+**`opentidy setup`** — interactive modular wizard (9 modules, rerunnable individually):
+
+| Module | What it does |
+|--------|-------------|
+| User Info | Collects name, email, company, language for CLAUDE.md personalization |
+| Telegram | Bot token + chat ID (auto-detect via getUpdates) |
+| API Auth | Auto-generates bearer token for web app access |
+| Gmail | Gmail MCP OAuth flow (`npx @gongrzhe/server-gmail-autoauth-mcp`) |
+| Camoufox | Creates wrapper script for anti-detection browser MCP |
+| WhatsApp | Checks wacli install + QR code authentication (optional) |
+| Claude Code | Generates `settings.json` dynamically (permissions + mcpServers from configured services), personalizes CLAUDE.md, runs `claude auth login` |
+| Cloudflare | Tunnel creation, DNS route, launchd service |
+| Permissions | macOS Automation permissions for Messages, Mail, Calendar, etc. |
+
+Key: Claude Code module runs AFTER MCP modules so `generateClaudeSettings()` picks up their config.
 
 **Part 1 — Dependencies** (automated):
 - Homebrew, Node.js, pnpm, Claude CLI + OAuth, Camoufox, tmux, cloudflared
@@ -976,6 +992,40 @@ Types and schemas shared between backend and frontend:
 - SSE event types
 - Zod schemas for API validation
 - Checkpoint types
+
+---
+
+## 9.5 Agent Abstraction
+
+OpenTidy is agent-agnostic. Users choose their AI agent at setup time.
+
+### Supported Agents
+
+| Agent | Status | Binary | Notes |
+|---|---|---|---|
+| Claude Code | **Stable** | `claude` | All features verified. Default. |
+| Gemini CLI | Experimental | `gemini` | Candidate — requires upstream verification |
+| Copilot CLI | Experimental | `copilot` | Candidate — requires upstream verification |
+
+### Parity Requirements
+
+An agent must support ALL of: headless mode, structured output, session resume, system prompt injection, pre-tool hooks (block/allow), MCP servers, config isolation via env var, permission bypass.
+
+### Architecture
+
+- **Interface:** `AgentAdapter` in `packages/shared/src/types.ts` — `buildArgs()`, `getEnv()`, `readSessionId()`, `writeConfig()`
+- **Registry:** `resolveAgent()` in `src/shared/agents/registry.ts` — resolution: `OPENTIDY_AGENT` env → `--agent` flag → `config.json` → fallback `claude`
+- **Spawner:** `spawn-agent.ts` replaces `spawn-claude.ts` — uses `adapter.binary` and `adapter.getEnv()`
+- **Guardrails:** `plugins/opentidy-hooks/guardrails.json` (unified) → `adapter.writeConfig()` generates native hooks
+- **Instructions:** `INSTRUCTIONS.md` (source of truth) → adapter copies to native filename (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
+
+### Adding a New Agent
+
+1. Verify all 8 parity requirements against the agent's documentation
+2. Create `src/shared/agents/<name>.ts` implementing `AgentAdapter`
+3. Add the agent to `resolveAgent()` in `registry.ts`
+4. Run the verification checklist (smoke test: triage + session + interactive)
+5. Update `guardrails.json` translation in `writeConfig()` if hooks format differs
 
 ---
 

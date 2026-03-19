@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { Amelioration, AmeliorationStatus, AmeliorationSource, AmeliorationCategory } from '@opentidy/shared';
+import type { Amelioration, AmeliorationStatus, AmeliorationSource, AmeliorationCategory, AmeliorationFixType } from '@opentidy/shared';
 
 export function createGapsManager(workspaceDir: string) {
   const gapsFile = path.join(workspaceDir, '_gaps', 'gaps.md');
@@ -14,27 +14,69 @@ export function createGapsManager(workspaceDir: string) {
     return 'open';
   }
 
+  // Split structured content into sections — supports both `---` separators and `## date —` heading boundaries
+  function splitSections(content: string): string[] {
+    if (/^---$/m.test(content)) {
+      return content.split(/^---$/m).filter(s => s.trim());
+    }
+    // Split by ## headings (each heading starts a new section)
+    const sections: string[] = [];
+    const lines = content.split('\n');
+    let current = '';
+    for (const line of lines) {
+      if (/^## \d{4}-\d{2}-\d{2} — /.test(line) && current.trim()) {
+        sections.push(current);
+        current = '';
+      }
+      current += line + '\n';
+    }
+    if (current.trim()) sections.push(current);
+    return sections;
+  }
+
+  // Match a field in both bold (**Field:**) and plain (Field:) format
+  function matchField(section: string, ...names: string[]): string {
+    for (const name of names) {
+      const bold = section.match(new RegExp(`\\*\\*${name}:\\*\\*\\s*(.+)`))?.[1]?.trim();
+      if (bold) return bold;
+      const plain = section.match(new RegExp(`^${name}:\\s*(.+)`, 'm'))?.[1]?.trim();
+      if (plain) return plain;
+    }
+    return '';
+  }
+
   function parseStructuredSections(content: string): Amelioration[] {
-    const sections = content.split(/^---$/m).filter(s => s.trim());
+    const sections = splitSections(content);
     return sections.map((section, i) => {
       const title = section.match(/## .+? — (.+)/)?.[1]?.replace(/\[RÉSOLU\]|\[IGNORÉ\]|\[RESOLVED\]|\[IGNORED\]/g, '').trim() ?? '';
       const date = section.match(/## (\d{4}-\d{2}-\d{2})/)?.[1] ?? '';
-      const problem = section.match(/\*\*Problème:\*\*\s*(.+)/)?.[1]?.trim() ?? '';
-      const impact = section.match(/\*\*Impact:\*\*\s*(.+)/)?.[1]?.trim() ?? '';
-      const suggestion = section.match(/\*\*Suggestion:\*\*\s*(.+)/)?.[1]?.trim() ?? '';
-      const dossierId = section.match(/\*\*Dossier:\*\*\s*(.+)/)?.[1]?.trim() || undefined;
-      const sessionId = section.match(/\*\*Session:\*\*\s*(.+)/)?.[1]?.trim() || undefined;
-      const source = (section.match(/\*\*Source:\*\*\s*(.+)/)?.[1]?.trim() || undefined) as AmeliorationSource | undefined;
-      const category = (section.match(/\*\*Catégorie:\*\*\s*(.+)/)?.[1]?.trim() || undefined) as AmeliorationCategory | undefined;
+      const problem = matchField(section, 'Problème', 'Problem');
+      const impact = matchField(section, 'Impact');
+      const suggestion = matchField(section, 'Suggestion');
+      const dossierId = matchField(section, 'Dossier', 'DOSSIER') || undefined;
+      const sessionId = matchField(section, 'Session', 'SESSION') || undefined;
+      const source = (matchField(section, 'Source', 'SOURCE') || undefined) as AmeliorationSource | undefined;
+      const category = (matchField(section, 'Catégorie', 'Category', 'CATEGORY') || undefined) as AmeliorationCategory | undefined;
 
-      // Parse recommended actions (bullet list after **Actions recommandées:**)
-      const actionsBlock = section.match(/\*\*Actions recommandées:\*\*\n((?:- .+\n?)+)/);
+      // New actionable gap fields
+      const fixType = (matchField(section, 'Fix type') || undefined) as AmeliorationFixType | undefined;
+      const sanitizedTitle = matchField(section, 'Sanitized title') || undefined;
+      const sanitizedBody = matchField(section, 'Sanitized') || undefined;
+      const githubIssueStr = section.match(/\*\*GitHub Issue:\*\*\s*#?(\d+)/)?.[1] || section.match(/^GitHub Issue:\s*#?(\d+)/m)?.[1];
+      const githubIssueNumber = githubIssueStr ? parseInt(githubIssueStr, 10) : undefined;
+      const suggestionSlug = matchField(section, 'Suggestion slug') || undefined;
+
+      // Parse recommended actions (bullet list after actions header)
+      const actionsBlock = section.match(/\*\*(Actions recommandées|Recommended actions):\*\*\n((?:- .+\n?)+)/) ||
+        section.match(/^(Actions recommandées|Recommended actions):\n((?:- .+\n?)+)/m);
       const actions = actionsBlock
-        ? actionsBlock[1].split('\n').filter(l => l.trim().startsWith('- ')).map(l => l.replace(/^- /, '').trim())
+        ? actionsBlock[2].split('\n').filter(l => l.trim().startsWith('- ')).map(l => l.replace(/^- /, '').trim())
         : [];
 
-      const status = detectStatus(section);
-      return { id: String(i), date, title, problem, impact, suggestion, actions, dossierId, sessionId, source, category, resolved: status === 'resolved', status };
+      // Detect resolved from RESOLVED: true field or marker
+      const resolvedField = /^RESOLVED:\s*true/m.test(section);
+      const status = resolvedField ? 'resolved' as AmeliorationStatus : detectStatus(section);
+      return { id: String(i), date, title, problem, impact, suggestion, actions, dossierId, sessionId, source, category, resolved: status === 'resolved', status, fixType, sanitizedTitle, sanitizedBody, githubIssueNumber, suggestionSlug };
     });
   }
 
@@ -97,8 +139,9 @@ export function createGapsManager(workspaceDir: string) {
       }
       fs.writeFileSync(gapsFile, lines.join('\n'));
     } else {
-      // Structured format — add marker after ## heading
-      const sections = content.split(/^---$/m).filter(s => s.trim());
+      // Structured format — use same splitSections logic
+      const hasSeparators = /^---$/m.test(content);
+      const sections = splitSections(content);
       if (index < sections.length) {
         sections[index] = sections[index]
           .replace(/\[RÉSOLU\]\s*/g, '')
@@ -107,7 +150,8 @@ export function createGapsManager(workspaceDir: string) {
           .replace(/\[IGNORED\]\s*/g, '')
           .replace(/^(## .+)/m, `$1 ${marker}`);
       }
-      fs.writeFileSync(gapsFile, sections.join('\n---\n') + '\n');
+      const separator = hasSeparators ? '\n---\n' : '\n';
+      fs.writeFileSync(gapsFile, sections.join(separator) + '\n');
     }
     console.log(`[workspace] gap ${marker}: ${index}`);
   }
@@ -124,5 +168,30 @@ export function createGapsManager(workspaceDir: string) {
     return parseGapsFile().some(g => g.title.toLowerCase().includes(title.toLowerCase()));
   }
 
-  return { listGaps, markResolved, markIgnored, isDuplicateGap };
+  function updateGapFields(index: number, fields: { githubIssueNumber?: number; suggestionSlug?: string }): void {
+    if (!fs.existsSync(gapsFile)) return;
+    const content = fs.readFileSync(gapsFile, 'utf-8');
+    const hasStructured = /^## \d{4}-\d{2}-\d{2} — /m.test(content);
+    if (!hasStructured) return;
+
+    const sections = splitSections(content);
+    if (index >= sections.length) return;
+
+    let section = sections[index];
+    if (fields.githubIssueNumber != null) {
+      section = section.replace(/\*\*GitHub Issue:\*\*.*\n?/, '');
+      section = section.trimEnd() + `\n**GitHub Issue:** #${fields.githubIssueNumber}\n`;
+    }
+    if (fields.suggestionSlug != null) {
+      section = section.replace(/\*\*Suggestion slug:\*\*.*\n?/, '');
+      section = section.trimEnd() + `\n**Suggestion slug:** ${fields.suggestionSlug}\n`;
+    }
+    sections[index] = section;
+    const hasSeparators = /^---$/m.test(content);
+    const separator = hasSeparators ? '\n---\n' : '\n';
+    fs.writeFileSync(gapsFile, sections.join(separator) + '\n');
+    console.log(`[workspace] gap fields updated: index=${index}`);
+  }
+
+  return { listGaps, markResolved, markIgnored, isDuplicateGap, updateGapFields };
 }

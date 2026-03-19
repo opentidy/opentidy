@@ -1,13 +1,16 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
 import { test, expect } from '@playwright/test';
 import { setupMockApi, mockDossiers } from './fixtures/mock-api';
 
 test.describe('E2E-APP-08: Dossier detail shows rendered state', () => {
   test('displays title, status badge, and objective', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/dossier/factures-sopra');
+    await page.goto('/dossier/invoices-acme');
 
     // Title
-    await expect(page.getByRole('heading', { name: 'Factures Sopra' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Invoices Acme' })).toBeVisible();
 
     // Status badge — "En cours"
     await expect(page.getByText('En cours')).toBeVisible();
@@ -29,7 +32,7 @@ test.describe('E2E-APP-10: Desktop sidebar shows session status and files', () =
     }
 
     await setupMockApi(page);
-    await page.goto('/dossier/factures-sopra');
+    await page.goto('/dossier/invoices-acme');
 
     // Session section in sidebar
     await expect(page.getByText('Session', { exact: true })).toBeVisible();
@@ -39,14 +42,14 @@ test.describe('E2E-APP-10: Desktop sidebar shows session status and files', () =
 
     // Artifacts section — "Fichiers" heading in sidebar and artifact file
     await expect(page.getByText('Fichiers', { exact: true }).first()).toBeVisible();
-    await expect(page.getByText('facture-2025-04.pdf').first()).toBeVisible();
+    await expect(page.getByText('invoice-2025-04.pdf').first()).toBeVisible();
   });
 });
 
 test.describe('E2E-APP-11: Instruction bar', () => {
   test('can type instruction and click Envoyer to make POST request', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/dossier/factures-sopra');
+    await page.goto('/dossier/invoices-acme');
 
     const instructionInput = page.getByPlaceholder('Donner une instruction a ce dossier...');
     await expect(instructionInput).toBeVisible();
@@ -59,7 +62,7 @@ test.describe('E2E-APP-11: Instruction bar', () => {
     // Intercept the POST request
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/dossier/factures-sopra/instruction') &&
+        req.url().includes('/api/dossier/invoices-acme/instruction') &&
         req.method() === 'POST',
     );
 
@@ -74,7 +77,7 @@ test.describe('E2E-APP-11: Instruction bar', () => {
 test.describe('E2E-APP-28: Instruction bar with confirm mode', () => {
   test('sends confirm flag when checkbox is checked', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/dossier/factures-sopra');
+    await page.goto('/dossier/invoices-acme');
 
     const instructionInput = page.getByPlaceholder('Donner une instruction a ce dossier...');
     await instructionInput.fill('Envoie la facture par email');
@@ -86,7 +89,7 @@ test.describe('E2E-APP-28: Instruction bar with confirm mode', () => {
     // Intercept the POST
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/dossier/factures-sopra/instruction') &&
+        req.url().includes('/api/dossier/invoices-acme/instruction') &&
         req.method() === 'POST',
     );
 

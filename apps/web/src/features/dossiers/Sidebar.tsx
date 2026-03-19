@@ -14,23 +14,18 @@ interface SidebarProps {
   session?: Session;
 }
 
-const sidebarSessionLabels: Record<string, string> = {
-  active: 'Active',
-  idle: 'Idle',
-};
-
 export default function Sidebar({ dossier, session }: SidebarProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { stopSession } = useStore();
   const sessionDot = session ? (sessionStatusConfig[session.status]?.dot ?? 'bg-text-tertiary') : null;
-  const sessionLabel = session ? (sidebarSessionLabels[session.status] ?? session.status) : null;
+  const sessionLabel = session ? t(`status.${session.status}`) : null;
 
   return (
     <aside className="w-[260px] shrink-0 space-y-6">
       {session && sessionDot && (
         <div>
-          <h4 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">Session</h4>
+          <h4 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('sidebar.session')}</h4>
           <div className="flex items-center gap-2 mb-1">
             <span className={`w-2 h-2 rounded-full ${sessionDot}`} />
             <span className="text-sm text-green">{sessionLabel} - {formatDuration(session.startedAt)}</span>

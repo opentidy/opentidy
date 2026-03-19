@@ -208,12 +208,12 @@ pnpm test tests/receiver/
 3. Claude met à jour les state.md des 2 dossiers concernés
 **Attendu** : les 2 dossiers sont mis à jour, pas de duplication d'event
 
-### E2E-RCV-08 — Event pour un dossier TERMINÉ
-**Préconditions** : dossier `factures-sopra` au statut TERMINÉ
+### E2E-RCV-08 — Event pour un dossier COMPLETED
+**Préconditions** : dossier `factures-sopra` au statut COMPLETED
 **Steps** :
 1. Webhook Gmail reçoit un email de `billing@soprasteria.com`
-2. Claude triage → matche `factures-sopra` mais voit qu'il est TERMINÉ
-**Attendu** : Claude crée une suggestion (pas de réouverture automatique) OU relance le dossier si pertinent, selon le contenu de l'email. Le dossier TERMINÉ n'est jamais modifié silencieusement.
+2. Claude triage → matche `factures-sopra` mais voit qu'il est COMPLETED
+**Attendu** : Claude crée une suggestion (pas de réouverture automatique) OU relance le dossier si pertinent, selon le contenu de l'email. Le dossier COMPLETED n'est jamais modifié silencieusement.
 
 ### E2E-RCV-07 — Event spam / non pertinent
 **Steps** :
@@ -309,7 +309,7 @@ pnpm test tests/workspace/
 **Préconditions** : dossier avec un state.md bien structuré
 **Steps** :
 1. App web ouvre la page dossier
-2. Parse le champ `STATUT:` (EN COURS, TERMINÉ, BLOQUÉ)
+2. Parse le champ `STATUS:` (IN_PROGRESS, COMPLETED, BLOCKED)
 **Attendu** : le statut est correctement parsé et affiché (badge couleur, icône)
 
 ### E2E-WS-12 — Création de dossier avec fichier joint
@@ -333,7 +333,7 @@ pnpm test tests/workspace/
 ### E2E-WS-09 — Dossier terminé
 **Steps** :
 1. Claude finit tout le travail sur un dossier
-2. Claude met state.md à `STATUT: TERMINÉ`
+2. Claude met state.md à `STATUS: COMPLETED`
 3. Hook SessionEnd détecte le statut terminé
 4. Notification Telegram envoyée
 **Attendu** : dossier visible comme "terminé" dans l'app (opacité réduite), pas de session active
@@ -709,10 +709,10 @@ pnpm test:e2e --ui  # mode debug avec inspecteur
 **Attendu** : le terminal est fonctionnel (scrollable, input possible), pas juste un placeholder
 
 ### E2E-APP-25 — Urgence visuelle des suggestions
-**Préconditions** : 3 suggestions : 1 urgente, 1 normale, 1 faible
+**Préconditions** : 3 suggestions : 1 urgente, 1 normale, 1 low
 **Steps** :
 1. Ouvrir la Home
-**Attendu** : bordure rouge/gauche pour urgent, jaune pour normal, grise pour faible. Les urgentes en premier.
+**Attendu** : bordure rouge/gauche pour urgent, jaune pour normal, grise pour low. Les urgentes en premier.
 
 ### E2E-APP-26 — État vide / premier lancement
 **Préconditions** : workspace/ vide (ou n'existe pas encore)
@@ -768,7 +768,7 @@ pnpm test tests/notifications/
 
 ### E2E-NTF-03 — Dossier terminé → notification Telegram
 **Steps** :
-1. Claude termine un dossier (state.md STATUT: TERMINÉ)
+1. Claude termine un dossier (state.md STATUS: COMPLETED)
 **Attendu** : notification "Dossier 'Comptable belge' terminé"
 
 ### E2E-NTF-04 — Suggestion urgente → notification Telegram
@@ -1124,7 +1124,7 @@ Vérifie que :
 
 **`/test` commande** :
 ```
-/test Vérifie que tous les dossiers dans workspace/ ont STATUT: TERMINÉ ou sont à jour.
+/test Vérifie que tous les dossiers dans workspace/ ont STATUS: COMPLETED ou sont à jour.
 Déclenche un sweep via POST /api/sweep. Vérifie que :
 1. Aucune nouvelle session tmux n'est créée
 2. Aucune notification n'est envoyée (vérifier GET /api/notifications/recent → vide)
@@ -1340,7 +1340,7 @@ pnpm test tests/edge-cases/
 
 ### E2E-EDGE-16 — State.md avec statut non reconnu
 **Steps** :
-1. state.md contient `STATUT: EN PAUSE` (valeur non prévue)
+1. state.md contient `STATUS: EN PAUSE` (valeur non prévue)
 2. App web tente de l'afficher
 **Attendu** : affichage dégradé (statut "inconnu" ou texte brut), pas de crash. Claude traite le dossier normalement.
 

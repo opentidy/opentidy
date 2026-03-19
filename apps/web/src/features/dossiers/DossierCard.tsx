@@ -21,10 +21,10 @@ export default function DossierCard({ dossier, session }: { dossier: Dossier; se
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-1 min-w-0">
             <span className={`w-2 h-2 rounded-full ${config.dot} shrink-0`} />
-            <span className="font-semibold text-text">{dossier.title}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-md ${config.badgeBg} ${config.badge} font-medium`}>
+            <span className="font-semibold text-text truncate">{dossier.title}</span>
+            <span className={`text-xs px-2 py-0.5 rounded-md ${config.badgeBg} ${config.badge} font-medium shrink-0 whitespace-nowrap`}>
               {t(config.labelKey)}
             </span>
           </div>

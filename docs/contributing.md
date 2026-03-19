@@ -164,4 +164,4 @@ See [Architecture](architecture.md) and [Security](security.md) for full context
 
 ## License
 
-Coming soon.
+OpenTidy is licensed under [AGPL-3.0](../LICENSE). By contributing, you agree to the [Contributor License Agreement](../CLA.md) — the CLA Assistant bot will guide you through signing on your first PR.

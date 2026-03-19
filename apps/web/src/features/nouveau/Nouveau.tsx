@@ -6,25 +6,35 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../shared/store';
 import SuggestionCard from '../../shared/SuggestionCard';
+import ExampleChips from './ExampleChips';
 
 export default function Nouveau() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { suggestions, fetchSuggestions, createDossier } = useStore();
   const [instruction, setInstruction] = useState('');
-  const [confirm, setConfirm] = useState(false);
+  const [confirm, setConfirm] = useState(true);
   const [launching, setLaunching] = useState(false);
+  const launchingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchSuggestions(); }, [fetchSuggestions]);
 
   async function handleLaunch() {
-    if (!instruction.trim() || launching) return;
+    if (!instruction.trim() || launchingRef.current) return;
+    launchingRef.current = true;
     setLaunching(true);
     try {
+      // Show post-creation banner only for the very first dossier
+      const { dossiers } = useStore.getState();
+      if (dossiers.length === 0) {
+        localStorage.setItem('opentidy-first-task', 'true');
+        localStorage.setItem('opentidy-onboarding-seen', 'true');
+      }
       await createDossier(instruction, confirm);
       navigate('/');
     } finally {
+      launchingRef.current = false;
       setLaunching(false);
     }
   }
@@ -33,6 +43,8 @@ export default function Nouveau() {
     <div className="p-6 md:p-8 max-w-3xl mx-auto">
       <h1 className="text-xl font-bold text-text mb-1">{t('nouveau.title')}</h1>
       <p className="text-text-secondary text-sm mb-6">{t('nouveau.description')}</p>
+
+      <ExampleChips onSelect={setInstruction} />
 
       <textarea
         value={instruction}
@@ -53,10 +65,13 @@ export default function Nouveau() {
             </svg>
             {t('common.files')}
           </button>
-          <label className="flex items-center gap-2 text-xs text-text-tertiary cursor-pointer">
-            <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="rounded border-border" />
-            {t('nouveau.confirmMode')}
-          </label>
+          <div className="flex flex-col gap-1">
+            <label className="flex items-center gap-2 text-xs text-text-tertiary cursor-pointer">
+              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="rounded border-border" />
+              {t('nouveau.confirmMode')}
+            </label>
+            <p className="text-[11px] text-text-tertiary/70 pl-5">{t('nouveau.confirmModeHelp')}</p>
+          </div>
         </div>
         <button
           onClick={handleLaunch}

@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "http",
-            "url": "http://localhost:5174/api/hooks"
+            "url": "http://localhost:5175/api/hooks"
           }
         ]
       }
@@ -35,8 +35,8 @@
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "OPENTIDY_WORKSPACE=$HOME/Documents/opentidy/workspace OPENTIDY_PORT=5174 $HOME/Documents/opentidy/apps/backend/scripts/on-stop.sh"
+            "type": "http",
+            "url": "http://localhost:5175/api/hooks"
           }
         ]
       }
@@ -46,7 +46,7 @@
         "hooks": [
           {
             "type": "http",
-            "url": "http://localhost:5174/api/hooks"
+            "url": "http://localhost:5175/api/hooks"
           }
         ]
       }

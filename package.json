@@ -1,9 +1,14 @@
 {
   "name": "opentidy",
+  "version": "0.0.1",
   "private": true,
+  "license": "AGPL-3.0-only",
   "packageManager": "pnpm@10.6.5",
   "pnpm": {
     "onlyBuiltDependencies": ["better-sqlite3", "esbuild"]
+  },
+  "bin": {
+    "opentidy": "./bin/opentidy.mjs"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",

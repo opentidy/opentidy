@@ -49,4 +49,59 @@ describe('GapsManager', () => {
     expect(gaps.isDuplicateGap('SFTP')).toBe(true);
     expect(gaps.isDuplicateGap('Autre chose')).toBe(false);
   });
+
+  it('parses fixType and sanitized fields from structured format', () => {
+    fs.writeFileSync(
+      path.join(wsDir, '_gaps', 'gaps.md'),
+      '## 2026-03-14 — MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Dossier:** insurance-report\n\n---\n',
+    );
+    const list = gaps.listGaps();
+    expect(list).toHaveLength(1);
+    expect(list[0].fixType).toBe('code');
+    expect(list[0].sanitizedTitle).toBe('MFA TOTP authentication not supported');
+    expect(list[0].sanitizedBody).toBe('Cannot authenticate on portals requiring MFA TOTP.');
+    expect(list[0].githubIssueNumber).toBe(42);
+  });
+
+  it('parses config fixType with suggestion slug', () => {
+    fs.writeFileSync(
+      path.join(wsDir, '_gaps', 'gaps.md'),
+      '## 2026-03-14 — Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Manual workaround needed\n**Catégorie:** config\n**Fix type:** config\n**Suggestion slug:** fix-hook-config-abc123\n\n---\n',
+    );
+    const list = gaps.listGaps();
+    expect(list[0].fixType).toBe('config');
+    expect(list[0].suggestionSlug).toBe('fix-hook-config-abc123');
+    expect(list[0].githubIssueNumber).toBeUndefined();
+  });
+
+  it('handles gaps without new fields (backward compat)', () => {
+    fs.writeFileSync(
+      path.join(wsDir, '_gaps', 'gaps.md'),
+      '## 2026-03-14 — Old gap\n\n**Problème:** Something\n**Impact:** Something\n**Suggestion:** Something\n\n---\n',
+    );
+    const list = gaps.listGaps();
+    expect(list[0].fixType).toBeUndefined();
+    expect(list[0].sanitizedBody).toBeUndefined();
+    expect(list[0].githubIssueNumber).toBeUndefined();
+  });
+
+  it('updates gap fields by index', () => {
+    fs.writeFileSync(
+      path.join(wsDir, '_gaps', 'gaps.md'),
+      '## 2026-03-14 — Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n**Fix type:** code\n**Sanitized title:** Test Gap\n**Sanitized:** Test problem\n\n---\n',
+    );
+    gaps.updateGapFields(0, { githubIssueNumber: 42 });
+    const list = gaps.listGaps();
+    expect(list[0].githubIssueNumber).toBe(42);
+  });
+
+  it('updates gap with suggestion slug', () => {
+    fs.writeFileSync(
+      path.join(wsDir, '_gaps', 'gaps.md'),
+      '## 2026-03-14 — Config Gap\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** config\n\n---\n',
+    );
+    gaps.updateGapFields(0, { suggestionSlug: 'fix-config-abc' });
+    const list = gaps.listGaps();
+    expect(list[0].suggestionSlug).toBe('fix-config-abc');
+  });
 });

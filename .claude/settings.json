@@ -78,7 +78,7 @@
           },
           {
             "type": "command",
-            "command": "OPENTIDY_WORKSPACE=$HOME/Documents/opentidy/workspace OPENTIDY_PORT=5174 $HOME/Documents/opentidy/apps/backend/scripts/on-stop.sh"
+            "command": "OPENTIDY_WORKSPACE=${OPENTIDY_WORKSPACE:-$PWD/workspace} OPENTIDY_PORT=${OPENTIDY_PORT:-5175} $PWD/apps/backend/scripts/on-stop.sh"
           }
         ]
       }

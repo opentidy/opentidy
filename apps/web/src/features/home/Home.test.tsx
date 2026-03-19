@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import type { Dossier, Suggestion, Session } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
@@ -64,6 +64,7 @@ function makeSession(overrides: Partial<Session> = {}): Session {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  localStorage.clear();
   storeState = {
     dossiers: [],
     suggestions: [],
@@ -81,19 +82,15 @@ beforeEach(() => {
 });
 
 describe('Home page', () => {
-  it('renders empty state when nothing to do', async () => {
+  it('shows WelcomeCard when no dossiers and onboarding not dismissed', async () => {
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
-
     await waitFor(() => {
-      expect(screen.getByText(/Aucun dossier/)).toBeDefined();
+      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
     });
-    // No zen mode — component shows dossiers section with empty message
-    expect(screen.queryByText('Tout roule')).toBeNull();
-    expect(screen.queryByText(/aucune action requise/)).toBeNull();
   });
 
   it('renders "Suggestions" section when suggestions exist', async () => {
@@ -172,8 +169,8 @@ describe('Home page', () => {
     expect(storeState.fetchSessions).toHaveBeenCalled();
   });
 
-  it('shows empty dossier message with finished sessions only', async () => {
-    storeState.sessions = [makeSession({ status: 'finished' })];
+  it('shows WelcomeCard with finished sessions only and no dossiers', async () => {
+    storeState.sessions = [makeSession({ status: 'finished' as Session['status'] })];
 
     render(
       <MemoryRouter>
@@ -181,11 +178,46 @@ describe('Home page', () => {
       </MemoryRouter>,
     );
 
-    // No zen mode — shows empty dossier list
     await waitFor(() => {
-      expect(screen.getByText(/Aucun dossier/)).toBeDefined();
+      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
     });
-    expect(screen.queryByText('Tout roule')).toBeNull();
-    expect(screen.queryByText(/0 sessions actives/)).toBeNull();
+  });
+
+  it('hides WelcomeCard after dismissal', async () => {
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
+    });
+    fireEvent.click(screen.getByText(/Explore|Explorer/));
+    expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
+  });
+
+  it('does not show WelcomeCard when dossiers exist', async () => {
+    storeState.dossiers = [makeDossier()];
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText('Dossier Acme')).toBeDefined();
+    });
+    expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
+  });
+
+  it('shows contextual empty state text when onboarding dismissed', async () => {
+    localStorage.setItem('opentidy-onboarding-seen', 'true');
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+    await waitFor(() => {
+      expect(screen.getByText(/Your active tasks|Tes tâches en cours/)).toBeDefined();
+    });
   });
 });
