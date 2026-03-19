@@ -139,3 +139,11 @@ export const SkillsConfigSchema = z.object({
 
 export type MarketplaceMcpInput = z.infer<typeof MarketplaceMcpSchema>;
 export type UserSkillInput = z.infer<typeof UserSkillSchema>;
+
+// === Setup schemas ===
+export const SetupUserInfoSchema = z.object({
+  name: z.string().min(1),
+  language: z.enum(['en', 'fr']),
+});
+
+export type SetupUserInfoInput = z.infer<typeof SetupUserInfoSchema>;

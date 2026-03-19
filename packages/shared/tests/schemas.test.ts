@@ -12,6 +12,7 @@ import {
   UserSkillSchema,
   CreateScheduleSchema,
   UpdateScheduleSchema,
+  SetupUserInfoSchema,
 } from '../src/schemas.js';
 
 describe('GmailWebhookSchema', () => {
@@ -286,6 +287,26 @@ describe('UpdateScheduleSchema', () => {
 
   it('rejects invalid intervalMs', () => {
     const result = UpdateScheduleSchema.safeParse({ intervalMs: -100 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('SetupUserInfoSchema', () => {
+  it('accepts valid name and language', () => {
+    const result = SetupUserInfoSchema.safeParse({ name: 'Alice', language: 'en' });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({ name: 'Alice', language: 'en' });
+    }
+  });
+
+  it('rejects empty name', () => {
+    const result = SetupUserInfoSchema.safeParse({ name: '', language: 'en' });
+    expect(result.success).toBe(false);
+  });
+
+  it('rejects invalid language', () => {
+    const result = SetupUserInfoSchema.safeParse({ name: 'Alice', language: 'de' });
     expect(result.success).toBe(false);
   });
 });
