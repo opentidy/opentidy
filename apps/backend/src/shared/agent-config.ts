@@ -3,7 +3,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, symlinkSync } from 'fs';
 import { join, resolve } from 'path';
-import type { OpenTidyConfig, SkillsConfig, GuardrailRule } from '@opentidy/shared';
+import type { OpenTidyConfig, SkillsConfig, GuardrailRule, ModuleManifest, ModuleState, SkillDef } from '@opentidy/shared';
 
 const BASE_PERMISSIONS = [
   'Read', 'Write', 'Edit', 'Glob', 'Grep',
@@ -12,7 +12,7 @@ const BASE_PERMISSIONS = [
   'Bash(curl:*)', 'Bash(python3:*)',
 ];
 
-type McpServerDef = {
+type McpServerEntry = {
   type: 'stdio';
   command: string;
   args: string[];
@@ -25,7 +25,7 @@ type McpServerDef = {
 
 interface ClaudeSettings {
   permissions: { allow: string[]; deny: string[] };
-  mcpServers: Record<string, McpServerDef>;
+  mcpServers: Record<string, McpServerEntry>;
   _regeneratedAt: string;
 }
 
@@ -47,9 +47,12 @@ export function readEnvFile(filePath: string): Record<string, string> {
   }
 }
 
+/**
+ * @deprecated Use generateSettingsFromModules() + regenerateAgentConfig() with modules/manifests params.
+ */
 export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string): ClaudeSettings {
   const allow = [...BASE_PERMISSIONS];
-  const mcpServers: Record<string, McpServerDef> = {};
+  const mcpServers: Record<string, McpServerEntry> = {};
   const mcp = config.mcp;
 
   // Curated: Gmail
@@ -99,17 +102,19 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
   // Marketplace MCPs
   const mcpEnvDir = envDir || join(config.agentConfig?.configDir || '', '..', 'mcp');
   for (const [name, mcpDef] of Object.entries(mcp.marketplace)) {
-    const serverDef: McpServerDef = {
+    let env: Record<string, string> | undefined;
+    if (mcpDef.envFile) {
+      const parsed = readEnvFile(join(mcpEnvDir, mcpDef.envFile));
+      if (Object.keys(parsed).length > 0) {
+        env = parsed;
+      }
+    }
+    const serverDef: McpServerEntry = {
       type: 'stdio',
       command: mcpDef.command,
       args: mcpDef.args,
+      ...(env ? { env } : {}),
     };
-    if (mcpDef.envFile) {
-      const env = readEnvFile(join(mcpEnvDir, mcpDef.envFile));
-      if (Object.keys(env).length > 0) {
-        serverDef.env = env;
-      }
-    }
     mcpServers[name] = serverDef;
     for (const perm of mcpDef.permissions) {
       allow.push(perm);
@@ -121,6 +126,66 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
     mcpServers,
     _regeneratedAt: new Date().toISOString(),
   };
+}
+
+interface ModuleSettingsResult {
+  mcpServers: Record<string, McpServerEntry>;
+  skills: SkillDef[];
+}
+
+export function generateSettingsFromModules(
+  modules: Record<string, ModuleState>,
+  manifests: Map<string, ModuleManifest>,
+): ModuleSettingsResult {
+  const mcpServers: Record<string, McpServerEntry> = {};
+  const skills: SkillDef[] = [];
+  // Track deduplication: key = command + JSON.stringify(args)
+  const seenMcpKeys = new Set<string>();
+
+  for (const [moduleName, moduleState] of Object.entries(modules)) {
+    if (!moduleState.enabled) continue;
+
+    const manifest = manifests.get(moduleName);
+    if (!manifest) continue;
+
+    // Collect MCP servers
+    for (const mcpDef of manifest.mcpServers ?? []) {
+      const dedupKey = `${mcpDef.command}::${JSON.stringify(mcpDef.args)}`;
+      if (seenMcpKeys.has(dedupKey)) {
+        console.log(`[agent-config] Deduplicating MCP "${mcpDef.name}" from module "${moduleName}" (same command+args already registered)`);
+        continue;
+      }
+      seenMcpKeys.add(dedupKey);
+
+      // Resolve env vars from envFromConfig
+      const resolvedEnv: Record<string, string> = { ...(mcpDef.env ?? {}) };
+      if (mcpDef.envFromConfig) {
+        for (const [envVar, configKey] of Object.entries(mcpDef.envFromConfig)) {
+          const configValue = moduleState.config?.[configKey];
+          if (typeof configValue === 'string') {
+            resolvedEnv[envVar] = configValue;
+          } else if (configValue !== undefined) {
+            resolvedEnv[envVar] = String(configValue);
+          }
+        }
+      }
+
+      const entry: McpServerEntry = {
+        type: 'stdio',
+        command: mcpDef.command,
+        args: mcpDef.args,
+        ...(Object.keys(resolvedEnv).length > 0 ? { env: resolvedEnv } : {}),
+      };
+      mcpServers[mcpDef.name] = entry;
+    }
+
+    // Collect skills
+    for (const skill of manifest.skills ?? []) {
+      skills.push(skill);
+    }
+  }
+
+  return { mcpServers, skills };
 }
 
 export function buildMarketplaceGuardrails(config: OpenTidyConfig): GuardrailRule[] {
@@ -183,7 +248,12 @@ export function syncSkills(
   }
 }
 
-export function regenerateAgentConfig(config: OpenTidyConfig, envDir?: string): void {
+export function regenerateAgentConfig(
+  config: OpenTidyConfig,
+  envDir?: string,
+  modules?: Record<string, ModuleState>,
+  manifests?: Map<string, ModuleManifest>,
+): void {
   const configDir = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
   if (!configDir) {
     console.warn('[agent-config] No agent config dir set, skipping regeneration');
@@ -192,15 +262,43 @@ export function regenerateAgentConfig(config: OpenTidyConfig, envDir?: string): 
 
   mkdirSync(configDir, { recursive: true });
 
-  // Generate settings.json
-  const settings = generateClaudeSettings(config, envDir);
-  writeFileSync(join(configDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n');
-  console.log(`[agent-config] Regenerated settings.json (${Object.keys(settings.mcpServers).length} MCP servers)`);
+  let settings: ClaudeSettings;
 
-  // Sync skills
-  const curatedSkillsDir = resolve(import.meta.dirname, '../../config/claude/skills');
-  if (config.skills) {
-    syncSkills(config.skills, configDir, curatedSkillsDir);
-    console.log('[agent-config] Skills synced');
+  if (modules && manifests) {
+    // New path: generate from modules
+    const moduleResult = generateSettingsFromModules(modules, manifests);
+
+    // Always inject the opentidy system MCP
+    const port = config.server?.port || 5175;
+
+    const mcpServers: Record<string, McpServerEntry> = {
+      ...moduleResult.mcpServers,
+      opentidy: {
+        type: 'http',
+        url: `http://localhost:${port}/mcp`,
+      },
+    };
+
+    settings = {
+      permissions: { allow: [...BASE_PERMISSIONS, 'mcp__opentidy__*'], deny: [] },
+      mcpServers,
+      _regeneratedAt: new Date().toISOString(),
+    };
+    console.log(`[agent-config] Regenerated settings.json from modules (${Object.keys(mcpServers).length} MCP servers, ${moduleResult.skills.length} skills)`);
+  } else {
+    // Legacy path: generate from config.mcp / config.skills
+    settings = generateClaudeSettings(config, envDir);
+    console.log(`[agent-config] Regenerated settings.json (${Object.keys(settings.mcpServers).length} MCP servers)`);
+  }
+
+  writeFileSync(join(configDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n');
+
+  // Sync skills (legacy path only — module skills are injected via instructions)
+  if (!modules) {
+    const curatedSkillsDir = resolve(import.meta.dirname, '../../config/claude/skills');
+    if (config.skills) {
+      syncSkills(config.skills, configDir, curatedSkillsDir);
+      console.log('[agent-config] Skills synced');
+    }
   }
 }
