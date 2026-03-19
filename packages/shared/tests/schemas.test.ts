@@ -13,6 +13,9 @@ import {
   CreateScheduleSchema,
   UpdateScheduleSchema,
   SetupUserInfoSchema,
+  ModuleManifestSchema,
+  ModuleStateSchema,
+  ReceiverDefSchema,
 } from '../src/schemas.js';
 
 describe('GmailWebhookSchema', () => {
@@ -308,5 +311,68 @@ describe('SetupUserInfoSchema', () => {
   it('rejects invalid language', () => {
     const result = SetupUserInfoSchema.safeParse({ name: 'Alice', language: 'de' });
     expect(result.success).toBe(false);
+  });
+});
+
+describe('ModuleManifestSchema', () => {
+  it('accepts a valid manifest', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'gmail',
+      label: 'Gmail',
+      description: 'Gmail integration via MCP',
+      version: '1.0.0',
+      mcpServers: [
+        { name: 'gmail', command: 'npx', args: ['@google/gmail-mcp'], permissions: ['mcp__gmail__*'] },
+      ],
+      receivers: [
+        { name: 'gmail-webhook', mode: 'webhook', source: 'gmail' },
+      ],
+      setup: {
+        authCommand: 'npx @google/gmail-mcp auth',
+        configFields: [
+          { key: 'email', label: 'Gmail address', type: 'text', required: true },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects missing name', () => {
+    const result = ModuleManifestSchema.safeParse({
+      label: 'Gmail',
+      description: 'Gmail integration',
+      version: '1.0.0',
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ModuleStateSchema', () => {
+  it('accepts a valid state', () => {
+    const result = ModuleStateSchema.safeParse({
+      enabled: true,
+      source: 'curated',
+      config: { email: 'alice@example.com' },
+      health: 'ok',
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.enabled).toBe(true);
+      expect(result.data.source).toBe('curated');
+      expect(result.data.health).toBe('ok');
+    }
+  });
+});
+
+describe('ReceiverDefSchema', () => {
+  it('accepts all three modes', () => {
+    for (const mode of ['webhook', 'polling', 'long-running'] as const) {
+      const result = ReceiverDefSchema.safeParse({
+        name: `test-${mode}`,
+        mode,
+        source: 'test',
+      });
+      expect(result.success).toBe(true);
+    }
   });
 });

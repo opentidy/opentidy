@@ -147,3 +147,67 @@ export const SetupUserInfoSchema = z.object({
 });
 
 export type SetupUserInfoInput = z.infer<typeof SetupUserInfoSchema>;
+
+// === Module System schemas ===
+export const McpServerDefSchema = z.object({
+  name: z.string().min(1),
+  command: z.string().min(1),
+  args: z.array(z.string()),
+  env: z.record(z.string()).optional(),
+  envFromConfig: z.record(z.string()).optional(),
+  permissions: z.array(z.string()).optional(),
+});
+
+export const SkillDefSchema = z.object({
+  name: z.string().min(1),
+  content: z.string().min(1),
+});
+
+export const ReceiverDefSchema = z.object({
+  name: z.string().min(1),
+  mode: z.enum(['webhook', 'polling', 'long-running']),
+  source: z.string().min(1),
+  pollInterval: z.number().optional(),
+  entry: z.string().optional(),
+  transform: z.string().optional(),
+});
+
+export const ConfigFieldSchema = z.object({
+  key: z.string().min(1),
+  label: z.string().min(1),
+  type: z.enum(['text', 'password', 'select']),
+  required: z.boolean().optional(),
+  placeholder: z.string().optional(),
+  options: z.array(z.string()).optional(),
+});
+
+export const ModuleManifestSchema = z.object({
+  name: z.string().min(1),
+  label: z.string().min(1),
+  description: z.string(),
+  icon: z.string().optional(),
+  version: z.string(),
+  platform: z.enum(['darwin', 'all']).optional(),
+  mcpServers: z.array(McpServerDefSchema).optional(),
+  skills: z.array(SkillDefSchema).optional(),
+  receivers: z.array(ReceiverDefSchema).optional(),
+  setup: z.object({
+    authCommand: z.string().optional(),
+    configFields: z.array(ConfigFieldSchema).optional(),
+  }).optional(),
+});
+
+export const ModuleStateSchema = z.object({
+  enabled: z.boolean(),
+  source: z.enum(['curated', 'custom']),
+  config: z.record(z.unknown()).optional(),
+  health: z.enum(['ok', 'error', 'unknown']).optional(),
+  healthError: z.string().optional(),
+  healthCheckedAt: z.string().optional(),
+});
+
+export const ReceiverEventSchema = z.object({
+  source: z.string(),
+  content: z.string(),
+  metadata: z.record(z.string()),
+});
