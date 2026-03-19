@@ -140,7 +140,11 @@ export type SSEEventType =
   | 'notification:sent'
   | 'schedule:created'
   | 'schedule:fired'
-  | 'schedule:deleted';
+  | 'schedule:deleted'
+  | 'module:enabled'
+  | 'module:disabled'
+  | 'module:error'
+  | 'module:configured';
 
 export interface SSEEvent {
   type: SSEEventType;
@@ -242,18 +246,106 @@ export interface AgentAdapter {
   writeConfig(opts: SetupOpts): void;
 }
 
+// === Module System ===
+export interface ModuleManifest {
+  name: string;
+  label: string;
+  description: string;
+  icon?: string;
+  version: string;
+  platform?: 'darwin' | 'all';
+  mcpServers?: McpServerDef[];
+  skills?: SkillDef[];
+  receivers?: ReceiverDef[];
+  setup?: {
+    authCommand?: string;
+    configFields?: ConfigField[];
+  };
+}
+
+export interface McpServerDef {
+  name: string;
+  command: string;
+  args: string[];
+  env?: Record<string, string>;
+  envFromConfig?: Record<string, string>;
+  permissions?: string[];
+}
+
+export interface SkillDef {
+  name: string;
+  content: string;
+}
+
+export interface ReceiverDef {
+  name: string;
+  mode: 'webhook' | 'polling' | 'long-running';
+  source: string;
+  pollInterval?: number;
+  entry?: string;
+  transform?: string;
+}
+
+export interface ConfigField {
+  key: string;
+  label: string;
+  type: 'text' | 'password' | 'select';
+  required?: boolean;
+  placeholder?: string;
+  options?: string[];
+}
+
+export interface ModuleState {
+  enabled: boolean;
+  source: 'curated' | 'custom';
+  config?: Record<string, unknown>;
+  health?: 'ok' | 'error' | 'unknown';
+  healthError?: string;
+  healthCheckedAt?: string;
+}
+
+export interface ReceiverEvent {
+  source: string;
+  content: string;
+  metadata: Record<string, string>;
+}
+
+export interface ModuleInfo {
+  name: string;
+  label: string;
+  description: string;
+  icon?: string;
+  source: 'curated' | 'custom';
+  enabled: boolean;
+  platform?: string;
+  health?: 'ok' | 'error' | 'unknown';
+  healthError?: string;
+  components: {
+    mcpServers: string[];
+    skills: string[];
+    receivers: string[];
+  };
+  setup?: {
+    needsAuth: boolean;
+    configFields: ConfigField[];
+    configured: boolean;
+  };
+}
+
 // === MCP Service Config ===
+/** @deprecated Use ModuleState */
 export interface McpServiceState {
   enabled: boolean;
   configured: boolean;
 }
 
+/** @deprecated Use ModuleState */
 export interface WhatsAppMcpState extends McpServiceState {
   wacliPath: string;
   mcpServerPath: string;
 }
 
-/** @deprecated Use McpConfigV2 for OpenTidyConfig.mcp */
+/** @deprecated Use ModuleState */
 export interface McpServicesConfig {
   gmail: McpServiceState;
   camoufox: McpServiceState;
@@ -261,6 +353,7 @@ export interface McpServicesConfig {
 }
 
 // === MCP Config V2 (nested curated/marketplace) ===
+/** @deprecated Use ModuleState */
 export interface MarketplaceMcp {
   label: string;
   command: string;
@@ -270,6 +363,7 @@ export interface MarketplaceMcp {
   source: 'registry.modelcontextprotocol.io' | 'custom';
 }
 
+/** @deprecated Use ModuleState */
 export interface McpConfigV2 {
   curated: {
     gmail: McpServiceState;
@@ -281,16 +375,19 @@ export interface McpConfigV2 {
 }
 
 // === Skills Config ===
+/** @deprecated Use ModuleState */
 export interface CuratedSkillState {
   enabled: boolean;
 }
 
+/** @deprecated Use ModuleState */
 export interface UserSkill {
   name: string;
   source: string;
   enabled: boolean;
 }
 
+/** @deprecated Use ModuleState */
 export interface SkillsConfig {
   curated: Record<string, CuratedSkillState>;
   user: UserSkill[];
@@ -303,6 +400,7 @@ export interface UserInfo {
 }
 
 // === Receiver Config ===
+/** @deprecated Use ModuleState */
 export interface ReceiverConfigEntry {
   type: string;
   enabled: boolean;
@@ -312,11 +410,6 @@ export interface ReceiverConfigEntry {
 // === Config ===
 export interface OpenTidyConfig {
   version: number;
-  telegram: {
-    botToken: string;
-    chatId: string;
-    userId?: string;
-  };
   auth: {
     bearerToken: string;
   };
@@ -344,10 +437,8 @@ export interface OpenTidyConfig {
     dir: string;
   };
   language: string; // language for Claude responses (e.g. 'en', 'fr')
-  receivers: ReceiverConfigEntry[];
+  modules: Record<string, ModuleState>;
   userInfo: UserInfo;
-  mcp: McpConfigV2;
-  skills: SkillsConfig;
   github?: {
     token: string;
     owner?: string;  // defaults to 'opentidy'

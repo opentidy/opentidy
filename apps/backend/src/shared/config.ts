@@ -9,8 +9,7 @@ import { getOpenTidyPaths } from './paths.js';
 const openTidyPaths = getOpenTidyPaths();
 
 const DEFAULT_CONFIG: OpenTidyConfig = {
-  version: 2,
-  telegram: { botToken: '', chatId: '', userId: '' },
+  version: 3,
   auth: { bearerToken: '' },
   server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
   workspace: { dir: '', lockDir: openTidyPaths.lockDir },
@@ -25,30 +24,7 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
   claudeConfig: { dir: '' },
   language: 'en',
   userInfo: { name: '', email: '', company: '' },
-  mcp: {
-    curated: {
-      gmail: { enabled: false, configured: false },
-      camoufox: { enabled: false, configured: false },
-      whatsapp: { enabled: false, configured: false, wacliPath: '', mcpServerPath: '' },
-    },
-    marketplace: {},
-  },
-  skills: {
-    curated: {
-      browser: { enabled: true },
-      bitwarden: { enabled: false },
-    },
-    user: [],
-  },
-  receivers: process.platform === 'darwin'
-    ? [
-        { type: 'gmail-webhook', enabled: true },
-        { type: 'imessage', enabled: true },
-        { type: 'apple-mail', enabled: true },
-      ]
-    : [
-        { type: 'gmail-webhook', enabled: true },
-      ],
+  modules: {},
 };
 
 function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record<string, any>): T {
@@ -94,12 +70,25 @@ function migrateV1ToV2(parsed: Record<string, any>): Record<string, any> {
   return parsed;
 }
 
+function migrateV2ToV3(parsed: Record<string, any>): Record<string, any> {
+  if (parsed.version && parsed.version >= 3) return parsed;
+  console.log('[config] Migrating config.json v2 → v3 (module system)');
+  parsed.version = 3;
+  parsed.modules = parsed.modules ?? {};
+  // Old fields will be ignored by deepMerge since they're not in DEFAULT_CONFIG
+  delete parsed.mcp;
+  delete parsed.skills;
+  delete parsed.receivers;
+  delete parsed.telegram;
+  return parsed;
+}
+
 export function loadConfig(configPath?: string): OpenTidyConfig {
   const path = configPath || getConfigPath();
   try {
     const raw = readFileSync(path, 'utf-8');
     const parsed = JSON.parse(raw);
-    const migrated = migrateV1ToV2(parsed);
+    const migrated = migrateV2ToV3(migrateV1ToV2(parsed));
     const config = deepMerge(DEFAULT_CONFIG, migrated);
 
     // Migrate v1 claudeConfig → v2 agentConfig
