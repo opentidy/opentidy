@@ -1,0 +1,15 @@
+{
+  "name": "imessage",
+  "label": "iMessage",
+  "description": "Receive SMS and iMessage messages",
+  "icon": "📱",
+  "version": "1.0.0",
+  "platform": "darwin",
+  "receivers": [{
+    "name": "imessage",
+    "mode": "polling",
+    "source": "sms",
+    "pollInterval": 300000,
+    "entry": "./receiver.ts"
+  }]
+}

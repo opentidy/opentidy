@@ -1,0 +1,15 @@
+{
+  "name": "apple-mail",
+  "label": "Apple Mail",
+  "description": "Receive emails from Apple Mail",
+  "icon": "📮",
+  "version": "1.0.0",
+  "platform": "darwin",
+  "receivers": [{
+    "name": "apple-mail",
+    "mode": "polling",
+    "source": "mail",
+    "pollInterval": 300000,
+    "entry": "./receiver.ts"
+  }]
+}
