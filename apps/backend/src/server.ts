@@ -84,11 +84,10 @@ export interface AppDeps {
     jobManager: {
       createJob(id: string, instruction: string, confirm?: boolean, title?: string): void;
       createJobFromSuggestion(slug: string, instruction?: string): void;
-      ignoreSuggestion(slug: string): void;
       completeJob(id: string): void;
       saveArtifact(id: string, filename: string, buffer: Buffer): void;
     };
-    suggestionsManager: { listSuggestions(): Suggestion[] };
+    suggestionsManager: { listSuggestions(): Suggestion[]; ignoreSuggestion(slug: string): void };
     gapsManager: { listGaps(): Amelioration[]; markResolved(id: number): void; markIgnored(id: number): void };
   };
   launcher: {
@@ -247,9 +246,15 @@ export function createApp(deps?: AppDeps) {
     }
   }
 
-  // Static file serving — production only (when web-dist/ exists)
-  const webDistPath = resolve(import.meta.dirname, '../web-dist');
-  if (existsSync(webDistPath)) {
+  // Static file serving — production only (when web build exists)
+  // Check multiple locations: Homebrew layout, monorepo dev, symlink
+  const webDistCandidates = [
+    resolve(import.meta.dirname, '../web-dist'),       // Homebrew / packaged
+    resolve(import.meta.dirname, '../../web/dist'),    // monorepo: apps/backend/dist → apps/web/dist
+    resolve(import.meta.dirname, '../../../web/dist'), // monorepo: apps/backend/src → apps/web/dist
+  ];
+  const webDistPath = webDistCandidates.find((p) => existsSync(p));
+  if (webDistPath) {
     app.use('/*', serveStatic({ root: webDistPath }));
     // SPA fallback — serve index.html for non-API routes
     app.get('*', serveStatic({ root: webDistPath, path: 'index.html' }));
