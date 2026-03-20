@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import fs from 'fs';
 import { createClaudeAdapter } from './claude.js';
-import type { GuardrailRule, McpServicesConfig } from './types.js';
+import type { McpServicesConfig, ModuleManifest, PermissionConfig } from '@opentidy/shared';
 
 vi.mock('fs');
 
@@ -63,30 +63,37 @@ describe('createClaudeAdapter', () => {
       expect(args).toContain('text');
     });
 
-    it('builds autonomous args with resume and skipPermissions', () => {
+    it('builds autonomous args with resume', () => {
       const args = adapter.buildArgs({
         mode: 'autonomous',
         cwd: '/workspace/job-1',
         instruction: 'Work on this',
         resumeSessionId: 'session-abc',
-        skipPermissions: true,
       });
       expect(args).toContain('-p');
-      expect(args).toContain('--dangerously-skip-permissions');
       expect(args).toContain('--resume');
       expect(args).toContain('session-abc');
+    });
+
+    it('does not include --dangerously-skip-permissions in args', () => {
+      const oneShotArgs = adapter.buildArgs({ mode: 'one-shot', cwd: '/workspace', instruction: 'test' });
+      expect(oneShotArgs).not.toContain('--dangerously-skip-permissions');
+
+      const autonomousArgs = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace/job-1', instruction: 'Work on this' });
+      expect(autonomousArgs).not.toContain('--dangerously-skip-permissions');
+
+      const interactiveArgs = adapter.buildArgs({ mode: 'interactive', cwd: '/workspace/job-1' });
+      expect(interactiveArgs).not.toContain('--dangerously-skip-permissions');
     });
 
     it('builds interactive args without -p', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
         cwd: '/workspace/job-1',
-        skipPermissions: true,
         resumeSessionId: 'session-abc',
         pluginDir: '/plugins/opentidy-hooks',
       });
       expect(args).not.toContain('-p');
-      expect(args).toContain('--dangerously-skip-permissions');
       expect(args).toContain('--resume');
       expect(args).toContain('session-abc');
       expect(args).toContain('--plugin-dir');
@@ -97,13 +104,13 @@ describe('createClaudeAdapter', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
         cwd: '/workspace/job-1',
-        skipPermissions: true,
       });
-      expect(args).toContain('--dangerously-skip-permissions');
       expect(args).not.toContain('-p');
-      // No instruction appended
-      const lastArg = args[args.length - 1];
-      expect(lastArg).not.toMatch(/^[A-Z]/);
+      // No instruction appended — args may be empty or last arg is not a sentence
+      if (args.length > 0) {
+        const lastArg = args[args.length - 1];
+        expect(lastArg).not.toMatch(/^[A-Z][a-z]/);
+      }
     });
 
     it('includes --strict-mcp-config only for one-shot mode', () => {
@@ -116,15 +123,6 @@ describe('createClaudeAdapter', () => {
 
       const autonomous = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace' });
       expect(autonomous).not.toContain('--strict-mcp-config');
-    });
-
-    it('does not add --dangerously-skip-permissions when skipPermissions is false', () => {
-      const args = adapter.buildArgs({
-        mode: 'one-shot',
-        cwd: '/workspace',
-        instruction: 'test',
-      });
-      expect(args).not.toContain('--dangerously-skip-permissions');
     });
   });
 
@@ -141,23 +139,37 @@ describe('createClaudeAdapter', () => {
 
   describe('writeConfig', () => {
     beforeEach(() => {
-      vi.mocked(fs.mkdirSync).mockImplementation(() => undefined as any);
-      vi.mocked(fs.writeFileSync).mockImplementation(() => {});
+      vi.mocked(fs.mkdirSync).mockReset().mockImplementation(() => undefined as any);
+      vi.mocked(fs.writeFileSync).mockReset().mockImplementation(() => {});
     });
 
-    it('translates guardrails to Claude-native hooks.json format', () => {
-      const guardrails: GuardrailRule[] = [
-        { event: 'pre-tool', type: 'prompt', match: 'mcp__gmail__send', prompt: 'Check email' },
-        { event: 'pre-tool', type: 'prompt', match: 'mcp__camofox__click', prompt: 'Check click' },
-        { event: 'post-tool', type: 'http', match: 'mcp__gmail__', url: 'http://localhost:5174/api/hooks' },
-        { event: 'stop', type: 'command', match: '*', command: 'echo stop' },
-        { event: 'session-end', type: 'http', match: '*', url: 'http://localhost:5174/api/hooks' },
-      ];
+    function makeManifest(name: string, safe: string[], critical: string[]): ModuleManifest {
+      return {
+        name,
+        label: name,
+        description: name,
+        version: '1.0.0',
+        toolPermissions: { scope: 'per-call', safe, critical },
+      };
+    }
+
+    const permissionConfig: PermissionConfig = {
+      preset: 'supervised',
+      defaultLevel: 'confirm',
+      modules: {},
+    };
+
+    it('generates PreToolUse command hook when confirm tools exist', () => {
+      const manifests = new Map<string, ModuleManifest>([
+        ['gmail', makeManifest('gmail', [], ['mcp__gmail__send'])],
+      ]);
 
       adapter.writeConfig({
-        guardrails,
+        permissionConfig,
+        manifests,
         mcpServices: {} as McpServicesConfig,
         configDir: '/fake/config/dir',
+        serverPort: 5174,
       });
 
       expect(fs.mkdirSync).toHaveBeenCalledWith('/fake/config/dir/hooks', { recursive: true });
@@ -167,16 +179,79 @@ describe('createClaudeAdapter', () => {
       expect(writeCall).toBeDefined();
 
       const written = JSON.parse(writeCall![1] as string);
-      expect(written.hooks.PreToolUse).toHaveLength(2);
-      expect(written.hooks.PreToolUse[0].matcher).toBe('mcp__gmail__send');
-      expect(written.hooks.PreToolUse[0].hooks[0].type).toBe('prompt');
+      expect(written.hooks.PreToolUse).toHaveLength(1);
+      expect(written.hooks.PreToolUse[0].matcher).toContain('mcp__gmail__send');
+      expect(written.hooks.PreToolUse[0].hooks[0].type).toBe('command');
+      expect(written.hooks.PreToolUse[0].hooks[0].command).toContain('/api/permissions/check');
+      expect(written.hooks.PreToolUse[0].hooks[0].timeout).toBe(3600000);
+    });
+
+    it('omits PreToolUse when no confirm tools exist (all allow)', () => {
+      const allowConfig: PermissionConfig = {
+        preset: 'autonomous',
+        defaultLevel: 'allow',
+        modules: {},
+      };
+      const manifests = new Map<string, ModuleManifest>([
+        ['gmail', makeManifest('gmail', ['mcp__gmail__read'], ['mcp__gmail__send'])],
+      ]);
+
+      adapter.writeConfig({
+        permissionConfig: allowConfig,
+        manifests,
+        mcpServices: {} as McpServicesConfig,
+        configDir: '/fake/config/dir',
+        serverPort: 5174,
+      });
+
+      const writeCall = vi.mocked(fs.writeFileSync).mock.calls.find(
+        c => String(c[0]).endsWith('hooks.json'),
+      );
+      expect(writeCall).toBeDefined();
+      const written = JSON.parse(writeCall![1] as string);
+      expect(written.hooks.PreToolUse).toBeUndefined();
+    });
+
+    it('always generates PostToolUse, Stop, and SessionEnd lifecycle hooks', () => {
+      const manifests = new Map<string, ModuleManifest>();
+
+      adapter.writeConfig({
+        permissionConfig,
+        manifests,
+        mcpServices: {} as McpServicesConfig,
+        configDir: '/fake/config/dir',
+        serverPort: 5174,
+      });
+
+      const writeCall = vi.mocked(fs.writeFileSync).mock.calls.find(
+        c => String(c[0]).endsWith('hooks.json'),
+      );
+      const written = JSON.parse(writeCall![1] as string);
+
       expect(written.hooks.PostToolUse).toHaveLength(1);
-      expect(written.hooks.PostToolUse[0].matcher).toBe('mcp__gmail__');
+      expect(written.hooks.PostToolUse[0].hooks[0].command).toContain('/api/hooks');
       expect(written.hooks.Stop).toHaveLength(1);
-      expect(written.hooks.Stop[0].matcher).toBeUndefined();
-      expect(written.hooks.Stop[0].hooks[0].type).toBe('command');
+      expect(written.hooks.Stop[0].hooks[0].command).toContain('/api/hooks');
       expect(written.hooks.SessionEnd).toHaveLength(1);
-      expect(written.hooks.SessionEnd[0].hooks[0].type).toBe('http');
+      expect(written.hooks.SessionEnd[0].hooks[0].command).toContain('/api/hooks');
+    });
+
+    it('uses the configured serverPort in hook URLs', () => {
+      const manifests = new Map<string, ModuleManifest>();
+
+      adapter.writeConfig({
+        permissionConfig,
+        manifests,
+        mcpServices: {} as McpServicesConfig,
+        configDir: '/fake/config/dir',
+        serverPort: 9999,
+      });
+
+      const writeCall = vi.mocked(fs.writeFileSync).mock.calls.find(
+        c => String(c[0]).endsWith('hooks.json'),
+      );
+      const written = JSON.parse(writeCall![1] as string);
+      expect(written.hooks.Stop[0].hooks[0].command).toContain('localhost:9999');
     });
   });
 });

@@ -3,7 +3,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { AgentAdapter, SpawnOpts, SetupOpts } from './types.js';
+import type { AgentAdapter, SpawnOpts, SetupOpts } from '@opentidy/shared';
+import { createPermissionResolver } from '../../features/permissions/resolver.js';
 
 export function createClaudeAdapter(configDir: string): AgentAdapter {
   return {
@@ -25,10 +26,6 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
 
       if (opts.mode === 'one-shot' || opts.mode === 'autonomous') {
         args.push('-p');
-      }
-
-      if (opts.skipPermissions) {
-        args.push('--dangerously-skip-permissions');
       }
 
       if (opts.systemPrompt) {
@@ -74,39 +71,42 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
     },
 
     writeConfig(opts: SetupOpts): void {
-      const EVENT_MAP: Record<string, string> = {
-        'pre-tool': 'PreToolUse',
-        'post-tool': 'PostToolUse',
-        'stop': 'Stop',
-        'session-end': 'SessionEnd',
-      };
+      const resolver = createPermissionResolver(opts.manifests, opts.permissionConfig);
+      const confirmMatcher = resolver.getConfirmMatcher();
 
-      // Claude hooks.json format: { hooks: { EventName: [{ matcher?, hooks: [{ type, ... }] }] } }
-      const hooksConfig: Record<string, { matcher?: string; hooks: Record<string, unknown>[] }[]> = {};
+      const hooksConfig: Record<string, unknown[]> = {};
 
-      for (const rule of opts.guardrails) {
-        const eventName = EVENT_MAP[rule.event];
-        if (!eventName) continue;
-        if (!hooksConfig[eventName]) hooksConfig[eventName] = [];
-
-        const matcher = typeof rule.match === 'string' ? rule.match : rule.match.tool;
-        const hookEntry: Record<string, unknown> = { type: rule.type };
-
-        if (rule.type === 'prompt') {
-          hookEntry.prompt = rule.prompt;
-        } else if (rule.type === 'command') {
-          hookEntry.command = rule.command;
-        } else if (rule.type === 'http') {
-          hookEntry.url = rule.url;
-        }
-
-        // Group by matcher — Stop/SessionEnd have no matcher (match: "*")
-        if (matcher === '*') {
-          hooksConfig[eventName].push({ hooks: [hookEntry] });
-        } else {
-          hooksConfig[eventName].push({ matcher, hooks: [hookEntry] });
-        }
+      if (confirmMatcher) {
+        hooksConfig['PreToolUse'] = [{
+          matcher: confirmMatcher,
+          hooks: [{
+            type: 'command',
+            command: `curl -s -X POST http://localhost:${opts.serverPort}/api/permissions/check -H 'Content-Type: application/json' -d @-`,
+            timeout: 3600000,
+          }],
+        }];
       }
+
+      hooksConfig['PostToolUse'] = [{
+        hooks: [{
+          type: 'command',
+          command: `curl -s -X POST http://localhost:${opts.serverPort}/api/hooks -H 'Content-Type: application/json' -d @-`,
+        }],
+      }];
+
+      hooksConfig['Stop'] = [{
+        hooks: [{
+          type: 'command',
+          command: `curl -s -X POST http://localhost:${opts.serverPort}/api/hooks -H 'Content-Type: application/json' -d @-`,
+        }],
+      }];
+
+      hooksConfig['SessionEnd'] = [{
+        hooks: [{
+          type: 'command',
+          command: `curl -s -X POST http://localhost:${opts.serverPort}/api/hooks -H 'Content-Type: application/json' -d @-`,
+        }],
+      }];
 
       const hooksDir = path.join(opts.configDir, 'hooks');
       fs.mkdirSync(hooksDir, { recursive: true });
