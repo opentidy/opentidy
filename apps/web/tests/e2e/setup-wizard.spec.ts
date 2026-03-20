@@ -90,4 +90,111 @@ test.describe('Setup Wizard', () => {
 
     expect(page.url()).not.toContain('/setup');
   });
+
+  test('wizard shows modules step after permissions', async ({ page }) => {
+    await page.route('**/api/setup/status', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ setupComplete: false }),
+      }),
+    );
+
+    await page.route('**/api/setup/user-info', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      }),
+    );
+
+    await page.route('**/api/setup/agents', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { name: 'claude', label: 'Claude Code', badge: 'stable', installed: true, authed: true },
+          { name: 'gemini', label: 'Gemini CLI', badge: 'experimental', installed: false, authed: false },
+          { name: 'copilot', label: 'GitHub Copilot CLI', badge: 'coming-soon', installed: false, authed: false },
+        ]),
+      }),
+    );
+
+    await page.route('**/api/setup/permissions', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify([
+          { name: 'accessibility', label: 'Accessibility', app: 'System Events', required: true, granted: true },
+          { name: 'contacts', label: 'Contacts', app: 'Contacts', required: false, granted: true },
+        ]),
+      }),
+    );
+
+    await page.route('**/api/modules', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          modules: [
+            {
+              name: 'gmail',
+              label: 'Gmail',
+              description: 'Read, search, and draft emails via Gmail',
+              icon: '📧',
+              source: 'curated',
+              enabled: true,
+              components: { mcpServers: ['gmail'], skills: [], receivers: ['gmail-webhook'] },
+              setup: { needsAuth: true, configFields: [], configured: true },
+            },
+            {
+              name: 'telegram',
+              label: 'Telegram',
+              description: 'Send notifications via Telegram bot',
+              icon: '📨',
+              source: 'curated',
+              enabled: false,
+              components: { mcpServers: ['telegram'], skills: [], receivers: [] },
+              setup: { needsAuth: false, configFields: [], configured: false },
+            },
+          ],
+        }),
+      }),
+    );
+
+    await page.route('**/api/setup/complete', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ ok: true }),
+      }),
+    );
+
+    // Also mock app routes needed after setup completes
+    await setupMockApi(page);
+
+    await page.goto('/setup');
+
+    // Step 1: fill user info
+    await page.getByPlaceholder('Alice').fill('Test User');
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    // Step 2: agent step — claude is already connected, Continue is enabled
+    await expect(page.getByText('Claude Code')).toBeVisible();
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    // Step 3: permissions step — all granted, Continue available
+    await expect(page.getByText('Accessibility')).toBeVisible();
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    // Step 4: modules step
+    await expect(page.getByText('Gmail')).toBeVisible();
+    await expect(page.getByText('Telegram')).toBeVisible();
+
+    // Continue to done step
+    await page.getByRole('button', { name: 'Continue' }).click();
+
+    // Done step
+    await expect(page.getByText('OpenTidy is ready!')).toBeVisible();
+  });
 });
