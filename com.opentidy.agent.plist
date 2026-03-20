@@ -22,7 +22,7 @@
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>PATH</key>
-		<string>/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<string>__HOME__/.nvm/versions/node/v22/bin:__HOME__/.local/share/fnm/aliases/default/bin:__HOME__/.volta/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
 		<key>NODE_ENV</key>
 		<string>production</string>
 	</dict>

@@ -5,6 +5,23 @@ import { execFileSync } from 'child_process';
 import { ask, info, success, warn } from './utils.js';
 
 export async function setupPermissions(): Promise<void> {
+  if (process.platform !== 'darwin') {
+    console.log('');
+    info('Permissions setup is only needed on macOS. Skipping.');
+    console.log('');
+    return;
+  }
+
+  // Detect headless/SSH — AppleScript requires a GUI session
+  const isSSH = !!process.env.SSH_CLIENT || !!process.env.SSH_TTY;
+  if (isSSH) {
+    console.log('');
+    warn('SSH session detected — macOS permission prompts require a local GUI session.');
+    info('Run "opentidy setup permissions" locally on the Mac to grant permissions.');
+    console.log('');
+    return;
+  }
+
   console.log('');
   console.log('  ┌─────────────────────────────────────┐');
   console.log('  │  macOS Permissions                   │');
@@ -59,7 +76,7 @@ export async function setupPermissions(): Promise<void> {
   info('  1. System Settings > Privacy & Security > Full Disk Access');
   info('  2. Click +');
   info('  3. Add the terminal you use (Terminal.app or iTerm)');
-  info('  4. If OpenTidy runs via launchd, also add /opt/homebrew/bin/node');
+  info('  4. If OpenTidy runs via launchd, also add the node binary used by OpenTidy');
   console.log('');
   const openFda = await ask('  Open Full Disk Access settings? (Y/n) ');
   if (openFda.toLowerCase() !== 'n') {
