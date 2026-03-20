@@ -31,12 +31,14 @@
     "memory": "Mémoire",
     "new": "Nouveau",
     "schedule": "Agenda",
-    "toolbox": "Outils"
+    "suggestions": "Suggestions",
+    "toolbox": "Outils",
+    "sectionAgent": "Agent"
   },
   "home": {
     "waitingForYou": "En attente de toi",
-    "dossier_one": "{{count}} dossier",
-    "dossier_other": "{{count}} dossiers",
+    "job_one": "{{count}} job",
+    "job_other": "{{count}} jobs",
     "claudeWaiting": "Claude attend ta réponse",
     "thirdPartyWait": "Attente tiers",
     "userWait": "Attente utilisateur",
@@ -44,11 +46,11 @@
     "suggestions": "Suggestions",
     "new_one": "{{count}} nouvelle",
     "new_other": "{{count}} nouvelles",
-    "dossiers": "Dossiers",
+    "jobs": "Jobs",
     "active": "Actifs",
     "completed": "Terminés",
     "search": "Rechercher...",
-    "noDossiers": "Aucun dossier {{filter}}",
+    "noJobs": "Aucun job {{filter}}",
     "checkupRunning": "Checkup en cours...",
     "checkupResult": "Checkup {{time}} — {{result}}",
     "checkupOk": "OK",
@@ -56,14 +58,14 @@
     "nextAt": "Prochain à {{time}}",
     "nextCheckup": "Prochain checkup à {{time}}",
     "checkupWaiting": "Checkup — en attente",
-    "deleteConfirm": "Tout supprimer ? Sessions, dossiers, locks — fresh start.",
+    "deleteConfirm": "Tout supprimer ? Sessions, jobs, locks — fresh start.",
     "launchTestConfirm": "Lancer toutes les tâches de test ?",
     "runCheckup": "Lancer checkup",
-    "newDossier": "+ Nouveau dossier"
+    "newJob": "+ Nouveau job"
   },
   "nouveau": {
-    "title": "Nouveau dossier",
-    "description": "Décris ce que tu veux. L'assistant crée le dossier et commence.",
+    "title": "Nouveau job",
+    "description": "Décris ce que tu veux. L'assistant crée le job et commence.",
     "placeholder": "Ex: Mets le bureau en vente sur 2ememain, prix 300€...",
     "confirmMode": "Me demander avant d'agir",
     "confirmModeHelp": "Activé : l'assistant te demande avant d'envoyer un email, passer un appel, ou agir auprès d'un tiers. Recommandé pour commencer.",
@@ -78,17 +80,17 @@
     "exampleDoctorFull": "Trouve un créneau chez un médecin généraliste cette semaine, de préférence le matin. Quartier centre-ville. Prends le rendez-vous si possible.",
     "tryExample": "Essaie par exemple :"
   },
-  "dossierDetail": {
+  "jobDetail": {
     "stop": "Stopper",
     "complete": "Terminer",
     "completeConfirm": "Terminer \"{{title}}\" ?",
     "state": "État",
     "log": "Journal",
     "noActiveSession": "Pas de session active",
-    "dossierCompleted": "Ce dossier est terminé. Rouvre-le pour lancer une session.",
-    "reopenDossier": "Rouvrir le dossier",
+    "jobCompleted": "Ce job est terminé. Rouvre-le pour lancer une session.",
+    "reopenJob": "Rouvrir le job",
     "startSession": "Démarrer une session",
-    "notFound": "Dossier introuvable"
+    "notFound": "Job introuvable"
   },
   "ameliorations": {
     "title": "Améliorations",
@@ -111,11 +113,11 @@
   },
   "suggestion": {
     "viewOriginal": "Voir le message original",
-    "createDossier": "Créer le dossier",
+    "createJob": "Créer le job",
     "ignore": "Ignorer"
   },
   "instruction": {
-    "placeholder": "Donner une instruction à ce dossier...",
+    "placeholder": "Donner une instruction à ce job...",
     "confirmMode": "Me demander avant d'agir"
   },
   "sidebar": {
@@ -190,8 +192,8 @@
     "emptyWaitingUser": "Quand l'assistant a besoin de ton avis, les tâches apparaissent ici.",
     "emptyWaitingTiers": "Les tâches en attente d'un tiers (réponse email, rappel...) s'affichent ici.",
     "emptySuggestions": "L'assistant surveille tes emails et messages. Les nouvelles tâches détectées apparaîtront ici.",
-    "emptyDossiers": "Tes tâches en cours apparaîtront ici.",
-    "emptyCreateCta": "Crée ta première tâche",
+    "emptyJobs": "Tes tâches en cours apparaîtront ici.",
+    "emptyCreateCta": "Crée ton premier job",
     "postCreationBanner": "L'assistant travaille sur ta tâche. Tu peux suivre sa progression ici. Il t'enverra une notification Telegram quand il aura besoin de toi.",
     "navLockedProcesses": "Visible quand des tâches sont en cours",
     "navLockedAmeliorations": "S'affiche après quelques jours d'utilisation",
@@ -242,8 +244,8 @@
     "dangerZone": "Zone de danger",
     "dangerZoneDesc": "Actions irréversibles. À manipuler avec précaution.",
     "resetTitle": "Réinitialiser toutes les données",
-    "resetDesc": "Supprimer tous les dossiers, sessions, suggestions, gaps et mémoire. Cette action est irréversible.",
-    "resetConfirm": "Es-tu sûr ? Cela supprimera TOUTES les données (dossiers, sessions, mémoire). Cette action est irréversible.",
+    "resetDesc": "Supprimer tous les jobs, sessions, suggestions, gaps et mémoire. Cette action est irréversible.",
+    "resetConfirm": "Es-tu sûr ? Cela supprimera TOUTES les données (jobs, sessions, mémoire). Cette action est irréversible.",
     "resetButton": "Tout réinitialiser",
     "resetting": "Réinitialisation..."
   },
@@ -258,7 +260,7 @@
     "recurring": "Récurrent",
     "dateTime": "Date et heure",
     "interval": "Intervalle (minutes)",
-    "dossier": "Dossier (optionnel)",
+    "job": "Job (optionnel)",
     "instruction": "Instruction (optionnel)",
     "system": "Système",
     "noSchedules": "Aucun événement planifié"
@@ -297,8 +299,16 @@
       "close": "Fermer"
     }
   },
+  "modules": {
+    "configure": "Configurer",
+    "configureTitle": "Configurer {{label}}",
+    "remove": "Supprimer",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "connect": "Connecter"
+  },
   "helpTooltip": {
-    "dossier": "Une tâche administrative que l'assistant gère pour toi, de A à Z.",
+    "job": "Une tâche que l'assistant gère pour toi, de A à Z.",
     "waitingUser": "L'assistant est bloqué et a besoin de ta réponse pour continuer.",
     "suggestion": "Une tâche détectée automatiquement dans tes emails ou messages.",
     "amelioration": "Un point que l'assistant a identifié pour mieux te servir à l'avenir."
