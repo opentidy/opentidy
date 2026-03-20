@@ -55,8 +55,9 @@ export function checkConfig(configPath: string): CheckResult {
     return { ok: false, name: 'config', detail: `${configPath} not found — run opentidy setup` };
   }
   const config = loadConfig(configPath);
-  if (!config.telegram.botToken) {
-    return { ok: false, name: 'config', detail: 'telegram.botToken is empty' };
+  const telegramToken = (config.modules?.telegram?.config?.botToken as string) || '';
+  if (!telegramToken) {
+    return { ok: false, name: 'config', detail: 'telegram.botToken is empty — configure Telegram module' };
   }
   return { ok: true, name: 'config', detail: configPath };
 }

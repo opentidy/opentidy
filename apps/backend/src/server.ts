@@ -8,17 +8,17 @@ import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { createAuthMiddleware } from './shared/auth.js';
 import { ZodError } from 'zod';
-import type { Dossier, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
-// Dossier routes
-import { listDossiersRoute } from './features/dossiers/list.js';
-import { getDossierRoute } from './features/dossiers/get.js';
-import { createDossierRoute } from './features/dossiers/create.js';
-import { instructDossierRoute } from './features/dossiers/instruct.js';
-import { completeDossierRoute } from './features/dossiers/complete.js';
-import { resumeDossierRoute } from './features/dossiers/resume.js';
-import { waitingTypeDossierRoute } from './features/dossiers/waiting-type.js';
-import { uploadDossierRoute } from './features/dossiers/upload.js';
-import { downloadDossierRoute } from './features/dossiers/download.js';
+import type { Job, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
+// Job routes
+import { listJobsRoute } from './features/jobs/list.js';
+import { getJobRoute } from './features/jobs/get.js';
+import { createJobRoute } from './features/jobs/create.js';
+import { instructJobRoute } from './features/jobs/instruct.js';
+import { completeJobRoute } from './features/jobs/complete.js';
+import { resumeJobRoute } from './features/jobs/resume.js';
+import { waitingTypeJobRoute } from './features/jobs/waiting-type.js';
+import { uploadJobRoute } from './features/jobs/upload.js';
+import { downloadJobRoute } from './features/jobs/download.js';
 // Session routes
 import { listSessionsRoute } from './features/sessions/list.js';
 import { stopSessionRoute } from './features/sessions/stop.js';
@@ -55,19 +55,17 @@ import { checkupTriggerRoute } from './features/checkup/trigger.js';
 // Scheduler routes
 import { schedulerRoutes, type SchedulerRouteDeps } from './features/scheduler/routes.js';
 import type { Scheduler } from './features/scheduler/scheduler.js';
-// MCP routes
-import { listMcpRoute, type McpDeps } from './features/mcp/list.js';
-import { toggleMcpRoute } from './features/mcp/toggle.js';
-import { addMcpRoute } from './features/mcp/add.js';
-import { removeMcpRoute } from './features/mcp/remove.js';
-import { registrySearchRoute } from './features/mcp/registry.js';
-import { setupWizardRoute } from './features/mcp/setup-wizard.js';
-import { agentsRoute } from './features/mcp/agents.js';
-// Skills routes
-import { listSkillsRoute, type SkillsDeps } from './features/skills/list.js';
-import { toggleSkillRoute } from './features/skills/toggle.js';
-import { addSkillRoute } from './features/skills/add.js';
-import { removeSkillRoute } from './features/skills/remove.js';
+// Module routes
+import { listModulesRoute } from './features/modules/list.js';
+import { enableModuleRoute } from './features/modules/enable.js';
+import { disableModuleRoute } from './features/modules/disable.js';
+import { configureModuleRoute } from './features/modules/configure.js';
+import { addModuleRoute } from './features/modules/add.js';
+import { removeModuleRoute } from './features/modules/remove.js';
+import { moduleHealthRoute } from './features/modules/health.js';
+import { webhookRoute } from './features/modules/webhook.js';
+import type { ModuleRouteDeps } from './features/modules/types.js';
+import type { WebhookDeps } from './features/modules/webhook.js';
 // Setup routes
 import { setupStatusRoute, type SetupDeps } from './features/setup/status.js';
 import { setupUserInfoRoute, type UserInfoDeps } from './features/setup/user-info.js';
@@ -81,13 +79,13 @@ interface SSEClient {
 
 export interface AppDeps {
   workspace: {
-    listDossierIds: (dir: string) => string[];
-    getDossier: (dir: string, id: string) => Dossier;
-    dossierManager: {
-      createDossier(id: string, instruction: string, confirm?: boolean, title?: string): void;
-      createDossierFromSuggestion(slug: string, instruction?: string): void;
+    listJobIds: (dir: string) => string[];
+    getJob: (dir: string, id: string) => Job;
+    jobManager: {
+      createJob(id: string, instruction: string, confirm?: boolean, title?: string): void;
+      createJobFromSuggestion(slug: string, instruction?: string): void;
       ignoreSuggestion(slug: string): void;
-      completeDossier(id: string): void;
+      completeJob(id: string): void;
       saveArtifact(id: string, filename: string, buffer: Buffer): void;
     };
     suggestionsManager: { listSuggestions(): Suggestion[] };
@@ -130,8 +128,8 @@ export interface AppDeps {
   version?: string;
   scheduler?: Scheduler;
   mcpServer?: { handleRequest(request: Request): Promise<Response> };
-  mcpConfig?: McpDeps;
-  skillsConfig?: SkillsDeps;
+  moduleDeps?: ModuleRouteDeps;
+  webhookDeps?: WebhookDeps;
   setupDeps?: SetupDeps;
   agentSetupDeps?: AgentSetupDeps;
   configFns?: {
@@ -181,15 +179,15 @@ export function createApp(deps?: AppDeps) {
 
   if (deps) {
     // Mount route modules under /api prefix
-    app.route('/api', listDossiersRoute(deps));
-    app.route('/api', getDossierRoute(deps));
-    app.route('/api', createDossierRoute(deps));
-    app.route('/api', instructDossierRoute(deps));
-    app.route('/api', completeDossierRoute(deps));
-    app.route('/api', resumeDossierRoute(deps));
-    app.route('/api', waitingTypeDossierRoute(deps));
-    app.route('/api', uploadDossierRoute(deps));
-    app.route('/api', downloadDossierRoute(deps));
+    app.route('/api', listJobsRoute(deps));
+    app.route('/api', getJobRoute(deps));
+    app.route('/api', createJobRoute(deps));
+    app.route('/api', instructJobRoute(deps));
+    app.route('/api', completeJobRoute(deps));
+    app.route('/api', resumeJobRoute(deps));
+    app.route('/api', waitingTypeJobRoute(deps));
+    app.route('/api', uploadJobRoute(deps));
+    app.route('/api', downloadJobRoute(deps));
     app.route('/api', listSessionsRoute(deps));
     app.route('/api', stopSessionRoute(deps));
     app.route('/api', listMemoryRoute(deps));
@@ -222,22 +220,18 @@ export function createApp(deps?: AppDeps) {
     if (deps.scheduler) {
       app.route('/api', schedulerRoutes({ scheduler: deps.scheduler }));
     }
-    // MCP management routes
-    if (deps.mcpConfig) {
-      app.route('/api', listMcpRoute(deps.mcpConfig));
-      app.route('/api', toggleMcpRoute(deps.mcpConfig));
-      app.route('/api', addMcpRoute(deps.mcpConfig));
-      app.route('/api', removeMcpRoute(deps.mcpConfig));
-      app.route('/api', registrySearchRoute(deps.mcpConfig));
-      app.route('/api', setupWizardRoute(deps.mcpConfig));
-      app.route('/api', agentsRoute(deps.mcpConfig));
+    // Module routes
+    if (deps.moduleDeps) {
+      app.route('/api', listModulesRoute(deps.moduleDeps));
+      app.route('/api', enableModuleRoute(deps.moduleDeps));
+      app.route('/api', disableModuleRoute(deps.moduleDeps));
+      app.route('/api', configureModuleRoute(deps.moduleDeps));
+      app.route('/api', addModuleRoute(deps.moduleDeps));
+      app.route('/api', removeModuleRoute(deps.moduleDeps));
+      app.route('/api', moduleHealthRoute(deps.moduleDeps));
     }
-    // Skills management routes
-    if (deps.skillsConfig) {
-      app.route('/api', listSkillsRoute(deps.skillsConfig));
-      app.route('/api', toggleSkillRoute(deps.skillsConfig));
-      app.route('/api', addSkillRoute(deps.skillsConfig));
-      app.route('/api', removeSkillRoute(deps.skillsConfig));
+    if (deps.webhookDeps) {
+      app.route('/api', webhookRoute(deps.webhookDeps));
     }
     // Setup routes
     if (deps.setupDeps) {

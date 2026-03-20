@@ -40,16 +40,16 @@ export function setupStatusRoute(deps: SetupDeps) {
       },
       services: {
         telegram: {
-          status: config.telegram?.botToken ? 'connected' : 'not_configured',
+          status: config.modules?.telegram?.config?.botToken ? 'connected' : 'not_configured',
         },
         gmail: {
-          status: config.mcp?.curated?.gmail?.configured ? 'connected' : 'not_configured',
+          status: config.modules?.gmail?.enabled ? 'connected' : 'not_configured',
         },
         whatsapp: {
-          status: config.mcp?.curated?.whatsapp?.configured ? 'connected' : 'not_configured',
+          status: config.modules?.whatsapp?.enabled ? 'connected' : 'not_configured',
         },
         camoufox: {
-          status: config.mcp?.curated?.camoufox?.configured ? 'connected' : 'not_configured',
+          status: config.modules?.camoufox?.enabled ? 'connected' : 'not_configured',
         },
       },
     };

@@ -24,7 +24,7 @@ export async function setupGmail(): Promise<void> {
   info('Uses OAuth — no API keys needed.');
   console.log('');
 
-  if (config.mcp.curated.gmail.configured) {
+  if (config.modules?.gmail?.enabled) {
     success('Gmail already configured.');
     const reconfigure = await ask('  Reconfigure? (y/N) ');
     if (reconfigure.toLowerCase() !== 'y') return;
@@ -61,8 +61,8 @@ export async function setupGmail(): Promise<void> {
     }
   }
 
-  config.mcp.curated.gmail.enabled = true;
-  config.mcp.curated.gmail.configured = true;
+  if (!config.modules.gmail) config.modules.gmail = { enabled: false, source: 'curated' };
+  config.modules.gmail.enabled = true;
   saveConfig(configPath, config);
   success('Gmail configured.');
 }

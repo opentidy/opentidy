@@ -48,9 +48,9 @@ export function getModuleStatuses(): ModuleStatus[] {
     {
       name: 'Telegram',
       key: 'telegram',
-      done: !!(config?.telegram.botToken && config?.telegram.chatId),
-      detail: config?.telegram.botToken
-        ? `Bot: ...${config.telegram.botToken.slice(-8)}`
+      done: !!(config?.modules?.telegram?.config?.botToken && config?.modules?.telegram?.config?.chatId),
+      detail: config?.modules?.telegram?.config?.botToken
+        ? `Bot: ...${(config.modules.telegram.config.botToken as string).slice(-8)}`
         : 'Not configured',
     },
     {
@@ -64,24 +64,24 @@ export function getModuleStatuses(): ModuleStatus[] {
     {
       name: 'Gmail',
       key: 'gmail',
-      done: !!(config?.mcp?.gmail?.configured),
-      detail: config?.mcp?.gmail?.configured
+      done: !!(config?.modules?.gmail?.enabled),
+      detail: config?.modules?.gmail?.enabled
         ? 'OAuth configured'
         : 'Not configured',
     },
     {
       name: 'Camoufox',
       key: 'camoufox',
-      done: !!(config?.mcp?.camoufox?.configured),
-      detail: config?.mcp?.camoufox?.configured
+      done: !!(config?.modules?.camoufox?.enabled),
+      detail: config?.modules?.camoufox?.enabled
         ? 'Wrapper script ready'
         : 'Not configured',
     },
     {
       name: 'WhatsApp',
       key: 'whatsapp',
-      done: !!(config?.mcp?.whatsapp?.configured),
-      detail: config?.mcp?.whatsapp?.configured
+      done: !!(config?.modules?.whatsapp?.enabled),
+      detail: config?.modules?.whatsapp?.enabled
         ? 'wacli authenticated'
         : 'Not configured (optional)',
     },

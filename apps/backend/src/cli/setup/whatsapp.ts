@@ -18,7 +18,7 @@ export async function setupWhatsApp(): Promise<void> {
   info('Requires wacli (WhatsApp CLI) to be installed.');
   console.log('');
 
-  if (config.mcp.curated.whatsapp.configured) {
+  if (config.modules?.whatsapp?.enabled) {
     success('WhatsApp already configured.');
     const reconfigure = await ask('  Reconfigure? (y/N) ');
     if (reconfigure.toLowerCase() !== 'y') return;
@@ -76,9 +76,9 @@ export async function setupWhatsApp(): Promise<void> {
   }
 
   if (authenticated) {
-    config.mcp.curated.whatsapp.enabled = true;
-    config.mcp.curated.whatsapp.configured = true;
-    config.mcp.curated.whatsapp.wacliPath = run('which', ['wacli']) || 'wacli';
+    if (!config.modules.whatsapp) config.modules.whatsapp = { enabled: false, source: 'curated' };
+    config.modules.whatsapp.enabled = true;
+    config.modules.whatsapp.config = { ...(config.modules.whatsapp.config ?? {}), wacliPath: run('which', ['wacli']) || 'wacli' };
     saveConfig(configPath, config);
     success('WhatsApp configured.');
   }

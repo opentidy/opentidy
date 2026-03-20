@@ -29,8 +29,16 @@ export function createConfigFile(configPath: string, opts: {
   port: number;
 }): void {
   const config = loadConfig(configPath);
-  config.telegram.botToken = opts.telegramBotToken;
-  config.telegram.chatId = opts.telegramChatId;
+  // Store Telegram config in modules
+  if (!config.modules.telegram) {
+    config.modules.telegram = { enabled: false, source: 'curated' };
+  }
+  config.modules.telegram.config = {
+    ...(config.modules.telegram.config ?? {}),
+    botToken: opts.telegramBotToken,
+    chatId: opts.telegramChatId,
+  };
+  if (opts.telegramBotToken) config.modules.telegram.enabled = true;
   config.auth.bearerToken = opts.bearerToken;
   config.server.port = opts.port;
   saveConfig(configPath, config);
