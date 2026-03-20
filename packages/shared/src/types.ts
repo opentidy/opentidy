@@ -227,13 +227,14 @@ export interface SpawnOpts {
   allowedTools?: string[];
   outputFormat?: 'text' | 'json' | 'stream-json';
   pluginDir?: string;
-  skipPermissions?: boolean;
 }
 
 export interface SetupOpts {
-  guardrails: GuardrailRule[];
+  permissionConfig: PermissionConfig;
+  manifests: Map<string, ModuleManifest>;
   mcpServices: McpServicesConfig;
   configDir: string;
+  serverPort: number;
 }
 
 export interface GuardrailRule {
