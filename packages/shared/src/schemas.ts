@@ -3,7 +3,7 @@
 
 import { z } from 'zod';
 
-// Webhook Gmail entrant
+// Inbound Gmail webhook
 export const GmailWebhookSchema = z.object({
   from: z.string(),
   to: z.string(),
@@ -20,18 +20,15 @@ export const CreateJobSchema = z.object({
   confirm: z.boolean().default(false),
 });
 
-// Instruction vers un job existant
-export const JobInstructionSchema = z.object({
-  instruction: z.string().min(1),
-  confirm: z.boolean().default(false),
-});
+// Instruction to an existing job (structurally identical to CreateJobSchema)
+export const JobInstructionSchema = CreateJobSchema;
 
-// Approuver une suggestion
+// Approve a suggestion
 export const ApproveSuggestionSchema = z.object({
   instruction: z.string().optional(),  // custom user instruction
 });
 
-// Hook payload (centralisé)
+// Hook payload (centralized)
 export const HookPayloadSchema = z.object({
   session_id: z.string(),
   hook_event_name: z.enum(['PreToolUse', 'PostToolUse', 'Notification', 'SessionEnd', 'Stop']),
@@ -42,7 +39,7 @@ export const HookPayloadSchema = z.object({
   permission_mode: z.string().optional(),
 });
 
-// Types réexportés
+// Re-exported types
 export type GmailWebhook = z.infer<typeof GmailWebhookSchema>;
 export type CreateJob = z.infer<typeof CreateJobSchema>;
 export type JobInstruction = z.infer<typeof JobInstructionSchema>;
@@ -183,6 +180,23 @@ export const ConfigFieldSchema = z.object({
   options: z.array(z.string()).optional(),
 });
 
+// === Permission System schemas ===
+export const PermissionScopeSchema = z.enum(['per-call', 'per-job']);
+export const PermissionLevelSchema = z.enum(['allow', 'confirm', 'ask']);
+export const PermissionPresetSchema = z.enum(['supervised', 'autonomous', 'full-auto']);
+
+export const ToolPermissionsSchema = z.object({
+  scope: PermissionScopeSchema,
+  safe: z.array(z.string()),
+  critical: z.array(z.string()),
+});
+
+export const PermissionConfigSchema = z.object({
+  preset: PermissionPresetSchema,
+  defaultLevel: PermissionLevelSchema,
+  modules: z.record(PermissionLevelSchema),
+});
+
 export const ModuleManifestSchema = z.object({
   name: z.string().min(1),
   label: z.string().min(1),
@@ -194,6 +208,7 @@ export const ModuleManifestSchema = z.object({
   mcpServers: z.array(McpServerDefSchema).optional(),
   skills: z.array(SkillDefSchema).optional(),
   receivers: z.array(ReceiverDefSchema).optional(),
+  toolPermissions: ToolPermissionsSchema.optional(),
   setup: z.object({
     authCommand: z.string().optional(),
     checkCommand: z.string().optional(),

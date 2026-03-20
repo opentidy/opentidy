@@ -7,17 +7,17 @@
 export type JobStatus = 'IN_PROGRESS' | 'COMPLETED';
 
 export interface Job {
-  id: string;           // slug du job (nom du répertoire)
+  id: string;           // job slug (directory name)
   status: JobStatus;
-  title: string;        // extrait du state.md (# heading)
-  objective: string;    // extrait de ## Objectif
-  lastAction: string;   // date dernière action
+  title: string;        // extracted from state.md (# heading)
+  objective: string;    // extracted from ## Objective
+  lastAction: string;   // date of last action
   hasActiveSession: boolean;
-  stateRaw?: string;    // contenu brut de state.md
-  artifacts: string[];  // liste des fichiers dans artifacts/
-  confirm?: boolean;    // mode validation — Claude asks before external actions
+  stateRaw?: string;    // raw state.md content
+  artifacts: string[];  // list of files in artifacts/
+  confirm?: boolean;    // confirm mode — Claude asks before external actions
   journal: JournalEntry[];
-  waitingFor?: string;  // contenu de la section ## En attente (si présente)
+  waitingFor?: string;  // content of ## Waiting section (if present)
   waitingType?: 'user' | 'tiers'; // USER = user must act, TIERS = waiting for third party
 }
 
@@ -30,32 +30,32 @@ export interface JournalEntry {
 export type UrgencyLevel = 'urgent' | 'normal' | 'low';
 
 export interface Suggestion {
-  slug: string;         // nom du fichier sans .md
-  title: string;        // extrait du # heading
+  slug: string;         // filename without .md
+  title: string;        // extracted from # heading
   urgency: UrgencyLevel;
   source: string;
   date: string;
   summary: string;
   why: string;
   whatIWouldDo: string;
-  context?: string;     // event original (email, SMS, etc.)
+  context?: string;     // original event (email, SMS, etc.)
 }
 
-// === Auto-analyse (_gaps/) ===
+// === Self-analysis (_gaps/) ===
 export type AmeliorationStatus = 'open' | 'resolved' | 'ignored';
 export type AmeliorationSource = 'post-session' | 'checkup' | 'session';
 export type AmeliorationCategory = 'capability' | 'access' | 'config' | 'process' | 'data';
 export type AmeliorationFixType = 'code' | 'config' | 'external';
 
 export interface Amelioration {
-  id: string;           // hash ou index
+  id: string;           // hash or index
   date: string;
   title: string;
   problem: string;
   impact: string;
   suggestion: string;
   actions: string[];           // recommended concrete actions
-  jobId?: string;              // job lié
+  jobId?: string;              // related job
   sessionId?: string;          // claude session id (for output link)
   source?: AmeliorationSource; // what generated this analysis
   category?: AmeliorationCategory; // type of gap
@@ -89,7 +89,7 @@ export interface Session {
   jobId: string;
   status: SessionStatus;
   startedAt: string;
-  agentSessionId?: string;    // pour --resume
+  agentSessionId?: string;    // for --resume
   pid?: number;
   waitingType?: 'user' | 'tiers'; // type of wait when idle
 }
@@ -111,9 +111,9 @@ export interface Schedule {
   createdAt: string;
 }
 
-// === Hook (centralisé) ===
-// HookPayload est défini via Zod dans schemas.ts (SSOT) — ne pas dupliquer ici.
-// Utiliser: import { HookPayload } from './schemas.js';
+// === Hook (centralized) ===
+// HookPayload is defined via Zod in schemas.ts (SSOT) — do not duplicate here.
+// Use: import { HookPayload } from './schemas.js';
 export type HookEventType = 'PreToolUse' | 'PostToolUse' | 'Notification' | 'SessionEnd' | 'Stop';
 
 // === Notification ===
@@ -157,9 +157,12 @@ export type SSEEventData =
   | { type: 'schedule:created' | 'schedule:fired' | 'schedule:deleted'; scheduleId: number }
   | { type: 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; moduleName: string };
 
-export interface SSEEvent {
-  type: SSEEventType;
-  data: Record<string, unknown>;
+/** Extracts the data payload (without `type`) for a given SSEEventType */
+export type SSEEventDataFor<T extends SSEEventType> = Omit<Extract<SSEEventData, { type: T }>, 'type'>;
+
+export interface SSEEvent<T extends SSEEventType = SSEEventType> {
+  type: T;
+  data: SSEEventDataFor<T> & Record<string, unknown>;
   timestamp: string;
 }
 
@@ -192,8 +195,6 @@ export interface AgentProcess {
 
 /** @deprecated Use AgentProcessType */
 export type ClaudeProcessType = AgentProcessType;
-/** @deprecated Use AgentProcessStatus */
-export type ClaudeProcessStatus = AgentProcessStatus;
 /** @deprecated Use AgentProcess */
 export type ClaudeProcess = AgentProcess;
 
@@ -265,6 +266,14 @@ export interface MacPermission {
   reason: string;            // why this permission is needed
 }
 
+export type PermissionScope = 'per-call' | 'per-job';
+
+export interface ToolPermissions {
+  scope: PermissionScope;
+  safe: string[];
+  critical: string[];
+}
+
 export interface ModuleManifest {
   name: string;
   label: string;
@@ -277,6 +286,7 @@ export interface ModuleManifest {
   skills?: SkillDef[];
   receivers?: ReceiverDef[];
   permissions?: MacPermission[];  // macOS permissions this module needs
+  toolPermissions?: ToolPermissions;
   setup?: {
     authCommand?: string;
     checkCommand?: string;
@@ -341,6 +351,8 @@ export interface ModuleInfo {
   core?: boolean;
   source: 'curated' | 'custom';
   enabled: boolean;
+  /** true if checkCommand passes — module deps are present on disk */
+  ready?: boolean;
   platform?: string;
   health?: 'ok' | 'error' | 'unknown';
   healthError?: string;
@@ -377,27 +389,6 @@ export interface McpServicesConfig {
   whatsapp: WhatsAppMcpState;
 }
 
-// === MCP Config V2 (nested curated/marketplace) ===
-/** @deprecated Use ModuleState */
-export interface MarketplaceMcp {
-  label: string;
-  command: string;
-  args: string[];
-  envFile?: string;
-  permissions: string[];
-  source: 'registry.modelcontextprotocol.io' | 'custom';
-}
-
-/** @deprecated Use ModuleState */
-export interface McpConfigV2 {
-  curated: {
-    gmail: McpServiceState;
-    camoufox: McpServiceState;
-    whatsapp: WhatsAppMcpState;
-    opentidy?: McpServiceState;
-  };
-  marketplace: Record<string, MarketplaceMcp>;
-}
 
 // === Skills Config ===
 /** @deprecated Use ModuleState */
@@ -424,12 +415,15 @@ export interface UserInfo {
   company: string;
 }
 
-// === Receiver Config ===
-/** @deprecated Use ModuleState */
-export interface ReceiverConfigEntry {
-  type: string;
-  enabled: boolean;
-  options?: Record<string, unknown>;
+
+// === Permission System ===
+export type PermissionLevel = 'allow' | 'confirm' | 'ask';
+export type PermissionPreset = 'supervised' | 'autonomous' | 'full-auto';
+
+export interface PermissionConfig {
+  preset: PermissionPreset;
+  defaultLevel: PermissionLevel;
+  modules: Record<string, PermissionLevel>;
 }
 
 // === Config ===
@@ -463,6 +457,7 @@ export interface OpenTidyConfig {
   };
   language: string; // language for Claude responses (e.g. 'en', 'fr')
   modules: Record<string, ModuleState>;
+  permissions: PermissionConfig;
   userInfo: UserInfo;
   github?: {
     token: string;
