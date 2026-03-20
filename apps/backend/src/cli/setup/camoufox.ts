@@ -49,8 +49,8 @@ export async function setupCamoufox(): Promise<void> {
   chmodSync(wrapperPath, '755');
   success(`Wrapper script: ${wrapperPath}`);
 
-  config.mcp.curated.camoufox.enabled = true;
-  config.mcp.curated.camoufox.configured = true;
+  if (!config.modules.camoufox) config.modules.camoufox = { enabled: false, source: 'curated' };
+  config.modules.camoufox.enabled = true;
   saveConfig(configPath, config);
   success('Camoufox configured.');
 }

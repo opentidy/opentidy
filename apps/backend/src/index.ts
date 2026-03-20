@@ -5,8 +5,8 @@ import { createApp, startServer } from './server.js';
 import { createLockManager } from './shared/locks.js';
 import { createDedupStore } from './shared/dedup.js';
 import { createAuditLogger } from './features/system/audit.js';
-import { listDossierIds, getDossier } from './features/dossiers/state.js';
-import { createDossierManager } from './features/dossiers/create-manager.js';
+import { listJobIds, getJob } from './features/jobs/state.js';
+import { createJobManager } from './features/jobs/create-manager.js';
 import { createSuggestionsManager } from './features/suggestions/parser.js';
 import { createGapsManager } from './features/ameliorations/gaps.js';
 import { createLauncher } from './features/sessions/launch.js';
@@ -20,10 +20,11 @@ import { createMemoryManager } from './features/memory/manager.js';
 import { createMemoryAgents } from './features/memory/agents.js';
 import { createWebhookReceiver } from './features/triage/webhook.js';
 import { createTriager, createAgentRunner } from './features/triage/classify.js';
-import { createTitleGenerator } from './features/dossiers/title.js';
+import { createTitleGenerator } from './features/jobs/title.js';
 import { createTerminalManager } from './features/terminal/bridge.js';
-import { loadReceiverPlugins, type ReceiverPlugin } from './features/triage/plugin.js';
 import { createNotificationStore } from './features/notifications/store.js';
+import { loadCuratedModules } from './features/modules/loader.js';
+import { createModuleLifecycle } from './features/modules/lifecycle.js';
 import { createDatabase } from './shared/database.js';
 import { createAgentTracker } from './shared/agent-tracker.js';
 import { createTriageHandler } from './features/triage/route.js';
@@ -49,8 +50,8 @@ const WORKSPACE_DIR = config.workspace.dir || process.env.WORKSPACE_DIR || path.
 const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || openTidyPaths.lockDir;
 const PORT = config.server.port || parseInt(process.env.PORT || '5175', 10);
 const CHECKUP_INTERVAL = parseInt(process.env.CHECKUP_INTERVAL_MS || '3600000', 10);
-const TELEGRAM_TOKEN = config.telegram.botToken || process.env.TELEGRAM_BOT_TOKEN || '';
-const TELEGRAM_CHAT_ID = config.telegram.chatId || process.env.TELEGRAM_CHAT_ID || '';
+const TELEGRAM_TOKEN = (config.modules?.telegram?.config?.botToken as string) || process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT_ID = (config.modules?.telegram?.config?.chatId as string) || process.env.TELEGRAM_CHAT_ID || '';
 const APP_BASE_URL = config.server.appBaseUrl || process.env.APP_BASE_URL || 'http://localhost:5173';
 
 export async function boot() {
@@ -118,9 +119,13 @@ const notificationStore = createNotificationStore(db);
 const AGENT_CONFIG_DIR = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
 const adapter = resolveAgent({ configDir: path.dirname(AGENT_CONFIG_DIR) || path.join(os.homedir(), '.config', 'opentidy'), configAgent: config.agentConfig?.name });
 
-// Ensure agent settings.json is up-to-date on startup (MCP servers + skills)
-const MCP_ENV_DIR = path.join(path.dirname(getConfigPath()), 'mcp');
-regenerateAgentConfig(config, MCP_ENV_DIR);
+// Load curated module manifests
+const modulesDir = path.resolve(import.meta.dirname, '../modules');
+const manifests = loadCuratedModules(modulesDir);
+console.log(`[opentidy] Loaded ${manifests.size} curated modules`);
+
+// Ensure agent settings.json is up-to-date on startup (from modules)
+regenerateAgentConfig(config, undefined, config.modules, manifests);
 
 // Centralized agent spawner — ONE semaphore shared by all callers (max 3 concurrent)
 const spawnAgentFull = createSpawnAgent({
@@ -132,7 +137,7 @@ const spawnAgentFull = createSpawnAgent({
 });
 
 // Workspace managers (before memoryAgents — gap router needs gapsManager)
-const dossierManager = createDossierManager(WORKSPACE_DIR);
+const jobManager = createJobManager(WORKSPACE_DIR);
 const suggestionsManager = createSuggestionsManager(WORKSPACE_DIR);
 const gapsManager = createGapsManager(WORKSPACE_DIR);
 
@@ -182,8 +187,8 @@ const launcher = createLauncher({
   tmuxExecutor,
   locks,
   workspace: {
-    getDossier: (id: string) => getDossier(WORKSPACE_DIR, id),
-    listDossierIds: () => listDossierIds(WORKSPACE_DIR),
+    getJob: (id: string) => getJob(WORKSPACE_DIR, id),
+    listJobIds: () => listJobIds(WORKSPACE_DIR),
     dir: WORKSPACE_DIR,
   },
   notify,
@@ -215,8 +220,8 @@ const hooks = createHooksHandler({
 const agentRunner = createAgentRunner(WORKSPACE_DIR, { memoryManager, spawnAgent: spawnAgentFull, adapter });
 const triager = createTriager({
   runClaude: agentRunner,
-  listDossiers: () => listDossierIds(WORKSPACE_DIR).map(id => {
-    const d = getDossier(WORKSPACE_DIR, id);
+  listJobs: () => listJobIds(WORKSPACE_DIR).map(id => {
+    const d = getJob(WORKSPACE_DIR, id);
     return { id: d.id, title: d.title, status: d.status, stateRaw: d.stateRaw ?? '' };
   }),
   listSuggestionTitles: () => suggestionsManager.listSuggestions().map(s => s.title),
@@ -235,22 +240,29 @@ const receiver = createWebhookReceiver({
   triage: triageAndHandle,
 });
 
-// Dynamic receiver loading — config-driven
-const receiverPlugins: ReceiverPlugin[] = await loadReceiverPlugins({ receivers: config.receivers ?? [] });
-for (const plugin of receiverPlugins) {
-  await plugin.init();
-  plugin.start((msg) => {
-    // Dedup on JSON.stringify to match existing createWatcher behavior
-    const raw = JSON.stringify(msg);
-    if (dedup.isDuplicate(raw)) return;
-    dedup.record(raw);
-    console.log(`[receiver] ${plugin.source} message from ${msg.from}`);
-    triageAndHandle({
-      source: plugin.source,
-      content: `${plugin.source} de ${msg.from}: ${msg.body}`,
+// Module lifecycle — manages enable/disable/configure and receiver start/stop
+const configPath = getConfigPath();
+const moduleLifecycle = createModuleLifecycle({
+  loadConfig: () => loadConfig(configPath),
+  saveConfig: (c) => saveConfig(configPath, c),
+  manifests,
+  regenerateAgentConfig: (modules, mans) => {
+    regenerateAgentConfig(config, undefined, modules, mans);
+  },
+  triageHandler: async (event) => {
+    await triageAndHandle({ source: event.source, content: event.content });
+  },
+  dedup,
+  sse,
+});
+
+// Start receivers for enabled modules
+for (const [name, state] of Object.entries(config.modules)) {
+  if (state.enabled && manifests.has(name)) {
+    moduleLifecycle.startReceivers(name).catch(err => {
+      console.error(`[modules] Failed to start receivers for ${name}:`, err);
     });
-  });
-  console.log(`[opentidy] Receiver started: ${plugin.name}`);
+  }
 }
 
 // Checkup
@@ -260,17 +272,18 @@ const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalM
 const scheduler = createScheduler({ db, launcher, checkup, locks, sse });
 
 // MCP server — embedded in Hono, exposes schedule/suggestion/gap tools
-const mcpServer = createMcpServer({ scheduler, suggestionsManager, gapsManager, sse });
+// TODO: module system — MCP tools call writeSuggestion/appendGap which need to be added to the managers
+const mcpServer = createMcpServer({ scheduler, suggestionsManager: suggestionsManager as any, gapsManager: gapsManager as any, sse });
 
-// Title generator — agent one-shot for descriptive dossier titles
+// Title generator — agent one-shot for descriptive job titles
 const generateTitle = createTitleGenerator(WORKSPACE_DIR, { spawnAgent: spawnAgentFull, adapter });
 
 // API
 const app = createApp({
   workspace: {
-    listDossierIds: (dir: string) => listDossierIds(dir),
-    getDossier: (dir: string, id: string) => getDossier(dir, id),
-    dossierManager,
+    listJobIds: (dir: string) => listJobIds(dir),
+    getJob: (dir: string, id: string) => getJob(dir, id),
+    jobManager,
     suggestionsManager,
     gapsManager,
   },
@@ -292,14 +305,17 @@ const app = createApp({
   workspaceDir: WORKSPACE_DIR,
   bearerToken: config.auth.bearerToken || '',
   version: getVersion(),
-  mcpConfig: {
-    configPath: getConfigPath(),
-    agentConfigDir: AGENT_CONFIG_DIR,
-    mcpEnvDir: MCP_ENV_DIR,
+  moduleDeps: {
+    manifests,
+    loadConfig: () => loadConfig(configPath),
+    lifecycle: moduleLifecycle,
+    saveConfig: (c) => saveConfig(configPath, c),
   },
-  skillsConfig: {
-    configPath: getConfigPath(),
-    agentConfigDir: AGENT_CONFIG_DIR,
+  webhookDeps: {
+    manifests,
+    loadConfig: () => loadConfig(configPath),
+    modulesBaseDir: modulesDir,
+    dedup,
   },
   setupDeps: {
     loadConfig: () => loadConfig(getConfigPath()),
@@ -340,7 +356,7 @@ const periodic = startPeriodicTasks({
 // Graceful shutdown — clean up resources on SIGTERM/SIGINT
 function gracefulShutdown(signal: string): void {
   console.log(`[opentidy] ${signal} received, shutting down gracefully...`);
-  for (const plugin of receiverPlugins) { plugin.stop(); }
+  moduleLifecycle.stopAll().catch(() => {});
   periodic.stop();
   server.close(() => {
     db.close();

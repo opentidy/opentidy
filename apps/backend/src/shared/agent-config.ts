@@ -49,83 +49,63 @@ export function readEnvFile(filePath: string): Record<string, string> {
 
 /**
  * @deprecated Use generateSettingsFromModules() + regenerateAgentConfig() with modules/manifests params.
+ * Legacy function for pre-v3 configs that still have config.mcp.
  */
 export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string): ClaudeSettings {
   const allow = [...BASE_PERMISSIONS];
   const mcpServers: Record<string, McpServerEntry> = {};
-  const mcp = config.mcp;
+  // Cast to any — this function only runs for legacy configs that still have mcp field
+  const mcp = (config as any).mcp;
+
+  if (!mcp) {
+    // v3 config — no legacy mcp field, return minimal settings
+    allow.push('mcp__opentidy__*');
+    mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
+    return { permissions: { allow, deny: [] }, mcpServers, _regeneratedAt: new Date().toISOString() };
+  }
 
   // Curated: Gmail
-  if (mcp.curated.gmail.enabled) {
+  if (mcp.curated?.gmail?.enabled) {
     allow.push('mcp__gmail__*');
-    mcpServers.gmail = {
-      type: 'stdio',
-      command: 'npx',
-      args: ['@gongrzhe/server-gmail-autoauth-mcp'],
-    };
+    mcpServers.gmail = { type: 'stdio', command: 'npx', args: ['@gongrzhe/server-gmail-autoauth-mcp'] };
   }
 
   // Curated: Camoufox
-  if (mcp.curated.camoufox.enabled) {
+  if (mcp.curated?.camoufox?.enabled) {
     allow.push('mcp__camofox__*');
     const configDir = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
     const wrapperPath = join(configDir, 'scripts', 'camofox-mcp.sh');
-    mcpServers.camofox = {
-      type: 'stdio',
-      command: 'bash',
-      args: [wrapperPath],
-    };
+    mcpServers.camofox = { type: 'stdio', command: 'bash', args: [wrapperPath] };
   }
 
   // Curated: WhatsApp
-  if (mcp.curated.whatsapp.enabled) {
+  if (mcp.curated?.whatsapp?.enabled) {
     if (mcp.curated.whatsapp.mcpServerPath) {
       allow.push('mcp__whatsapp__*');
-      mcpServers.whatsapp = {
-        type: 'stdio',
-        command: 'uv',
-        args: ['run', 'server.py'],
-        cwd: mcp.curated.whatsapp.mcpServerPath,
-      };
+      mcpServers.whatsapp = { type: 'stdio', command: 'uv', args: ['run', 'server.py'], cwd: mcp.curated.whatsapp.mcpServerPath };
     } else {
       allow.push('Bash(wacli:*)');
     }
   }
 
-  // OpenTidy MCP — always injected (system infrastructure, not optional)
+  // OpenTidy MCP — always injected
   allow.push('mcp__opentidy__*');
-  mcpServers.opentidy = {
-    type: 'http',
-    url: `http://localhost:${config.server?.port || 5175}/mcp`,
-  };
+  mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
 
   // Marketplace MCPs
   const mcpEnvDir = envDir || join(config.agentConfig?.configDir || '', '..', 'mcp');
-  for (const [name, mcpDef] of Object.entries(mcp.marketplace)) {
+  for (const [name, mcpDef] of Object.entries(mcp.marketplace ?? {})) {
+    const def = mcpDef as any;
     let env: Record<string, string> | undefined;
-    if (mcpDef.envFile) {
-      const parsed = readEnvFile(join(mcpEnvDir, mcpDef.envFile));
-      if (Object.keys(parsed).length > 0) {
-        env = parsed;
-      }
+    if (def.envFile) {
+      const parsed = readEnvFile(join(mcpEnvDir, def.envFile));
+      if (Object.keys(parsed).length > 0) env = parsed;
     }
-    const serverDef: McpServerEntry = {
-      type: 'stdio',
-      command: mcpDef.command,
-      args: mcpDef.args,
-      ...(env ? { env } : {}),
-    };
-    mcpServers[name] = serverDef;
-    for (const perm of mcpDef.permissions) {
-      allow.push(perm);
-    }
+    mcpServers[name] = { type: 'stdio', command: def.command, args: def.args, ...(env ? { env } : {}) };
+    for (const perm of def.permissions ?? []) allow.push(perm);
   }
 
-  return {
-    permissions: { allow, deny: [] },
-    mcpServers,
-    _regeneratedAt: new Date().toISOString(),
-  };
+  return { permissions: { allow, deny: [] }, mcpServers, _regeneratedAt: new Date().toISOString() };
 }
 
 interface ModuleSettingsResult {
@@ -188,10 +168,12 @@ export function generateSettingsFromModules(
   return { mcpServers, skills };
 }
 
+/** @deprecated Legacy guardrails builder for pre-v3 configs */
 export function buildMarketplaceGuardrails(config: OpenTidyConfig): GuardrailRule[] {
   const port = config.server?.port || 5175;
   const rules: GuardrailRule[] = [];
-  for (const name of Object.keys(config.mcp.marketplace)) {
+  const marketplace = (config as any).mcp?.marketplace ?? {};
+  for (const name of Object.keys(marketplace)) {
     rules.push({
       event: 'post-tool',
       type: 'http',
@@ -296,8 +278,9 @@ export function regenerateAgentConfig(
   // Sync skills (legacy path only — module skills are injected via instructions)
   if (!modules) {
     const curatedSkillsDir = resolve(import.meta.dirname, '../../config/claude/skills');
-    if (config.skills) {
-      syncSkills(config.skills, configDir, curatedSkillsDir);
+    const legacySkills = (config as any).skills;
+    if (legacySkills) {
+      syncSkills(legacySkills, configDir, curatedSkillsDir);
       console.log('[agent-config] Skills synced');
     }
   }

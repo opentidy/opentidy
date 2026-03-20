@@ -17,12 +17,16 @@ export async function setupTelegram(): Promise<void> {
   info('You need a bot and a chat/group to send to.');
   console.log('');
 
-  if (config.telegram.botToken) {
-    info(`Current bot token: ...${config.telegram.botToken.slice(-8)}`);
+  const telegramModuleConfig = config.modules?.telegram?.config ?? {};
+  const currentToken = (telegramModuleConfig.botToken as string) || '';
+  const currentChatId = (telegramModuleConfig.chatId as string) || '';
+
+  if (currentToken) {
+    info(`Current bot token: ...${currentToken.slice(-8)}`);
     const keep = await ask('  Keep current token? (Y/n) ');
     if (keep.toLowerCase() !== 'n') {
-      if (config.telegram.chatId) {
-        info(`Current chat ID: ${config.telegram.chatId}`);
+      if (currentChatId) {
+        info(`Current chat ID: ${currentChatId}`);
         const keepChat = await ask('  Keep current chat ID? (Y/n) ');
         if (keepChat.toLowerCase() !== 'n') {
           success('Telegram config unchanged.');
@@ -30,7 +34,8 @@ export async function setupTelegram(): Promise<void> {
         }
       }
       const chatId = await ask('  Chat ID: ');
-      config.telegram.chatId = chatId;
+      if (!config.modules.telegram) config.modules.telegram = { enabled: true, source: 'curated' };
+      config.modules.telegram.config = { ...telegramModuleConfig, chatId };
       saveConfig(configPath, config);
       success('Chat ID updated.');
       return;
@@ -72,8 +77,9 @@ export async function setupTelegram(): Promise<void> {
     chatId = await ask('  Chat ID: ');
   }
 
-  config.telegram.botToken = botToken;
-  config.telegram.chatId = chatId;
+  if (!config.modules.telegram) config.modules.telegram = { enabled: false, source: 'curated' };
+  config.modules.telegram.config = { ...(config.modules.telegram.config ?? {}), botToken, chatId };
+  config.modules.telegram.enabled = true;
   saveConfig(configPath, config);
   success('Telegram configured.');
 }
