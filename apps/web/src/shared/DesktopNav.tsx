@@ -14,7 +14,6 @@ const sections: { labelKey: string; items: NavItem[] }[] = [
       { to: '/', icon: 'home', labelKey: 'nav.home', unlockedKey: null },
       { to: '/suggestions', icon: 'suggestions', labelKey: 'nav.suggestions', unlockedKey: null, badgeKey: 'suggestions' },
       { to: '/schedule', icon: 'schedule', labelKey: 'nav.schedule', unlockedKey: null },
-      { to: '/modules', icon: 'modules', labelKey: 'nav.modules', unlockedKey: null },
     ],
   },
   {
@@ -23,6 +22,7 @@ const sections: { labelKey: string; items: NavItem[] }[] = [
       { to: '/terminal', icon: 'terminal', labelKey: 'nav.terminal', unlockedKey: null },
       { to: '/ameliorations', icon: 'ameliorations', labelKey: 'nav.analyses', unlockedKey: 'ameliorations' as const },
       { to: '/memory', icon: 'memory', labelKey: 'nav.memory', unlockedKey: null },
+      { to: '/modules', icon: 'modules', labelKey: 'nav.modules', unlockedKey: null },
       { to: '/settings', icon: 'toolbox', labelKey: 'nav.settings', unlockedKey: null },
     ],
   },
