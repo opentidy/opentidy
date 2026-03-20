@@ -6,6 +6,7 @@
   "version": "1.0.0",
   "setup": {
     "authCommand": "cloudflared tunnel login",
+    "checkCommand": "cloudflared tunnel list",
     "configFields": [
       { "key": "tunnelName", "label": "Tunnel Name", "type": "text", "required": true, "placeholder": "opentidy" },
       { "key": "hostname", "label": "Hostname", "type": "text", "required": true, "placeholder": "opentidy.yourdomain.com" }

@@ -10,7 +10,6 @@ type TabItem = { to: string; icon: string; labelKey: string; unlockedKey: string
 const tabs: TabItem[] = [
   { to: '/', icon: 'home', labelKey: 'nav.home', unlockedKey: null },
   { to: '/suggestions', icon: 'suggestions', labelKey: 'nav.suggestions', unlockedKey: null, badgeKey: 'suggestions' },
-  { to: '/nouveau', icon: 'nouveau', labelKey: 'nav.new', unlockedKey: null },
   { to: '/schedule', icon: 'schedule', labelKey: 'nav.schedule', unlockedKey: null },
   { to: '/modules', icon: 'modules', labelKey: 'nav.modules', unlockedKey: null },
 ];

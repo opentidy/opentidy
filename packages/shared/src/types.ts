@@ -271,6 +271,7 @@ export interface ModuleManifest {
   description: string;
   icon?: string;
   version: string;
+  core?: boolean;                 // true = required, cannot be disabled/removed
   platform?: 'darwin' | 'all';
   mcpServers?: McpServerDef[];
   skills?: SkillDef[];
@@ -278,6 +279,7 @@ export interface ModuleManifest {
   permissions?: MacPermission[];  // macOS permissions this module needs
   setup?: {
     authCommand?: string;
+    checkCommand?: string;
     configFields?: ConfigField[];
   };
 }
@@ -336,6 +338,7 @@ export interface ModuleInfo {
   label: string;
   description: string;
   icon?: string;
+  core?: boolean;
   source: 'curated' | 'custom';
   enabled: boolean;
   platform?: string;
@@ -348,6 +351,7 @@ export interface ModuleInfo {
   };
   setup?: {
     needsAuth: boolean;
+    authCommand?: string;
     configFields: ConfigField[];
     configured: boolean;
   };

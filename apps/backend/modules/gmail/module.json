@@ -16,6 +16,7 @@
     "transform": "./transform.ts"
   }],
   "setup": {
-    "authCommand": "npx @gongrzhe/server-gmail-autoauth-mcp"
+    "authCommand": "npx -y @gongrzhe/server-gmail-autoauth-mcp auth",
+    "checkCommand": "test -f ~/.gmail-mcp/credentials.json"
   }
 }

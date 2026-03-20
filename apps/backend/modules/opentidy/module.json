@@ -4,6 +4,7 @@
   "description": "Core tools — schedule tasks, manage suggestions, track improvements",
   "icon": "🧹",
   "version": "1.0.0",
+  "core": true,
   "mcpServers": [{
     "name": "opentidy",
     "url": "http://localhost:5175/mcp",

@@ -51,6 +51,7 @@ export function addModuleRoute(deps: ModuleRouteDeps) {
       },
       setup: {
         needsAuth: !!manifest.setup?.authCommand,
+        authCommand: manifest.setup?.authCommand,
         configFields: manifest.setup?.configFields ?? [],
         configured: true,
       },

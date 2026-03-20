@@ -11,7 +11,6 @@ interface ModuleConfigDialogProps {
   open: boolean;
   onClose: () => void;
   onSave: (name: string, config: Record<string, unknown>) => Promise<void>;
-  authCommand?: string;
 }
 
 function buildInitialValues(fields: ConfigField[]): Record<string, unknown> {
@@ -108,7 +107,6 @@ export default function ModuleConfigDialog({
   open,
   onClose,
   onSave,
-  authCommand,
 }: ModuleConfigDialogProps) {
   const { t } = useTranslation();
   const fields = module.setup?.configFields ?? [];
@@ -148,7 +146,7 @@ export default function ModuleConfigDialog({
             {t('modules.configureTitle', { label: module.label })}
           </h3>
 
-          {authCommand && (
+          {module.setup?.authCommand && (
             <button
               type="button"
               onClick={() => setTerminalOpen(true)}
@@ -199,11 +197,11 @@ export default function ModuleConfigDialog({
         </div>
       </div>
 
-      {authCommand && (
+      {module.setup?.authCommand && (
         <TerminalDrawer
           open={terminalOpen}
           title={module.label}
-          command={authCommand}
+          moduleName={module.name}
           onClose={() => setTerminalOpen(false)}
         />
       )}

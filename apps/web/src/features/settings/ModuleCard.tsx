@@ -9,38 +9,7 @@ interface ModuleCardProps {
   onEnable: (name: string) => void;
   onDisable: (name: string) => void;
   onConfigure: (name: string) => void;
-  onRemove?: (name: string) => void;
-}
-
-function HealthDot({ health }: { health?: 'ok' | 'error' | 'unknown' }) {
-  const color =
-    health === 'ok'
-      ? 'bg-green-500'
-      : health === 'error'
-        ? 'bg-red-500'
-        : 'bg-gray-500';
-
-  return <span className={`inline-block w-2 h-2 rounded-full ${color}`} />;
-}
-
-function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full transition-colors ${
-        checked ? 'bg-accent' : 'bg-border'
-      }`}
-    >
-      <span
-        className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${
-          checked ? 'translate-x-[18px]' : 'translate-x-[3px]'
-        }`}
-      />
-    </button>
-  );
+  onInstall?: (name: string) => void;
 }
 
 const BADGE_LABELS: Record<string, string> = {
@@ -49,7 +18,7 @@ const BADGE_LABELS: Record<string, string> = {
   receivers: 'Receiver',
 };
 
-export default function ModuleCard({ module, onEnable, onDisable, onConfigure, onRemove }: ModuleCardProps) {
+export default function ModuleCard({ module, onEnable, onDisable, onConfigure, onInstall }: ModuleCardProps) {
   const { t } = useTranslation();
 
   const badges = Object.entries(module.components)
@@ -57,7 +26,8 @@ export default function ModuleCard({ module, onEnable, onDisable, onConfigure, o
     .map(([key]) => BADGE_LABELS[key])
     .filter(Boolean);
 
-  const needsConfigure = module.setup?.needsAuth && !module.setup?.configured;
+  const needsSetup = module.setup?.needsAuth || (module.setup?.configFields?.length ?? 0) > 0;
+  const isInstalled = module.enabled;
 
   return (
     <div className="p-4 bg-card rounded-lg border border-border transition-colors">
@@ -71,7 +41,12 @@ export default function ModuleCard({ module, onEnable, onDisable, onConfigure, o
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <span className="font-medium truncate">{module.label}</span>
-              <HealthDot health={module.health} />
+              {isInstalled && (
+                <span className="flex items-center gap-1 text-xs font-medium text-green-400">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20,6 9,17 4,12" /></svg>
+                  {t('setup.installed')}
+                </span>
+              )}
             </div>
 
             <p className="text-xs text-text-tertiary mt-0.5 line-clamp-1">{module.description}</p>
@@ -93,30 +68,31 @@ export default function ModuleCard({ module, onEnable, onDisable, onConfigure, o
 
         {/* Actions */}
         <div className="flex items-center gap-3 shrink-0">
-          {needsConfigure && (
+          {module.core ? (
+            <span className="text-xs font-medium text-fg-muted">{t('setup.required')}</span>
+          ) : isInstalled ? (
             <button
               type="button"
-              onClick={() => onConfigure(module.name)}
-              className="px-3 py-1.5 text-sm bg-accent text-white rounded-lg hover:bg-accent/90 transition-colors"
+              onClick={() => onDisable(module.name)}
+              className="shrink-0 rounded-lg border border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-400 hover:bg-red-500/10 transition-colors"
             >
-              {t('modules.configure')}
+              {t('setup.uninstall')}
             </button>
-          )}
-
-          {module.source === 'custom' && onRemove && (
+          ) : (
             <button
               type="button"
-              onClick={() => onRemove(module.name)}
-              className="text-xs text-red-500 hover:text-red-400 transition-colors"
+              onClick={() => {
+                if (needsSetup && onInstall) {
+                  onInstall(module.name);
+                } else {
+                  onEnable(module.name);
+                }
+              }}
+              className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
             >
-              {t('modules.remove')}
+              {t('setup.install')}
             </button>
           )}
-
-          <Toggle
-            checked={module.enabled}
-            onChange={(checked) => (checked ? onEnable(module.name) : onDisable(module.name))}
-          />
         </div>
       </div>
 
