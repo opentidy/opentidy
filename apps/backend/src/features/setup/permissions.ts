@@ -7,31 +7,54 @@ import { execFileSync } from 'child_process';
 // Core system permissions required for OpenTidy itself (not module-specific)
 // Module-specific permissions (Messages, Mail, etc.) are declared in each module's manifest
 const PERMISSIONS = [
-  { name: 'full-disk-access', label: 'Full Disk Access', app: '', required: false, description: 'Access files across the system' },
-  { name: 'accessibility', label: 'Accessibility', app: '', required: false, description: 'Allow agents to interact with macOS apps' },
+  { name: 'full-disk-access', label: 'Full Disk Access', app: '', required: true, description: 'Required for agents to access files on your system' },
+  { name: 'accessibility', label: 'Accessibility', app: '', required: true, description: 'Required for agents to interact with macOS apps' },
 ] as const;
 
 const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
 
-export function defaultCheckPermission(name: string): boolean {
-  if (process.platform !== 'darwin') return true;
+const KNOWN_TERMINALS = [
+  'com.googlecode.iterm2',
+  'com.apple.Terminal',
+  'dev.warp.Warp-Stable',
+  'com.github.nicklockwood.Console',
+  'co.zeit.hyper',
+  'com.mitchellh.ghostty',
+];
+
+const TCC_SERVICES: Record<string, string> = {
+  'full-disk-access': 'kTCCServiceSystemPolicyAllFiles',
+  accessibility: 'kTCCServiceAccessibility',
+};
+
+function checkTccForTerminal(service: string): boolean {
   try {
-    if (name === 'full-disk-access') {
-      // Try reading a protected file — fails without FDA
-      execFileSync('test', ['-r', '/Library/Application Support/com.apple.TCC/TCC.db'], { timeout: 3000 });
-      return true;
-    }
-    if (name === 'accessibility') {
-      // Check via System Events — triggers prompt on first call only
-      execFileSync('osascript', ['-e', 'tell application "System Events" to return name of first process'], { timeout: 5000 });
-      return true;
-    }
-    // Module permissions: check via osascript tell app
-    execFileSync('osascript', ['-e', `tell application "${name}" to return name`], { timeout: 5000 });
-    return true;
+    const result = execFileSync('sqlite3', [
+      '/Library/Application Support/com.apple.TCC/TCC.db',
+      `SELECT client FROM access WHERE service='${service}' AND auth_value=2;`,
+    ], { timeout: 3000, encoding: 'utf-8' });
+    return KNOWN_TERMINALS.some((t) => result.includes(t));
   } catch {
     return false;
   }
+}
+
+export function defaultCheckPermission(name: string): boolean {
+  if (process.platform !== 'darwin') return true;
+  if (name === 'full-disk-access') {
+    // Check by trying to read the TCC database file itself
+    // If we can read it, FDA is granted. No need to query its content.
+    try {
+      execFileSync('test', ['-r', '/Library/Application Support/com.apple.TCC/TCC.db'], { timeout: 3000 });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  // For other permissions, query the TCC database
+  const service = TCC_SERVICES[name];
+  if (!service) return false;
+  return checkTccForTerminal(service);
 }
 
 async function defaultGrantPermission(name: string): Promise<{ opened: boolean }> {
@@ -74,6 +97,8 @@ export function setupPermissionsRoute(deps: PermissionsDeps) {
 
   app.get('/setup/permissions', (c) => {
     console.log('[setup] GET /setup/permissions');
+    // Check actual status — may trigger a one-time macOS popup for Accessibility
+    // which is fine since we want the user to authorize it anyway
     return c.json({ permissions: buildPermissionList(deps.checkPermission) });
   });
 

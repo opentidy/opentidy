@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface Permission {
@@ -11,6 +11,21 @@ interface Permission {
   required: boolean;
   granted: boolean;
 }
+
+const INSTRUCTIONS: Record<string, string[]> = {
+  'full-disk-access': [
+    'Click "Authorize" — System Settings will open to Privacy & Security',
+    'Find "Full Disk Access" in the list',
+    'Find the terminal app you used to install OpenTidy and toggle it ON (if unsure, it\'s probably "Terminal")',
+    'Come back here — it will update automatically',
+  ],
+  accessibility: [
+    'Click "Authorize" — System Settings will open to Privacy & Security',
+    'Find "Accessibility" in the list',
+    'Click + and add the terminal app you used to install OpenTidy (if unsure, it\'s probably "Terminal")',
+    'Come back here — it will update automatically',
+  ],
+};
 
 interface PermissionsStepProps {
   onNext: () => void;
@@ -22,23 +37,45 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
   const [granting, setGranting] = useState<string | null>(null);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchPermissions = async () => {
+  const recheck = async () => {
     try {
-      const res = await fetch('/api/setup/permissions');
+      const res = await fetch('/api/setup/permissions/recheck', { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
-        setPermissions(data.permissions ?? []);
+        const perms: Permission[] = data.permissions ?? [];
+        setPermissions(perms);
+        // Stop polling if all granted
+        if (perms.every((p) => p.granted) && pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = null;
+        }
       }
     } catch {
-      // Silently fail
-    } finally {
-      setLoading(false);
+      // ignore
     }
   };
 
   useEffect(() => {
-    fetchPermissions();
+    // Initial load — don't check (returns all false), just show the UI fast
+    fetch('/api/setup/permissions')
+      .then((r) => r.json())
+      .then((data) => setPermissions(data.permissions ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Start polling when a grant is triggered
+  const startPolling = () => {
+    if (pollingRef.current) return;
+    pollingRef.current = setInterval(recheck, 2000);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current);
+    };
   }, []);
 
   const handleGrant = async (name: string) => {
@@ -50,67 +87,81 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ permission: name }),
       });
+      // Start polling to detect when user grants the permission in System Settings
+      startPolling();
     } catch {
-      // Silently fail
+      // ignore
     } finally {
       setGranting(null);
     }
   };
 
-  const handleRecheck = async () => {
-    try {
-      const res = await fetch('/api/setup/permissions/recheck', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
-        setPermissions(data.permissions ?? []);
-      }
-    } catch {
-      // Silently fail
-    }
-  };
+  const allGranted = permissions.length > 0 && permissions.every((p) => p.granted);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center py-16 text-fg-muted">
-        {t('common.loading')}
-      </div>
-    );
+    return <div className="flex items-center justify-center py-16 text-fg-muted">{t('common.loading')}</div>;
   }
 
   return (
     <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
       <div className="text-center">
         <h2 className="text-xl font-bold text-fg">{t('setup.permissions')}</h2>
-        <p className="mt-2 text-sm text-fg-muted">{t('setup.permissionsDesc')}</p>
+        <p className="mt-2 text-sm text-fg-muted">
+          OpenTidy runs from your terminal, so macOS requires you to grant permissions to the terminal app that launched it. This is standard for all command-line tools on macOS.
+        </p>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-4">
         {permissions.map((perm) => (
           <div
             key={perm.name}
-            className="flex items-center justify-between rounded-lg border border-border bg-bg-secondary px-4 py-3"
+            className={`rounded-lg border px-4 py-4 ${
+              perm.granted ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-bg-secondary'
+            }`}
           >
-            <div className="flex flex-col gap-0.5">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between">
+              <div>
                 <span className="font-medium text-fg">{perm.label}</span>
-                <span className="rounded-full bg-fg-muted/15 px-2 py-0.5 text-xs font-medium text-fg-muted">
-                  {t('setup.optional')}
-                </span>
+                <p className="mt-0.5 text-xs text-fg-muted">{perm.description}</p>
               </div>
-              <span className="text-xs text-fg-muted">{perm.description}</span>
+              {perm.granted ? (
+                <div className="flex items-center gap-3">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-green-400">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20,6 9,17 4,12" /></svg>
+                    {t('setup.authorized')}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => handleGrant(perm.name)}
+                    className="text-xs text-fg-muted underline hover:text-fg"
+                  >
+                    Settings
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={granting !== null}
+                  onClick={() => handleGrant(perm.name)}
+                  className="shrink-0 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-40"
+                >
+                  {granting === perm.name ? '...' : t('setup.authorize')}
+                </button>
+              )}
             </div>
 
-            {perm.granted ? (
-              <span className="text-sm font-medium text-green-400">{t('setup.authorized')}</span>
-            ) : (
-              <button
-                type="button"
-                disabled={granting === perm.name}
-                onClick={() => handleGrant(perm.name)}
-                className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
-              >
-                {granting === perm.name ? '...' : t('setup.authorize')}
-              </button>
+            {/* Step-by-step instructions — visible until granted */}
+            {!perm.granted && (
+              <ol className="mt-3 space-y-1 border-t border-border/50 pt-3">
+                {(INSTRUCTIONS[perm.name] ?? []).map((step, i) => (
+                  <li key={i} className="flex items-start gap-2 text-xs text-fg-muted">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[10px] font-bold text-accent">
+                      {i + 1}
+                    </span>
+                    <span>{step}</span>
+                  </li>
+                ))}
+              </ol>
             )}
           </div>
         ))}
@@ -120,21 +171,15 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
+          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg hover:bg-bg-secondary"
         >
           {t('setup.back')}
         </button>
         <button
           type="button"
-          onClick={handleRecheck}
-          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
-        >
-          {t('setup.recheck', 'Recheck')}
-        </button>
-        <button
-          type="button"
           onClick={onNext}
-          className="flex-1 rounded-lg bg-accent px-4 py-2.5 font-medium text-white transition-opacity"
+          disabled={!allGranted}
+          className="flex-1 rounded-lg bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-40"
         >
           {t('setup.continue')}
         </button>
