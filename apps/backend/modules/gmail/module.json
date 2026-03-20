@@ -18,5 +18,10 @@
   "setup": {
     "authCommand": "npx -y @gongrzhe/server-gmail-autoauth-mcp auth",
     "checkCommand": "test -f ~/.gmail-mcp/credentials.json"
+  },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": ["mcp__gmail__search", "mcp__gmail__read_message", "mcp__gmail__list_labels", "mcp__gmail__get_message"],
+    "critical": ["mcp__gmail__send", "mcp__gmail__reply", "mcp__gmail__draft", "mcp__gmail__forward"]
   }
 }
