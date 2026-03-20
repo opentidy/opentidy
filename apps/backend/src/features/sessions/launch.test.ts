@@ -49,11 +49,12 @@ function createMockDeps(wsDir: string) {
       instructionFile: 'CLAUDE.md',
       configEnvVar: 'CLAUDE_CONFIG_DIR',
       experimental: false,
-      buildArgs: vi.fn().mockReturnValue(['--dangerously-skip-permissions']),
+      buildArgs: vi.fn().mockReturnValue(['--allowedTools', 'tool1,tool2']),
       getEnv: () => ({}),
       readSessionId: vi.fn().mockReturnValue(null),
       writeConfig: () => {},
     },
+    getAllowedTools: () => ['tool1', 'tool2'],
     recoveryDelayMs: 0, // No delay in tests
   };
 }
@@ -159,7 +160,10 @@ describe('createLauncher (tmux-only)', () => {
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
       'opentidy-test-job',
-      expect.stringContaining('claude --dangerously-skip-permissions'),
+      expect.stringContaining('claude'),
+    );
+    expect(deps.adapter.buildArgs).toHaveBeenCalledWith(
+      expect.objectContaining({ allowedTools: ['tool1', 'tool2'] }),
     );
   });
 
@@ -167,7 +171,7 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     deps.adapter.readSessionId.mockReturnValue('session-abc-123');
     deps.adapter.buildArgs.mockImplementation((opts: { resumeSessionId?: string }) => {
-      const args = ['--dangerously-skip-permissions'];
+      const args = ['--allowedTools', 'tool1,tool2'];
       if (opts.resumeSessionId) args.push('--resume', opts.resumeSessionId);
       return args;
     });
