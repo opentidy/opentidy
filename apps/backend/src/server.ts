@@ -63,6 +63,7 @@ import { configureModuleRoute } from './features/modules/configure.js';
 import { addModuleRoute } from './features/modules/add.js';
 import { removeModuleRoute } from './features/modules/remove.js';
 import { moduleHealthRoute } from './features/modules/health.js';
+import { verifyModuleRoute } from './features/modules/verify.js';
 import { webhookRoute } from './features/modules/webhook.js';
 import type { ModuleRouteDeps } from './features/modules/types.js';
 import type { WebhookDeps } from './features/modules/webhook.js';
@@ -105,7 +106,10 @@ export interface AppDeps {
   };
   notify: { notifySuggestion(title: string, urgency: string): Promise<void> };
   sse: { emit(event: SSEEvent): void; addClient(client: SSEClient): void; removeClient(client: SSEClient): void };
-  terminal?: { ensureReady: (sessionName: string) => Promise<number | undefined> };
+  terminal?: {
+    ensureReady: (sessionName: string) => Promise<number | undefined>;
+    runCommand?: (command: string) => Promise<{ sessionName: string; port: number }>;
+  };
   notificationStore?: { list(): NotificationRecord[] };
   audit?: { read(): AuditEntry[] };
   generateTitle?: (instruction: string) => Promise<string>;
@@ -228,6 +232,7 @@ export function createApp(deps?: AppDeps) {
       app.route('/api', addModuleRoute(deps.moduleDeps));
       app.route('/api', removeModuleRoute(deps.moduleDeps));
       app.route('/api', moduleHealthRoute(deps.moduleDeps));
+      app.route('/api', verifyModuleRoute(deps.moduleDeps));
     }
     if (deps.webhookDeps) {
       app.route('/api', webhookRoute(deps.webhookDeps));

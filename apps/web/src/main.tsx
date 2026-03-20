@@ -6,7 +6,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { connectSSE } from './shared/store';
 import './shared/i18n/i18n';
-import '@xterm/xterm/css/xterm.css';
 import './index.css';
 
 const closeSSE = connectSSE();

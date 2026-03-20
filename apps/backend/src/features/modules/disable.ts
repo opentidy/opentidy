@@ -11,6 +11,12 @@ export function disableModuleRoute(deps: ModuleRouteDeps) {
     const name = c.req.param('name');
     console.log(`[modules] POST /modules/${name}/disable`);
 
+    // Core modules cannot be disabled
+    const manifest = deps.manifests.get(name);
+    if (manifest?.core) {
+      return c.json({ error: 'Core modules cannot be disabled' }, 400);
+    }
+
     await deps.lifecycle.disable(name);
     return c.json({ success: true });
   });

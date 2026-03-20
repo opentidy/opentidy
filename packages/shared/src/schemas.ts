@@ -189,12 +189,14 @@ export const ModuleManifestSchema = z.object({
   description: z.string(),
   icon: z.string().optional(),
   version: z.string(),
+  core: z.boolean().optional(),
   platform: z.enum(['darwin', 'all']).optional(),
   mcpServers: z.array(McpServerDefSchema).optional(),
   skills: z.array(SkillDefSchema).optional(),
   receivers: z.array(ReceiverDefSchema).optional(),
   setup: z.object({
     authCommand: z.string().optional(),
+    checkCommand: z.string().optional(),
     configFields: z.array(ConfigFieldSchema).optional(),
   }).optional(),
 });

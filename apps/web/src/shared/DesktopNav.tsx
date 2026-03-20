@@ -129,34 +129,6 @@ export default function DesktopNav() {
         </span>
       </div>
 
-      {/* New job */}
-      <div className="p-3">
-        <NavLink
-          to="/nouveau"
-          className={({ isActive }) =>
-            `flex items-center justify-center lg:justify-start gap-2 h-9 px-3 rounded-lg text-sm font-medium transition-colors ${
-              isActive
-                ? 'bg-accent text-white'
-                : 'bg-accent/10 text-accent hover:bg-accent/20'
-            }`
-          }
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          >
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span className="hidden lg:block">{t('nav.new')}</span>
-        </NavLink>
-      </div>
-
       {/* Navigation sections */}
       <div className="flex flex-col flex-1 px-3">
         {sections.map((section, i) => (

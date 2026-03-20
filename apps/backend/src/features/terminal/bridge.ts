@@ -122,6 +122,48 @@ export function getPort(sessionName: string): number | undefined {
   return undefined;
 }
 
+// Run an arbitrary command in a tmux+ttyd session (for module setup)
+export async function runCommand(command: string): Promise<{ sessionName: string; port: number }> {
+  if (process.platform === 'win32') {
+    throw new Error('Interactive terminal not available on Windows');
+  }
+
+  const sessionName = `opentidy-setup-${Date.now()}`;
+  console.log(`[terminal] Running command in tmux session ${sessionName}: ${command}`);
+
+  // Create tmux session with the command — remain-on-exit keeps it open after the command finishes
+  await execFile('tmux', ['new-session', '-d', '-s', sessionName, '-x', '120', '-y', '30', command]);
+  await execFile('tmux', ['set-option', '-t', sessionName, 'remain-on-exit', 'on']);
+
+  const port = findAvailablePort();
+  console.log(`[terminal] Spawning ttyd on port ${port} for setup session ${sessionName}`);
+
+  const proc = spawn('ttyd', [
+    '--port', String(port),
+    '--writable',
+    'tmux', 'attach-session', '-t', sessionName,
+  ], {
+    stdio: 'ignore',
+    detached: true,
+  });
+
+  proc.unref();
+
+  proc.on('exit', (code) => {
+    console.log(`[terminal] ttyd exited for setup session ${sessionName} (code: ${code})`);
+    ttydInstances.delete(sessionName);
+  });
+
+  ttydInstances.set(sessionName, { process: proc, port });
+
+  const ready = await waitForPort(port);
+  if (!ready) {
+    console.warn(`[terminal] ttyd on port ${port} not ready after timeout`);
+  }
+
+  return { sessionName, port };
+}
+
 export function createTerminalManager(deps: TerminalBridgeDeps) {
   // Clean up any orphan ttyd from previous runs on startup
   cleanupOrphanTtyd();
@@ -133,5 +175,6 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
     },
     getPort: (sessionName: string) => getPort(sessionName),
     killTtyd,
+    runCommand,
   };
 }

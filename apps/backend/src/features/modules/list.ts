@@ -21,6 +21,7 @@ function buildModuleInfo(
     label: manifest.label,
     description: manifest.description,
     icon: manifest.icon,
+    core: manifest.core,
     source: state?.source ?? 'curated',
     enabled: state?.enabled ?? false,
     platform: manifest.platform,
@@ -33,6 +34,7 @@ function buildModuleInfo(
     },
     setup: {
       needsAuth: !!manifest.setup?.authCommand,
+      authCommand: manifest.setup?.authCommand,
       configFields,
       configured,
     },
@@ -69,6 +71,8 @@ export function listModulesRoute(deps: ModuleRouteDeps) {
       }
     }
 
+    // Core modules first
+    result.sort((a, b) => (b.core ? 1 : 0) - (a.core ? 1 : 0));
     return c.json({ modules: result });
   });
 

@@ -18,6 +18,7 @@
   }],
   "setup": {
     "authCommand": "wacli auth",
+    "checkCommand": "which wacli",
     "configFields": [
       { "key": "wacliPath", "label": "wacli path", "type": "text", "placeholder": "/usr/local/bin/wacli" }
     ]

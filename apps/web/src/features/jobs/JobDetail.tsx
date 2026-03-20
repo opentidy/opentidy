@@ -9,6 +9,7 @@ import { useStore } from '../../shared/store';
 import StateRenderer from './StateRenderer';
 import InstructionBar from '../../shared/InstructionBar';
 import { getArtifactUrl, getTerminalPort, resumeSession } from '../../shared/api';
+import { TtydTerminal } from '../../shared/TtydTerminal';
 import { formatDuration } from '../../shared/utils/format';
 import { jobStatusConfig } from '../../shared/utils/status-colors';
 import type { Job } from '@opentidy/shared';
@@ -168,11 +169,7 @@ export default function JobDetail() {
 
             {/* Terminal panel */}
             <Panel defaultSize={75} minSize={30}>
-              <iframe
-                src={`http://localhost:${ttydPort}`}
-                className="w-full h-full border-0 bg-black"
-                title="Terminal"
-              />
+              <TtydTerminal port={ttydPort} />
             </Panel>
           </PanelGroup>
         ) : (

@@ -14,6 +14,7 @@
     "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins."
   }],
   "setup": {
-    "authCommand": "pipx install camoufox"
+    "authCommand": "pip3 install camoufox && python3 -m camoufox fetch",
+    "checkCommand": "pip3 show camoufox"
   }
 }

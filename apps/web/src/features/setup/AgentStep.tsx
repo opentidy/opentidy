@@ -61,10 +61,6 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
     fetchAgents();
   };
 
-  const handleTerminalComplete = () => {
-    fetchAgents();
-  };
-
   const hasConnectedAgent = agents.some((a) => a.installed && a.authed);
 
   const badgeLabel = (badge: AgentInfo['badge']) => {
@@ -161,9 +157,9 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
           title={terminal.agent}
           command={terminal.command}
           onClose={handleTerminalClose}
-          onComplete={handleTerminalComplete}
         />
       )}
+
     </div>
   );
 }
