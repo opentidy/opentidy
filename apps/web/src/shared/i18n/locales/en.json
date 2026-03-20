@@ -25,13 +25,13 @@
     "idle": "Paused"
   },
   "nav": {
-    "home": "Home",
+    "home": "Jobs",
     "terminal": "Processes",
     "analyses": "Improvements",
     "memory": "Memory",
     "new": "New",
     "schedule": "Schedule",
-    "suggestions": "Suggestions",
+    "suggestions": "Job Proposals",
     "modules": "Modules",
     "settings": "Settings",
     "sectionAgent": "Agent"
@@ -111,6 +111,9 @@
       "process": "Process",
       "data": "Data"
     }
+  },
+  "suggestions": {
+    "title": "Job Proposals"
   },
   "suggestion": {
     "viewOriginal": "View original message",

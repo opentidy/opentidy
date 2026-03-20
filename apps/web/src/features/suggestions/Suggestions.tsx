@@ -18,7 +18,7 @@ export default function Suggestions() {
   return (
     <div className="p-6 md:p-8">
       <div className="flex items-center gap-2 mb-6">
-        <h1 className="text-xl font-bold text-text">{t('home.suggestions')}</h1>
+        <h1 className="text-xl font-bold text-text">{t('suggestions.title')}</h1>
         {suggestions.length > 0 && (
           <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent font-medium">
             {t('home.new', { count: suggestions.length })}
