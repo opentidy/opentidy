@@ -330,7 +330,15 @@
     "remove": "Supprimer",
     "save": "Enregistrer",
     "cancel": "Annuler",
-    "connect": "Connecter"
+    "connect": "Connecter",
+    "addModule": "Ajouter un module",
+    "fromRegistry": "Depuis le registre",
+    "custom": "Personnalisé",
+    "searchRegistry": "Rechercher dans le registre MCP...",
+    "comingSoon": "Bientôt disponible",
+    "command": "Commande",
+    "args": "Arguments",
+    "add": "Ajouter"
   },
   "helpTooltip": {
     "job": "Une tâche que l'assistant gère pour toi, de A à Z.",

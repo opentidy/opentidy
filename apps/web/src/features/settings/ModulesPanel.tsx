@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { ModuleInfo } from '@opentidy/shared';
 import ModuleCard from './ModuleCard';
 import ModuleConfigDialog from './ModuleConfigDialog';
+import AddModuleDialog from './AddModuleDialog';
 
 const BASE = '/api';
 
@@ -22,6 +23,7 @@ export default function ModulesPanel() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [configuring, setConfiguring] = useState<string | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
 
   async function refetch() {
     try {
@@ -99,11 +101,10 @@ export default function ModulesPanel() {
           <h2 className="text-lg font-semibold">{t('settings.modulesTitle')}</h2>
           <p className="text-xs text-text-tertiary">{t('settings.modulesDescription')}</p>
         </div>
-        {/* Add module button — placeholder for AddModuleDialog (Task 11) */}
         <button
           type="button"
-          disabled
-          className="px-4 py-1.5 text-sm border border-accent/30 text-accent rounded-lg hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={() => setAddDialogOpen(true)}
+          className="px-4 py-1.5 text-sm border border-accent/30 text-accent rounded-lg hover:bg-accent/10 transition-colors"
         >
           {t('settings.addModule')}
         </button>
@@ -138,6 +139,12 @@ export default function ModulesPanel() {
           onSave={handleSave}
         />
       )}
+
+      <AddModuleDialog
+        open={addDialogOpen}
+        onClose={() => setAddDialogOpen(false)}
+        onAdded={refetch}
+      />
     </div>
   );
 }
