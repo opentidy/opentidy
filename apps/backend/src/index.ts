@@ -35,6 +35,8 @@ import { createScheduler } from './features/scheduler/scheduler.js';
 import { createMcpServer } from './features/mcp-server/server.js';
 import { createGapRouter } from './features/ameliorations/route-gap.js';
 import { createPermissionResolver } from './features/permissions/resolver.js';
+import { createPermissionState } from './features/permissions/state.js';
+import { createApprovalManager } from './features/permissions/approval.js';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -183,6 +185,23 @@ const sendMessage: (chatId: string, text: string, opts?: { parse_mode?: string }
   : async () => { console.log('[notifications] No Telegram token, skipping'); };
 const notify = createNotifier({ sendMessage, appBaseUrl: APP_BASE_URL, chatId: TELEGRAM_CHAT_ID, notificationStore, sse });
 
+// Permission services — state, approval flow, and per-request checker
+const permissionState = createPermissionState();
+
+const approvalManager = createApprovalManager({
+  summarize: async (toolName: string, toolInput: Record<string, unknown>) => {
+    const params = Object.entries(toolInput)
+      .filter(([, v]) => typeof v === 'string' && (v as string).length < 100)
+      .map(([k, v]) => `${k}: ${v}`)
+      .join(', ');
+    return params ? `${toolName} (${params})` : toolName;
+  },
+  sendConfirmation: async (approvalId, jobId, _toolName, _toolInput, _moduleName, summary) => {
+    const text = `🔔 Job ${jobId} requests permission\n${summary}\n\nApprove: ${APP_BASE_URL}/api/permissions/${approvalId}/approve\nDeny: ${APP_BASE_URL}/api/permissions/${approvalId}/deny`;
+    await notify.notifyAction(jobId, text);
+  },
+});
+
 // Launcher
 const tmuxExecutor = createTmuxExecutor();
 // Terminal ref — resolved after launcher is created (avoids TDZ circular ref)
@@ -219,6 +238,10 @@ const hooks = createHooksHandler({
   audit,
   notify,
   sse,
+  onSessionEnd: (jobId) => {
+    permissionState.revokeJob(jobId);
+    approvalManager.cancelJob(jobId);
+  },
 });
 
 // Receiver — triage + webhook
@@ -341,6 +364,23 @@ const app = createApp({
     },
   },
   configFns,
+  permissionDeps: {
+    checkerDeps: {
+      manifests,
+      loadConfig: () => loadConfig(getConfigPath()).permissions,
+      state: permissionState,
+      requestApproval: (opts) => approvalManager.requestApproval(opts),
+      audit,
+    },
+    approvalManager,
+    manifests,
+    loadConfig: () => configFns.loadConfig(),
+    saveConfig: (update: (cfg: Record<string, unknown>) => void) => {
+      const cfg = configFns.loadConfig() as unknown as Record<string, unknown>;
+      update(cfg);
+      configFns.saveConfig(cfg as any);
+    },
+  },
   agentSetupDeps: {
     checkInstalled: (name) => {
       try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }

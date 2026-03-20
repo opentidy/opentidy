@@ -7,6 +7,7 @@ import { serve } from '@hono/node-server';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { createAuthMiddleware } from './shared/auth.js';
+import type { SSEClient } from './shared/sse.js';
 import { ZodError } from 'zod';
 import type { Job, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
 // Job routes
@@ -41,7 +42,7 @@ import { ignoreAmeliorationRoute } from './features/ameliorations/ignore.js';
 import { hookRoute } from './features/hooks/handler.js';
 import { webhookGmailRoute } from './features/triage/webhook-route.js';
 // System routes
-import { healthRoute } from './features/system/health.js';
+import { auditRoute } from './features/system/audit-route.js';
 import { resetRoute } from './features/system/reset.js';
 import { processesRoute } from './features/system/processes.js';
 import { eventsRoute } from './features/system/events.js';
@@ -73,10 +74,12 @@ import { setupUserInfoRoute, type UserInfoDeps } from './features/setup/user-inf
 import { setupCompleteRoute } from './features/setup/complete.js';
 import { setupPermissionsRoute, defaultCheckPermission, type PermissionsDeps } from './features/setup/permissions.js';
 import { setupAgentsRoute, type AgentSetupDeps } from './features/setup/agents.js';
-
-interface SSEClient {
-  write: (data: string) => void;
-}
+// Permission routes
+import { permissionCheckRoute } from './features/permissions/route.js';
+import { permissionRespondRoute } from './features/permissions/respond.js';
+import { permissionConfigRoute } from './features/permissions/config-route.js';
+import type { PermissionCheckDeps } from './features/permissions/types.js';
+import type { ModuleManifest, PermissionConfig } from '@opentidy/shared';
 
 export interface AppDeps {
   workspace: {
@@ -138,6 +141,16 @@ export interface AppDeps {
   configFns?: {
     loadConfig: () => any;
     saveConfig: (config: any) => void;
+  };
+  permissionDeps?: {
+    checkerDeps: PermissionCheckDeps;
+    approvalManager: {
+      respond(approvalId: string, approved: boolean): boolean;
+      listPending(): Array<{ id: string; jobId: string; toolName: string; toolInput: Record<string, unknown>; moduleName: string | null; summary: string; createdAt: string }>;
+    };
+    manifests: Map<string, ModuleManifest>;
+    loadConfig: () => { permissions: PermissionConfig };
+    saveConfig: (update: (cfg: Record<string, unknown>) => void) => void;
   };
 }
 
@@ -208,7 +221,7 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', hookRoute(deps));
     app.route('/api', webhookGmailRoute(deps));
     // System routes
-    app.route('/api', healthRoute(deps));
+    app.route('/api', auditRoute(deps));
     app.route('/api', resetRoute(deps));
     app.route('/api', processesRoute(deps));
     app.route('/api', eventsRoute(deps));
@@ -248,6 +261,13 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', setupPermissionsRoute({ checkPermission: defaultCheckPermission }));
     if (deps.agentSetupDeps) {
       app.route('/api', setupAgentsRoute(deps.agentSetupDeps));
+    }
+    // Permission check + approval + config routes
+    if (deps.permissionDeps) {
+      const { checkerDeps, approvalManager, manifests: permManifests, loadConfig: permLoadConfig, saveConfig: permSaveConfig } = deps.permissionDeps;
+      app.route('/api', permissionCheckRoute(checkerDeps));
+      app.route('/api', permissionRespondRoute({ approvalManager, sse: deps.sse }));
+      app.route('/api', permissionConfigRoute({ loadConfig: permLoadConfig, saveConfig: permSaveConfig, manifests: permManifests }));
     }
   }
 
