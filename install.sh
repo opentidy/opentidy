@@ -43,14 +43,37 @@ fi
 
 # --- Node.js 22 ---
 log "Checking Node.js $REQUIRED_NODE_MAJOR..."
-brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
-NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
+# Check if node@22 is already available (via brew install node or node@22)
+NODE_BIN=""
+if brew list "node@$REQUIRED_NODE_MAJOR" &>/dev/null; then
+  NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
+elif command -v node &>/dev/null; then
+  SYS_MAJOR="$(node --version 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')"
+  if [ "$SYS_MAJOR" -ge "$REQUIRED_NODE_MAJOR" ] 2>/dev/null; then
+    NODE_BIN="$(dirname "$(command -v node)")"
+    dim "Using system Node.js $(node --version)"
+  fi
+fi
+if [ -z "$NODE_BIN" ]; then
+  brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
+  NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
+fi
 export PATH="$NODE_BIN:$PATH"
 
-# Persist node@22 in .zshrc (idempotent)
-ZSHRC="${ZDOTDIR:-$HOME}/.zshrc"
-if ! grep -q "node@$REQUIRED_NODE_MAJOR" "$ZSHRC" 2>/dev/null; then
-  echo "export PATH=\"$NODE_BIN:\$PATH\"" >> "$ZSHRC"
+# Persist node@22 in the user's shell rc file (idempotent)
+SHELL_NAME="$(basename "${SHELL:-/bin/zsh}")"
+case "$SHELL_NAME" in
+  zsh)  RC_FILE="${ZDOTDIR:-$HOME}/.zshrc" ;;
+  bash) RC_FILE="$HOME/.bashrc" ;;
+  fish) RC_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish" ;;
+  *)    RC_FILE="$HOME/.profile" ;;
+esac
+if ! grep -q "node@$REQUIRED_NODE_MAJOR" "$RC_FILE" 2>/dev/null; then
+  if [ "$SHELL_NAME" = "fish" ]; then
+    echo "set -gx PATH $NODE_BIN \$PATH" >> "$RC_FILE"
+  else
+    echo "export PATH=\"$NODE_BIN:\$PATH\"" >> "$RC_FILE"
+  fi
 fi
 
 ok "Node.js $(node --version)"
@@ -182,9 +205,9 @@ else
   warn "Check logs: opentidy logs"
 fi
 
-# --- Open browser ---
-if [ "$healthy" = true ]; then
-  open "http://localhost:$PORT"
+# --- Open browser (skip in SSH/headless) ---
+if [ "$healthy" = true ] && [ -z "${SSH_CLIENT:-}" ]; then
+  open "http://localhost:$PORT" 2>/dev/null || true
 fi
 
 # --- Done ---

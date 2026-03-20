@@ -148,7 +148,11 @@ export async function runSetup(moduleArg?: string): Promise<void> {
     const section = moduleArg ? `?section=${moduleArg}` : '';
     const url = `http://localhost:${port}/setup${section}`;
     console.log(`Opening setup in browser: ${url}`);
-    execFileSync('open', [url]);
+    try {
+      execFileSync('open', [url], { timeout: 5000, stdio: 'pipe' });
+    } catch {
+      console.log(`  Open this URL manually: ${url}`);
+    }
     return;
   } catch {
     // Server not running — fall through to CLI setup
