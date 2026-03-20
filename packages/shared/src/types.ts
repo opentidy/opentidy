@@ -258,6 +258,13 @@ export interface AgentAdapter {
 }
 
 // === Module System ===
+export interface MacPermission {
+  name: string;              // "messages", "mail", "accessibility", etc.
+  label: string;             // "Messages", "Mail"
+  app: string;               // macOS app name for osascript check
+  reason: string;            // why this permission is needed
+}
+
 export interface ModuleManifest {
   name: string;
   label: string;
@@ -268,6 +275,7 @@ export interface ModuleManifest {
   mcpServers?: McpServerDef[];
   skills?: SkillDef[];
   receivers?: ReceiverDef[];
+  permissions?: MacPermission[];  // macOS permissions this module needs
   setup?: {
     authCommand?: string;
     configFields?: ConfigField[];
