@@ -246,9 +246,20 @@ export function createApp(deps?: AppDeps) {
     }
   }
 
+  // 404 handler for unknown API routes — must be after all route mounting
+  app.all('/api/*', (c) => c.json({ error: 'Not found', path: c.req.path }, 404));
+
   // Static file serving — production only (when web-dist/ exists)
   const webDistPath = resolve(import.meta.dirname, '../web-dist');
   if (existsSync(webDistPath)) {
+    // Block path traversal attempts before serving static files
+    app.use('/*', async (c, next) => {
+      const url = new URL(c.req.url);
+      if (url.pathname.includes('..')) {
+        return c.json({ error: 'Invalid path' }, 400);
+      }
+      await next();
+    });
     app.use('/*', serveStatic({ root: webDistPath }));
     // SPA fallback — serve index.html for non-API routes
     app.get('*', serveStatic({ root: webDistPath, path: 'index.html' }));

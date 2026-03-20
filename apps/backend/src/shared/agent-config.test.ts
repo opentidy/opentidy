@@ -237,18 +237,22 @@ describe('regenerateAgentConfig (module path)', () => {
     rmSync(testDir, { recursive: true, force: true });
   });
 
-  it('writes settings.json with module MCPs + opentidy system MCP', () => {
+  it('writes settings.json with module MCPs including opentidy module', () => {
     const config = buildTestConfig({
       agentConfig: { name: 'claude', configDir: testDir },
       server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
-      modules: { gmail: { enabled: true, source: 'curated' } },
+      modules: { gmail: { enabled: true, source: 'curated' }, opentidy: { enabled: true, source: 'curated' } },
     });
     const modules: Record<string, ModuleState> = {
       gmail: makeModuleState(true),
+      opentidy: makeModuleState(true),
     };
     const manifests = new Map<string, ModuleManifest>([
       ['gmail', makeManifest('gmail', {
         mcpServers: [{ name: 'gmail', command: 'npx', args: ['@gmail/mcp'] }],
+      })],
+      ['opentidy', makeManifest('opentidy', {
+        mcpServers: [{ name: 'opentidy', url: 'http://localhost:5175/mcp', permissions: ['mcp__opentidy__*'] }],
       })],
     ]);
 

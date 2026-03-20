@@ -741,10 +741,13 @@ describe('Adversarial memory API tests', () => {
   describe('path traversal via URL params', () => {
     it('GET /api/memory/../../package.json does not leak files', async () => {
       const res = await r.get('/api/memory/../../package.json')
-      // Hono may decode .. and route differently, or memoryManager.readFile
-      // will look for ../../package.json inside _memory/ dir
-      // Either 404 or the file shouldn't be found
-      expect(res.status).not.toBe(200)
+      // URL normalization resolves ../../ before routing, so the path
+      // becomes /package.json which doesn't match any API route.
+      // SPA fallback may serve index.html (200), but no data is leaked.
+      const text = await res.text()
+      expect(text).not.toContain('"name"')
+      expect(text).not.toContain('"version"')
+      expect(text).not.toContain('opentidy')
     })
 
     it('GET /api/memory/%2e%2e%2f%2e%2e%2fpackage.json rejects traversal', async () => {

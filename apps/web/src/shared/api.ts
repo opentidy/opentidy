@@ -98,7 +98,7 @@ export const resetEverything = async () => {
     try {
       const res = await fetch(`${BASE}/health`);
       if (res.ok) return;
-    } catch {}
+    } catch { /* retry silently */ }
   }
   throw new Error('Backend did not restart in time');
 };

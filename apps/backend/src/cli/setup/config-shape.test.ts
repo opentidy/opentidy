@@ -10,9 +10,9 @@ describe('OpenTidyConfig shape', () => {
     expect(config.userInfo).toEqual({ name: '', email: '', company: '' });
   });
 
-  it('has modules section with empty defaults', () => {
+  it('has modules section with opentidy enabled by default', () => {
     const config = loadConfig('/nonexistent/path/config.json');
-    expect(config.modules).toEqual({});
+    expect(config.modules.opentidy).toEqual({ enabled: true, source: 'curated' });
   });
 
   it('has version 3 by default', () => {

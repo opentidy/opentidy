@@ -14,19 +14,19 @@ export default function PlainTextOutput({ raw }: PlainTextOutputProps) {
   // Separate prose from JSON blocks
   const prose = raw
     .replace(/```(?:json)?\s*[\s\S]*?```/g, '')
-    .replace(/^\s*[\[{][\s\S]*?[\]}]\s*$/gm, '')
+    .replace(/^\s*[[{][\s\S]*?[\]}]\s*$/gm, '')
     .trim();
 
   // Try to extract useful fields from any JSON in the output
   const jsonBlocks: Record<string, unknown>[] = [];
   // Match ```json ... ``` blocks
   for (const m of raw.matchAll(/```(?:json)?\s*([\s\S]*?)```/g)) {
-    try { jsonBlocks.push(JSON.parse(m[1])); } catch {}
+    try { jsonBlocks.push(JSON.parse(m[1])); } catch { /* parse error expected */ }
   }
   // Match bare JSON objects
   if (jsonBlocks.length === 0) {
     for (const m of raw.matchAll(/(\{[\s\S]*?\})/g)) {
-      try { jsonBlocks.push(JSON.parse(m[1])); } catch {}
+      try { jsonBlocks.push(JSON.parse(m[1])); } catch { /* parse error expected */ }
     }
   }
 

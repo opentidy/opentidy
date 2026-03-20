@@ -84,13 +84,14 @@ function getOutputVersion() { return _outputVersion; }
 const EMPTY_LINES: SessionOutputLine[] = [];
 
 export function useSessionOutput(jobId: string): SessionOutputLine[] {
-  const version = useSyncExternalStore(subscribeOutputs, getOutputVersion);
-  // version forces re-render, then we read the mutable data
+  // Subscribe to force re-render on output changes, then read the mutable data
+  useSyncExternalStore(subscribeOutputs, getOutputVersion);
   return _sessionOutputs.get(jobId) ?? EMPTY_LINES;
 }
 
 export function useProcessOutput(trackId: number): string {
-  const version = useSyncExternalStore(subscribeOutputs, getOutputVersion);
+  // Subscribe to force re-render on output changes
+  useSyncExternalStore(subscribeOutputs, getOutputVersion);
   return _processOutputs.get(trackId) ?? '';
 }
 

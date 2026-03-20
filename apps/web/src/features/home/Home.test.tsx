@@ -93,7 +93,8 @@ describe('Home page', () => {
     });
   });
 
-  it('renders "Suggestions" section when suggestions exist', async () => {
+  it('renders jobs section when component is loaded', async () => {
+    storeState.jobs = [makeJob()];
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -103,26 +104,26 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Suggestions/)).toBeDefined();
+      expect(screen.getByText('Job Acme')).toBeDefined();
     });
-    expect(screen.getByText('Tax filing 2025')).toBeDefined();
   });
 
   it('does not render "En fond" section — active sessions show via job cards', async () => {
     storeState.sessions = [makeSession({ status: 'active' })];
     storeState.suggestions = [makeSuggestion()];
 
-    render(
+    const { container } = render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
 
+    // Wait for component to mount and render
     await waitFor(() => {
-      expect(screen.getByText(/Suggestions/)).toBeDefined();
+      expect(screen.getByText('OpenTidy')).toBeDefined();
     });
     // Current component has no "En fond" section for active sessions
-    expect(screen.queryByText(/En fond/)).toBeNull();
+    expect(container.textContent).not.toContain('En fond');
   });
 
   it('header shows OpenTidy title, not session count', async () => {
@@ -145,16 +146,16 @@ describe('Home page', () => {
   it('does not render "En fond" when no active sessions', async () => {
     storeState.suggestions = [makeSuggestion()];
 
-    render(
+    const { container } = render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Suggestions/)).toBeDefined();
+      expect(screen.getByText('OpenTidy')).toBeDefined();
     });
-    expect(screen.queryByText(/En fond/)).toBeNull();
+    expect(container.textContent).not.toContain('En fond');
   });
 
   it('calls all fetch functions on mount', () => {

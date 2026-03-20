@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import { existsSync, rmSync, renameSync, mkdirSync, readdirSync } from 'fs';
+import { existsSync, rmSync, renameSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { execFileSync } from 'child_process';
 import { loadConfig, getConfigPath } from '../shared/config.js';
@@ -13,13 +13,6 @@ import { createRawModeSelector } from './interactive-select.js';
 // ═══════════════════════════════════════
 
 type Scope = 'service' | 'config' | 'data' | 'tunnel';
-
-interface UninstallOptions {
-  scopes?: Scope[];
-  all?: boolean;
-  yes?: boolean;
-  dryRun?: boolean;
-}
 
 interface CleanupItem {
   scope: Scope;
@@ -332,7 +325,6 @@ export async function runUninstall(args: string[]): Promise<void> {
     console.log(`  ── ${scope.label} ──`);
     const scopeItems = items.filter(i => i.scope === scope.key);
     for (const item of scopeItems) {
-      const status = item.exists ? (item.path || 'action') : 'not found';
       console.log(`     ${item.exists ? '•' : '·'}  ${item.label}${item.path ? ` (${item.path})` : ''}`);
     }
     console.log('');

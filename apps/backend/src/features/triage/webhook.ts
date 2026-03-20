@@ -1,4 +1,5 @@
-// src/features/triage/webhook.ts
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
 import { GmailWebhookSchema } from '@opentidy/shared';
 
 export function createWebhookReceiver(deps: {

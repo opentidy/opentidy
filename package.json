@@ -3,6 +3,10 @@
   "version": "0.0.1",
   "private": true,
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentidy/opentidy.git"
+  },
   "packageManager": "pnpm@10.6.5",
   "pnpm": {
     "onlyBuiltDependencies": ["better-sqlite3", "esbuild"]
@@ -12,13 +16,23 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
+    "prepare": "pnpm --filter @opentidy/shared build",
     "build": "pnpm -r build",
     "test": "pnpm --filter @opentidy/backend test && pnpm --filter @opentidy/web test",
     "test:e2e": "pnpm --filter @opentidy/web test:e2e",
     "dev": "pnpm -r --parallel dev",
     "lint": "pnpm -r lint",
+    "format": "prettier --write \"apps/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\"",
+    "format:check": "prettier --check \"apps/**/*.{ts,tsx}\" \"packages/**/*.{ts,tsx}\"",
+    "typecheck": "pnpm -r --parallel typecheck",
     "smoke:setup": "pnpm --filter @opentidy/backend smoke:setup",
     "smoke:start": "pnpm --filter @opentidy/backend smoke:start",
     "smoke:cleanup": "pnpm --filter @opentidy/backend smoke:cleanup"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "eslint": "^9.0.0",
+    "prettier": "^3.4.0",
+    "typescript-eslint": "^8.0.0"
   }
 }
