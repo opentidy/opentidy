@@ -21,16 +21,16 @@ describe('config', () => {
   it('loads config from file', () => {
     const configPath = join(configDir, 'config.json');
     writeFileSync(configPath, JSON.stringify({
-      version: 1,
-      telegram: { botToken: 'test-token', chatId: '123' },
+      version: 3,
       auth: { bearerToken: 'secret' },
       server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
       workspace: { dir: '/tmp/workspace', lockDir: '/tmp/locks' },
       update: { autoUpdate: true, checkInterval: '6h', notifyBeforeUpdate: true, delayBeforeUpdate: '5m', keepReleases: 3 },
-      claudeConfig: { dir: join(configDir, 'claude-config') },
+      agentConfig: { name: 'claude', configDir: join(configDir, 'claude-config') },
+      modules: {},
     }));
     const config = loadConfig(configPath);
-    expect(config.telegram.botToken).toBe('test-token');
+    expect(config.auth.bearerToken).toBe('secret');
     expect(config.server.port).toBe(5175);
   });
 
@@ -43,7 +43,7 @@ describe('config', () => {
   it('deep merges partial config with defaults', () => {
     const configPath = join(configDir, 'config.json');
     writeFileSync(configPath, JSON.stringify({
-      version: 1,
+      version: 3,
       update: { autoUpdate: false },
     }));
     const config = loadConfig(configPath);
@@ -59,10 +59,10 @@ describe('config', () => {
   it('saves config to file', () => {
     const configPath = join(configDir, 'config.json');
     const config = loadConfig(configPath);
-    config.telegram.botToken = 'new-token';
+    config.userInfo.name = 'Test User';
     saveConfig(configPath, config);
     const reloaded = loadConfig(configPath);
-    expect(reloaded.telegram.botToken).toBe('new-token');
+    expect(reloaded.userInfo.name).toBe('Test User');
   });
 
   it('migrates claudeConfig to agentConfig', () => {
@@ -93,7 +93,7 @@ describe('config', () => {
     expect(config.agentConfig.configDir).toBe('');
   });
 
-  it('migrates v1 flat mcp to v2 nested curated/marketplace', () => {
+  it('migrates v1 config to v3 (removes legacy mcp/skills fields)', () => {
     const configPath = join(configDir, 'config.json');
     writeFileSync(configPath, JSON.stringify({
       version: 1,
@@ -104,22 +104,13 @@ describe('config', () => {
       },
     }));
     const config = loadConfig(configPath);
-    expect(config.version).toBe(2);
-    expect(config.mcp.curated.gmail.enabled).toBe(true);
-    expect(config.mcp.marketplace).toEqual({});
-    expect(config.skills.curated.browser.enabled).toBe(true);
-    expect(config.skills.user).toEqual([]);
+    expect(config.version).toBe(3);
+    expect((config as any).mcp).toBeUndefined();
+    expect((config as any).skills).toBeUndefined();
+    expect(config.modules).toBeDefined();
   });
 
-  it('handles missing mcp section in v1', () => {
-    const configPath = join(configDir, 'config.json');
-    writeFileSync(configPath, JSON.stringify({ version: 1 }));
-    const config = loadConfig(configPath);
-    expect(config.version).toBe(2);
-    expect(config.mcp.curated.gmail.enabled).toBe(false);
-  });
-
-  it('does not re-migrate v2 config', () => {
+  it('migrates v2 config to v3 (removes legacy mcp/skills fields)', () => {
     const configPath = join(configDir, 'config.json');
     writeFileSync(configPath, JSON.stringify({
       version: 2,
@@ -134,7 +125,9 @@ describe('config', () => {
       skills: { curated: { browser: { enabled: true } }, user: [] },
     }));
     const config = loadConfig(configPath);
-    expect(config.mcp.marketplace.notion).toBeDefined();
-    expect(config.mcp.marketplace.notion.label).toBe('Notion');
+    expect(config.version).toBe(3);
+    expect((config as any).mcp).toBeUndefined();
+    expect((config as any).skills).toBeUndefined();
+    expect(config.modules).toBeDefined();
   });
 });

@@ -10,20 +10,16 @@ describe('OpenTidyConfig shape', () => {
     expect(config.userInfo).toEqual({ name: '', email: '', company: '' });
   });
 
-  it('has mcp section with defaults', () => {
+  it('has modules section with empty defaults', () => {
     const config = loadConfig('/nonexistent/path/config.json');
-    expect(config.mcp.curated).toEqual({
-      gmail: { enabled: false, configured: false },
-      camoufox: { enabled: false, configured: false },
-      whatsapp: { enabled: false, configured: false, wacliPath: '', mcpServerPath: '' },
-    });
-    expect(config.mcp.marketplace).toEqual({});
+    expect(config.modules).toEqual({});
   });
 
-  it('deep-merges existing config missing new sections', () => {
+  it('has version 3 by default', () => {
     const config = loadConfig('/nonexistent/path/config.json');
-    expect(config.version).toBe(2);
+    expect(config.version).toBe(3);
     expect(config.userInfo.name).toBe('');
-    expect(config.mcp.curated.gmail.enabled).toBe(false);
+    expect((config as any).mcp).toBeUndefined();
+    expect((config as any).telegram).toBeUndefined();
   });
 });

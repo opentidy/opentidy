@@ -7,8 +7,7 @@ import type { OpenTidyConfig, AgentName } from '@opentidy/shared';
 
 function makeConfig(overrides: Partial<OpenTidyConfig> = {}): OpenTidyConfig {
   return {
-    version: 1,
-    telegram: { botToken: '', chatId: '' },
+    version: 3,
     auth: { bearerToken: '' },
     server: { port: 5175, appBaseUrl: '' },
     workspace: { dir: '', lockDir: '' },
@@ -21,17 +20,8 @@ function makeConfig(overrides: Partial<OpenTidyConfig> = {}): OpenTidyConfig {
     },
     agentConfig: { name: 'claude', configDir: '' },
     language: 'en',
-    receivers: [],
     userInfo: { name: '', email: '', company: '' },
-    mcp: {
-      curated: {
-        gmail: { enabled: false, configured: false },
-        camoufox: { enabled: false, configured: false },
-        whatsapp: { enabled: false, configured: false, wacliPath: '', mcpServerPath: '' },
-      },
-      marketplace: {},
-    },
-    skills: { curated: {}, user: [] },
+    modules: {},
     ...overrides,
   };
 }
@@ -97,10 +87,12 @@ describe('GET /setup/status', () => {
     expect(body.agents.connected).toEqual([]);
   });
 
-  it('services.telegram is connected when botToken is present', async () => {
+  it('services.telegram is connected when botToken is present in modules', async () => {
     const deps = makeDeps({
       loadConfig: () => makeConfig({
-        telegram: { botToken: 'bot12345:ABC', chatId: '123' },
+        modules: {
+          telegram: { enabled: true, source: 'curated', config: { botToken: 'bot12345:ABC', chatId: '123' } },
+        },
       }),
     });
     const app = setupStatusRoute(deps);
@@ -121,13 +113,8 @@ describe('GET /setup/status', () => {
   it('services.gmail is connected when configured', async () => {
     const deps = makeDeps({
       loadConfig: () => makeConfig({
-        mcp: {
-          curated: {
-            gmail: { enabled: true, configured: true },
-            camoufox: { enabled: false, configured: false },
-            whatsapp: { enabled: false, configured: false, wacliPath: '', mcpServerPath: '' },
-          },
-          marketplace: {},
+        modules: {
+          gmail: { enabled: true, source: 'curated' },
         },
       }),
     });
