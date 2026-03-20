@@ -4,8 +4,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   GmailWebhookSchema,
-  CreateDossierSchema,
-  DossierInstructionSchema,
+  CreateJobSchema,
+  JobInstructionSchema,
   ApproveSuggestionSchema,
   HookPayloadSchema,
   MarketplaceMcpSchema,
@@ -50,36 +50,36 @@ describe('GmailWebhookSchema', () => {
   });
 });
 
-describe('CreateDossierSchema', () => {
+describe('CreateJobSchema', () => {
   it('should validate with instruction', () => {
-    const result = CreateDossierSchema.parse({ instruction: 'Do something' });
+    const result = CreateJobSchema.parse({ instruction: 'Do something' });
     expect(result.instruction).toBe('Do something');
     expect(result.confirm).toBe(false); // default
   });
 
   it('should accept confirm override', () => {
-    const result = CreateDossierSchema.parse({ instruction: 'Do something', confirm: true });
+    const result = CreateJobSchema.parse({ instruction: 'Do something', confirm: true });
     expect(result.confirm).toBe(true);
   });
 
   it('should reject empty instruction', () => {
-    expect(() => CreateDossierSchema.parse({ instruction: '' })).toThrow();
+    expect(() => CreateJobSchema.parse({ instruction: '' })).toThrow();
   });
 
   it('should reject missing instruction', () => {
-    expect(() => CreateDossierSchema.parse({})).toThrow();
+    expect(() => CreateJobSchema.parse({})).toThrow();
   });
 });
 
-describe('DossierInstructionSchema', () => {
+describe('JobInstructionSchema', () => {
   it('should validate with instruction', () => {
-    const result = DossierInstructionSchema.parse({ instruction: 'Update status' });
+    const result = JobInstructionSchema.parse({ instruction: 'Update status' });
     expect(result.instruction).toBe('Update status');
     expect(result.confirm).toBe(false);
   });
 
   it('should reject empty instruction', () => {
-    expect(() => DossierInstructionSchema.parse({ instruction: '' })).toThrow();
+    expect(() => JobInstructionSchema.parse({ instruction: '' })).toThrow();
   });
 });
 
@@ -232,7 +232,7 @@ describe('CreateScheduleSchema', () => {
     if (result.success) {
       expect(result.data.type).toBe('once');
       expect(result.data.createdBy).toBe('user');
-      expect(result.data.dossierId).toBeNull();
+      expect(result.data.jobId).toBeNull();
     }
   });
 
@@ -241,13 +241,13 @@ describe('CreateScheduleSchema', () => {
       type: 'recurring',
       intervalMs: 1800000,
       label: 'Monitor BTC',
-      dossierId: 'btc-monitor',
+      jobId: 'btc-monitor',
       createdBy: 'agent',
     });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.intervalMs).toBe(1800000);
-      expect(result.data.dossierId).toBe('btc-monitor');
+      expect(result.data.jobId).toBe('btc-monitor');
     }
   });
 

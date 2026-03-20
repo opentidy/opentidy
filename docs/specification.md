@@ -120,14 +120,14 @@ finite. You cannot feed it the state of all tasks plus all emails plus all messa
 Even if it fits, quality degrades when context is overloaded (degradation accelerates
 after 75% utilization — per Google ADK research).
 
-### The Solution: Focused Sessions per Dossier
+### The Solution: Focused Sessions per Job
 
 No specialized agents by domain. A single type of agent: a Claude Code instance
-loaded with the right context for a specific dossier.
+loaded with the right context for a specific job.
 
-- Claude works on "invoice tracking" — loaded with: dossier state, relevant contacts, Gmail access.
+- Claude works on "invoice tracking" — loaded with: job state, relevant contacts, Gmail access.
 - Claude responds to an accountant — loaded with: the email, relevant documents.
-- Claude fills an insurance report — loaded with: dossier state, credentials, browser.
+- Claude fills an insurance report — loaded with: job state, credentials, browser.
 
 The same Claude, just different contexts. When it finishes, it saves its state and
 terminates. Clean session each time.
@@ -149,9 +149,9 @@ terminates. Clean session each time.
 │                          WEB APP                                   │
 │                                                                    │
 │  Primary user interface:                                           │
-│  - Active dossiers + status                                        │
+│  - Active jobs + status                                             │
 │  - Approve/reject actions (previews with context)                  │
-│  - Give instructions / create dossiers                             │
+│  - Give instructions / create jobs                                 │
 │  - Debug (logs, history, sessions)                                 │
 │  - MFA/captcha intervention                                        │
 │                                                                    │
@@ -167,7 +167,7 @@ terminates. Clean session each time.
 │  │          │  │          │  │           │                        │
 │  │ Webhooks │  │ Launches │  │ Reads/    │                        │
 │  │ Crons    │  │ Claude   │  │ writes    │                        │
-│  │ Web app  │  │ tmux     │  │ dossiers  │                        │
+│  │ Web app  │  │ tmux     │  │ jobs      │                        │
 │  └────┬─────┘  └────┬─────┘  └─────┬─────┘                        │
 │       │              │              │                               │
 │  ┌────┴──────────────┴──────────────┴──────┐                       │
@@ -262,33 +262,33 @@ Receives everything that can trigger work and transforms it into a uniform event
 One `claude -p` call per event. The backend passes the **complete content of each
 state.md** in the prompt — Claude sees the objective, the journal, and especially
 the `## Waiting for` sections (resume criteria), enabling much more precise
-matching between an incoming event and the right dossier.
+matching between an incoming event and the right job.
 
 ```
 claude -p --system-prompt "Triage mode. Respond in JSON only." \
-  "Active dossiers (full content of each state.md):\n\n--- invoices-2025 ---\n# Invoices 2025\nSTATUS: IN PROGRESS\n## Waiting for\nEmail sent to billing@vendor.com...\n\n---\n\nEvent:\nEmail from billing@vendor.com: March invoice"
+  "Active jobs (full content of each state.md):\n\n--- invoices-2025 ---\n# Invoices 2025\nSTATUS: IN PROGRESS\n## Waiting for\nEmail sent to billing@vendor.com...\n\n---\n\nEvent:\nEmail from billing@vendor.com: March invoice"
 ```
 
 Expected JSON response (3 cases):
 ```json
-{ "dossierIds": ["invoices-2025"] }
+{ "jobIds": ["invoices-2025"] }
 { "suggestion": { "title": "...", "urgency": "normal", "source": "gmail", "why": "..." } }
 { "ignore": true, "reason": "marketing spam" }
 ```
 
 Notes:
-- `dossierIds` is an array — an event can concern multiple dossiers
-- If the dossier is already locked, the event is added to the dossier's CLAUDE.md
+- `jobIds` is an array — an event can concern multiple jobs
+- If the job is already locked, the event is added to the job's CLAUDE.md
   ("Pending events" section) for processing at the next launch/resume
 - No batching — one triage per event, dedup eliminates duplicates upstream
 - Rate limits: if `claude -p` is rate-limited (429), exponential backoff
 
-**Fundamental rule: Claude never creates a dossier itself.** Only the user can
-create a dossier (via the web app) or approve a suggestion from Claude.
+**Fundamental rule: Claude never creates a job itself.** Only the user can
+create a job (via the web app) or approve a suggestion from Claude.
 
-### 5.2 WORKSPACE — Dossier State
+### 5.2 WORKSPACE — Job State
 
-Each active dossier has a directory in `workspace/` with markdown files.
+Each active job has a directory in `workspace/` with markdown files.
 No database for state — human-readable files that Claude can also read.
 
 ```
@@ -303,9 +303,9 @@ workspace/
 │   └── artifacts/
 │
 ├── _inbox/
-│   └── events.md         # events not yet attached to a dossier
+│   └── events.md         # events not yet attached to a job
 │
-├── _suggestions/         # dossiers suggested by Claude, pending user approval
+├── _suggestions/         # jobs suggested by Claude, pending user approval
 │   ├── tax-follow-up.md
 │   └── missing-timesheet-june.md
 │
@@ -318,7 +318,7 @@ workspace/
 
 #### The state.md File (Heart of the System)
 
-This is Claude's memory for a dossier. It contains everything Claude needs to
+This is Claude's memory for a job. It contains everything Claude needs to
 resume work in a new session.
 
 ```markdown
@@ -363,16 +363,16 @@ user intervention.
 
 **Role in the system:**
 - **Triage**: the prompt receives the full state.md — the `## Waiting for` section
-  helps Claude match an incoming event with the right dossier (e.g., "this dossier is
+  helps Claude match an incoming event with the right job (e.g., "this job is
   waiting for an email from contact@example.com" + an email arrives from that
   contact → match)
-- **Checkup**: the prompt knows that a dossier with `## Waiting for` should not be
+- **Checkup**: the prompt knows that a job with `## Waiting for` should not be
   relaunched unless a follow-up date is mentioned and has passed
 - **Launcher**: when a session is relaunched (event or checkup), the backend
   automatically clears the `## Waiting for` section in state.md before launching
   Claude
-- **UI**: the first line of the section is displayed on the dossier card in the web
-  app, so the user can see at a glance what a dossier is waiting for
+- **UI**: the first line of the section is displayed on the job card in the web
+  app, so the user can see at a glance what a job is waiting for
 
 Claude has one single responsibility: write the section when it leaves. The cleanup
 on return is handled by the backend, not by Claude.
@@ -434,8 +434,8 @@ Level 1 — `workspace/CLAUDE.md` (global, written once, shared by all sessions)
 - Available tools (Gmail MCP, Camoufox, Bitwarden, etc.)
 - Security rules (do not retry if a hook refuses)
 
-Level 2 — `workspace/<dossier>/CLAUDE.md` (generated by backend at each launch):
-- Dossier objective
+Level 2 — `workspace/<job>/CLAUDE.md` (generated by backend at each launch):
+- Job objective
 - Confirm mode (yes/no)
 - Triggering event or instruction
 - Relevant contacts (pre-fetched from macOS Contacts)
@@ -448,14 +448,14 @@ across `--resume`. No need to re-pass context via CLI.
 # Node.js child process (spawn)
 claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
   [--plugin-dir plugins/opentidy-hooks] [--resume <session-id>] "<instruction>"
-# cwd = workspace/<dossier-id>/
+# cwd = workspace/<job-id>/
 ```
-The instruction/event is passed as a CLI argument. The dossier's CLAUDE.md provides context.
+The instruction/event is passed as a CLI argument. The job's CLAUDE.md provides context.
 
 **Interactive command (tmux, "Take over" only)**:
 ```
-tmux new-session -d -s opentidy-<dossier-id> \
-  "cd workspace/<dossier-id> && claude --dangerously-skip-permissions --resume <session-id>"
+tmux new-session -d -s opentidy-<job-id> \
+  "cd workspace/<job-id> && claude --dangerously-skip-permissions --resume <session-id>"
 ```
 
 **For sweep and triage** (`claude -p`, one-shot, no resume):
@@ -465,19 +465,19 @@ claude -p --system-prompt "Triage mode." "Event: email from accountant@firm.com.
 ```
 No dedicated CLAUDE.md — `--system-prompt` suffices for one-shot calls.
 
-**Parallelism**: multiple child processes at the same time, each on a different dossier.
-Per-dossier locks (PID, `/tmp/opentidy-locks/`) prevent two sessions from working on the
-same dossier.
+**Parallelism**: multiple child processes at the same time, each on a different job.
+Per-job locks (PID, `/tmp/opentidy-locks/`) prevent two sessions from working on the
+same job.
 
 **Claude sessions**:
 - **`--dangerously-skip-permissions`** on all sessions — disables Claude Code's
   built-in permission prompts. Security is ensured by PreToolUse hooks (guardrails),
   not by the built-in permission system. Hooks fire BEFORE the permission check,
   so they remain active.
-- PID lock per dossier in `/tmp/opentidy-locks/`
+- PID lock per job in `/tmp/opentidy-locks/`
 - Crash recovery: reconciles tmux survivors (interactive) + relaunches orphaned
-  IN PROGRESS dossiers (autonomous)
-- Session ID persisted in `workspace/<dossier>/.session-id` for resume
+  IN PROGRESS jobs (autonomous)
+- Session ID persisted in `workspace/<job>/.session-id` for resume
 
 **Browser: Camoufox** (not Chrome/Playwright). Each session has its own Camoufox
 instance with an isolated profile. Advantages:
@@ -630,15 +630,15 @@ The web app is the primary interface for the user.
 
 | View | Route | Content |
 |---|---|---|
-| Home | `/` | Active dossiers + status, pending actions, suggestions, active sessions, recent activity |
-| Dossiers | `/dossiers` | List with Active/Completed/Blocked filters, search |
-| Dossier | `/dossier/:id` | Rendered state.md, checkpoint summary, sidebar (session, files, history), instruction bar |
+| Home | `/` | Active jobs + status, pending actions, suggestions, active sessions, recent activity |
+| Jobs | `/jobs` | List with Active/Completed/Blocked filters, search |
+| Job | `/job/:id` | Rendered state.md, checkpoint summary, sidebar (session, files, history), instruction bar |
 | Terminal | `/terminal` | Tmux sessions (interactive mode) — direct interaction with Claude |
-| New | `/new` | Create a dossier + recommendations below |
+| New | `/new` | Create a job + recommendations below |
 | Improvements | `/improvements` | Limitations detected by the assistant, improvement backlog |
 
 **Checkpoints**: when Claude writes a checkpoint.md, the web app displays a short
-summary (1-2 lines) on the dossier page and on the Home, with an "Open terminal" button.
+summary (1-2 lines) on the job page and on the Home, with an "Open terminal" button.
 The user opens the terminal, reads the detail, and responds directly in the conversation.
 No dedicated checkpoint pages, no action buttons in the UI (the terminal is the right
 place for that).
@@ -675,12 +675,12 @@ page, recent activity on the dashboard with a "View full logs" link.
 
 ### 5.8 SUGGESTIONS — Claude Proposes, User Decides
 
-Claude cannot create dossiers. It creates suggestions in `workspace/_suggestions/`.
+Claude cannot create jobs. It creates suggestions in `workspace/_suggestions/`.
 
 **Sources**:
-- Incoming event with no matching existing dossier
+- Incoming event with no matching existing job
 - Sweep observation (deadline, follow-up)
-- Opportunistic discovery while working on another dossier
+- Opportunistic discovery while working on another job
 
 **Format** (`workspace/_suggestions/<slug>.md`):
 
@@ -695,15 +695,15 @@ DATE: 2026-03-14
 Tax authority email received 2 weeks ago, no response.
 
 ## Why
-Tax deadline end of March. No existing dossier for tracking.
+Tax deadline end of March. No existing job for tracking.
 
 ## What I would do
-Create a dossier, analyze the email, prepare the requested documents.
+Create a job, analyze the email, prepare the requested documents.
 ```
 
 **Urgency levels**: `urgent` (near deadline), `normal` (handle when possible), `low` (opportunity).
 
-**In the web app**: dedicated section on the Home. Two actions: "Create Dossier" or "Ignore".
+**In the web app**: dedicated section on the Home. Two actions: "Create Job" or "Ignore".
 Urgency indicated visually by a colored left border. Urgent ones trigger a Telegram notification.
 
 ---
@@ -718,7 +718,7 @@ Urgency indicated visually by a colored left border. Urgent ones trigger a Teleg
 3. LAUNCHER launches Claude (autonomous child process) with the event
 4. Claude:
    a. Reads the email (Gmail MCP)
-   b. Scans workspace/ dossiers → matches "accountant-request"
+   b. Scans workspace/ jobs → matches "accountant-request"
    c. Reads workspace/accountant-request/state.md
    d. Prepares the response with supporting documents
    e. Calls gmail.reply(...)
@@ -737,9 +737,9 @@ Urgency indicated visually by a colored left border. Urgent ones trigger a Teleg
 1. Periodic cron → LAUNCHER launches Claude sweep (claude -p)
 2. Claude sweep:
    a. Scans workspace/*/state.md
-   b. Identifies dossiers that need action
+   b. Identifies jobs that need action
    c. Creates suggestions if needed
-   d. Returns the list of dossiers to launch
+   d. Returns the list of jobs to launch
 3. Backend parses → launches focused autonomous sessions
 4. Each session works independently
 5. NOTIFICATION → relevant results
@@ -808,7 +808,7 @@ After each process exit in autonomous mode, `handleAutonomousExit()`:
 
 ### Resuming a Session
 
-`claude --resume <session-id>` (stored in `workspace/<dossier>/.session-id`).
+`claude --resume <session-id>` (stored in `workspace/<job>/.session-id`).
 The session_id is captured from the `result` event of the NDJSON stream in
 autonomous mode.
 
@@ -818,7 +818,7 @@ At startup, the backend reconciles in two passes:
 
 1. **Tmux sessions (interactive)**: `tmux list-sessions` → filter `opentidy-*` →
    rebuild sessions with mode `interactive`
-2. **Orphaned dossiers (autonomous)**: scan `workspace/*/state.md` → relaunch those
+2. **Orphaned jobs (autonomous)**: scan `workspace/*/state.md` → relaunch those
    that are IN PROGRESS and not waiting
 3. Cleanup stale locks via `cleanupStaleLocks()`
 
@@ -833,11 +833,11 @@ setInterval(sweep, SWEEP_INTERVAL_MS)  // default: 1h, configurable via env var
 
 sweep():
   claude -p \
-    --system-prompt "Checkup mode. Analyze workspace/. If a dossier has a
+    --system-prompt "Checkup mode. Analyze workspace/. If a job has a
     '## Waiting for' section, do NOT relaunch it unless a follow-up date is
     mentioned and has passed. Respond in JSON: { launch: [...], suggestions: [...] }" \
     --allowedTools "Read,Glob,Grep,Write" \
-    "Read workspace/*/state.md. For each active dossier, tell me if an action is
+    "Read workspace/*/state.md. For each active job, tell me if an action is
     needed (deadline, follow-up, work to advance).
     Create suggestions in _suggestions/ if needed."
   → backend parses the JSON → launches focused autonomous sessions
@@ -847,7 +847,7 @@ sweep():
 `--system-prompt` instead of CLAUDE.md (no resume, no persistence needed).
 `--allowedTools` restricts to reading + Write (to create suggestions).
 
-**Note**: `claude -p` is now also the primary execution mode for dossier sessions
+**Note**: `claude -p` is now also the primary execution mode for job sessions
 (with `--output-format stream-json`). The sweep/triage remain distinct one-shots
 because they have no CLAUDE.md context nor resume.
 
@@ -941,7 +941,7 @@ with MDM.
 2. Launcher — launches autonomous sessions (`claude -p` child process), interactive mode (tmux), manages locks
 3. Hook handler — centralized endpoint `/api/hooks`, audit + SSE (lifecycle managed by process exit in autonomous)
 4. State manager — reads workspace/ files (state.md, suggestions, gaps)
-5. API — routes for the web app (dossiers, suggestions, sessions, files)
+5. API — routes for the web app (jobs, suggestions, sessions, files)
 6. SSE — real-time events to the web app
 7. Notifications — Telegram push via grammY
 8. Infrastructure — event dedup, locks, retry/backoff, crash recovery, audit trail
@@ -987,7 +987,7 @@ with MDM.
 ### 9.7 Shared Packages (`packages/shared/`)
 
 Types and schemas shared between backend and frontend:
-- Dossier types (status, metadata)
+- Job types (status, metadata)
 - Suggestion types (urgency, source)
 - SSE event types
 - Zod schemas for API validation
@@ -1113,7 +1113,7 @@ Support regex, case-sensitive:
 | A — Coded workflows | Predefined steps with checkpoints | Checkpoint concept | Coded steps = rigid. Claude adapts dynamically. |
 | B — YAML rules | Routing by pattern matching | — | Breaks as soon as reality is nuanced. |
 | C — Single agent | One Claude, one virtual desk | Virtual desk as files | Single context = bottleneck. No parallelism. |
-| D — Multi-agent by domain | Accounting/admin/social agents | Isolated parallelism | Claude is already a generalist. Granularity = dossier, not domain. |
+| D — Multi-agent by domain | Accounting/admin/social agents | Isolated parallelism | Claude is already a generalist. Granularity = job, not domain. |
 | E — Skills only | Everything in skills, 50-line backend | Intelligence in prompts | We need plumbing. "50 lines" is unrealistic. |
 | F — Pure stateless | Each event = fresh session | Fresh sessions = robust | Cold-start overhead. Lost browser state. |
 | G — Hybrid | Stateless by default, stateful if needed | Pragmatic compromise | Integrated into final architecture (autonomous = child process, interactive = tmux). |
@@ -1123,7 +1123,7 @@ Support regex, case-sensitive:
 - **Claude API / Agent SDK**: too expensive, no existing ecosystem
 - **Specialized agents by domain**: complexity without value
 - **`--allowedTools` for security**: Claude bypasses via browser/bash
-- **File watching (chokidar/fs.watch/polling)**: simplified watchdog to fs.watch for `dossier:updated` SSE only
+- **File watching (chokidar/fs.watch/polling)**: simplified watchdog to fs.watch for `job:updated` SSE only
 - **Biome**: Claude knows ESLint+Prettier better
 - **Wouter**: too obscure vs React Router
 - **Turborepo**: overkill for 2 apps + 1 package
@@ -1140,16 +1140,16 @@ Support regex, case-sensitive:
 | POST | `/api/webhook/gmail` | Incoming Gmail webhook |
 | POST | `/api/hooks` | Centralized Claude Code hooks endpoint |
 | POST | `/api/sweep` | Manually trigger a sweep |
-| POST | `/api/dossier` | Create a dossier (user instruction) |
-| POST | `/api/dossier/:id/resume` | Relaunch a session with --resume |
-| POST | `/api/dossier/:id/instruction` | Send an instruction to a dossier |
-| POST | `/api/dossier/:id/upload` | Upload files to artifacts/ |
-| POST | `/api/suggestion/:slug/approve` | Approve a suggestion → creates a dossier |
+| POST | `/api/job` | Create a job (user instruction) |
+| POST | `/api/job/:id/resume` | Relaunch a session with --resume |
+| POST | `/api/job/:id/instruction` | Send an instruction to a job |
+| POST | `/api/job/:id/upload` | Upload files to artifacts/ |
+| POST | `/api/suggestion/:slug/approve` | Approve a suggestion → creates a job |
 | POST | `/api/suggestion/:slug/ignore` | Ignore a suggestion |
 | POST | `/api/session/:id/timeout` | Simulate a timeout (dev/test) |
 | POST | `/api/improvement/:id/resolve` | Mark a gap as resolved |
-| GET | `/api/dossiers` | List of dossiers |
-| GET | `/api/dossier/:id` | Dossier detail (state.md, checkpoint, artifacts) |
+| GET | `/api/jobs` | List of jobs |
+| GET | `/api/job/:id` | Job detail (state.md, checkpoint, artifacts) |
 | GET | `/api/suggestions` | List of suggestions |
 | GET | `/api/improvements` | List of gaps |
 | GET | `/api/sessions` | Active sessions (autonomous + interactive) |

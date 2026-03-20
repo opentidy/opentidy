@@ -5,7 +5,7 @@
 set -euo pipefail
 
 echo "=== OpenTidy MCP Server Setup ==="
-echo "This configures MCP servers that Claude sessions use for dossier work."
+echo "This configures MCP servers that Claude sessions use for job work."
 echo ""
 
 # Gmail MCP
@@ -31,4 +31,4 @@ echo ""
 
 echo "After installing, verify with: claude mcp list"
 echo "MCP servers in ~/.claude/settings.json or opentidy/.claude/settings.json"
-echo "will be available to all dossier sessions (Claude Code traverses parent dirs)."
+echo "will be available to all job sessions (Claude Code traverses parent dirs)."

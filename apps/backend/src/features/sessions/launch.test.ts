@@ -24,13 +24,13 @@ function createMockDeps(wsDir: string) {
       cleanupStaleLocks: vi.fn().mockReturnValue([]),
     },
     workspace: {
-      getDossier: vi.fn().mockReturnValue({
-        id: 'test-dossier',
-        title: 'Test Dossier',
+      getJob: vi.fn().mockReturnValue({
+        id: 'test-job',
+        title: 'Test Job',
         objective: 'Do something',
         status: 'IN_PROGRESS',
       }),
-      listDossierIds: vi.fn().mockReturnValue(['test-dossier']),
+      listJobIds: vi.fn().mockReturnValue(['test-job']),
       dir: wsDir,
     },
     notify: {
@@ -63,12 +63,12 @@ describe('createLauncher (tmux-only)', () => {
 
   beforeEach(() => {
     wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
-    // Create a dossier directory with state.md
-    const dossierDir = path.join(wsDir, 'test-dossier');
-    fs.mkdirSync(dossierDir, { recursive: true });
+    // Create a job directory with state.md
+    const jobDir = path.join(wsDir, 'test-job');
+    fs.mkdirSync(jobDir, { recursive: true });
     fs.writeFileSync(
-      path.join(dossierDir, 'state.md'),
-      '# Test Dossier\nSTATUT : EN COURS\n## Objectif\nDo something',
+      path.join(jobDir, 'state.md'),
+      '# Test Job\nSTATUT : EN COURS\n## Objectif\nDo something',
     );
   });
 
@@ -80,14 +80,14 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier', { source: 'app', content: 'Do something' });
+    await launcher.launchSession('test-job', { source: 'app', content: 'Do something' });
 
-    expect(deps.locks.acquire).toHaveBeenCalledWith('test-dossier');
+    expect(deps.locks.acquire).toHaveBeenCalledWith('test-job');
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'opentidy-test-dossier',
+      'opentidy-test-job',
       expect.stringContaining('claude'),
     );
-    expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-dossier');
+    expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-job');
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'session:started' }),
     );
@@ -97,8 +97,8 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
+    await launcher.launchSession('test-job');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledTimes(1);
   });
@@ -108,7 +108,7 @@ describe('createLauncher (tmux-only)', () => {
     deps.locks.acquire.mockReturnValue(false);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
     expect(deps.tmuxExecutor.launchTmux).not.toHaveBeenCalled();
   });
@@ -117,23 +117,23 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier', { source: 'gmail', content: 'Facture mars' });
+    await launcher.launchSession('test-job', { source: 'gmail', content: 'Facture mars' });
 
-    const claudeMd = fs.readFileSync(path.join(wsDir, 'test-dossier', 'CLAUDE.md'), 'utf-8');
-    expect(claudeMd).toContain('Test Dossier');
+    const claudeMd = fs.readFileSync(path.join(wsDir, 'test-job', 'CLAUDE.md'), 'utf-8');
+    expect(claudeMd).toContain('Test Job');
     expect(claudeMd).toContain('Facture mars');
     expect(claudeMd).toContain('gmail');
 
-    // generateDossierInstructions also writes INSTRUCTIONS.md as source of truth
-    const instructionsMd = fs.readFileSync(path.join(wsDir, 'test-dossier', 'INSTRUCTIONS.md'), 'utf-8');
-    expect(instructionsMd).toContain('Test Dossier');
+    // generateJobInstructions also writes INSTRUCTIONS.md as source of truth
+    const instructionsMd = fs.readFileSync(path.join(wsDir, 'test-job', 'INSTRUCTIONS.md'), 'utf-8');
+    expect(instructionsMd).toContain('Test Job');
     expect(instructionsMd).toContain('Facture mars');
   });
 
-  it('generates instruction files with confirm instructions when dossier has confirm mode', async () => {
+  it('generates instruction files with confirm instructions when job has confirm mode', async () => {
     const deps = createMockDeps(wsDir);
-    deps.workspace.getDossier.mockReturnValue({
-      id: 'test-dossier',
+    deps.workspace.getJob.mockReturnValue({
+      id: 'test-job',
       title: 'Test',
       objective: 'Obj',
       status: 'IN_PROGRESS',
@@ -141,13 +141,13 @@ describe('createLauncher (tmux-only)', () => {
     });
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
-    const claudeMd = fs.readFileSync(path.join(wsDir, 'test-dossier', 'CLAUDE.md'), 'utf-8');
+    const claudeMd = fs.readFileSync(path.join(wsDir, 'test-job', 'CLAUDE.md'), 'utf-8');
     expect(claudeMd).toContain('Confirm Mode');
     expect(claudeMd).toContain('confirmation');
 
-    const instructionsMd = fs.readFileSync(path.join(wsDir, 'test-dossier', 'INSTRUCTIONS.md'), 'utf-8');
+    const instructionsMd = fs.readFileSync(path.join(wsDir, 'test-job', 'INSTRUCTIONS.md'), 'utf-8');
     expect(instructionsMd).toContain('Confirm Mode');
   });
 
@@ -155,10 +155,10 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'opentidy-test-dossier',
+      'opentidy-test-job',
       expect.stringContaining('claude --dangerously-skip-permissions'),
     );
   });
@@ -173,10 +173,10 @@ describe('createLauncher (tmux-only)', () => {
     });
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-      'opentidy-test-dossier',
+      'opentidy-test-job',
       expect.stringContaining('--resume session-abc-123'),
     );
   });
@@ -185,11 +185,11 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    await launcher.sendMessage('test-dossier', 'Nouvel email de X');
+    await launcher.launchSession('test-job');
+    await launcher.sendMessage('test-job', 'Nouvel email de X');
 
     expect(deps.tmuxExecutor.sendKeys).toHaveBeenCalledWith(
-      'opentidy-test-dossier',
+      'opentidy-test-job',
       'Nouvel email de X\n',
     );
   });
@@ -198,9 +198,9 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
     deps.sse.emit.mockClear();
-    await launcher.sendMessage('test-dossier', 'Hello');
+    await launcher.sendMessage('test-job', 'Hello');
 
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'session:active' }),
@@ -219,14 +219,14 @@ describe('createLauncher (tmux-only)', () => {
   it('markWaiting sets session status to idle and reads waitingType from state.md', async () => {
     // Write state.md with ATTENTE: TIERS
     fs.writeFileSync(
-      path.join(wsDir, 'test-dossier', 'state.md'),
-      '# Test Dossier\nSTATUT : EN COURS\n## Objectif\nDo something\n\n## En attente\nATTENTE: TIERS\nWaiting for email\n',
+      path.join(wsDir, 'test-job', 'state.md'),
+      '# Test Job\nSTATUT : EN COURS\n## Objectif\nDo something\n\n## En attente\nATTENTE: TIERS\nWaiting for email\n',
     );
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    launcher.markWaiting('test-dossier');
+    await launcher.launchSession('test-job');
+    launcher.markWaiting('test-job');
 
     const sessions = launcher.listActiveSessions();
     expect(sessions[0].status).toBe('idle');
@@ -237,8 +237,8 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    launcher.markWaiting('test-dossier');
+    await launcher.launchSession('test-job');
+    launcher.markWaiting('test-job');
 
     const sessions = launcher.listActiveSessions();
     expect(sessions[0].waitingType).toBe('user');
@@ -248,14 +248,14 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
     deps.sse.emit.mockClear();
-    launcher.markWaiting('test-dossier');
+    launcher.markWaiting('test-job');
 
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:idle',
-        data: expect.objectContaining({ dossierId: 'test-dossier', waitingType: 'user' }),
+        data: expect.objectContaining({ jobId: 'test-job', waitingType: 'user' }),
       }),
     );
   });
@@ -264,16 +264,16 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
     deps.sse.emit.mockClear();
-    launcher.setSessionWaitingType('test-dossier', 'tiers');
+    launcher.setSessionWaitingType('test-job', 'tiers');
 
     const sessions = launcher.listActiveSessions();
     expect(sessions[0].waitingType).toBe('tiers');
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:idle',
-        data: expect.objectContaining({ dossierId: 'test-dossier', waitingType: 'tiers' }),
+        data: expect.objectContaining({ jobId: 'test-job', waitingType: 'tiers' }),
       }),
     );
   });
@@ -282,11 +282,11 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    launcher.handleSessionEnd('test-dossier');
+    await launcher.launchSession('test-job');
+    launcher.handleSessionEnd('test-job');
 
-    expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
-    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-dossier');
+    expect(deps.locks.release).toHaveBeenCalledWith('test-job');
+    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-job');
     expect(launcher.listActiveSessions()).toHaveLength(0);
     expect(deps.sse.emit).toHaveBeenCalledWith(
       expect.objectContaining({ type: 'session:ended' }),
@@ -297,12 +297,12 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    await launcher.archiveSession('test-dossier');
+    await launcher.launchSession('test-job');
+    await launcher.archiveSession('test-job');
 
-    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('opentidy-test-dossier');
-    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-dossier');
-    expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
+    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('opentidy-test-job');
+    expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-job');
+    expect(deps.locks.release).toHaveBeenCalledWith('test-job');
     expect(launcher.listActiveSessions()).toHaveLength(0);
   });
 
@@ -310,24 +310,24 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
     const sessions = launcher.listActiveSessions();
     expect(sessions).toHaveLength(1);
-    expect(sessions[0].dossierId).toBe('test-dossier');
+    expect(sessions[0].jobId).toBe('test-job');
     expect(sessions[0].status).toBe('active');
   });
 
-  it('launches parallel sessions on different dossiers', async () => {
-    const dir2 = path.join(wsDir, 'other-dossier');
+  it('launches parallel sessions on different jobs', async () => {
+    const dir2 = path.join(wsDir, 'other-job');
     fs.mkdirSync(dir2, { recursive: true });
     fs.writeFileSync(path.join(dir2, 'state.md'), '# Other\nSTATUT : EN COURS');
 
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
-    await launcher.launchSession('other-dossier');
+    await launcher.launchSession('test-job');
+    await launcher.launchSession('other-job');
 
     expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledTimes(2);
     expect(launcher.listActiveSessions()).toHaveLength(2);
@@ -337,9 +337,9 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-dossier');
+    await launcher.launchSession('test-job');
 
-    expect(deps.notify.notifyStarted).toHaveBeenCalledWith('test-dossier');
+    expect(deps.notify.notifyStarted).toHaveBeenCalledWith('test-job');
   });
 
   it('releases lock on launch failure', async () => {
@@ -347,33 +347,33 @@ describe('createLauncher (tmux-only)', () => {
     deps.tmuxExecutor.launchTmux.mockRejectedValue(new Error('tmux failed'));
     const launcher = createLauncher(deps);
 
-    await expect(launcher.launchSession('test-dossier')).rejects.toThrow('tmux failed');
-    expect(deps.locks.release).toHaveBeenCalledWith('test-dossier');
+    await expect(launcher.launchSession('test-job')).rejects.toThrow('tmux failed');
+    expect(deps.locks.release).toHaveBeenCalledWith('test-job');
   });
 
   describe('recover', () => {
     it('reconciles existing tmux sessions', async () => {
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([
-        'opentidy-test-dossier',
-        'opentidy-other-dossier',
+        'opentidy-test-job',
+        'opentidy-other-job',
         'unrelated-session',
       ]);
-      // Create other-dossier dir so it passes existsSync check
-      fs.mkdirSync(path.join(wsDir, 'other-dossier'), { recursive: true });
+      // Create other-job dir so it passes existsSync check
+      fs.mkdirSync(path.join(wsDir, 'other-job'), { recursive: true });
 
       const launcher = createLauncher(deps);
       await launcher.recover();
 
       const sessions = launcher.listActiveSessions();
       expect(sessions).toHaveLength(2);
-      expect(sessions.map((s) => s.dossierId).sort()).toEqual(['other-dossier', 'test-dossier']);
+      expect(sessions.map((s) => s.jobId).sort()).toEqual(['other-job', 'test-job']);
     });
 
-    it('skips tmux sessions without matching dossier directory', async () => {
+    it('skips tmux sessions without matching job directory', async () => {
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-nonexistent']);
-      deps.workspace.listDossierIds.mockReturnValue([]); // No workspace dossiers for this test
+      deps.workspace.listJobIds.mockReturnValue([]); // No workspace jobs for this test
       const launcher = createLauncher(deps);
 
       await launcher.recover();
@@ -383,12 +383,12 @@ describe('createLauncher (tmux-only)', () => {
 
     it('starts ttyd for recovered sessions', async () => {
       const deps = createMockDeps(wsDir);
-      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-test-dossier']);
+      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-test-job']);
       const launcher = createLauncher(deps);
 
       await launcher.recover();
 
-      expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-dossier');
+      expect(deps.terminal.ensureReady).toHaveBeenCalledWith('opentidy-test-job');
     });
 
     it('calls cleanupStaleLocks', async () => {
@@ -400,34 +400,34 @@ describe('createLauncher (tmux-only)', () => {
       expect(deps.locks.cleanupStaleLocks).toHaveBeenCalled();
     });
 
-    // --- Pass 2: orphaned IN_PROGRESS dossiers ---
+    // --- Pass 2: orphaned IN_PROGRESS jobs ---
 
-    it('Pass 2: relaunches orphaned IN_PROGRESS dossiers', async () => {
+    it('Pass 2: relaunches orphaned IN_PROGRESS jobs', async () => {
       const deps = createMockDeps(wsDir);
       // No surviving tmux sessions
       deps.tmuxExecutor.listSessions.mockResolvedValue([]);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier']);
+      deps.workspace.listJobIds.mockReturnValue(['test-job']);
 
       const launcher = createLauncher(deps);
       await launcher.recover();
 
-      // Should have launched a session for the orphaned dossier
+      // Should have launched a session for the orphaned job
       expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledWith(
-        'opentidy-test-dossier',
+        'opentidy-test-job',
         expect.stringContaining('claude'),
       );
       expect(launcher.listActiveSessions()).toHaveLength(1);
-      expect(launcher.listActiveSessions()[0].dossierId).toBe('test-dossier');
+      expect(launcher.listActiveSessions()[0].jobId).toBe('test-job');
     });
 
-    it('Pass 2: skips COMPLETED dossiers', async () => {
+    it('Pass 2: skips COMPLETED jobs', async () => {
       fs.writeFileSync(
-        path.join(wsDir, 'test-dossier', 'state.md'),
-        '# Test Dossier\nSTATUS: COMPLETED\n## Objective\nDone',
+        path.join(wsDir, 'test-job', 'state.md'),
+        '# Test Job\nSTATUS: COMPLETED\n## Objective\nDone',
       );
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([]);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier']);
+      deps.workspace.listJobIds.mockReturnValue(['test-job']);
 
       const launcher = createLauncher(deps);
       await launcher.recover();
@@ -436,14 +436,14 @@ describe('createLauncher (tmux-only)', () => {
       expect(launcher.listActiveSessions()).toHaveLength(0);
     });
 
-    it('Pass 2: skips dossiers with ## Waiting section', async () => {
+    it('Pass 2: skips jobs with ## Waiting section', async () => {
       fs.writeFileSync(
-        path.join(wsDir, 'test-dossier', 'state.md'),
-        '# Test Dossier\nSTATUS: IN_PROGRESS\n## Objective\nDo something\n\n## Waiting\nATTENTE: TIERS\nWaiting for email response\n',
+        path.join(wsDir, 'test-job', 'state.md'),
+        '# Test Job\nSTATUS: IN_PROGRESS\n## Objective\nDo something\n\n## Waiting\nATTENTE: TIERS\nWaiting for email response\n',
       );
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([]);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier']);
+      deps.workspace.listJobIds.mockReturnValue(['test-job']);
 
       const launcher = createLauncher(deps);
       await launcher.recover();
@@ -452,14 +452,14 @@ describe('createLauncher (tmux-only)', () => {
       expect(launcher.listActiveSessions()).toHaveLength(0);
     });
 
-    it('Pass 2: skips dossiers with .user-stopped marker', async () => {
+    it('Pass 2: skips jobs with .user-stopped marker', async () => {
       fs.writeFileSync(
-        path.join(wsDir, 'test-dossier', '.user-stopped'),
+        path.join(wsDir, 'test-job', '.user-stopped'),
         new Date().toISOString(),
       );
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([]);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier']);
+      deps.workspace.listJobIds.mockReturnValue(['test-job']);
 
       const launcher = createLauncher(deps);
       await launcher.recover();
@@ -468,11 +468,11 @@ describe('createLauncher (tmux-only)', () => {
       expect(launcher.listActiveSessions()).toHaveLength(0);
     });
 
-    it('Pass 2: skips dossiers already recovered in Pass 1', async () => {
+    it('Pass 2: skips jobs already recovered in Pass 1', async () => {
       const deps = createMockDeps(wsDir);
-      // test-dossier has a surviving tmux session (Pass 1)
-      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-test-dossier']);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier']);
+      // test-job has a surviving tmux session (Pass 1)
+      deps.tmuxExecutor.listSessions.mockResolvedValue(['opentidy-test-job']);
+      deps.workspace.listJobIds.mockReturnValue(['test-job']);
 
       const launcher = createLauncher(deps);
       await launcher.recover();
@@ -483,15 +483,15 @@ describe('createLauncher (tmux-only)', () => {
     });
 
     it('Pass 2: continues on individual relaunch failure', async () => {
-      // Create two orphaned dossiers
-      const dir2 = path.join(wsDir, 'dossier-b');
+      // Create two orphaned jobs
+      const dir2 = path.join(wsDir, 'job-b');
       fs.mkdirSync(dir2, { recursive: true });
-      fs.writeFileSync(path.join(dir2, 'state.md'), '# Dossier B\nSTATUS: IN_PROGRESS\n## Objective\nDo B');
+      fs.writeFileSync(path.join(dir2, 'state.md'), '# Job B\nSTATUS: IN_PROGRESS\n## Objective\nDo B');
 
       const deps = createMockDeps(wsDir);
       deps.tmuxExecutor.listSessions.mockResolvedValue([]);
-      deps.workspace.listDossierIds.mockReturnValue(['test-dossier', 'dossier-b']);
-      deps.workspace.getDossier.mockImplementation((id: string) => ({
+      deps.workspace.listJobIds.mockReturnValue(['test-job', 'job-b']);
+      deps.workspace.getJob.mockImplementation((id: string) => ({
         id, title: id, objective: 'Obj', status: 'IN_PROGRESS',
       }));
 
@@ -505,63 +505,63 @@ describe('createLauncher (tmux-only)', () => {
       const launcher = createLauncher(deps);
       await launcher.recover();
 
-      // dossier-b should still have been launched despite test-dossier failure
+      // job-b should still have been launched despite test-job failure
       expect(deps.tmuxExecutor.launchTmux).toHaveBeenCalledTimes(2);
       expect(launcher.listActiveSessions()).toHaveLength(1);
-      expect(launcher.listActiveSessions()[0].dossierId).toBe('dossier-b');
+      expect(launcher.listActiveSessions()[0].jobId).toBe('job-b');
     });
   });
 
   describe('.user-stopped marker', () => {
-    it('handleSessionEnd writes .user-stopped when dossier is IN_PROGRESS', async () => {
+    it('handleSessionEnd writes .user-stopped when job is IN_PROGRESS', async () => {
       const deps = createMockDeps(wsDir);
       const launcher = createLauncher(deps);
 
-      await launcher.launchSession('test-dossier');
-      launcher.handleSessionEnd('test-dossier');
+      await launcher.launchSession('test-job');
+      launcher.handleSessionEnd('test-job');
 
-      expect(fs.existsSync(path.join(wsDir, 'test-dossier', '.user-stopped'))).toBe(true);
+      expect(fs.existsSync(path.join(wsDir, 'test-job', '.user-stopped'))).toBe(true);
     });
 
-    it('handleSessionEnd does NOT write .user-stopped when dossier is COMPLETED', async () => {
+    it('handleSessionEnd does NOT write .user-stopped when job is COMPLETED', async () => {
       const deps = createMockDeps(wsDir);
       const launcher = createLauncher(deps);
 
-      await launcher.launchSession('test-dossier');
+      await launcher.launchSession('test-job');
       // Simulate agent completing: set status to COMPLETED
       fs.writeFileSync(
-        path.join(wsDir, 'test-dossier', 'state.md'),
-        '# Test Dossier\nSTATUS: COMPLETED\n## Objective\nDone',
+        path.join(wsDir, 'test-job', 'state.md'),
+        '# Test Job\nSTATUS: COMPLETED\n## Objective\nDone',
       );
-      launcher.handleSessionEnd('test-dossier');
+      launcher.handleSessionEnd('test-job');
 
-      expect(fs.existsSync(path.join(wsDir, 'test-dossier', '.user-stopped'))).toBe(false);
+      expect(fs.existsSync(path.join(wsDir, 'test-job', '.user-stopped'))).toBe(false);
     });
 
-    it('handleSessionEnd does NOT write .user-stopped when dossier has ## Waiting', async () => {
+    it('handleSessionEnd does NOT write .user-stopped when job has ## Waiting', async () => {
       const deps = createMockDeps(wsDir);
       const launcher = createLauncher(deps);
 
-      await launcher.launchSession('test-dossier');
+      await launcher.launchSession('test-job');
       fs.writeFileSync(
-        path.join(wsDir, 'test-dossier', 'state.md'),
-        '# Test Dossier\nSTATUS: IN_PROGRESS\n## Objective\nDo something\n\n## Waiting\nATTENTE: TIERS\nWaiting for reply\n',
+        path.join(wsDir, 'test-job', 'state.md'),
+        '# Test Job\nSTATUS: IN_PROGRESS\n## Objective\nDo something\n\n## Waiting\nATTENTE: TIERS\nWaiting for reply\n',
       );
-      launcher.handleSessionEnd('test-dossier');
+      launcher.handleSessionEnd('test-job');
 
-      expect(fs.existsSync(path.join(wsDir, 'test-dossier', '.user-stopped'))).toBe(false);
+      expect(fs.existsSync(path.join(wsDir, 'test-job', '.user-stopped'))).toBe(false);
     });
 
     it('launchSession removes .user-stopped marker', async () => {
       // Pre-create .user-stopped marker
-      fs.writeFileSync(path.join(wsDir, 'test-dossier', '.user-stopped'), new Date().toISOString());
+      fs.writeFileSync(path.join(wsDir, 'test-job', '.user-stopped'), new Date().toISOString());
 
       const deps = createMockDeps(wsDir);
       const launcher = createLauncher(deps);
 
-      await launcher.launchSession('test-dossier');
+      await launcher.launchSession('test-job');
 
-      expect(fs.existsSync(path.join(wsDir, 'test-dossier', '.user-stopped'))).toBe(false);
+      expect(fs.existsSync(path.join(wsDir, 'test-job', '.user-stopped'))).toBe(false);
     });
   });
 });

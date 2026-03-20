@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { useSyncExternalStore } from 'react';
-import type { Dossier, Suggestion, Amelioration, Session, SSEEventType, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
+import type { Job, Suggestion, Amelioration, Session, SSEEventType, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
 import * as api from './api';
 
 export interface SessionOutputLine {
@@ -13,7 +13,7 @@ export interface SessionOutputLine {
 }
 
 interface Store {
-  dossiers: Dossier[];
+  jobs: Job[];
   suggestions: Suggestion[];
   ameliorations: Amelioration[];
   sessions: Session[];
@@ -33,13 +33,13 @@ interface Store {
   clearSelectedMemory: () => void;
   fetchClaudeProcesses: () => Promise<void>;
 
-  fetchDossiers: () => Promise<void>;
+  fetchJobs: () => Promise<void>;
   fetchSuggestions: () => Promise<void>;
   fetchAmeliorations: () => Promise<void>;
   fetchSessions: () => Promise<void>;
   fetchCheckupStatus: () => Promise<void>;
 
-  createDossier: (instruction: string, confirm?: boolean) => Promise<void>;
+  createJob: (instruction: string, confirm?: boolean) => Promise<void>;
   resumeSession: (id: string) => Promise<void>;
   sendInstruction: (id: string, instruction: string, confirm?: boolean) => Promise<void>;
   uploadFile: (id: string, file: File) => Promise<void>;
@@ -47,7 +47,7 @@ interface Store {
   stopSession: (id: string) => Promise<void>;
   approveSuggestion: (slug: string, instruction?: string) => Promise<void>;
   ignoreSuggestion: (slug: string) => Promise<void>;
-  completeDossier: (id: string) => Promise<void>;
+  completeJob: (id: string) => Promise<void>;
   setWaitingType: (id: string, type: 'user' | 'tiers') => Promise<void>;
   resolveAmelioration: (id: string) => Promise<void>;
   ignoreAmelioration: (id: string) => Promise<void>;
@@ -83,10 +83,10 @@ function getOutputVersion() { return _outputVersion; }
 
 const EMPTY_LINES: SessionOutputLine[] = [];
 
-export function useSessionOutput(dossierId: string): SessionOutputLine[] {
+export function useSessionOutput(jobId: string): SessionOutputLine[] {
   const version = useSyncExternalStore(subscribeOutputs, getOutputVersion);
   // version forces re-render, then we read the mutable data
-  return _sessionOutputs.get(dossierId) ?? EMPTY_LINES;
+  return _sessionOutputs.get(jobId) ?? EMPTY_LINES;
 }
 
 export function useProcessOutput(trackId: number): string {
@@ -95,7 +95,7 @@ export function useProcessOutput(trackId: number): string {
 }
 
 export const useStore = create<Store>((set, get) => ({
-  dossiers: [], suggestions: [], ameliorations: [], sessions: [], checkupStatus: null, loading: false,
+  jobs: [], suggestions: [], ameliorations: [], sessions: [], checkupStatus: null, loading: false,
   memoryIndex: [], selectedMemory: null, memoryLoading: false,
   claudeProcesses: [],
   sessionOutputs: new Map(),
@@ -108,22 +108,22 @@ export const useStore = create<Store>((set, get) => ({
   clearSelectedMemory: () => set({ selectedMemory: null }),
   fetchClaudeProcesses: async () => { try { set({ claudeProcesses: await api.fetchClaudeProcesses() }); } catch (err) { console.warn('[store] fetchClaudeProcesses failed:', (err as Error).message); } },
 
-  fetchDossiers: async () => { try { set({ dossiers: await api.fetchDossiers() }); } catch (err) { console.warn('[store] fetchDossiers failed:', (err as Error).message); } },
+  fetchJobs: async () => { try { set({ jobs: await api.fetchJobs() }); } catch (err) { console.warn('[store] fetchJobs failed:', (err as Error).message); } },
   fetchSuggestions: async () => { try { set({ suggestions: await api.fetchSuggestions() }); } catch (err) { console.warn('[store] fetchSuggestions failed:', (err as Error).message); } },
   fetchAmeliorations: async () => { try { set({ ameliorations: await api.fetchAmeliorations() }); } catch (err) { console.warn('[store] fetchAmeliorations failed:', (err as Error).message); } },
   fetchSessions: async () => { try { set({ sessions: await api.fetchSessions() }); } catch (err) { console.warn('[store] fetchSessions failed:', (err as Error).message); } },
   fetchCheckupStatus: async () => { try { set({ checkupStatus: await api.fetchCheckupStatus() }); } catch (err) { console.warn('[store] fetchCheckupStatus failed:', (err as Error).message); } },
 
-  createDossier: (instruction, confirm) => withError(set, async () => { await api.createDossier(instruction, confirm); await get().fetchDossiers(); }),
+  createJob: (instruction, confirm) => withError(set, async () => { await api.createJob(instruction, confirm); await get().fetchJobs(); }),
   resumeSession: (id) => withError(set, async () => { await api.resumeSession(id); await get().fetchSessions(); }),
-  sendInstruction: (id, instruction, confirm) => withError(set, async () => { await api.sendInstruction(id, instruction, confirm); await get().fetchDossiers(); await get().fetchSessions(); }),
-  uploadFile: (id, file) => withError(set, async () => { await api.uploadFile(id, file); await get().fetchDossiers(); }),
+  sendInstruction: (id, instruction, confirm) => withError(set, async () => { await api.sendInstruction(id, instruction, confirm); await get().fetchJobs(); await get().fetchSessions(); }),
+  uploadFile: (id, file) => withError(set, async () => { await api.uploadFile(id, file); await get().fetchJobs(); }),
   timeoutSession: (id) => withError(set, async () => { await api.timeoutSession(id); await get().fetchSessions(); }),
-  stopSession: (id) => withError(set, async () => { await api.stopSession(id); await get().fetchSessions(); await get().fetchDossiers(); }),
-  approveSuggestion: (slug, instruction) => withError(set, async () => { await api.approveSuggestion(slug, instruction); await get().fetchSuggestions(); await get().fetchDossiers(); }),
+  stopSession: (id) => withError(set, async () => { await api.stopSession(id); await get().fetchSessions(); await get().fetchJobs(); }),
+  approveSuggestion: (slug, instruction) => withError(set, async () => { await api.approveSuggestion(slug, instruction); await get().fetchSuggestions(); await get().fetchJobs(); }),
   ignoreSuggestion: (slug) => withError(set, async () => { await api.ignoreSuggestion(slug); await get().fetchSuggestions(); }),
-  completeDossier: (id) => withError(set, async () => { await api.completeDossier(id); await get().fetchDossiers(); await get().fetchSessions(); }),
-  setWaitingType: (id, type) => withError(set, async () => { await api.setWaitingType(id, type); await get().fetchDossiers(); await get().fetchSessions(); }),
+  completeJob: (id) => withError(set, async () => { await api.completeJob(id); await get().fetchJobs(); await get().fetchSessions(); }),
+  setWaitingType: (id, type) => withError(set, async () => { await api.setWaitingType(id, type); await get().fetchJobs(); await get().fetchSessions(); }),
   resolveAmelioration: (id) => withError(set, async () => { await api.resolveAmelioration(id); await get().fetchAmeliorations(); }),
   ignoreAmelioration: (id) => withError(set, async () => { await api.ignoreAmelioration(id); await get().fetchAmeliorations(); }),
   triggerCheckup: () => withError(set, async () => { await api.triggerCheckup(); }),
@@ -133,20 +133,20 @@ export const useStore = create<Store>((set, get) => ({
   },
   launchTestTasks: () => withError(set, async () => {
     await api.launchTestTasks();
-    await get().fetchDossiers();
+    await get().fetchJobs();
     await get().fetchSessions();
   }),
 }));
 
-type FetchFn = 'fetchSessions' | 'fetchDossiers' | 'fetchClaudeProcesses' | 'fetchSuggestions' | 'fetchAmeliorations';
+type FetchFn = 'fetchSessions' | 'fetchJobs' | 'fetchClaudeProcesses' | 'fetchSuggestions' | 'fetchAmeliorations';
 
 const SSE_FETCH_MAP: Partial<Record<SSEEventType, FetchFn[]>> = {
-  'session:started': ['fetchSessions', 'fetchDossiers', 'fetchClaudeProcesses'],
-  'session:ended': ['fetchSessions', 'fetchDossiers', 'fetchClaudeProcesses'],
+  'session:started': ['fetchSessions', 'fetchJobs', 'fetchClaudeProcesses'],
+  'session:ended': ['fetchSessions', 'fetchJobs', 'fetchClaudeProcesses'],
   'session:idle': ['fetchSessions'],
   'session:active': ['fetchSessions'],
-  'dossier:updated': ['fetchDossiers', 'fetchSessions'],
-  'dossier:completed': ['fetchDossiers', 'fetchSessions'],
+  'job:updated': ['fetchJobs', 'fetchSessions'],
+  'job:completed': ['fetchJobs', 'fetchSessions'],
   'suggestion:created': ['fetchSuggestions'],
   'amelioration:created': ['fetchAmeliorations'],
 };
@@ -185,11 +185,11 @@ export function connectSSE(): () => void {
   es.addEventListener('session:output', (e: MessageEvent) => {
     try {
       const raw = JSON.parse(e.data);
-      // SSE event format: { type: 'session:output', data: { dossierId, event: { type, content } }, timestamp }
-      const dossierId: string = raw.data?.dossierId ?? raw.dossierId;
+      // SSE event format: { type: 'session:output', data: { jobId, event: { type, content } }, timestamp }
+      const jobId: string = raw.data?.jobId ?? raw.jobId;
       const eventType: string = raw.data?.event?.type ?? raw.eventType ?? 'other';
       const content: string = raw.data?.event?.content ?? raw.content ?? '';
-      const current = _sessionOutputs.get(dossierId) ?? [];
+      const current = _sessionOutputs.get(jobId) ?? [];
       current.push({
         type: eventType,
         content,
@@ -197,7 +197,7 @@ export function connectSSE(): () => void {
       });
       // Cap to last 500 lines to prevent memory leak on long sessions
       if (current.length > 500) current.splice(0, current.length - 500);
-      _sessionOutputs.set(dossierId, current);
+      _sessionOutputs.set(jobId, current);
       if (!sessionOutputFlushTimer) {
         sessionOutputFlushTimer = setTimeout(() => {
           sessionOutputFlushTimer = null;
@@ -240,7 +240,7 @@ export function connectSSE(): () => void {
     wasConnected = true;
     // Always refetch on connect/reconnect — fetch functions handle errors internally
     const store = useStore.getState();
-    store.fetchDossiers();
+    store.fetchJobs();
     store.fetchSessions();
     store.fetchSuggestions();
     store.fetchAmeliorations();

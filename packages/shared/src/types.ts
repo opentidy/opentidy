@@ -3,12 +3,12 @@
 
 // types.ts — SSOT for all OpenTidy types
 
-// === Dossier (workspace/) ===
-export type DossierStatus = 'IN_PROGRESS' | 'COMPLETED';
+// === Job (workspace/) ===
+export type JobStatus = 'IN_PROGRESS' | 'COMPLETED';
 
-export interface Dossier {
-  id: string;           // slug du dossier (nom du répertoire)
-  status: DossierStatus;
+export interface Job {
+  id: string;           // slug du job (nom du répertoire)
+  status: JobStatus;
   title: string;        // extrait du state.md (# heading)
   objective: string;    // extrait de ## Objectif
   lastAction: string;   // date dernière action
@@ -55,7 +55,7 @@ export interface Amelioration {
   impact: string;
   suggestion: string;
   actions: string[];           // recommended concrete actions
-  dossierId?: string;          // dossier lié
+  jobId?: string;              // job lié
   sessionId?: string;          // claude session id (for output link)
   source?: AmeliorationSource; // what generated this analysis
   category?: AmeliorationCategory; // type of gap
@@ -86,7 +86,7 @@ export type SessionStatus = 'active' | 'idle';
 
 export interface Session {
   id: string;           // tmux session name
-  dossierId: string;
+  jobId: string;
   status: SessionStatus;
   startedAt: string;
   agentSessionId?: string;    // pour --resume
@@ -100,7 +100,7 @@ export type ScheduleCreatedBy = 'system' | 'agent' | 'user';
 
 export interface Schedule {
   id: number;
-  dossierId: string | null;
+  jobId: string | null;
   type: ScheduleType;
   runAt: string | null;
   intervalMs: number | null;
@@ -122,7 +122,7 @@ export interface NotificationRecord {
   timestamp: string;
   message: string;
   link: string;
-  dossierId?: string;
+  jobId?: string;
 }
 
 // === SSE ===
@@ -133,8 +133,8 @@ export type SSEEventType =
   | 'session:active'
   | 'session:output'
   | 'suggestion:created'
-  | 'dossier:updated'
-  | 'dossier:completed'
+  | 'job:updated'
+  | 'job:completed'
   | 'amelioration:created'
   | 'process:output'
   | 'notification:sent'
@@ -169,7 +169,7 @@ export type AgentProcessStatus = 'queued' | 'running' | 'done' | 'error';
 export interface AgentProcess {
   id: number;
   type: AgentProcessType;
-  dossierId?: string;
+  jobId?: string;
   pid?: number;
   startedAt: string;
   endedAt?: string;
@@ -242,7 +242,7 @@ export interface AgentAdapter {
 
   buildArgs(opts: SpawnOpts): string[];
   getEnv(): Record<string, string>;
-  readSessionId(dossierDir: string): string | null;
+  readSessionId(jobDir: string): string | null;
   writeConfig(opts: SetupOpts): void;
 }
 

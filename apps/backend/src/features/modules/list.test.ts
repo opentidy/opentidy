@@ -41,7 +41,7 @@ describe('listModulesRoute', () => {
 
     const res = await app.request('/modules');
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual([]);
+    expect(await res.json()).toEqual({ modules: [] });
   });
 
   it('returns curated modules from manifests', async () => {
@@ -62,7 +62,7 @@ describe('listModulesRoute', () => {
     const res = await app.request('/modules');
     expect(res.status).toBe(200);
 
-    const body = await res.json() as any[];
+    const body = (await res.json() as any).modules;
     expect(body).toHaveLength(1);
     expect(body[0].name).toBe('gmail');
     expect(body[0].label).toBe('Gmail');
@@ -91,7 +91,7 @@ describe('listModulesRoute', () => {
 
     const app = listModulesRoute(deps);
     const res = await app.request('/modules');
-    const body = await res.json() as any[];
+    const body = (await res.json() as any).modules;
 
     expect(body[0].setup.configured).toBe(false);
   });
@@ -103,7 +103,7 @@ describe('listModulesRoute', () => {
 
     const app = listModulesRoute(deps);
     const res = await app.request('/modules');
-    const body = await res.json() as any[];
+    const body = (await res.json() as any).modules;
 
     expect(body).toHaveLength(1);
     expect(body[0].name).toBe('my-plugin');

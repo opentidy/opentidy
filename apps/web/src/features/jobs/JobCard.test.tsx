@@ -4,9 +4,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Dossier } from '@opentidy/shared';
+import type { Job } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
-import DossierCard from './DossierCard';
+import JobCard from './JobCard';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -14,11 +14,11 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-function makeDossier(overrides: Partial<Dossier> = {}): Dossier {
+function makeJob(overrides: Partial<Job> = {}): Job {
   return {
     id: 'acme-corp',
     status: 'IN_PROGRESS',
-    title: 'Dossier Acme',
+    title: 'Job Acme',
     objective: 'Resolve contract issue with Acme',
     lastAction: 'il y a 2h',
     hasActiveSession: false,
@@ -31,22 +31,22 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('DossierCard', () => {
+describe('JobCard', () => {
   it('displays title and objective', () => {
     render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier()} />
+        <JobCard job={makeJob()} />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Dossier Acme')).toBeDefined();
+    expect(screen.getByText('Job Acme')).toBeDefined();
     expect(screen.getByText('Resolve contract issue with Acme')).toBeDefined();
   });
 
   it('displays IN_PROGRESS status with green dot and badge', () => {
     const { container } = render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({ status: 'IN_PROGRESS' })} />
+        <JobCard job={makeJob({ status: 'IN_PROGRESS' })} />
       </MemoryRouter>,
     );
 
@@ -59,7 +59,7 @@ describe('DossierCard', () => {
   it('displays COMPLETED status with tertiary dot and opacity', () => {
     const { container } = render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({ status: 'COMPLETED' })} />
+        <JobCard job={makeJob({ status: 'COMPLETED' })} />
       </MemoryRouter>,
     );
 
@@ -70,29 +70,29 @@ describe('DossierCard', () => {
   it('shows "Terminal" indicator when session is active', () => {
     render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({})} session={{ id: 's1', dossierId: 'test', status: 'active' } as any} />
+        <JobCard job={makeJob({})} session={{ id: 's1', jobId: 'test', status: 'active' } as any} />
       </MemoryRouter>,
     );
 
     expect(screen.getByText('Terminal')).toBeDefined();
   });
 
-  it('click navigates to /dossier/{id}', () => {
+  it('click navigates to /job/{id}', () => {
     const { container } = render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({ id: 'my-dossier' })} />
+        <JobCard job={makeJob({ id: 'my-job' })} />
       </MemoryRouter>,
     );
 
     fireEvent.click(container.firstElementChild as HTMLElement);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/dossier/my-dossier');
+    expect(mockNavigate).toHaveBeenCalledWith('/job/my-job');
   });
 
   it('displays lastAction', () => {
     render(
       <MemoryRouter>
-        <DossierCard dossier={makeDossier({ lastAction: 'hier' })} />
+        <JobCard job={makeJob({ lastAction: 'hier' })} />
       </MemoryRouter>,
     );
 

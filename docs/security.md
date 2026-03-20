@@ -130,7 +130,7 @@ Every external action is logged to `workspace/_audit/actions.log`. This includes
 - Tool name and parameters
 - Hook decision (ALLOW/DENY/ASK)
 - Timestamp
-- Session and dossier ID
+- Session and job ID
 
 The audit trail is the ultimate safety net. Even if something slips through, it's logged and traceable.
 

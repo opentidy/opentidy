@@ -25,24 +25,24 @@ beforeEach(() => {
 
 describe('API client', () => {
   describe('GET endpoints', () => {
-    it('fetchDossiers calls GET /api/dossiers', async () => {
-      const dossiers = [{ id: 'test', title: 'Test' }];
-      mockFetch.mockReturnValue(mockJsonResponse(dossiers));
+    it('fetchJobs calls GET /api/jobs', async () => {
+      const jobs = [{ id: 'test', title: 'Test' }];
+      mockFetch.mockReturnValue(mockJsonResponse(jobs));
 
-      const result = await api.fetchDossiers();
+      const result = await api.fetchJobs();
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossiers', undefined);
-      expect(result).toEqual(dossiers);
+      expect(mockFetch).toHaveBeenCalledWith('/api/jobs', undefined);
+      expect(result).toEqual(jobs);
     });
 
-    it('fetchDossier calls GET /api/dossier/:id', async () => {
-      const dossier = { id: 'acme', title: 'Acme' };
-      mockFetch.mockReturnValue(mockJsonResponse(dossier));
+    it('fetchJob calls GET /api/job/:id', async () => {
+      const job = { id: 'acme', title: 'Acme' };
+      mockFetch.mockReturnValue(mockJsonResponse(job));
 
-      const result = await api.fetchDossier('acme');
+      const result = await api.fetchJob('acme');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossier/acme', undefined);
-      expect(result).toEqual(dossier);
+      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme', undefined);
+      expect(result).toEqual(job);
     });
 
     it('fetchSuggestions calls GET /api/suggestions', async () => {
@@ -66,33 +66,33 @@ describe('API client', () => {
   });
 
   describe('POST endpoints', () => {
-    it('createDossier sends instruction and confirm flag', async () => {
+    it('createJob sends instruction and confirm flag', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ created: true }));
 
-      await api.createDossier('Test instruction', true);
+      await api.createJob('Test instruction', true);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossier', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instruction: 'Test instruction', confirm: true }),
       });
     });
 
-    it('createDossier defaults confirm to false', async () => {
+    it('createJob defaults confirm to false', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ created: true }));
 
-      await api.createDossier('Test');
+      await api.createJob('Test');
 
       const call = mockFetch.mock.calls[0];
       expect(JSON.parse(call[1].body)).toEqual({ instruction: 'Test', confirm: false });
     });
 
-    it('resumeSession calls POST /api/dossier/:id/resume', async () => {
+    it('resumeSession calls POST /api/job/:id/resume', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ resumed: true }));
 
       await api.resumeSession('acme');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossier/acme/resume', { method: 'POST' });
+      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/resume', { method: 'POST' });
     });
 
     it('sendInstruction sends instruction with confirm', async () => {
@@ -100,7 +100,7 @@ describe('API client', () => {
 
       await api.sendInstruction('acme', 'Do something', true);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossier/acme/instruction', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ instruction: 'Do something', confirm: true }),
@@ -157,7 +157,7 @@ describe('API client', () => {
       const file = new File(['content'], 'test.pdf', { type: 'application/pdf' });
       await api.uploadFile('acme', file);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/dossier/acme/upload', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/upload', {
         method: 'POST',
         body: expect.any(FormData),
       });
@@ -168,13 +168,13 @@ describe('API client', () => {
     it('throws on non-ok response', async () => {
       mockFetch.mockReturnValue(mockJsonResponse(null, 404));
 
-      await expect(api.fetchDossier('nonexistent')).rejects.toThrow('404');
+      await expect(api.fetchJob('nonexistent')).rejects.toThrow('404');
     });
 
     it('throws on 500 response', async () => {
       mockFetch.mockReturnValue(mockJsonResponse(null, 500));
 
-      await expect(api.fetchDossiers()).rejects.toThrow('500');
+      await expect(api.fetchJobs()).rejects.toThrow('500');
     });
   });
 });

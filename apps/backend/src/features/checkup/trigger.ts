@@ -10,7 +10,7 @@ export function checkupTriggerRoute(deps: AppDeps) {
   // POST /checkup
   router.post('/checkup', async (c) => {
     const result = await deps.checkup.runCheckup();
-    deps.sse.emit({ type: 'dossier:updated', data: { source: 'checkup' }, timestamp: new Date().toISOString() });
+    deps.sse.emit({ type: 'job:updated', data: { source: 'checkup' }, timestamp: new Date().toISOString() });
     return c.json(result);
   });
 

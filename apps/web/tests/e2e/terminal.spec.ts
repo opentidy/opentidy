@@ -9,7 +9,7 @@ test.describe('E2E-APP-12: Terminal shows session tabs with status indicators', 
     await setupMockApi(page);
     await page.goto('/terminal');
 
-    // Session tabs — dossierId with hyphens replaced by spaces
+    // Session tabs — jobId with hyphens replaced by spaces
     await expect(page.getByRole('button', { name: /invoices acme/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /insurance report/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /blocked test/i })).toBeVisible();

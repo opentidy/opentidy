@@ -17,7 +17,7 @@ interface AmeliorationCardProps {
   categoryLabels: Record<AmeliorationCategory, string>;
   onResolve: () => void;
   onIgnore: () => void;
-  onNavigate: (dossierId: string) => void;
+  onNavigate: (jobId: string) => void;
 }
 
 export default function AmeliorationCard({
@@ -87,12 +87,12 @@ export default function AmeliorationCard({
 
       {/* Footer: links + action buttons */}
       <div className="flex items-center gap-3 mt-3">
-        {amelioration.dossierId && (
+        {amelioration.jobId && (
           <button
-            onClick={() => onNavigate(amelioration.dossierId!)}
+            onClick={() => onNavigate(amelioration.jobId!)}
             className="px-3 py-1.5 rounded-lg bg-card-hover text-sm text-text-secondary hover:text-text transition-colors"
           >
-            Dossier: {amelioration.dossierId} →
+            Job: {amelioration.jobId} →
           </button>
         )}
         {amelioration.sessionId && (

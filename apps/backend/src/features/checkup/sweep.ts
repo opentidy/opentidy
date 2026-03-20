@@ -1,33 +1,28 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import fs from 'fs';
-import path from 'path';
 import type { MemoryEntry, AgentAdapter } from '@opentidy/shared';
 import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
-import { generateSlug } from '../../shared/slug.js';
 import { buildMemoryContext } from '../../shared/memory-context.js';
 
 const CHECKUP_SYSTEM_PROMPT = `Checkup mode. You analyze the workspace state.
 
-For each IN_PROGRESS dossier:
+For each IN_PROGRESS job:
 - If an action is needed (deadline, follow-up, work to advance) → add it to "launch"
-- If a dossier has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
-- If a dossier has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
+- If a job has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
+- If a job has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
 
 For suggestions — be VERY selective. A suggestion is a REAL actionable task the user should launch:
 - YES: "Email received from client requesting March timesheets" (concrete action triggered by an external event)
 - YES: "VAT declaration deadline is in 3 days" (urgent action with deadline)
-- NO: "Archive completed dossiers" (internal housekeeping, not a task)
+- NO: "Archive completed jobs" (internal housekeeping, not a task)
 - NO: "Bitcoin tracking incomplete" (that's a gap/bug, not a suggestion)
 - NO: "Improve process X" (that's a gap, belongs in _gaps/gaps.md)
 
 If you detect a technical issue or system improvement → write it in _gaps/gaps.md, not in suggestions.
 
 Respond ONLY in JSON:
-{ "launch": ["dossier-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
-
-type RunAgentFn = (args: string[], opts: { cwd: string; timeout?: number }) => Promise<string>;
+{ "launch": ["job-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
 
 interface CheckupStatus {
   lastRun: string | null;
@@ -40,17 +35,17 @@ interface CheckupStatus {
 export function createCheckup(deps: {
   launcher: {
     launchSession: (id: string) => Promise<void>;
-    listActiveSessions: () => Array<{ dossierId: string }>;
+    listActiveSessions: () => Array<{ jobId: string }>;
   };
   workspaceDir: string;
   intervalMs: number;
-  runAgent?: RunAgentFn;
-  spawnAgent?: SpawnAgentFn;
-  adapter?: AgentAdapter;
+  spawnAgent: SpawnAgentFn;
+  adapter: AgentAdapter;
   sse?: { emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void };
-  notificationStore?: { record(input: { message: string; link: string; dossierId?: string }): unknown };
+  notificationStore?: { record(input: { message: string; link: string; jobId?: string }): unknown };
   memoryManager?: { readAllFiles: () => MemoryEntry[] };
   suggestionsManager?: { listSuggestions: () => Array<{ title: string }> };
+  writeSuggestion?: (suggestion: { title: string; urgency: string; why: string }, source: string) => string;
 }) {
   const startedAt = Date.now();
   const status: CheckupStatus = {
@@ -62,7 +57,7 @@ export function createCheckup(deps: {
   };
 
   async function runCheckup(): Promise<{ launched: string[]; suggestions: number }> {
-    const prompt = `Read workspace/*/state.md in ${deps.workspaceDir}. Analyze each active dossier.`;
+    const prompt = `Read workspace/*/state.md in ${deps.workspaceDir}. Analyze each active job.`;
 
     // Build system prompt with memory context
     const memoryContext = deps.memoryManager
@@ -77,24 +72,11 @@ export function createCheckup(deps: {
       ? `${CHECKUP_SYSTEM_PROMPT}${suggestionsBlock}\n\n## Global memory (persistent context)\n${memoryContext}`
       : `${CHECKUP_SYSTEM_PROMPT}${suggestionsBlock}`;
 
-    let stdout: string;
-
-    try {
-    if (deps.adapter && deps.spawnAgent) {
-      const clArgs = deps.adapter.buildArgs({
-        mode: 'one-shot', cwd: deps.workspaceDir, systemPrompt,
-        instruction: prompt, allowedTools: ['Read', 'Glob', 'Grep', 'Write'],
-      });
-      stdout = await deps.spawnAgent({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' }).promise;
-    } else if (deps.runAgent) {
-      const clArgs = ['-p', '--system-prompt', systemPrompt, '--allowedTools', 'Read,Glob,Grep,Write', '--', prompt];
-      stdout = await deps.runAgent(clArgs, { cwd: deps.workspaceDir, timeout: 3_600_000 });
-    } else {
-      throw new Error('[checkup] No agent runner provided — pass spawnAgent+adapter or runAgent');
-    }
-    } catch (err) {
-      throw err;
-    }
+    const clArgs = deps.adapter.buildArgs({
+      mode: 'one-shot', cwd: deps.workspaceDir, systemPrompt,
+      instruction: prompt, allowedTools: ['Read', 'Glob', 'Grep', 'Write'],
+    });
+    const stdout = await deps.spawnAgent({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' }).promise;
 
     // Parse JSON from the response (Claude may wrap in ```json)
     const jsonMatch = stdout.match(/\{[\s\S]*\}/);
@@ -109,29 +91,25 @@ export function createCheckup(deps: {
     };
 
     // Launch sessions — skip active sessions (scheduler handles precise timing)
-    const activeDossierIds = new Set(deps.launcher.listActiveSessions().map(s => s.dossierId));
+    const activeJobIds = new Set(deps.launcher.listActiveSessions().map(s => s.jobId));
     const validLaunches: string[] = [];
-    for (const dossierId of result.launch) {
+    for (const jobId of result.launch) {
       try {
-        if (activeDossierIds.has(dossierId)) {
-          console.log(`[checkup] ${dossierId} has active session, skipping`);
+        if (activeJobIds.has(jobId)) {
+          console.log(`[checkup] ${jobId} has active session, skipping`);
           continue;
         }
-        validLaunches.push(dossierId);
-        await deps.launcher.launchSession(dossierId);
+        validLaunches.push(jobId);
+        await deps.launcher.launchSession(jobId);
       } catch (err) {
-        console.warn(`[checkup] failed to launch ${dossierId}:`, err);
+        console.warn(`[checkup] failed to launch ${jobId}:`, err);
       }
     }
 
-    // Write suggestions to _suggestions/
-    if (result.suggestions?.length) {
-      const suggestionsDir = path.join(deps.workspaceDir, '_suggestions');
-      fs.mkdirSync(suggestionsDir, { recursive: true });
+    // Write suggestions via suggestionsManager
+    if (result.suggestions?.length && deps.writeSuggestion) {
       for (const suggestion of result.suggestions) {
-        const slug = generateSlug(suggestion.title);
-        const content = `# ${suggestion.title}\n\n**Urgency:** ${suggestion.urgency}\n**Source:** checkup\n**Date:** ${new Date().toISOString().slice(0, 10)}\n\n## Why\n${suggestion.why}\n`;
-        fs.writeFileSync(path.join(suggestionsDir, `${slug}.md`), content);
+        deps.writeSuggestion(suggestion, 'checkup');
       }
     }
 

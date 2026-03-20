@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { Suggestion, UrgencyLevel } from '@opentidy/shared';
+import { generateSlug } from '../../shared/slug.js';
 
 const URGENCY_ORDER: Record<UrgencyLevel, number> = { urgent: 0, normal: 1, low: 2 };
 const MAX_SUGGESTIONS = 20;
@@ -57,5 +58,36 @@ export function createSuggestionsManager(workspaceDir: string) {
     return existing.some(s => s.title.toLowerCase() === title.toLowerCase());
   }
 
-  return { listSuggestions, parseSuggestionFile, isDuplicateSuggestion };
+  function ignoreSuggestion(slug: string): void {
+    const suggFile = path.join(suggestionsDir, `${slug}.md`);
+    if (fs.existsSync(suggFile)) fs.unlinkSync(suggFile);
+    console.log(`[suggestions] suggestion ignored: ${slug}`);
+  }
+
+  function writeSuggestion(
+    suggestion: { title: string; urgency: string; why: string },
+    source: string,
+    eventContent?: string,
+  ): string {
+    const slug = generateSlug(suggestion.title);
+    const lines = [
+      `# ${suggestion.title}`,
+      '',
+      `**Urgency:** ${suggestion.urgency}`,
+      `**Source:** ${source}`,
+      `**Date:** ${new Date().toISOString().slice(0, 10)}`,
+      '',
+      `## Why`,
+      suggestion.why,
+      '',
+    ];
+    if (eventContent) {
+      lines.push(`## Context`, `Original event: ${eventContent.slice(0, 500)}`, '');
+    }
+    fs.mkdirSync(suggestionsDir, { recursive: true });
+    fs.writeFileSync(path.join(suggestionsDir, `${slug}.md`), lines.join('\n'));
+    return slug;
+  }
+
+  return { listSuggestions, parseSuggestionFile, isDuplicateSuggestion, ignoreSuggestion, writeSuggestion };
 }

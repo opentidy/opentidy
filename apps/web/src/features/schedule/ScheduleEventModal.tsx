@@ -77,10 +77,10 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
           <span className="text-[11px] text-text-tertiary">
             {schedule.type === 'once' ? t('schedule.once') : t('schedule.recurring')}
           </span>
-          {schedule.dossierId && (
+          {schedule.jobId && (
             <>
               <span className="text-text-tertiary/30">·</span>
-              <span className="text-[11px] text-text-tertiary">{schedule.dossierId}</span>
+              <span className="text-[11px] text-text-tertiary">{schedule.jobId}</span>
             </>
           )}
           <span className="text-text-tertiary/30">·</span>

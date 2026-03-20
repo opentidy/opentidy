@@ -22,11 +22,11 @@ describe('notification-store', () => {
   it('records a notification and returns it', () => {
     const db = createDatabase(tmpDir);
     const store = createNotificationStore(db);
-    const rec = store.record({ message: 'Test', link: '/test', dossierId: 'abc' });
+    const rec = store.record({ message: 'Test', link: '/test', jobId: 'abc' });
     expect(rec.id).toBeDefined();
     expect(rec.message).toBe('Test');
     expect(rec.link).toBe('/test');
-    expect(rec.dossierId).toBe('abc');
+    expect(rec.jobId).toBe('abc');
     expect(rec.timestamp).toBeDefined();
   });
 

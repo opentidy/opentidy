@@ -7,8 +7,8 @@ import path from 'path';
 export function createLockManager(lockDir: string) {
   fs.mkdirSync(lockDir, { recursive: true });
 
-  function lockPath(dossierId: string): string {
-    return path.join(lockDir, `${dossierId}.lock`);
+  function lockPath(jobId: string): string {
+    return path.join(lockDir, `${jobId}.lock`);
   }
 
   function isPidAlive(pid: number): boolean {
@@ -20,15 +20,15 @@ export function createLockManager(lockDir: string) {
     }
   }
 
-  function acquire(dossierId: string): boolean {
-    const p = lockPath(dossierId);
+  function acquire(jobId: string): boolean {
+    const p = lockPath(jobId);
     try {
       // wx flag = create exclusively, fails if file already exists (atomic)
       fs.writeFileSync(p, String(process.pid), { flag: 'wx' });
       return true;
     } catch {
       // File exists — check if the holding process is still alive
-      if (!isLocked(dossierId)) {
+      if (!isLocked(jobId)) {
         // Stale lock was cleaned up by isLocked, retry once
         try {
           fs.writeFileSync(p, String(process.pid), { flag: 'wx' });
@@ -41,13 +41,13 @@ export function createLockManager(lockDir: string) {
     }
   }
 
-  function release(dossierId: string): void {
-    const p = lockPath(dossierId);
+  function release(jobId: string): void {
+    const p = lockPath(jobId);
     if (fs.existsSync(p)) fs.unlinkSync(p);
   }
 
-  function isLocked(dossierId: string): boolean {
-    const p = lockPath(dossierId);
+  function isLocked(jobId: string): boolean {
+    const p = lockPath(jobId);
     if (!fs.existsSync(p)) return false;
     const pid = parseInt(fs.readFileSync(p, 'utf-8').trim(), 10);
     if (!isPidAlive(pid)) {

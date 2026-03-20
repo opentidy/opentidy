@@ -10,12 +10,12 @@ import os from 'os';
 
 interface PostSessionDeps {
   tmuxExecutor: SessionExecutor;
-  locks: { release(dossierId: string): void };
+  locks: { release(jobId: string): void };
   sse: { emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void };
   terminal: { killTtyd(sessionName: string): void };
   memoryAgents?: {
     isTranscriptSubstantial(transcriptPath: string): boolean;
-    runExtraction(input: { transcriptPath: string; indexContent: string; dossierId: string; stateContent: string }): Promise<void>;
+    runExtraction(input: { transcriptPath: string; indexContent: string; jobId: string; stateContent: string }): Promise<void>;
   };
   workspaceDir?: string;
 }
@@ -28,14 +28,14 @@ export function createPostSessionHandlers(
   deps: PostSessionDeps,
   sessions: Map<string, Session>,
 ) {
-  function triggerMemoryExtraction(dossierId: string): void {
+  function triggerMemoryExtraction(jobId: string): void {
     if (!deps.memoryAgents || !deps.workspaceDir) return;
 
-    const dossierDir = path.join(deps.workspaceDir, dossierId);
+    const jobDir = path.join(deps.workspaceDir, jobId);
     const memoryDir = path.join(deps.workspaceDir, '_memory');
     const indexPath = path.join(memoryDir, 'INDEX.md');
 
-    // Find most recent transcript for this dossier in Claude's project data
+    // Find most recent transcript for this job in Claude's project data
     const claudeDir = path.join(os.homedir(), '.claude', 'projects');
     let transcriptPath = '';
     try {
@@ -56,46 +56,46 @@ export function createPostSessionHandlers(
     } catch { /* ignore errors scanning transcripts */ }
 
     if (!transcriptPath) {
-      console.log(`[memory] no transcript found for ${dossierId}, skipping extraction`);
+      console.log(`[memory] no transcript found for ${jobId}, skipping extraction`);
       return;
     }
 
     if (!deps.memoryAgents.isTranscriptSubstantial(transcriptPath)) {
-      console.log(`[memory] transcript too short for ${dossierId}, skipping extraction`);
+      console.log(`[memory] transcript too short for ${jobId}, skipping extraction`);
       return;
     }
 
-    const stateContent = fs.existsSync(path.join(dossierDir, 'state.md'))
-      ? fs.readFileSync(path.join(dossierDir, 'state.md'), 'utf-8')
+    const stateContent = fs.existsSync(path.join(jobDir, 'state.md'))
+      ? fs.readFileSync(path.join(jobDir, 'state.md'), 'utf-8')
       : '';
     const indexContent = fs.existsSync(indexPath)
       ? fs.readFileSync(indexPath, 'utf-8')
       : '';
 
-    console.log(`[memory] triggering extraction for ${dossierId}`);
-    deps.memoryAgents.runExtraction({ transcriptPath, indexContent, dossierId, stateContent }).catch(err => {
-      console.error(`[memory] extraction failed for ${dossierId}:`, (err as Error).message);
+    console.log(`[memory] triggering extraction for ${jobId}`);
+    deps.memoryAgents.runExtraction({ transcriptPath, indexContent, jobId, stateContent }).catch(err => {
+      console.error(`[memory] extraction failed for ${jobId}:`, (err as Error).message);
     });
   }
 
-  function handleSessionEnd(dossierId: string): void {
-    deps.locks.release(dossierId);
-    deps.terminal.killTtyd(`opentidy-${dossierId}`);
-    sessions.delete(dossierId);
-    deps.sse.emit({ type: 'session:ended', data: { dossierId }, timestamp: new Date().toISOString() });
-    console.log(`[launcher] session ended: ${dossierId}`);
-    triggerMemoryExtraction(dossierId);
+  function handleSessionEnd(jobId: string): void {
+    deps.locks.release(jobId);
+    deps.terminal.killTtyd(`opentidy-${jobId}`);
+    sessions.delete(jobId);
+    deps.sse.emit({ type: 'session:ended', data: { jobId }, timestamp: new Date().toISOString() });
+    console.log(`[launcher] session ended: ${jobId}`);
+    triggerMemoryExtraction(jobId);
   }
 
-  async function archiveSession(dossierId: string): Promise<void> {
-    const sessionName = `opentidy-${dossierId}`;
+  async function archiveSession(jobId: string): Promise<void> {
+    const sessionName = `opentidy-${jobId}`;
     deps.terminal.killTtyd(sessionName);
     await deps.tmuxExecutor.killSession(sessionName);
-    deps.locks.release(dossierId);
-    sessions.delete(dossierId);
-    deps.sse.emit({ type: 'session:ended', data: { dossierId }, timestamp: new Date().toISOString() });
-    console.log(`[launcher] session archived: ${dossierId}`);
-    triggerMemoryExtraction(dossierId);
+    deps.locks.release(jobId);
+    sessions.delete(jobId);
+    deps.sse.emit({ type: 'session:ended', data: { jobId }, timestamp: new Date().toISOString() });
+    console.log(`[launcher] session archived: ${jobId}`);
+    triggerMemoryExtraction(jobId);
   }
 
   return { handleSessionEnd, archiveSession };

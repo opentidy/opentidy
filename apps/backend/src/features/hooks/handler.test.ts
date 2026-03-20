@@ -74,7 +74,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('PreToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {
-      session_id: 'opentidy-test-dossier',
+      session_id: 'opentidy-test-job',
       hook_event_name: 'PreToolUse',
       tool_name: 'Read',
       tool_input: { file_path: '/some/file' },
@@ -83,7 +83,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     handler.handle(payload);
 
     expect(mockAudit.log).toHaveBeenCalledWith({
-      sessionId: 'opentidy-test-dossier',
+      sessionId: 'opentidy-test-job',
       toolName: 'Read',
       toolInput: { file_path: '/some/file' },
       decision: 'ALLOW',
@@ -154,7 +154,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     expect(mockSse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:ended',
-        data: { dossierId: 'invoices-acme' },
+        data: { jobId: 'invoices-acme' },
       }),
     );
   });
@@ -183,7 +183,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     expect(mockSse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:idle',
-        data: { dossierId: 'invoices-acme' },
+        data: { jobId: 'invoices-acme' },
       }),
     );
   });

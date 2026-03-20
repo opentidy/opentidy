@@ -37,7 +37,7 @@ opentidy setup       # interactive wizard — walks you through everything
 opentidy start       # that's it, it's running
 ```
 
-OpenTidy runs as a background service. Open the web dashboard at `localhost:4800` to see your dossiers, or just wait for Telegram notifications.
+OpenTidy runs as a background service. Open the web dashboard at `localhost:4800` to see your jobs, or just wait for Telegram notifications.
 
 ```bash
 opentidy status      # is it running?
@@ -49,11 +49,11 @@ opentidy logs        # what's happening?
 
 ## Why OpenTidy
 
-**Dossiers, not conversations.** Each task is a persistent dossier — like a real folder on a real assistant's desk. It lives for days or weeks. OpenTidy picks it up, works on it, puts it down when blocked, and picks it back up when the missing piece arrives. No chat history to scroll through, no context lost between sessions.
+**Jobs, not conversations.** Each task is a persistent job — like a real folder on a real assistant's desk. It lives for days or weeks. OpenTidy picks it up, works on it, puts it down when blocked, and picks it back up when the missing piece arrives. No chat history to scroll through, no context lost between sessions.
 
-**Event-driven, not poll-based.** An email lands, a message arrives, a deadline hits — OpenTidy reacts immediately. It triages incoming events, routes them to the right dossier, and spawns a focused AI session to handle it. No heartbeat timers, no stale task lists.
+**Event-driven, not poll-based.** An email lands, a message arrives, a deadline hits — OpenTidy reacts immediately. It triages incoming events, routes them to the right job, and spawns a focused AI session to handle it. No heartbeat timers, no stale task lists.
 
-**Full parallelism.** Each dossier gets its own isolated AI session. Ten dossiers, ten parallel sessions, each with only the context it needs. No shared state, no interference, no bottleneck.
+**Full parallelism.** Each job gets its own isolated AI session. Ten jobs, ten parallel sessions, each with only the context it needs. No shared state, no interference, no bottleneck.
 
 **Guardrails the AI can't see.** Every sensitive action — sending an email, submitting a form, making a payment — is intercepted by system-level hooks *before* it happens. The AI doesn't know they exist, can't bypass them, can't argue with them. You define the rules once, they're enforced every time.
 
@@ -61,14 +61,14 @@ opentidy logs        # what's happening?
 - **[Camoufox](https://camoufox.com)** — anti-detection Firefox browser, one isolated instance per session, undetectable by bot protection
 - **Persistent profiles** — cookies and logins are preserved across sessions. Log in once, OpenTidy reuses the session forever
 - **CAPTCHA solving** — optional solver integration, handles challenges without human intervention
-- **Parallel browsing** — ten dossiers, ten independent browser instances, with shared session profiles for efficient navigation
+- **Parallel browsing** — ten jobs, ten independent browser instances, with shared session profiles for efficient navigation
 - **Full page interaction** — click, fill forms, upload files, download documents, navigate multi-step flows
 
-"Download all my invoices from every provider" is a one-line instruction. OpenTidy logs into each site, navigates to the billing section, downloads the PDFs, and organizes them in your dossier.
+"Download all my invoices from every provider" is a one-line instruction. OpenTidy logs into each site, navigates to the billing section, downloads the PDFs, and organizes them in your job.
 
 **Your CLI, your subscription, zero gray area.** OpenTidy doesn't wrap APIs, doesn't proxy tokens, doesn't reverse-engineer anything. It spawns the official CLI you already have installed — Claude Code, Gemini CLI, Copilot CLI — using your own subscription, exactly as the vendor intended. No API keys to manage, no token costs to monitor, no ToS to worry about. If you can run `claude` in your terminal, OpenTidy can use it.
 
-**Agent-agnostic.** Claude Code today, Gemini CLI or Copilot CLI tomorrow. Swap your AI engine without changing your setup, your dossiers, or your guardrails.
+**Agent-agnostic.** Claude Code today, Gemini CLI or Copilot CLI tomorrow. Swap your AI engine without changing your setup, your jobs, or your guardrails.
 
 **Self-improving.** When OpenTidy can't handle something, it logs the gap. Over time, these gaps become your natural backlog — driven by real usage, not guesswork.
 
@@ -79,7 +79,7 @@ opentidy logs        # what's happening?
            │
            ▼
      ┌───────────┐
-     │  Receiver  │─── dedup + triage (which dossier?)
+     │  Receiver  │─── dedup + triage (which job?)
      └─────┬─────┘
            │
            ▼
@@ -95,14 +95,14 @@ opentidy logs        # what's happening?
          │
          ▼
    ┌───────────┐
-   │  Dossier   │─── state.md · artifacts · memory
+   │    Job     │─── state.md · artifacts · memory
    └─────┬─────┘
          │
          ▼
    Notification → "Done" or "I need your input"
 ```
 
-When a session ends, a post-session agent extracts learnings into memory — so the next session on this dossier starts with full context.
+When a session ends, a post-session agent extracts learnings into memory — so the next session on this job starts with full context.
 
 ## OpenTidy vs OpenClaw
 
@@ -110,16 +110,16 @@ When a session ends, a post-session agent extracts learnings into memory — so 
 
 | | OpenTidy | OpenClaw |
 |---|---|---|
-| **Task model** | Persistent dossiers with state, checkpoints, and resume conditions | Chat messages + `HEARTBEAT.md` checklist |
+| **Task model** | Persistent jobs with state, checkpoints, and resume conditions | Chat messages + `HEARTBEAT.md` checklist |
 | **Triggers** | Event-driven — reacts in real-time | Heartbeat polling (every 30 min) |
-| **Parallelism** | Isolated session per dossier, all concurrent | Single agent per gateway |
+| **Parallelism** | Isolated session per job, all concurrent | Single agent per gateway |
 | **Security** | System-level hooks, fail-closed, invisible to AI | DM pairing + allowlists |
 | **Interface** | Web dashboard + Telegram notifications | Messaging apps as primary UI |
 | **Agent** | Agent-agnostic (Claude, Gemini, Copilot) | Model-agnostic, single-agent |
 | **Browser** | Camoufox (anti-detection, persistent sessions, parallel) | Chrome/Playwright (detectable, no session persistence) |
 | **Improvement** | Automatic gap logging → natural backlog | Manual skill authoring |
 
-**TL;DR** — OpenClaw is chat-first: you talk to it, it does things. OpenTidy is task-first: it receives events, manages dossiers, and only talks to you when it needs to. If you want to ask your AI to play Spotify, use OpenClaw. If you want an AI that silently processes your insurance claim over three weeks, use OpenTidy.
+**TL;DR** — OpenClaw is chat-first: you talk to it, it does things. OpenTidy is task-first: it receives events, manages jobs, and only talks to you when it needs to. If you want to ask your AI to play Spotify, use OpenClaw. If you want an AI that silently processes your insurance claim over three weeks, use OpenTidy.
 
 ## Compatibility
 
@@ -154,10 +154,10 @@ OpenTidy is agent-agnostic — it spawns the CLI you already have installed, usi
 
 | Source | Status | Notes |
 |---|---|---|
-| **Gmail** (webhook) | ✅ Supported | Incoming emails triaged to dossiers |
+| **Gmail** (webhook) | ✅ Supported | Incoming emails triaged to jobs |
 | **SMS** (macOS Messages) | ✅ Supported | Reads iMessage/SMS via Messages.app |
 | **WhatsApp** (Camoufox) | 🚧 In progress | Browser-based reader |
-| **Web app** (manual) | ✅ Supported | Create dossiers via the dashboard |
+| **Web app** (manual) | ✅ Supported | Create jobs via the dashboard |
 
 ## Architecture
 
@@ -174,7 +174,7 @@ Both backend and frontend follow **Vertical Slice Architecture** — code organi
 
 ## Documentation
 
-- **[Getting Started](docs/getting-started.md)** — Installation, setup, your first dossier
+- **[Getting Started](docs/getting-started.md)** — Installation, setup, your first job
 - **[Configuration](docs/configuration.md)** — All options explained
 - **[Architecture](docs/architecture.md)** — How it works under the hood
 - **[Security](docs/security.md)** — Hooks, guardrails, audit system

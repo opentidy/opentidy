@@ -95,9 +95,9 @@ pnpm test:e2e
 Progressive logging with service prefixes:
 
 ```typescript
-console.error('[launcher] Failed to spawn session', { dossierId, error: err.message });
+console.error('[launcher] Failed to spawn session', { jobId, error: err.message });
 console.warn('[receiver] Dedup collision', { hash });
-console.log('[triage] Event routed to dossier', { dossierId });
+console.log('[triage] Event routed to job', { jobId });
 ```
 
 - `console.error` / `console.warn` — always, with enough context to diagnose

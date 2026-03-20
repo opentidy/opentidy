@@ -22,7 +22,7 @@ export function resetRoute(deps: AppDeps) {
       }
     } catch {}
 
-    // 2. Clean workspace dossiers (keep system dirs and CLAUDE.md)
+    // 2. Clean workspace jobs (keep system dirs and CLAUDE.md)
     const keep = new Set(['_suggestions', '_gaps', '_audit', '_outputs', '.claude', 'CLAUDE.md']);
     for (const entry of readdirSync(deps.workspaceDir)) {
       if (keep.has(entry)) {

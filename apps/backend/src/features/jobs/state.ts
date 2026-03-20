@@ -3,12 +3,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { DossierStatus, Dossier, JournalEntry } from '@opentidy/shared';
+import type { JobStatus, Job, JournalEntry } from '@opentidy/shared';
 
-const VALID_STATUSES: DossierStatus[] = ['IN_PROGRESS', 'COMPLETED'];
+const VALID_STATUSES: JobStatus[] = ['IN_PROGRESS', 'COMPLETED'];
 
 // Normalize status strings — accepts both old French and new English values
-function normalizeStatus(raw: string): DossierStatus {
+function normalizeStatus(raw: string): JobStatus {
   const upper = raw.toUpperCase().trim();
   // English values
   if (upper.startsWith('COMPLET')) return 'COMPLETED';
@@ -21,14 +21,14 @@ function normalizeStatus(raw: string): DossierStatus {
   return 'IN_PROGRESS';
 }
 
-export function parseStateMd(dossierDir: string): { title: string; status: DossierStatus; objective: string; lastAction: string; confirm: boolean; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'user' | 'tiers' | null } {
-  const filePath = path.join(dossierDir, 'state.md');
+export function parseStateMd(jobDir: string): { title: string; status: JobStatus; objective: string; lastAction: string; confirm: boolean; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'user' | 'tiers' | null } {
+  const filePath = path.join(jobDir, 'state.md');
   if (!fs.existsSync(filePath)) return { title: '', status: 'IN_PROGRESS', objective: '', lastAction: '', confirm: false, journal: [], stateRaw: '', waitingType: null };
 
   const content = fs.readFileSync(filePath, 'utf-8');
   const title = content.match(/^# (.+)$/m)?.[1]?.trim() ?? '';
   const statusMatch = content.match(/(?:STATUT|STATUS)\s*:\s*(.+)$/m)?.[1]?.trim();
-  const status: DossierStatus = statusMatch ? normalizeStatus(statusMatch) : 'IN_PROGRESS';
+  const status: JobStatus = statusMatch ? normalizeStatus(statusMatch) : 'IN_PROGRESS';
   const objective = content.match(/## (?:Objectif|Objective)\n(.+)/)?.[1]?.trim() ?? '';
   const lastActionMatch = content.match(/- (\d{4}-\d{2}-\d{2})/g);
   const lastAction = lastActionMatch ? lastActionMatch[lastActionMatch.length - 1].replace('- ', '') : '';
@@ -60,15 +60,15 @@ export function parseStateMd(dossierDir: string): { title: string; status: Dossi
     }
   }
 
-  if (content.length > 50 && !title) console.warn(`[state] ${dossierDir}: no title found in non-empty state.md`);
-  if (content.length > 50 && !statusMatch) console.warn(`[state] ${dossierDir}: no STATUS found in non-empty state.md`);
-  if (content.length > 50 && !objective) console.warn(`[state] ${dossierDir}: no objective found in non-empty state.md`);
+  if (content.length > 50 && !title) console.warn(`[state] ${jobDir}: no title found in non-empty state.md`);
+  if (content.length > 50 && !statusMatch) console.warn(`[state] ${jobDir}: no STATUS found in non-empty state.md`);
+  if (content.length > 50 && !objective) console.warn(`[state] ${jobDir}: no objective found in non-empty state.md`);
 
   return { title, status, objective, lastAction, confirm, journal, stateRaw: content, waitingFor, waitingType };
 }
 
-export function setStatus(dossierDir: string, newStatus: DossierStatus): void {
-  const filePath = path.join(dossierDir, 'state.md');
+export function setStatus(jobDir: string, newStatus: JobStatus): void {
+  const filePath = path.join(jobDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, 'utf-8');
   const updated = content.match(/(?:STATUT|STATUS)\s*:\s*.+$/m)
@@ -77,8 +77,8 @@ export function setStatus(dossierDir: string, newStatus: DossierStatus): void {
   fs.writeFileSync(filePath, updated);
 }
 
-export function setWaitingType(dossierDir: string, type: 'user' | 'tiers'): void {
-  const filePath = path.join(dossierDir, 'state.md');
+export function setWaitingType(jobDir: string, type: 'user' | 'tiers'): void {
+  const filePath = path.join(jobDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   let content = fs.readFileSync(filePath, 'utf-8');
   const tag = `ATTENTE: ${type.toUpperCase()}`;
@@ -101,8 +101,8 @@ export function setWaitingType(dossierDir: string, type: 'user' | 'tiers'): void
   fs.writeFileSync(filePath, content);
 }
 
-export function clearWaitingFor(dossierDir: string): void {
-  const filePath = path.join(dossierDir, 'state.md');
+export function clearWaitingFor(jobDir: string): void {
+  const filePath = path.join(jobDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, 'utf-8');
   const cleaned = content.replace(/\n## (?:En attente|Waiting)\n[\s\S]*?(?=\n## |\n*$)/, '');
@@ -111,21 +111,21 @@ export function clearWaitingFor(dossierDir: string): void {
   }
 }
 
-export function listDossierIds(workspaceDir: string): string[] {
+export function listJobIds(workspaceDir: string): string[] {
   return fs.readdirSync(workspaceDir)
     .filter(f => !f.startsWith('_') && !f.startsWith('.'))
     .filter(f => fs.statSync(path.join(workspaceDir, f)).isDirectory())
     .filter(f => fs.existsSync(path.join(workspaceDir, f, 'state.md')));
 }
 
-export function resolveDossierDir(workspaceDir: string, id: string): string {
+export function resolveJobDir(workspaceDir: string, id: string): string {
   return path.join(workspaceDir, id);
 }
 
-export function getDossier(workspaceDir: string, id: string): Dossier {
-  const dossierDir = resolveDossierDir(workspaceDir, id);
-  const state = parseStateMd(dossierDir);
-  const artifactsDir = path.join(dossierDir, 'artifacts');
+export function getJob(workspaceDir: string, id: string): Job {
+  const jobDir = resolveJobDir(workspaceDir, id);
+  const state = parseStateMd(jobDir);
+  const artifactsDir = path.join(jobDir, 'artifacts');
   const artifacts = fs.existsSync(artifactsDir) ? fs.readdirSync(artifactsDir) : [];
 
   return {

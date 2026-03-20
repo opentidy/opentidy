@@ -4,10 +4,10 @@
 import fs from 'fs';
 import path from 'path';
 
-export function createDossierManager(workspaceDir: string) {
-  function createDossier(id: string, instruction: string, confirm = false, title?: string): void {
+export function createJobManager(workspaceDir: string) {
+  function createJob(id: string, instruction: string, confirm = false, title?: string): void {
     const dir = path.join(workspaceDir, id);
-    if (fs.existsSync(dir)) throw new Error(`Dossier '${id}' already exists`);
+    if (fs.existsSync(dir)) throw new Error(`Job '${id}' already exists`);
     fs.mkdirSync(dir, { recursive: true });
     fs.mkdirSync(path.join(dir, 'artifacts'), { recursive: true });
     const now = new Date().toISOString().slice(0, 10);
@@ -15,29 +15,15 @@ export function createDossierManager(workspaceDir: string) {
     const modeLine = confirm ? '\nMODE : CONFIRM\n' : '';
     const stateMd = `# ${displayTitle}\n\nSTATUS : IN_PROGRESS${modeLine}\n\n## Objective\n${instruction}\n\n## Log\n- ${now} : Created\n`;
     fs.writeFileSync(path.join(dir, 'state.md'), stateMd);
-    console.log(`[workspace] dossier created: ${id} — "${displayTitle}"${confirm ? ' (confirm mode)' : ''}`);
+    console.log(`[workspace] job created: ${id} — "${displayTitle}"${confirm ? ' (confirm mode)' : ''}`);
   }
 
-  function createDossierFromSuggestion(slug: string, instruction?: string): void {
+  function createJobFromSuggestion(slug: string, instruction?: string): void {
     const suggFile = path.join(workspaceDir, '_suggestions', `${slug}.md`);
     const content = fs.existsSync(suggFile) ? fs.readFileSync(suggFile, 'utf-8') : '';
     const title = content.match(/^# (.+)$/m)?.[1] ?? slug;
-    createDossier(slug, instruction ?? title, false, title);
+    createJob(slug, instruction ?? title, false, title);
     if (fs.existsSync(suggFile)) fs.unlinkSync(suggFile);
-  }
-
-  function ignoreSuggestion(slug: string): void {
-    const suggFile = path.join(workspaceDir, '_suggestions', `${slug}.md`);
-    if (fs.existsSync(suggFile)) fs.unlinkSync(suggFile);
-    console.log(`[workspace] suggestion ignored: ${slug}`);
-  }
-
-  function markDossierComplete(id: string): void {
-    const stateFile = path.join(workspaceDir, id, 'state.md');
-    let content = fs.readFileSync(stateFile, 'utf-8');
-    content = content.replace(/(?:STATUT|STATUS)\s*:\s*.+/m, 'STATUS : COMPLETED');
-    fs.writeFileSync(stateFile, content);
-    console.log(`[workspace] dossier completed: ${id}`);
   }
 
   function saveArtifact(id: string, filename: string, data: Buffer): void {
@@ -47,17 +33,17 @@ export function createDossierManager(workspaceDir: string) {
     console.log(`[workspace] artifact saved: ${id}/${filename}`);
   }
 
-  function completeDossier(id: string): void {
+  function completeJob(id: string): void {
     const dir = path.join(workspaceDir, id);
-    if (!fs.existsSync(dir)) throw new Error(`Dossier '${id}' not found`);
+    if (!fs.existsSync(dir)) throw new Error(`Job '${id}' not found`);
     const stateFile = path.join(dir, 'state.md');
     if (fs.existsSync(stateFile)) {
       let content = fs.readFileSync(stateFile, 'utf-8');
       content = content.replace(/(?:STATUT|STATUS)\s*:\s*.+/m, 'STATUS : COMPLETED');
       fs.writeFileSync(stateFile, content);
     }
-    console.log(`[workspace] dossier completed: ${id}`);
+    console.log(`[workspace] job completed: ${id}`);
   }
 
-  return { createDossier, createDossierFromSuggestion, ignoreSuggestion, markDossierComplete, saveArtifact, completeDossier };
+  return { createJob, createJobFromSuggestion, saveArtifact, completeJob };
 }

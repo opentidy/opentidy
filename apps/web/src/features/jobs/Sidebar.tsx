@@ -3,18 +3,18 @@
 
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { Dossier, Session } from '@opentidy/shared';
+import type { Job, Session } from '@opentidy/shared';
 import { useStore } from '../../shared/store';
 import { getArtifactUrl } from '../../shared/api';
 import { formatDuration } from '../../shared/utils/format';
 import { sessionStatusConfig } from '../../shared/utils/status-colors';
 
 interface SidebarProps {
-  dossier: Dossier;
+  job: Job;
   session?: Session;
 }
 
-export default function Sidebar({ dossier, session }: SidebarProps) {
+export default function Sidebar({ job, session }: SidebarProps) {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { stopSession } = useStore();
@@ -37,7 +37,7 @@ export default function Sidebar({ dossier, session }: SidebarProps) {
             {t('sidebar.openTerminal')}
           </button>
           <button
-            onClick={() => stopSession(dossier.id)}
+            onClick={() => stopSession(job.id)}
             className="mt-2 w-full py-2 text-sm font-medium rounded-lg bg-red/10 border border-red/30 text-red hover:bg-red/20 transition-colors"
           >
             {t('sidebar.stopSession')}
@@ -45,11 +45,11 @@ export default function Sidebar({ dossier, session }: SidebarProps) {
         </div>
       )}
 
-      {dossier.artifacts.length > 0 && (
+      {job.artifacts.length > 0 && (
         <div>
           <h4 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('common.files')}</h4>
           <ul className="space-y-1.5">
-            {dossier.artifacts.map((file) => (
+            {job.artifacts.map((file) => (
               <li key={file} className="flex items-center gap-2 text-sm">
                 {file.endsWith('.md') ? (
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
@@ -62,7 +62,7 @@ export default function Sidebar({ dossier, session }: SidebarProps) {
                   </svg>
                 )}
                 <a
-                  href={getArtifactUrl(dossier.id, file)}
+                  href={getArtifactUrl(job.id, file)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:underline text-text-secondary hover:text-accent"

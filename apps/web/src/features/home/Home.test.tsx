@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Dossier, Suggestion, Session } from '@opentidy/shared';
+import type { Job, Suggestion, Session } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
 import Home from './Home';
 
@@ -24,11 +24,11 @@ vi.mock('../../shared/store', () => ({
   },
 }));
 
-function makeDossier(overrides: Partial<Dossier> = {}): Dossier {
+function makeJob(overrides: Partial<Job> = {}): Job {
   return {
     id: 'acme',
     status: 'IN_PROGRESS',
-    title: 'Dossier Acme',
+    title: 'Job Acme',
     objective: 'Contract issue',
     lastAction: 'il y a 2h',
     hasActiveSession: false,
@@ -55,7 +55,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
     id: 'opentidy-acme',
-    dossierId: 'acme',
+    jobId: 'acme',
     status: 'active',
     startedAt: new Date().toISOString(),
     ...overrides,
@@ -66,10 +66,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   storeState = {
-    dossiers: [],
+    jobs: [],
     suggestions: [],
     sessions: [],
-    fetchDossiers: vi.fn().mockResolvedValue(undefined),
+    fetchJobs: vi.fn().mockResolvedValue(undefined),
     fetchSuggestions: vi.fn().mockResolvedValue(undefined),
     fetchSessions: vi.fn().mockResolvedValue(undefined),
     fetchCheckupStatus: vi.fn().mockResolvedValue(undefined),
@@ -82,7 +82,7 @@ beforeEach(() => {
 });
 
 describe('Home page', () => {
-  it('shows WelcomeCard when no dossiers and onboarding not dismissed', async () => {
+  it('shows WelcomeCard when no jobs and onboarding not dismissed', async () => {
     render(
       <MemoryRouter>
         <Home />
@@ -108,7 +108,7 @@ describe('Home page', () => {
     expect(screen.getByText('Tax filing 2025')).toBeDefined();
   });
 
-  it('does not render "En fond" section — active sessions show via dossier cards', async () => {
+  it('does not render "En fond" section — active sessions show via job cards', async () => {
     storeState.sessions = [makeSession({ status: 'active' })];
     storeState.suggestions = [makeSuggestion()];
 
@@ -126,7 +126,7 @@ describe('Home page', () => {
   });
 
   it('header shows OpenTidy title, not session count', async () => {
-    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-tax-filing', dossierId: 'tax-filing' })];
+    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-tax-filing', jobId: 'tax-filing' })];
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -164,12 +164,12 @@ describe('Home page', () => {
       </MemoryRouter>,
     );
 
-    expect(storeState.fetchDossiers).toHaveBeenCalled();
+    expect(storeState.fetchJobs).toHaveBeenCalled();
     expect(storeState.fetchSuggestions).toHaveBeenCalled();
     expect(storeState.fetchSessions).toHaveBeenCalled();
   });
 
-  it('shows WelcomeCard with finished sessions only and no dossiers', async () => {
+  it('shows WelcomeCard with finished sessions only and no jobs', async () => {
     storeState.sessions = [makeSession({ status: 'finished' as Session['status'] })];
 
     render(
@@ -196,15 +196,15 @@ describe('Home page', () => {
     expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
   });
 
-  it('does not show WelcomeCard when dossiers exist', async () => {
-    storeState.dossiers = [makeDossier()];
+  it('does not show WelcomeCard when jobs exist', async () => {
+    storeState.jobs = [makeJob()];
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText('Dossier Acme')).toBeDefined();
+      expect(screen.getByText('Job Acme')).toBeDefined();
     });
     expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
   });

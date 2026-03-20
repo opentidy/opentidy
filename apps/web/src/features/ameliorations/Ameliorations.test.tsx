@@ -151,9 +151,9 @@ describe('Ameliorations page', () => {
     expect(afterFilterButtons.length).toBe(1); // Only the filter tab
   });
 
-  it('dossier link navigates to /dossier/{dossierId}', () => {
+  it('job link navigates to /job/{jobId}', () => {
     storeState.ameliorations = [
-      makeAmelioration({ id: 'amel-1', dossierId: 'acme', resolved: false, status: 'open' }),
+      makeAmelioration({ id: 'amel-1', jobId: 'acme', resolved: false, status: 'open' }),
     ];
 
     render(
@@ -162,16 +162,16 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    // The button text includes the dossierId
-    const dossierButton = screen.getByText(/Dossier: acme/);
-    fireEvent.click(dossierButton);
+    // The button text includes the jobId
+    const jobButton = screen.getByText(/Job: acme/);
+    fireEvent.click(jobButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/dossier/acme');
+    expect(mockNavigate).toHaveBeenCalledWith('/job/acme');
   });
 
-  it('does not show dossier link when dossierId is missing', () => {
+  it('does not show job link when jobId is missing', () => {
     storeState.ameliorations = [
-      makeAmelioration({ id: 'amel-1', dossierId: undefined, resolved: false, status: 'open' }),
+      makeAmelioration({ id: 'amel-1', jobId: undefined, resolved: false, status: 'open' }),
     ];
 
     render(
@@ -180,7 +180,7 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.queryByText(/Dossier:/)).toBeNull();
+    expect(screen.queryByText(/Job:/)).toBeNull();
   });
 
   it('shows empty state for open filter with no open items', async () => {

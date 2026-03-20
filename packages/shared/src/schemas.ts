@@ -14,14 +14,14 @@ export const GmailWebhookSchema = z.object({
   timestamp: z.string(),
 });
 
-// User instruction (create a dossier)
-export const CreateDossierSchema = z.object({
+// User instruction (create a job)
+export const CreateJobSchema = z.object({
   instruction: z.string().min(1),
   confirm: z.boolean().default(false),
 });
 
-// Instruction vers un dossier existant
-export const DossierInstructionSchema = z.object({
+// Instruction vers un job existant
+export const JobInstructionSchema = z.object({
   instruction: z.string().min(1),
   confirm: z.boolean().default(false),
 });
@@ -44,8 +44,8 @@ export const HookPayloadSchema = z.object({
 
 // Types réexportés
 export type GmailWebhook = z.infer<typeof GmailWebhookSchema>;
-export type CreateDossier = z.infer<typeof CreateDossierSchema>;
-export type DossierInstruction = z.infer<typeof DossierInstructionSchema>;
+export type CreateJob = z.infer<typeof CreateJobSchema>;
+export type JobInstruction = z.infer<typeof JobInstructionSchema>;
 export type ApproveSuggestion = z.infer<typeof ApproveSuggestionSchema>;
 export type HookPayload = z.infer<typeof HookPayloadSchema>;
 
@@ -72,7 +72,7 @@ export const MemoryCreateSchema = z.object({
 
 // === Schedule schemas ===
 export const CreateScheduleSchema = z.object({
-  dossierId: z.string().nullable().default(null),
+  jobId: z.string().nullable().default(null),
   type: z.enum(['once', 'recurring']),
   runAt: z.string().datetime().nullable().default(null),
   intervalMs: z.number().int().positive().nullable().default(null),

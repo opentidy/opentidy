@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 interface Permission {
-  id: string;
   name: string;
+  label: string;
+  app: string;
   required: boolean;
   granted: boolean;
 }
@@ -27,7 +28,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
       const res = await fetch('/api/setup/permissions');
       if (res.ok) {
         const data = await res.json();
-        setPermissions(data.permissions ?? []);
+        setPermissions(data);
       }
     } catch {
       // Silently fail
@@ -79,11 +80,11 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
       <div className="flex flex-col gap-3">
         {permissions.map((perm) => (
           <div
-            key={perm.id}
+            key={perm.name}
             className="flex items-center justify-between rounded-lg border border-border bg-bg-secondary px-4 py-3"
           >
             <div className="flex items-center gap-3">
-              <span className="font-medium text-fg">{perm.name}</span>
+              <span className="font-medium text-fg">{perm.label}</span>
               <span
                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                   perm.required
@@ -100,11 +101,11 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
             ) : (
               <button
                 type="button"
-                disabled={granting === perm.id}
-                onClick={() => handleGrant(perm.id)}
+                disabled={granting === perm.name}
+                onClick={() => handleGrant(perm.name)}
                 className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               >
-                {granting === perm.id ? t('common.loading') : t('setup.authorize')}
+                {granting === perm.name ? t('common.loading') : t('setup.authorize')}
               </button>
             )}
           </div>

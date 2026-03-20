@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 
-export const mockDossiers = [
+export const mockJobs = [
   {
     id: 'invoices-acme',
     title: 'Invoices Acme',
@@ -75,19 +75,19 @@ export const mockSuggestions = [
 export const mockSessions = [
   {
     id: 'opentidy-invoices-acme',
-    dossierId: 'invoices-acme',
+    jobId: 'invoices-acme',
     status: 'active',
     startedAt: '2026-03-14T08:00:00Z',
   },
   {
     id: 'opentidy-insurance-report',
-    dossierId: 'insurance-report',
+    jobId: 'insurance-report',
     status: 'idle',
     startedAt: '2026-03-14T07:00:00Z',
   },
   {
     id: 'opentidy-blocked-test',
-    dossierId: 'blocked-test',
+    jobId: 'blocked-test',
     status: 'mfa',
     startedAt: '2026-03-14T06:00:00Z',
   },
@@ -101,7 +101,7 @@ export const mockAmeliorations = [
     problem: 'Cannot handle TOTP',
     impact: 'Cannot access insurance portal',
     suggestion: 'Add TOTP support',
-    dossierId: 'insurance-report',
+    jobId: 'insurance-report',
     resolved: false,
   },
   {
@@ -111,7 +111,7 @@ export const mockAmeliorations = [
     problem: 'Too many API calls',
     impact: 'Delays in processing',
     suggestion: 'Add backoff',
-    dossierId: null,
+    jobId: null,
     resolved: false,
   },
   {
@@ -121,7 +121,7 @@ export const mockAmeliorations = [
     problem: 'Was broken',
     impact: 'None now',
     suggestion: 'Fixed',
-    dossierId: null,
+    jobId: null,
     resolved: true,
   },
 ];
@@ -129,40 +129,40 @@ export const mockAmeliorations = [
 export async function setupMockApi(
   page: Page,
   overrides?: Partial<{
-    dossiers: typeof mockDossiers;
+    jobs: typeof mockJobs;
     suggestions: typeof mockSuggestions;
     sessions: typeof mockSessions;
     ameliorations: typeof mockAmeliorations;
   }>,
 ) {
-  const dossiers = overrides?.dossiers ?? mockDossiers;
+  const jobs = overrides?.jobs ?? mockJobs;
   const suggestions = overrides?.suggestions ?? mockSuggestions;
   const sessions = overrides?.sessions ?? mockSessions;
   const ameliorations = overrides?.ameliorations ?? mockAmeliorations;
 
   // GET routes
-  await page.route('**/api/dossiers', (route) => {
+  await page.route('**/api/jobs', (route) => {
     if (route.request().method() === 'GET') {
-      return route.fulfill({ json: dossiers });
+      return route.fulfill({ json: jobs });
     }
     return route.fallback();
   });
 
-  await page.route('**/api/dossier/*', (route) => {
+  await page.route('**/api/job/*', (route) => {
     const url = route.request().url();
     const method = route.request().method();
 
-    // POST /api/dossier (create)
-    if (method === 'POST' && url.endsWith('/api/dossier')) {
+    // POST /api/job (create)
+    if (method === 'POST' && url.endsWith('/api/job')) {
       return route.fulfill({ json: { created: true } });
     }
 
-    // GET /api/dossier/:id
+    // GET /api/job/:id
     if (method === 'GET') {
-      const segments = url.split('/api/dossier/')[1]?.split('/');
+      const segments = url.split('/api/job/')[1]?.split('/');
       const id = segments?.[0];
-      const dossier = dossiers.find((d) => d.id === id);
-      if (dossier) return route.fulfill({ json: dossier });
+      const job = jobs.find((d) => d.id === id);
+      if (job) return route.fulfill({ json: job });
       return route.fulfill({ status: 404, json: { error: 'not found' } });
     }
 
@@ -190,7 +190,7 @@ export async function setupMockApi(
   );
 
   // POST routes
-  await page.route('**/api/dossier', (route) => {
+  await page.route('**/api/job', (route) => {
     if (route.request().method() === 'POST') {
       return route.fulfill({ json: { created: true } });
     }
@@ -205,11 +205,11 @@ export async function setupMockApi(
     route.fulfill({ json: { ignored: true } }),
   );
 
-  await page.route('**/api/dossier/*/instruction', (route) =>
+  await page.route('**/api/job/*/instruction', (route) =>
     route.fulfill({ json: { launched: true } }),
   );
 
-  await page.route('**/api/dossier/*/resume', (route) =>
+  await page.route('**/api/job/*/resume', (route) =>
     route.fulfill({ json: { resumed: true } }),
   );
 

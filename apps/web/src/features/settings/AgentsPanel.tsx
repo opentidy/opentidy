@@ -9,36 +9,21 @@ const BASE = '/api';
 interface AgentInfo {
   name: string;
   label: string;
-  binary: string;
+  badge: 'stable' | 'experimental' | 'coming-soon';
   installed: boolean;
-  version: string | null;
-  experimental: boolean;
+  authed: boolean;
   active: boolean;
-  configDir: string;
 }
 
 interface AgentsResponse {
-  active: string;
   agents: AgentInfo[];
 }
 
 async function fetchAgents(): Promise<AgentsResponse> {
-  const res = await fetch(`${BASE}/agents`);
+  const res = await fetch(`${BASE}/setup/agents`);
   if (!res.ok) throw new Error(`${res.status}`);
-  return res.json();
-}
-
-async function setActiveAgent(name: string): Promise<{ active: string }> {
-  const res = await fetch(`${BASE}/agents/active`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name }),
-  });
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({}));
-    throw new Error(body.error || `${res.status}`);
-  }
-  return res.json();
+  const agents = await res.json();
+  return { agents };
 }
 
 function AgentIcon({ agent }: { agent: AgentInfo }) {
@@ -56,6 +41,12 @@ function AgentIcon({ agent }: { agent: AgentInfo }) {
   );
 }
 
+function badgeLabel(badge: string): string {
+  if (badge === 'stable') return 'Stable';
+  if (badge === 'experimental') return 'Experimental';
+  return 'Coming soon';
+}
+
 export default function AgentsPanel() {
   const { t } = useTranslation();
   const [data, setData] = useState<AgentsResponse | null>(null);
@@ -65,15 +56,9 @@ export default function AgentsPanel() {
     fetchAgents().then(setData).catch(e => setError(e.message));
   }, []);
 
-  async function handleActivate(name: string) {
-    try {
-      setError(null);
-      await setActiveAgent(name);
-      const updated = await fetchAgents();
-      setData(updated);
-    } catch (e) {
-      setError((e as Error).message);
-    }
+  async function handleActivate(_name: string) {
+    // Agent activation not yet implemented in module system
+    setError('Agent switching not yet available');
   }
 
   if (error && !data) return <div className="text-red-500 text-sm p-3 bg-red-500/10 rounded-lg">{error}</div>;
@@ -94,7 +79,7 @@ export default function AgentsPanel() {
             key={agent.name}
             className={`p-4 bg-bg rounded-lg border transition-colors ${
               agent.active ? 'border-accent/40' : 'border-border'
-            } ${agent.experimental && !agent.installed ? 'opacity-50' : ''}`}
+            } ${agent.badge === 'coming-soon' ? 'opacity-50' : ''}`}
           >
             <div className="flex items-center gap-4">
               <AgentIcon agent={agent} />
@@ -104,8 +89,8 @@ export default function AgentsPanel() {
                   {agent.active && (
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{t('toolbox.activeAgent')}</span>
                   )}
-                  {agent.experimental && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500">{t('toolbox.experimental')}</span>
+                  {agent.badge !== 'stable' && (
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${agent.badge === 'experimental' ? 'bg-amber-500/10 text-amber-500' : 'bg-gray-500/10 text-gray-400'}`}>{badgeLabel(agent.badge)}</span>
                   )}
                 </div>
 
@@ -115,8 +100,6 @@ export default function AgentsPanel() {
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20,6 9,17 4,12" /></svg>
                       {t('toolbox.installed')}
                     </span>
-                    {agent.version && <span className="text-[10px] text-text-tertiary font-mono">v{agent.version}</span>}
-                    {agent.configDir && <span className="text-[10px] text-text-tertiary truncate hidden sm:inline">{agent.configDir}</span>}
                   </div>
                 ) : (
                   <div className="mt-1">
@@ -128,7 +111,7 @@ export default function AgentsPanel() {
               <div className="shrink-0">
                 {agent.active ? (
                   <span className="text-xs text-accent px-3 py-1.5">{t('toolbox.current')}</span>
-                ) : agent.installed && !agent.experimental ? (
+                ) : agent.installed && agent.badge === 'stable' ? (
                   <button
                     onClick={() => handleActivate(agent.name)}
                     className="px-4 py-1.5 text-sm border border-accent/30 text-accent rounded-lg hover:bg-accent/10"

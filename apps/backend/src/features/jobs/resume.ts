@@ -4,13 +4,13 @@
 import { Hono } from 'hono';
 import type { AppDeps } from '../../server.js';
 
-export function resumeDossierRoute(deps: AppDeps) {
+export function resumeJobRoute(deps: AppDeps) {
   const app = new Hono();
 
-  app.post('/dossier/:id/resume', async (c) => {
+  app.post('/job/:id/resume', async (c) => {
     const id = c.req.param('id');
     await deps.launcher.launchSession(id);
-    deps.sse.emit({ type: 'session:started', data: { dossierId: id }, timestamp: new Date().toISOString() });
+    deps.sse.emit({ type: 'session:started', data: { jobId: id }, timestamp: new Date().toISOString() });
     return c.json({ resumed: true });
   });
 

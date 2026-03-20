@@ -5,8 +5,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import { parseStateMd } from '../dossiers/state.js';
-import { createDossierManager } from '../dossiers/create-manager.js';
+import { parseStateMd } from '../jobs/state.js';
+import { createJobManager } from '../jobs/create-manager.js';
 import { createGapsManager } from '../ameliorations/gaps.js';
 import { createDedupStore } from '../../shared/dedup.js';
 import { createDatabase } from '../../shared/database.js';
@@ -54,11 +54,11 @@ describe('Edge cases', () => {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(
       path.join(dir, 'state.md'),
-      '# Mon Dossier Perso\n\nSTATUS : IN_PROGRESS\n\n## Objective\nDo something\n\n## Personal notes\nThis was added manually\n\n## Log\n- 2026-03-14 : Created\n',
+      '# Mon Job Perso\n\nSTATUS : IN_PROGRESS\n\n## Objective\nDo something\n\n## Personal notes\nThis was added manually\n\n## Log\n- 2026-03-14 : Created\n',
     );
 
     const result = parseStateMd(dir);
-    expect(result.title).toBe('Mon Dossier Perso');
+    expect(result.title).toBe('Mon Job Perso');
     expect(result.status).toBe('IN_PROGRESS');
   });
 
@@ -77,12 +77,12 @@ describe('Edge cases', () => {
 
   // E2E-EDGE-17: Disk error handled gracefully
   it('handles disk error gracefully (E2E-EDGE-17)', () => {
-    const mgr = createDossierManager(wsDir);
+    const mgr = createJobManager(wsDir);
     vi.spyOn(fs, 'writeFileSync').mockImplementation(() => {
       throw new Error('ENOSPC: no space left on device');
     });
 
-    expect(() => mgr.createDossier('fail', 'instruction')).toThrow('ENOSPC');
+    expect(() => mgr.createJob('fail', 'instruction')).toThrow('ENOSPC');
 
     vi.mocked(fs.writeFileSync).mockRestore();
   });

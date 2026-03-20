@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { test, expect } from '@playwright/test';
-import { setupMockApi, mockDossiers, mockSuggestions, mockSessions } from './fixtures/mock-api';
+import { setupMockApi, mockJobs, mockSuggestions, mockSessions } from './fixtures/mock-api';
 
 test.describe('E2E-APP-02: Home shows suggestions', () => {
   test('displays suggestion cards with urgency badges and action buttons', async ({ page }) => {
@@ -17,8 +17,8 @@ test.describe('E2E-APP-02: Home shows suggestions', () => {
     await expect(page.getByText('Timesheet June')).toBeVisible();
     await expect(page.getByText('Car Insurance')).toBeVisible();
 
-    // "Create dossier" and "Ignore" buttons on each card
-    const createButtons = page.getByRole('button', { name: 'Create dossier' });
+    // "Create job" and "Ignore" buttons on each card
+    const createButtons = page.getByRole('button', { name: 'Create job' });
     await expect(createButtons).toHaveCount(3);
     const ignoreButtons = page.getByRole('button', { name: 'Ignore' });
     await expect(ignoreButtons).toHaveCount(3);
@@ -38,7 +38,7 @@ test.describe('E2E-APP-03: Home shows active sessions in "En fond" section', () 
     // "En fond" section
     await expect(page.getByText('En fond', { exact: false })).toBeVisible();
 
-    // 3 sessions — SessionCard shows capitalized dossier name
+    // 3 sessions — SessionCard shows capitalized job name
     await expect(page.getByText('Invoices Acme').nth(1)).toBeVisible();
     await expect(page.getByText('Insurance Report')).toBeVisible();
     await expect(page.getByText('Test Blocked')).toBeVisible();
@@ -48,7 +48,7 @@ test.describe('E2E-APP-03: Home shows active sessions in "En fond" section', () 
 test.describe('E2E-APP-05: Home zen mode', () => {
   test('shows Tout roule when no suggestions, no sessions', async ({ page }) => {
     await setupMockApi(page, {
-      dossiers: [],
+      jobs: [],
       suggestions: [],
       sessions: [],
     });
@@ -58,8 +58,8 @@ test.describe('E2E-APP-05: Home zen mode', () => {
     await expect(page.getByText('aucune action requise')).toBeVisible();
 
     // Navigation buttons in zen mode
-    await expect(page.getByRole('button', { name: 'Voir tous les dossiers' })).toBeVisible();
-    // "+ Nouveau dossier" appears in both Header (on desktop) and zen body
-    await expect(page.getByRole('button', { name: '+ Nouveau dossier' }).last()).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Voir tous les jobs' })).toBeVisible();
+    // "+ Nouveau job" appears in both Header (on desktop) and zen body
+    await expect(page.getByRole('button', { name: '+ Nouveau job' }).last()).toBeVisible();
   });
 });

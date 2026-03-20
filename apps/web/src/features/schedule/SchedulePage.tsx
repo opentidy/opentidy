@@ -186,7 +186,7 @@ export default function SchedulePage() {
                     }`}
                   >
                     {slotEvents.map((ev, j) => {
-                      const colors = ev.schedule.dossierId ? hashColor(ev.schedule.dossierId) : { bg: 'rgba(107,114,128,0.12)', border: '#6b7280', text: '#9ca3af' };
+                      const colors = ev.schedule.jobId ? hashColor(ev.schedule.jobId) : { bg: 'rgba(107,114,128,0.12)', border: '#6b7280', text: '#9ca3af' };
                       return (
                         <button
                           key={`${ev.schedule.id}-${j}`}

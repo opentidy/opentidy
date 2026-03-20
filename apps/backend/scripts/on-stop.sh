@@ -11,7 +11,7 @@ LOG_FILE="$HOME/Library/Logs/opentidy-hooks.log"
 
 log() { echo "[on-stop $(date '+%H:%M:%S')] $*" >> "$LOG_FILE"; }
 
-# Extract dossier ID from cwd
+# Extract job ID from cwd
 CWD=$(echo "$PAYLOAD" | python3 -c "import sys,json; print(json.load(sys.stdin).get('cwd',''))" 2>/dev/null)
 
 # Only OpenTidy sessions (cwd must be inside the workspace)
@@ -19,12 +19,12 @@ if [[ -z "$CWD" || ! "$CWD" == *"/workspace/"* ]]; then
   exit 0
 fi
 
-DOSSIER_ID=$(basename "$CWD")
-SESSION_ID="opentidy-${DOSSIER_ID}"
-STATE_FILE="$WORKSPACE_DIR/$DOSSIER_ID/state.md"
+JOB_ID=$(basename "$CWD")
+SESSION_ID="opentidy-${JOB_ID}"
+STATE_FILE="$WORKSPACE_DIR/$JOB_ID/state.md"
 
 if [[ ! -f "$STATE_FILE" ]]; then
-  log "$DOSSIER_ID: no state.md, skipping"
+  log "$JOB_ID: no state.md, skipping"
   exit 0
 fi
 
@@ -37,7 +37,7 @@ else
   STATE="EN COURS"
 fi
 
-log "$DOSSIER_ID → $STATE, signaling backend"
+log "$JOB_ID → $STATE, signaling backend"
 
 # Always signal the backend — it handles marking idle, notifications, etc.
 curl -sf -X POST "http://localhost:$BACKEND_PORT/api/hooks" \

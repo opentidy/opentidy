@@ -4,13 +4,13 @@
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
-test.describe('E2E-APP-15: New dossier form', () => {
+test.describe('E2E-APP-15: New job form', () => {
   test('displays form elements and submits POST on Lancer', async ({ page }) => {
     await setupMockApi(page);
     await page.goto('/nouveau');
 
     // Page title
-    await expect(page.getByRole('heading', { name: 'Nouveau dossier' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Nouveau job' })).toBeVisible();
 
     // Textarea with placeholder
     const textarea = page.getByPlaceholder(/Ex:/);
@@ -31,10 +31,10 @@ test.describe('E2E-APP-15: New dossier form', () => {
     await textarea.fill('Genere la facture de mars 2026');
     await expect(lancerButton).toBeEnabled();
 
-    // Intercept POST /api/dossier
+    // Intercept POST /api/job
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/dossier') &&
+        req.url().includes('/api/job') &&
         req.method() === 'POST' &&
         !req.url().includes('/instruction') &&
         !req.url().includes('/resume') &&
@@ -59,7 +59,7 @@ test.describe('E2E-APP-15: New dossier form', () => {
 
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/dossier') &&
+        req.url().includes('/api/job') &&
         req.method() === 'POST' &&
         !req.url().includes('/instruction'),
     );

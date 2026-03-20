@@ -5,9 +5,9 @@ import { useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSessionOutput } from '../../shared/store';
 
-export function SessionOutput({ dossierId }: { dossierId: string }) {
+export function SessionOutput({ jobId }: { jobId: string }) {
   const { t } = useTranslation();
-  const lines = useSessionOutput(dossierId);
+  const lines = useSessionOutput(jobId);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {

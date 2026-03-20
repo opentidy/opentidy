@@ -14,7 +14,7 @@ export function dismissSuggestionRoute(deps: AppDeps) {
     if (!suggestion) {
       return c.json({ error: 'Suggestion not found' }, 404);
     }
-    deps.workspace.dossierManager.ignoreSuggestion(slug);
+    deps.workspace.suggestionsManager.ignoreSuggestion(slug);
     deps.sse.emit({ type: 'suggestion:created', data: { slug }, timestamp: new Date().toISOString() });
     return c.json({ ignored: true });
   });

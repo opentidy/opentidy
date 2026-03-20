@@ -66,7 +66,7 @@ describe('createClaudeAdapter', () => {
     it('builds autonomous args with resume and skipPermissions', () => {
       const args = adapter.buildArgs({
         mode: 'autonomous',
-        cwd: '/workspace/dossier-1',
+        cwd: '/workspace/job-1',
         instruction: 'Work on this',
         resumeSessionId: 'session-abc',
         skipPermissions: true,
@@ -80,7 +80,7 @@ describe('createClaudeAdapter', () => {
     it('builds interactive args without -p', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
-        cwd: '/workspace/dossier-1',
+        cwd: '/workspace/job-1',
         skipPermissions: true,
         resumeSessionId: 'session-abc',
         pluginDir: '/plugins/opentidy-hooks',
@@ -96,7 +96,7 @@ describe('createClaudeAdapter', () => {
     it('builds interactive args without instruction', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
-        cwd: '/workspace/dossier-1',
+        cwd: '/workspace/job-1',
         skipPermissions: true,
       });
       expect(args).toContain('--dangerously-skip-permissions');

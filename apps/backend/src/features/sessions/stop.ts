@@ -11,7 +11,7 @@ export function stopSessionRoute(deps: AppDeps) {
   router.post('/session/:id/stop', async (c) => {
     const id = c.req.param('id');
     await deps.launcher.archiveSession(id);
-    deps.sse.emit({ type: 'session:ended', data: { dossierId: id }, timestamp: new Date().toISOString() });
+    deps.sse.emit({ type: 'session:ended', data: { jobId: id }, timestamp: new Date().toISOString() });
     return c.json({ stopped: true });
   });
 
