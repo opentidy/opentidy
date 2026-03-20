@@ -31,12 +31,14 @@
     "memory": "Memory",
     "new": "New",
     "schedule": "Schedule",
-    "toolbox": "Toolbox"
+    "suggestions": "Suggestions",
+    "toolbox": "Toolbox",
+    "sectionAgent": "Agent"
   },
   "home": {
     "waitingForYou": "Waiting for you",
-    "dossier_one": "{{count}} dossier",
-    "dossier_other": "{{count}} dossiers",
+    "job_one": "{{count}} job",
+    "job_other": "{{count}} jobs",
     "claudeWaiting": "Claude is waiting for your response",
     "thirdPartyWait": "Third-party wait",
     "userWait": "User wait",
@@ -44,11 +46,11 @@
     "suggestions": "Suggestions",
     "new_one": "{{count}} new",
     "new_other": "{{count}} new",
-    "dossiers": "Dossiers",
+    "jobs": "Jobs",
     "active": "Active",
     "completed": "Completed",
     "search": "Search...",
-    "noDossiers": "No {{filter}} dossiers",
+    "noJobs": "No {{filter}} jobs",
     "checkupRunning": "Checkup running...",
     "checkupResult": "Checkup {{time}} — {{result}}",
     "checkupOk": "OK",
@@ -56,14 +58,14 @@
     "nextAt": "Next at {{time}}",
     "nextCheckup": "Next checkup at {{time}}",
     "checkupWaiting": "Checkup — waiting",
-    "deleteConfirm": "Delete everything? Sessions, dossiers, locks — fresh start.",
+    "deleteConfirm": "Delete everything? Sessions, jobs, locks — fresh start.",
     "launchTestConfirm": "Launch all test tasks?",
     "runCheckup": "Run checkup",
-    "newDossier": "+ New dossier"
+    "newJob": "+ New job"
   },
   "nouveau": {
-    "title": "New dossier",
-    "description": "Describe what you need. The assistant creates the dossier and starts working.",
+    "title": "New job",
+    "description": "Describe what you need. The assistant creates the job and starts working.",
     "placeholder": "E.g.: List my desk for sale on Marketplace, price €300...",
     "confirmMode": "Ask me before acting",
     "confirmModeHelp": "When enabled, the assistant asks you before sending emails, making calls, or taking actions that affect others. Recommended for getting started.",
@@ -78,17 +80,17 @@
     "exampleDoctorFull": "Find a slot with a general practitioner this week, preferably in the morning. Downtown area. Book the appointment if possible.",
     "tryExample": "Try an example:"
   },
-  "dossierDetail": {
+  "jobDetail": {
     "stop": "Stop",
     "complete": "Complete",
     "completeConfirm": "Complete \"{{title}}\"?",
     "state": "State",
     "log": "Log",
     "noActiveSession": "No active session",
-    "dossierCompleted": "This dossier is completed. Reopen it to start a session.",
-    "reopenDossier": "Reopen dossier",
+    "jobCompleted": "This job is completed. Reopen it to start a session.",
+    "reopenJob": "Reopen job",
     "startSession": "Start a session",
-    "notFound": "Dossier not found"
+    "notFound": "Job not found"
   },
   "ameliorations": {
     "title": "Improvements",
@@ -111,11 +113,11 @@
   },
   "suggestion": {
     "viewOriginal": "View original message",
-    "createDossier": "Create dossier",
+    "createJob": "Create job",
     "ignore": "Ignore"
   },
   "instruction": {
-    "placeholder": "Send an instruction to this dossier...",
+    "placeholder": "Send an instruction to this job...",
     "confirmMode": "Ask me before acting"
   },
   "sidebar": {
@@ -190,8 +192,8 @@
     "emptyWaitingUser": "When the assistant needs your input, tasks will appear here.",
     "emptyWaitingTiers": "Tasks waiting for a third party (email reply, callback...) will show up here.",
     "emptySuggestions": "The assistant monitors your emails and messages. New tasks it detects will appear here.",
-    "emptyDossiers": "Your active tasks will appear here.",
-    "emptyCreateCta": "Create your first task",
+    "emptyJobs": "Your active tasks will appear here.",
+    "emptyCreateCta": "Create your first job",
     "postCreationBanner": "The assistant is working on your task. You can follow its progress here. It will notify you via Telegram when it needs you.",
     "navLockedProcesses": "Visible when tasks are running",
     "navLockedAmeliorations": "Appears after a few days of use",
@@ -242,8 +244,8 @@
     "dangerZone": "Danger zone",
     "dangerZoneDesc": "Irreversible actions. Handle with care.",
     "resetTitle": "Reset all data",
-    "resetDesc": "Delete all dossiers, sessions, suggestions, gaps, and memory. This cannot be undone.",
-    "resetConfirm": "Are you sure? This will delete ALL data (dossiers, sessions, memory). This cannot be undone.",
+    "resetDesc": "Delete all jobs, sessions, suggestions, gaps, and memory. This cannot be undone.",
+    "resetConfirm": "Are you sure? This will delete ALL data (jobs, sessions, memory). This cannot be undone.",
     "resetButton": "Reset everything",
     "resetting": "Resetting..."
   },
@@ -258,7 +260,7 @@
     "recurring": "Recurring",
     "dateTime": "Date & time",
     "interval": "Interval (minutes)",
-    "dossier": "Dossier (optional)",
+    "job": "Job (optional)",
     "instruction": "Instruction (optional)",
     "system": "System",
     "noSchedules": "No scheduled events"
@@ -297,8 +299,16 @@
       "close": "Close"
     }
   },
+  "modules": {
+    "configure": "Configure",
+    "configureTitle": "Configure {{label}}",
+    "remove": "Remove",
+    "save": "Save",
+    "cancel": "Cancel",
+    "connect": "Connect"
+  },
   "helpTooltip": {
-    "dossier": "An administrative task that the assistant manages for you, from start to finish.",
+    "job": "A task that the assistant manages for you, from start to finish.",
     "waitingUser": "The assistant is stuck and needs your response to continue.",
     "suggestion": "A task automatically detected in your emails or messages.",
     "amelioration": "Something the assistant identified to serve you better in the future."
