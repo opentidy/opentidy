@@ -290,6 +290,9 @@
     "doneDesc": "You can start creating tasks or configure additional services.",
     "createTask": "Create your first task",
     "configureServices": "Configure services",
+    "modules": "Configure Modules",
+    "modulesDesc": "Enable the modules you want. You can always change this later in Settings.",
+    "laterInSettings": "You can configure more modules later in Settings.",
     "terminal": {
       "connecting": "Connecting...",
       "running": "Running...",

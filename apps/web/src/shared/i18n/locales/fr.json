@@ -290,6 +290,9 @@
     "doneDesc": "Tu peux créer ta première tâche ou configurer des services supplémentaires.",
     "createTask": "Créer ma première tâche",
     "configureServices": "Configurer les services",
+    "modules": "Configurer les modules",
+    "modulesDesc": "Active les modules que tu veux. Tu pourras toujours modifier ça plus tard dans les Paramètres.",
+    "laterInSettings": "Tu peux configurer plus de modules plus tard dans les Paramètres.",
     "terminal": {
       "connecting": "Connexion...",
       "running": "En cours...",

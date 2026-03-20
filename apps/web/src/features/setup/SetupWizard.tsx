@@ -5,11 +5,12 @@ import { useState } from 'react';
 import { UserInfoStep } from './UserInfoStep';
 import { AgentStep } from './AgentStep';
 import { PermissionsStep } from './PermissionsStep';
+import { ModulesStep } from './ModulesStep';
 import { DoneStep } from './DoneStep';
 
-type Step = 'user-info' | 'agent' | 'permissions' | 'done';
+type Step = 'user-info' | 'agent' | 'permissions' | 'modules' | 'done';
 
-const STEPS: Step[] = ['user-info', 'agent', 'permissions', 'done'];
+const STEPS: Step[] = ['user-info', 'agent', 'permissions', 'modules', 'done'];
 
 export default function SetupWizard() {
   const [step, setStep] = useState<Step>('user-info');
@@ -59,7 +60,10 @@ export default function SetupWizard() {
           <AgentStep onNext={() => setStep('permissions')} onBack={() => setStep('user-info')} />
         )}
         {step === 'permissions' && (
-          <PermissionsStep onNext={() => setStep('done')} onBack={() => setStep('agent')} />
+          <PermissionsStep onNext={() => setStep('modules')} onBack={() => setStep('agent')} />
+        )}
+        {step === 'modules' && (
+          <ModulesStep onNext={() => setStep('done')} onBack={() => setStep('permissions')} />
         )}
         {step === 'done' && <DoneStep />}
       </div>
