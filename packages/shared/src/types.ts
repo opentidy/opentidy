@@ -146,6 +146,17 @@ export type SSEEventType =
   | 'module:error'
   | 'module:configured';
 
+export type SSEEventData =
+  | { type: 'session:started' | 'session:ended' | 'session:idle' | 'session:active'; sessionId: string; jobId: string }
+  | { type: 'session:output'; sessionId: string; jobId: string; output: string }
+  | { type: 'job:updated' | 'job:completed'; jobId: string }
+  | { type: 'suggestion:created'; slug: string }
+  | { type: 'amelioration:created'; id: string }
+  | { type: 'process:output'; processId: number; output: string }
+  | { type: 'notification:sent'; notificationId: string; jobId?: string }
+  | { type: 'schedule:created' | 'schedule:fired' | 'schedule:deleted'; scheduleId: number }
+  | { type: 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; moduleName: string };
+
 export interface SSEEvent {
   type: SSEEventType;
   data: Record<string, unknown>;
@@ -265,8 +276,10 @@ export interface ModuleManifest {
 
 export interface McpServerDef {
   name: string;
-  command: string;
-  args: string[];
+  command?: string;                // for process-based MCPs (mutually exclusive with url)
+  args?: string[];
+  url?: string;                    // for HTTP MCPs (e.g., "http://localhost:5175/mcp")
+  urlFromConfig?: string;          // resolve url from module config key
   env?: Record<string, string>;
   envFromConfig?: Record<string, string>;
   permissions?: string[];

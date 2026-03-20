@@ -18,6 +18,7 @@ describe('createWorkspaceWatcher', () => {
   });
 
   it('creates and closes watcher cleanly', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const fsWatchMock = vi.spyOn(require('fs'), 'watch').mockReturnValue({
       on: vi.fn(),
       close: vi.fn(),
@@ -37,6 +38,7 @@ describe('createWorkspaceWatcher', () => {
 
   it('start is idempotent — does not open two watchers', () => {
     const closeMock = vi.fn();
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     vi.spyOn(require('fs'), 'watch').mockReturnValue({
       on: vi.fn(),
       close: closeMock,
@@ -61,6 +63,7 @@ describe('createWorkspaceWatcher', () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     vi.spyOn(require('fs'), 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
       watchCallback = cb;
       return { on: vi.fn(), close: vi.fn() } as any;

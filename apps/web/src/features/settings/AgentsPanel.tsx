@@ -56,6 +56,7 @@ export default function AgentsPanel() {
     fetchAgents().then(setData).catch(e => setError(e.message));
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   async function handleActivate(_name: string) {
     // Agent activation not yet implemented in module system
     setError('Agent switching not yet available');

@@ -150,12 +150,21 @@ export function generateSettingsFromModules(
         }
       }
 
-      const entry: McpServerEntry = {
-        type: 'stdio',
-        command: mcpDef.command,
-        args: mcpDef.args,
-        ...(Object.keys(resolvedEnv).length > 0 ? { env: resolvedEnv } : {}),
-      };
+      // HTTP MCP (url) vs process MCP (command+args)
+      let entry: McpServerEntry;
+      if (mcpDef.url || mcpDef.urlFromConfig) {
+        const resolvedUrl = mcpDef.urlFromConfig
+          ? String(moduleState.config?.[mcpDef.urlFromConfig] ?? mcpDef.url ?? '')
+          : mcpDef.url!;
+        entry = { type: 'http', url: resolvedUrl } as McpServerEntry;
+      } else {
+        entry = {
+          type: 'stdio',
+          command: mcpDef.command!,
+          args: mcpDef.args ?? [],
+          ...(Object.keys(resolvedEnv).length > 0 ? { env: resolvedEnv } : {}),
+        };
+      }
       mcpServers[mcpDef.name] = entry;
     }
 
@@ -247,26 +256,23 @@ export function regenerateAgentConfig(
   let settings: ClaudeSettings;
 
   if (modules && manifests) {
-    // New path: generate from modules
+    // New path: generate from modules (opentidy MCP is now a regular module)
     const moduleResult = generateSettingsFromModules(modules, manifests);
 
-    // Always inject the opentidy system MCP
-    const port = config.server?.port || 5175;
-
-    const mcpServers: Record<string, McpServerEntry> = {
-      ...moduleResult.mcpServers,
-      opentidy: {
-        type: 'http',
-        url: `http://localhost:${port}/mcp`,
-      },
-    };
+    // Collect permissions from module manifests
+    const modulePermissions: string[] = [];
+    for (const [, manifest] of manifests) {
+      for (const mcp of manifest.mcpServers ?? []) {
+        if (mcp.permissions) modulePermissions.push(...mcp.permissions);
+      }
+    }
 
     settings = {
-      permissions: { allow: [...BASE_PERMISSIONS, 'mcp__opentidy__*'], deny: [] },
-      mcpServers,
+      permissions: { allow: [...BASE_PERMISSIONS, ...modulePermissions], deny: [] },
+      mcpServers: moduleResult.mcpServers,
       _regeneratedAt: new Date().toISOString(),
     };
-    console.log(`[agent-config] Regenerated settings.json from modules (${Object.keys(mcpServers).length} MCP servers, ${moduleResult.skills.length} skills)`);
+    console.log(`[agent-config] Regenerated settings.json from modules (${Object.keys(moduleResult.mcpServers).length} MCP servers, ${moduleResult.skills.length} skills)`);
   } else {
     // Legacy path: generate from config.mcp / config.skills
     settings = generateClaudeSettings(config, envDir);

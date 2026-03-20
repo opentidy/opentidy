@@ -1,0 +1,12 @@
+{
+  "name": "opentidy",
+  "label": "OpenTidy",
+  "description": "Core tools — schedule tasks, manage suggestions, track improvements",
+  "icon": "🧹",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "opentidy",
+    "url": "http://localhost:5175/mcp",
+    "permissions": ["mcp__opentidy__*"]
+  }]
+}

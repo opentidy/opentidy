@@ -20,6 +20,9 @@ pnpm install
 pnpm build
 ```
 
+> `pnpm install` automatically builds the shared package via the `prepare` script.
+> If you see `Cannot find module @opentidy/shared`, run `pnpm --filter @opentidy/shared build`.
+
 ### Project structure
 
 ```
@@ -57,6 +60,36 @@ pnpm --filter @opentidy/web dev        # web dashboard only
 pnpm --filter @opentidy/shared build   # rebuild shared types
 ```
 
+The backend runs on `http://localhost:5175`, the web dashboard on `http://localhost:5173`.
+
+### Useful scripts
+
+```bash
+./scripts/reset-dev.sh      # kill processes, wipe workspace, restart clean
+```
+
+For manual E2E testing against a realistic workspace, see `apps/backend/scripts/README-smoke.md`.
+
+## Quality checks
+
+Run these before submitting a PR:
+
+```bash
+pnpm lint                   # ESLint on all workspaces
+pnpm format:check           # Prettier format check
+pnpm typecheck              # tsc --noEmit on all workspaces
+pnpm test                   # unit tests (backend + web)
+pnpm test:e2e               # Playwright E2E tests
+```
+
+To auto-fix formatting:
+
+```bash
+pnpm format                 # Prettier auto-fix
+```
+
+CI runs `lint`, `build`, and `test` on every pull request.
+
 ## Testing
 
 ### Backend tests (Vitest)
@@ -66,7 +99,7 @@ pnpm test                              # all tests
 pnpm --filter @opentidy/backend test   # backend only
 ```
 
-Tests mirror the `src/` directory structure under `tests/`. Backend tests use temporary directories for workspace data — never the real workspace.
+Tests are colocated with source files (`create.ts` + `create.test.ts` in the same directory).
 
 ### E2E tests (Playwright)
 
@@ -74,12 +107,33 @@ Tests mirror the `src/` directory structure under `tests/`. Backend tests use te
 pnpm test:e2e
 ```
 
+E2E tests run against a mock API — no real backend needed. See `apps/web/tests/e2e/fixtures/mock-api.ts` for the mock data setup.
+
 ### Writing tests
 
 - Every code change should include appropriate tests
 - Use factory function mocking (not DI frameworks)
-- Test files go in `tests/` mirroring the `src/` path
-- Use `tmpdir` for any workspace/filesystem tests
+- Test files are colocated: `feature.ts` → `feature.test.ts` in the same directory
+- Use the `makeDeps()` helper from `shared/test-helpers/mock-deps.ts` for backend tests
+- Use `useTmpDir()` from `shared/test-helpers/tmpdir.ts` for filesystem tests
+- Use `createTestApp()` and `req()` from `shared/test-helpers/mock-request.ts` for route tests
+
+### Adding a new feature (VSA pattern)
+
+OpenTidy uses **Vertical Slice Architecture** — each feature is self-contained. To add a new feature:
+
+1. **Define types and schemas** in `packages/shared/src/` (types in `types.ts`, Zod schemas in `schemas.ts`)
+2. **Create the feature directory** under `apps/backend/src/features/<name>/`
+3. **Implement route handlers** as factory functions: `export function featureRoutes(deps: AppDeps) { ... }`
+4. **Wire routes** in `apps/backend/src/server.ts`
+5. **Write colocated tests** (`handler.ts` + `handler.test.ts`)
+6. **Add the SPDX header** to every new `.ts`/`.tsx` file:
+   ```typescript
+   // SPDX-License-Identifier: AGPL-3.0-only
+   // Copyright (c) 2026 Loaddr Ltd
+   ```
+
+Look at `features/modules/` or `features/suggestions/` for well-structured examples.
 
 ## Code style
 
@@ -144,7 +198,7 @@ docs: update architecture guide
 
 - Keep PRs focused and reviewable (< 500 lines when possible)
 - Include a clear description of what changed and why
-- Ensure all tests pass
+- Ensure all checks pass (CI runs lint + build + test)
 - Use the PR template
 
 ## Architecture decisions
@@ -156,6 +210,17 @@ Before making significant architectural changes, please open a discussion or iss
 - **Hooks are the security layer.** Don't weaken or bypass PreToolUse hooks.
 
 See [Architecture](architecture.md) and [Security](security.md) for full context.
+
+## Troubleshooting
+
+**Build fails with `Cannot find module @opentidy/shared`?**
+Run `pnpm --filter @opentidy/shared build` — the shared package must be built before backend/web can use it.
+
+**`pnpm lint` fails?**
+Make sure you ran `pnpm install` at the root — ESLint is installed as a root dependency.
+
+**E2E tests fail with browser errors?**
+Run `pnpm exec playwright install` to install browser binaries.
 
 ## Getting help
 

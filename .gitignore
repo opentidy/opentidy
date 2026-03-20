@@ -29,5 +29,11 @@ blob-report/
 /docs/reports/
 /docs/superpowers/
 
+# IDE and editor files
+.vscode/
+.cursor/
+.history/
+.idea/
+
 # Development session files
 /ralf/

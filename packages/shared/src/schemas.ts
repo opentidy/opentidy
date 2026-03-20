@@ -151,8 +151,10 @@ export type SetupUserInfoInput = z.infer<typeof SetupUserInfoSchema>;
 // === Module System schemas ===
 export const McpServerDefSchema = z.object({
   name: z.string().min(1),
-  command: z.string().min(1),
-  args: z.array(z.string()),
+  command: z.string().optional(),
+  args: z.array(z.string()).optional(),
+  url: z.string().optional(),
+  urlFromConfig: z.string().optional(),
   env: z.record(z.string()).optional(),
   envFromConfig: z.record(z.string()).optional(),
   permissions: z.array(z.string()).optional(),

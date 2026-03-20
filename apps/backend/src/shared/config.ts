@@ -24,7 +24,9 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
   claudeConfig: { dir: '' },
   language: 'en',
   userInfo: { name: '', email: '', company: '' },
-  modules: {},
+  modules: {
+    opentidy: { enabled: true, source: 'curated' as const },
+  },
 };
 
 function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record<string, any>): T {

@@ -89,7 +89,7 @@ export default function AmeliorationCard({
       <div className="flex items-center gap-3 mt-3">
         {amelioration.jobId && (
           <button
-            onClick={() => onNavigate(amelioration.jobId!)}
+            onClick={() => onNavigate(amelioration.jobId as string)}
             className="px-3 py-1.5 rounded-lg bg-card-hover text-sm text-text-secondary hover:text-text transition-colors"
           >
             Job: {amelioration.jobId} →

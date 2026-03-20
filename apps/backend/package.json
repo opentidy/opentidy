@@ -3,6 +3,11 @@
   "version": "0.0.1",
   "private": true,
   "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opentidy/opentidy.git",
+    "directory": "apps/backend"
+  },
   "type": "module",
   "scripts": {
     "build": "tsc",
@@ -10,7 +15,8 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint src/"
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/mcp": "^0.2.4",

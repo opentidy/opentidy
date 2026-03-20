@@ -41,7 +41,7 @@ function parseJSONL(raw: string): ParsedEvent[] {
           detail: `${obj.num_turns} turns · ${Math.round((obj.duration_ms ?? 0) / 1000)}s · $${(obj.total_cost_usd ?? 0).toFixed(4)}`,
         });
       }
-    } catch {}
+    } catch { /* parse error expected */ }
   }
   return events;
 }

@@ -70,7 +70,7 @@ describe('JobCard', () => {
   it('shows "Terminal" indicator when session is active', () => {
     render(
       <MemoryRouter>
-        <JobCard job={makeJob({})} session={{ id: 's1', jobId: 'test', status: 'active' } as any} />
+        <JobCard job={makeJob({})} session={{ id: 's1', jobId: 'test', status: 'active', startedAt: new Date().toISOString() }} />
       </MemoryRouter>,
     );
 
