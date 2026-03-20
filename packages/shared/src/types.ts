@@ -237,6 +237,7 @@ export interface SetupOpts {
   serverPort: number;
 }
 
+/** @deprecated Replaced by module toolPermissions + PermissionConfig */
 export interface GuardrailRule {
   event: 'pre-tool' | 'post-tool' | 'stop' | 'session-end';
   type: 'prompt' | 'command' | 'http';

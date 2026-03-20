@@ -1,21 +1,9 @@
 {
   "rules": [
     {
-      "event": "pre-tool",
-      "type": "prompt",
-      "match": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft",
-      "prompt": "Vérifie cet envoi d'email. DENY si paiement sans approbation, montants incohérents, ou destinataire suspect. ALLOW si l'email est informatif, un rappel, ou une communication normale."
-    },
-    {
-      "event": "pre-tool",
-      "type": "prompt",
-      "match": "mcp__camofox__click|mcp__camofox__fill_form|mcp__camofox__camofox_evaluate_js",
-      "prompt": "Vérifie ce clic/formulaire. DENY si bouton de paiement, soumission financière, ou action irréversible. ALLOW si navigation, recherche, ou lecture."
-    },
-    {
       "event": "post-tool",
       "type": "http",
-      "match": "mcp__gmail__|mcp__camofox__",
+      "match": "*",
       "url": "http://localhost:5175/api/hooks"
     },
     {
