@@ -299,6 +299,31 @@
       "close": "Close"
     }
   },
+  "settings": {
+    "title": "Settings",
+    "modules": "Modules",
+    "modulesTitle": "Modules",
+    "modulesDescription": "Manage your installed modules — MCP servers, skills, and receivers",
+    "addModule": "Add module",
+    "noModules": "No modules installed",
+    "agents": "Agents",
+    "security": "Security",
+    "securityDescription": "Authentication and access control",
+    "bearerToken": "Bearer Token",
+    "bearerTokenNote": "Used for remote API access via Cloudflare Tunnel",
+    "tokenHidden": "Click to reveal",
+    "hideToken": "Hide",
+    "copyToken": "Copy",
+    "copied": "Copied!",
+    "tokenStoredInConfig": "Token is stored in ~/.config/opentidy/config.json",
+    "serviceControl": "Service",
+    "serviceControlDescription": "Control the OpenTidy background service",
+    "serviceHeading": "OpenTidy Service",
+    "serviceRunning": "Running",
+    "serviceStopped": "Stopped",
+    "restart": "Restart",
+    "dangerZone": "Danger Zone"
+  },
   "modules": {
     "configure": "Configure",
     "configureTitle": "Configure {{label}}",
