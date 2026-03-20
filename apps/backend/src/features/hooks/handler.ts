@@ -33,6 +33,7 @@ export interface HooksHandlerDeps {
   audit: AuditLogger;
   notify: Notifier;
   sse: SSEEmitter;
+  onSessionEnd?: (jobId: string) => void;
 }
 
 function extractJobId(payload: { session_id: string; cwd?: string }): string | null {
@@ -112,6 +113,7 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
   function handleSessionEnd(jobId: string, payload: HookPayload): void {
     // SessionEnd fires when Claude Code process exits — cleanup only
     deps.launcher.handleSessionEnd(jobId);
+    deps.onSessionEnd?.(jobId);
     deps.sse.emit({
       type: 'session:ended',
       data: { jobId },

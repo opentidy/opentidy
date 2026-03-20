@@ -27,6 +27,11 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
   modules: {
     opentidy: { enabled: true, source: 'curated' as const },
   },
+  permissions: {
+    preset: 'autonomous' as const,
+    defaultLevel: 'confirm' as const,
+    modules: {},
+  },
 };
 
 function deepMerge<T extends Record<string, any>>(defaults: T, overrides: Record<string, any>): T {
