@@ -25,13 +25,13 @@
     "idle": "En pause"
   },
   "nav": {
-    "home": "Accueil",
+    "home": "Jobs",
     "terminal": "Processus",
     "analyses": "Améliorations",
     "memory": "Mémoire",
     "new": "Nouveau",
     "schedule": "Agenda",
-    "suggestions": "Suggestions",
+    "suggestions": "Propositions",
     "modules": "Modules",
     "settings": "Paramètres",
     "sectionAgent": "Agent"
@@ -111,6 +111,9 @@
       "process": "Process",
       "data": "Données"
     }
+  },
+  "suggestions": {
+    "title": "Propositions"
   },
   "suggestion": {
     "viewOriginal": "Voir le message original",
