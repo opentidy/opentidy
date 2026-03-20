@@ -6,6 +6,10 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
+  build: {
+    outDir: '../backend/web-dist',
+    emptyOutDir: true,
+  },
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
