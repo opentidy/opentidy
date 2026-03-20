@@ -12,6 +12,7 @@ import Ameliorations from './features/ameliorations/Ameliorations';
 import SchedulePage from './features/schedule/SchedulePage';
 import Memory from './features/memory/Memory';
 import Settings from './features/settings/Settings';
+import ModulesPage from './features/modules/ModulesPage';
 import Suggestions from './features/suggestions/Suggestions';
 import SetupWizard from './features/setup/SetupWizard';
 
@@ -50,6 +51,7 @@ export default function App() {
           <Route path="/ameliorations" element={<Ameliorations />} />
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/memory" element={<Memory />} />
+          <Route path="/modules" element={<ModulesPage />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
