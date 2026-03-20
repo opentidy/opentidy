@@ -69,7 +69,7 @@ export function listModulesRoute(deps: ModuleRouteDeps) {
       }
     }
 
-    return c.json(result);
+    return c.json({ modules: result });
   });
 
   return app;

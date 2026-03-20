@@ -22,13 +22,13 @@ interface SuggestionToolDeps {
 export function registerSuggestionTools(server: McpServer, deps: SuggestionToolDeps) {
   server.registerTool('suggestion_create', {
     title: 'Create Suggestion',
-    description: 'Suggest a new dossier for the user to approve',
+    description: 'Suggest a new job for the user to approve',
     inputSchema: {
       title: z.string().min(1).describe('Suggestion title'),
       urgency: z.enum(['urgent', 'normal', 'low']).describe('Urgency level'),
       source: z.string().min(1).describe('What triggered this suggestion'),
       summary: z.string().min(1).describe('Brief summary'),
-      why: z.string().min(1).describe('Why this should be a dossier'),
+      why: z.string().min(1).describe('Why this should be a job'),
       whatIWouldDo: z.string().min(1).describe('What the agent would do'),
     },
   }, (args) => {

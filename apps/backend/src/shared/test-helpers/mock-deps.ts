@@ -10,16 +10,15 @@ import type { AppDeps } from '../../server.js'
 export function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
   return {
     workspace: {
-      listDossierIds: () => [],
-      getDossier: () => ({}) as any,
-      dossierManager: {
-        createDossier: () => {},
-        createDossierFromSuggestion: () => {},
-        ignoreSuggestion: () => {},
-        completeDossier: () => {},
+      listJobIds: () => [],
+      getJob: () => ({}) as any,
+      jobManager: {
+        createJob: () => {},
+        createJobFromSuggestion: () => {},
+        completeJob: () => {},
         saveArtifact: () => {},
       },
-      suggestionsManager: { listSuggestions: () => [] },
+      suggestionsManager: { listSuggestions: () => [], ignoreSuggestion: () => {} },
       gapsManager: { listGaps: () => [], markResolved: () => {}, markIgnored: () => {} },
     },
     launcher: {

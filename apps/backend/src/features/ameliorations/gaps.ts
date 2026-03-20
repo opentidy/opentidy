@@ -53,7 +53,7 @@ export function createGapsManager(workspaceDir: string) {
       const problem = matchField(section, 'Problème', 'Problem');
       const impact = matchField(section, 'Impact');
       const suggestion = matchField(section, 'Suggestion');
-      const dossierId = matchField(section, 'Dossier', 'DOSSIER') || undefined;
+      const jobId = matchField(section, 'Job', 'JOB') || undefined;
       const sessionId = matchField(section, 'Session', 'SESSION') || undefined;
       const source = (matchField(section, 'Source', 'SOURCE') || undefined) as AmeliorationSource | undefined;
       const category = (matchField(section, 'Catégorie', 'Category', 'CATEGORY') || undefined) as AmeliorationCategory | undefined;
@@ -76,7 +76,7 @@ export function createGapsManager(workspaceDir: string) {
       // Detect resolved from RESOLVED: true field or marker
       const resolvedField = /^RESOLVED:\s*true/m.test(section);
       const status = resolvedField ? 'resolved' as AmeliorationStatus : detectStatus(section);
-      return { id: String(i), date, title, problem, impact, suggestion, actions, dossierId, sessionId, source, category, resolved: status === 'resolved', status, fixType, sanitizedTitle, sanitizedBody, githubIssueNumber, suggestionSlug };
+      return { id: String(i), date, title, problem, impact, suggestion, actions, jobId, sessionId, source, category, resolved: status === 'resolved', status, fixType, sanitizedTitle, sanitizedBody, githubIssueNumber, suggestionSlug };
     });
   }
 

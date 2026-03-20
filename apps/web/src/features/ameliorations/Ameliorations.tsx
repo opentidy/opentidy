@@ -80,7 +80,7 @@ export default function Ameliorations() {
             categoryLabels={categoryLabels}
             onResolve={() => resolveAmelioration(amelioration.id)}
             onIgnore={() => ignoreAmelioration(amelioration.id)}
-            onNavigate={(dossierId) => navigate(`/dossier/${dossierId}`)}
+            onNavigate={(jobId) => navigate(`/job/${jobId}`)}
           />
         ))}
         {loading && filtered.length === 0 && (

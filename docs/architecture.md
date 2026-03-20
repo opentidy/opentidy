@@ -10,7 +10,7 @@ OpenTidy is a lightweight orchestration layer around Claude Code. The core insig
 
 3. **The intelligence is in Claude, not the code.** The backend contains zero business logic, zero decision-making, zero routing intelligence. It's plumbing: receive events, spawn Claude, persist state. Claude decides what to do.
 
-4. **No interruption — isolated parallelism.** Each dossier gets its own Claude Code session. Sessions run in parallel without interfering. A new event doesn't interrupt an ongoing session — it spawns a new one.
+4. **No interruption — isolated parallelism.** Each job gets its own Claude Code session. Sessions run in parallel without interfering. A new event doesn't interrupt an ongoing session — it spawns a new one.
 
 5. **The assistant works quietly in the background.** Hybrid event-driven + cron model. Events trigger work, periodic sweeps catch what events miss.
 
@@ -22,9 +22,9 @@ OpenTidy is a lightweight orchestration layer around Claude Code. The core insig
 ┌────────────────────────────────────────────────────────────────────┐
 │                          WEB APP                                    │
 │                                                                    │
-│  - Active dossiers + status                                        │
+│  - Active jobs + status                                             │
 │  - Approve/reject actions                                          │
-│  - Give instructions / create dossiers                             │
+│  - Give instructions / create jobs                                 │
 │  - Interactive terminal (take over a session)                      │
 │  - Notifications history                                           │
 │                                                                    │
@@ -39,7 +39,7 @@ OpenTidy is a lightweight orchestration layer around Claude Code. The core insig
 │  │          │  │          │  │           │                        │
 │  │ Webhooks │  │ Spawns   │  │ Reads/    │                        │
 │  │ Crons    │  │ Claude   │  │ writes    │                        │
-│  │ App web  │  │ sessions │  │ dossiers  │                        │
+│  │ App web  │  │ sessions │  │ jobs      │                        │
 │  └────┬─────┘  └────┬─────┘  └─────┬─────┘                        │
 │       │              │              │                               │
 │  ┌────┴──────────────┴──────────────┴──────┐                       │
@@ -86,7 +86,7 @@ OpenTidy is a lightweight orchestration layer around Claude Code. The core insig
 
 ### Receiver
 
-The receiver ingests events from all sources and routes them to the right dossier.
+The receiver ingests events from all sources and routes them to the right job.
 
 **Event sources:**
 
@@ -94,27 +94,27 @@ The receiver ingests events from all sources and routes them to the right dossie
 |------|--------|----------|
 | Push | Gmail webhook | New email received |
 | Poll | SMS/messaging watchers | New message |
-| Cron | Periodic sweep | "Check dossiers, advance what you can" |
+| Cron | Periodic sweep | "Check jobs, advance what you can" |
 | User | Web app | "List my unpaid invoices from last 3 months" |
 | User | Telegram | Reply to a checkpoint notification |
 
 **Deduplication:** Every event is hashed. Duplicates are silently dropped.
 
-**Triage:** Claude does the routing (not code). A one-shot `claude -p` call receives the event content plus the full `state.md` of every active dossier. Claude determines which dossier(s) the event belongs to, whether to suggest a new dossier, or whether to ignore it.
+**Triage:** Claude does the routing (not code). A one-shot `claude -p` call receives the event content plus the full `state.md` of every active job. Claude determines which job(s) the event belongs to, whether to suggest a new job, or whether to ignore it.
 
 ```
 claude -p --system-prompt "Triage mode. Respond in JSON only." \
-  "Active dossiers (full state.md content):\n\n--- invoices ---\n...\n\nEvent:\nEmail from billing@example.com: March invoice"
+  "Active jobs (full state.md content):\n\n--- invoices ---\n...\n\nEvent:\nEmail from billing@example.com: March invoice"
 ```
 
 Response (one of three cases):
 ```json
-{ "dossierIds": ["invoices-2025"] }
+{ "jobIds": ["invoices-2025"] }
 { "suggestion": { "title": "...", "urgency": "normal", "source": "gmail", "why": "..." } }
 { "ignore": true, "reason": "marketing spam" }
 ```
 
-**Key rule:** Claude never creates dossiers. Only the user can create a dossier (via the web app) or approve a suggestion.
+**Key rule:** Claude never creates jobs. Only the user can create a job (via the web app) or approve a suggestion.
 
 ### Launcher
 
@@ -130,7 +130,7 @@ claude -p --output-format stream-json --dangerously-skip-permissions \
 - Process exit = reliable end-of-session signal
 - stdout is NDJSON (stream events for the frontend)
 - Post-session agent runs automatically after exit (memory extraction, gap detection)
-- Working directory is set to the dossier's workspace folder
+- Working directory is set to the job's workspace folder
 
 **Interactive mode ("Take Over"):** For when the user wants to talk to Claude directly.
 
@@ -143,19 +143,19 @@ claude -p --output-format stream-json --dangerously-skip-permissions \
 **Context loading:** Two-level CLAUDE.md system.
 
 - **Level 1** — `workspace/CLAUDE.md` (global, shared by all sessions): identity, work style, security rules, available tools, expected formats
-- **Level 2** — `workspace/<dossier>/CLAUDE.md` (auto-generated per launch): dossier objective, confirm mode, triggering event, relevant contacts
+- **Level 2** — `workspace/<job>/CLAUDE.md` (auto-generated per launch): job objective, confirm mode, triggering event, relevant contacts
 
 Claude Code automatically loads CLAUDE.md files from the working directory and parents. This persists across `--resume`.
 
-**Parallelism:** Multiple child processes run simultaneously, each on a different dossier. PID-based locks in `/tmp/opentidy-locks/` prevent two sessions from working on the same dossier.
+**Parallelism:** Multiple child processes run simultaneously, each on a different job. PID-based locks in `/tmp/opentidy-locks/` prevent two sessions from working on the same job.
 
 **Crash recovery:** On startup, the backend reconciles in two passes:
 1. Check for surviving tmux sessions (interactive mode)
-2. Scan workspace for orphaned dossiers that are still "in progress" and relaunch them
+2. Scan workspace for orphaned jobs that are still "in progress" and relaunch them
 
 ### Workspace
 
-Each dossier is a directory in `workspace/` with markdown files. No database for state — human-readable files that Claude can also read and write.
+Each job is a directory in `workspace/` with markdown files. No database for state — human-readable files that Claude can also read and write.
 
 ```
 workspace/
@@ -164,7 +164,7 @@ workspace/
 │   ├── checkpoint.md     # waiting for user: what, why, options
 │   └── artifacts/        # produced files (PDFs, screenshots, etc.)
 │
-├── _suggestions/         # dossiers suggested by Claude, awaiting approval
+├── _suggestions/         # jobs suggested by Claude, awaiting approval
 │   └── overdue-payment.md
 │
 ├── _gaps/
@@ -176,7 +176,7 @@ workspace/
 
 #### state.md (the core)
 
-This is Claude's memory for a dossier. It contains everything needed to resume work in a new session.
+This is Claude's memory for a job. It contains everything needed to resume work in a new session.
 
 ```markdown
 # Invoice Tracking 2025
@@ -211,10 +211,10 @@ Claude manages the size of state.md itself — condensing old entries when the f
 An optional section in state.md, written by Claude when it can't progress because it's waiting for external information (email reply, document, third-party confirmation).
 
 **Role in the system:**
-- **Triage** uses it to match incoming events to the right dossier
-- **Sweep** respects it — doesn't relaunch a waiting dossier unless a follow-up date has passed
+- **Triage** uses it to match incoming events to the right job
+- **Sweep** respects it — doesn't relaunch a waiting job unless a follow-up date has passed
 - **Launcher** clears it automatically when relaunching a session
-- **Web app** displays the first line on the dossier card
+- **Web app** displays the first line on the job card
 
 #### checkpoint.md
 
@@ -250,16 +250,16 @@ Telegram serves as a push notification channel with links to the web app. Not an
 
 ### Suggestions
 
-Claude can't create dossiers, but it can suggest them. Suggestions are stored in `workspace/_suggestions/` as markdown files.
+Claude can't create jobs, but it can suggest them. Suggestions are stored in `workspace/_suggestions/` as markdown files.
 
 **Sources:**
-- Incoming event with no matching dossier
+- Incoming event with no matching job
 - Sweep observation (deadline, follow-up needed)
-- Opportunistic discovery while working on another dossier
+- Opportunistic discovery while working on another job
 
 **Urgency levels:** `urgent` (deadline approaching), `normal` (handle when possible), `low` (opportunity).
 
-In the web app, suggestions appear on the home page with two actions: "Create Dossier" or "Dismiss".
+In the web app, suggestions appear on the home page with two actions: "Create Job" or "Dismiss".
 
 ### Gaps (self-improvement)
 
@@ -281,7 +281,7 @@ These gaps form a natural backlog of improvements, visible in the web app's "Imp
 ```
 1. Gmail webhook → Receiver gets "email from billing@example.com"
 2. Receiver dedup → not a duplicate → creates event
-3. Triage (claude -p one-shot) → matches to "invoices-2025" dossier
+3. Triage (claude -p one-shot) → matches to "invoices-2025" job
 4. Launcher spawns autonomous Claude session (child process)
 5. Claude:
    a. Reads email (Gmail MCP)
@@ -302,9 +302,9 @@ These gaps form a natural backlog of improvements, visible in the web app's "Imp
 1. setInterval fires → Launcher runs claude -p sweep
 2. Claude sweep:
    a. Reads workspace/*/state.md
-   b. Identifies dossiers needing action (deadlines, follow-ups)
+   b. Identifies jobs needing action (deadlines, follow-ups)
    c. Creates suggestions if needed
-   d. Returns JSON list of dossiers to launch
+   d. Returns JSON list of jobs to launch
 3. Backend parses → spawns focused autonomous sessions
 4. Each session works independently
 ```
@@ -313,7 +313,7 @@ These gaps form a natural backlog of improvements, visible in the web app's "Imp
 
 ```
 1. User opens web app → "List my unpaid invoices from the last 3 months"
-2. Backend creates dossier workspace/unpaid-invoices/ + initial state.md
+2. Backend creates job workspace/unpaid-invoices/ + initial state.md
 3. Launcher spawns Claude with the instruction
 4. Claude works autonomously
 5. If blocked → checkpoint.md → Telegram notification → user intervenes

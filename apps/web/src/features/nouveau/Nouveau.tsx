@@ -11,7 +11,7 @@ import ExampleChips from './ExampleChips';
 export default function Nouveau() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { suggestions, fetchSuggestions, createDossier } = useStore();
+  const { suggestions, fetchSuggestions, createJob } = useStore();
   const [instruction, setInstruction] = useState('');
   const [confirm, setConfirm] = useState(true);
   const [launching, setLaunching] = useState(false);
@@ -25,13 +25,13 @@ export default function Nouveau() {
     launchingRef.current = true;
     setLaunching(true);
     try {
-      // Show post-creation banner only for the very first dossier
-      const { dossiers } = useStore.getState();
-      if (dossiers.length === 0) {
+      // Show post-creation banner only for the very first job
+      const { jobs } = useStore.getState();
+      if (jobs.length === 0) {
         localStorage.setItem('opentidy-first-task', 'true');
         localStorage.setItem('opentidy-onboarding-seen', 'true');
       }
-      await createDossier(instruction, confirm);
+      await createJob(instruction, confirm);
       navigate('/');
     } finally {
       launchingRef.current = false;

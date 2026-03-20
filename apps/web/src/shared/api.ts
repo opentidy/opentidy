@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { Dossier, Suggestion, Amelioration, Session, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
+import type { Job, Suggestion, Amelioration, Session, MemoryIndexEntry, MemoryEntry, ClaudeProcess } from '@opentidy/shared';
 
 const BASE = '/api';
 
@@ -12,15 +12,15 @@ async function json<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 // GET
-export const fetchDossiers = () => json<Dossier[]>('/dossiers');
-export const fetchDossier = (id: string) => json<Dossier>(`/dossier/${id}`);
+export const fetchJobs = () => json<Job[]>('/jobs');
+export const fetchJob = (id: string) => json<Job>(`/job/${id}`);
 export const fetchSuggestions = () => json<Suggestion[]>('/suggestions');
 export const fetchAmeliorations = () => json<Amelioration[]>('/ameliorations');
 export const fetchSessions = () => json<Session[]>('/sessions');
 export const fetchCheckupStatus = () => json<{ lastRun: string | null; nextRun: string | null; result: string; launched: string[]; suggestions: number }>('/checkup/status');
 
-export const getArtifactUrl = (dossierId: string, filename: string) =>
-  `${BASE}/dossier/${encodeURIComponent(dossierId)}/artifact/${encodeURIComponent(filename)}`;
+export const getArtifactUrl = (jobId: string, filename: string) =>
+  `${BASE}/job/${encodeURIComponent(jobId)}/artifact/${encodeURIComponent(filename)}`;
 
 export const getTerminalPort = async (sessionName: string): Promise<number | null> => {
   try {
@@ -32,15 +32,15 @@ export const getTerminalPort = async (sessionName: string): Promise<number | nul
 };
 
 // POST
-export const createDossier = (instruction: string, confirm = false) =>
-  json('/dossier', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction, confirm }) });
+export const createJob = (instruction: string, confirm = false) =>
+  json('/job', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction, confirm }) });
 export const resumeSession = (id: string) =>
-  json(`/dossier/${id}/resume`, { method: 'POST' });
+  json(`/job/${id}/resume`, { method: 'POST' });
 export const sendInstruction = (id: string, instruction: string, confirm = false) =>
-  json(`/dossier/${id}/instruction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction, confirm }) });
+  json(`/job/${id}/instruction`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction, confirm }) });
 export const uploadFile = (id: string, file: File) => {
   const form = new FormData(); form.append('file', file);
-  return fetch(`${BASE}/dossier/${id}/upload`, { method: 'POST', body: form });
+  return fetch(`${BASE}/job/${id}/upload`, { method: 'POST', body: form });
 };
 export const approveSuggestion = (slug: string, instruction?: string) =>
   json(`/suggestion/${slug}/approve`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ instruction }) });
@@ -51,9 +51,9 @@ export const timeoutSession = (id: string) =>
 export const stopSession = (id: string) =>
   json(`/session/${id}/stop`, { method: 'POST' });
 export const setWaitingType = (id: string, type: 'user' | 'tiers') =>
-  json(`/dossier/${id}/waiting-type`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }) });
-export const completeDossier = (id: string) =>
-  json(`/dossier/${id}/complete`, { method: 'POST' });
+  json(`/job/${id}/waiting-type`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type }) });
+export const completeJob = (id: string) =>
+  json(`/job/${id}/complete`, { method: 'POST' });
 export const resolveAmelioration = (id: string) =>
   json(`/amelioration/${id}/resolve`, { method: 'POST' });
 export const ignoreAmelioration = (id: string) =>

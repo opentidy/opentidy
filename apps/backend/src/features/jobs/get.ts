@@ -6,19 +6,19 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import type { AppDeps } from '../../server.js';
 
-export function getDossierRoute(deps: AppDeps) {
+export function getJobRoute(deps: AppDeps) {
   const app = new Hono();
 
-  app.get('/dossier/:id', (c) => {
+  app.get('/job/:id', (c) => {
     const id = c.req.param('id');
     const stateFile = join(deps.workspaceDir, id, 'state.md');
     if (!existsSync(stateFile)) {
-      return c.json({ error: 'Dossier not found' }, 404);
+      return c.json({ error: 'Job not found' }, 404);
     }
-    const dossier = deps.workspace.getDossier(deps.workspaceDir, id);
+    const job = deps.workspace.getJob(deps.workspaceDir, id);
     const activeSessions = deps.launcher.listActiveSessions();
-    const hasActive = activeSessions.some((s) => s.dossierId === id);
-    return c.json({ ...dossier, hasActiveSession: hasActive });
+    const hasActive = activeSessions.some((s) => s.jobId === id);
+    return c.json({ ...job, hasActiveSession: hasActive });
   });
 
   return app;

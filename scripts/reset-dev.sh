@@ -19,7 +19,7 @@ tmux kill-server 2>/dev/null || true
 sleep 2
 
 echo "[reset] Wiping workspace..."
-# Remove all dossier directories (anything not starting with _ or .)
+# Remove all job directories (anything not starting with _ or .)
 cd "$WORKSPACE"
 for d in */; do
   name="${d%/}"

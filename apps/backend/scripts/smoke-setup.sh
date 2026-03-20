@@ -99,11 +99,11 @@ Email from tax authority received 2 weeks ago, no response.
 Filing deadline end of March approaching.
 
 ## Why
-Tax deadline end of March. No existing dossier for tracking.
+Tax deadline end of March. No existing job for tracking.
 Risk of penalties if not handled promptly.
 
 ## What I Would Do
-Create a dossier, analyze the email, prepare the requested documents,
+Create a job, analyze the email, prepare the requested documents,
 and submit the filing before the deadline.
 SUGGESTION
 
@@ -139,7 +139,7 @@ cat > "$FIXTURE_DIR/_audit/actions.log" << 'AUDIT'
 AUDIT
 
 echo "[smoke-setup] Fixture workspace created successfully"
-echo "  - invoices-acme/ (active dossier)"
+echo "  - invoices-acme/ (active job)"
 echo "  - insurance-report/ (deadline in 3 days)"
 echo "  - _suggestions/tax-filing-followup.md (urgent suggestion)"
 echo "  - _gaps/gaps.md (3 entries, 1 resolved)"

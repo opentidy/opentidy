@@ -8,9 +8,9 @@ import { TerminalDrawer } from '../../shared/TerminalDrawer';
 interface AgentInfo {
   name: string;
   label: string;
-  status: 'stable' | 'experimental' | 'coming-soon';
+  badge: 'stable' | 'experimental' | 'coming-soon';
   installed: boolean;
-  authenticated: boolean;
+  authed: boolean;
 }
 
 interface AgentStepProps {
@@ -29,7 +29,7 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
       const res = await fetch('/api/setup/agents');
       if (res.ok) {
         const data = await res.json();
-        setAgents(data.agents ?? []);
+        setAgents(data);
       }
     } catch {
       // Silently fail — user can retry
@@ -47,7 +47,9 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
       const res = await fetch(`/api/setup/agents/install-command?agent=${agentName}`);
       if (res.ok) {
         const data = await res.json();
-        setTerminal({ agent: agentName, command: data.command });
+        const agent = agents.find((a) => a.name === agentName);
+        const command = agent?.installed ? data.authCommand : `${data.installCommand} && ${data.authCommand}`;
+        setTerminal({ agent: agentName, command });
       }
     } catch {
       // Silently fail
@@ -63,10 +65,10 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
     fetchAgents();
   };
 
-  const hasConnectedAgent = agents.some((a) => a.installed && a.authenticated);
+  const hasConnectedAgent = agents.some((a) => a.installed && a.authed);
 
-  const badgeLabel = (status: AgentInfo['status']) => {
-    switch (status) {
+  const badgeLabel = (badge: AgentInfo['badge']) => {
+    switch (badge) {
       case 'stable':
         return t('setup.agentStable');
       case 'experimental':
@@ -76,8 +78,8 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
     }
   };
 
-  const badgeColor = (status: AgentInfo['status']) => {
-    switch (status) {
+  const badgeColor = (badge: AgentInfo['badge']) => {
+    switch (badge) {
       case 'stable':
         return 'bg-green-500/15 text-green-400';
       case 'experimental':
@@ -104,7 +106,7 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
 
       <div className="flex flex-col gap-3">
         {agents.map((agent) => {
-          const connected = agent.installed && agent.authenticated;
+          const connected = agent.installed && agent.authed;
           return (
             <div
               key={agent.name}
@@ -112,14 +114,14 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
             >
               <div className="flex items-center gap-3">
                 <span className="font-medium text-fg">{agent.label}</span>
-                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor(agent.status)}`}>
-                  {badgeLabel(agent.status)}
+                <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor(agent.badge)}`}>
+                  {badgeLabel(agent.badge)}
                 </span>
               </div>
 
               {connected ? (
                 <span className="text-sm font-medium text-green-400">{t('setup.connected')}</span>
-              ) : agent.status === 'coming-soon' ? (
+              ) : agent.badge === 'coming-soon' ? (
                 <span className="text-sm text-fg-muted">{t('setup.agentComingSoon')}</span>
               ) : (
                 <button

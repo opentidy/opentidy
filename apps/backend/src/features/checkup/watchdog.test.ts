@@ -57,7 +57,7 @@ describe('createWorkspaceWatcher', () => {
     expect(() => watcher.stop()).not.toThrow();
   });
 
-  it('emits dossier:updated for state.md changes (debounced)', async () => {
+  it('emits job:updated for state.md changes (debounced)', async () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
@@ -76,14 +76,14 @@ describe('createWorkspaceWatcher', () => {
     await vi.advanceTimersByTimeAsync(3_000);
     expect(deps.sse.emit).toHaveBeenCalledOnce();
     expect(deps.sse.emit).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'dossier:updated', data: { dossierId: 'factures' } }),
+      expect.objectContaining({ type: 'job:updated', data: { jobId: 'factures' } }),
     );
 
     watcher.stop();
     vi.useRealTimers();
   });
 
-  it('debounces rapid successive changes for the same dossier', async () => {
+  it('debounces rapid successive changes for the same job', async () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 

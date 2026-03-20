@@ -64,8 +64,8 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
       return { CLAUDE_CONFIG_DIR: configDir };
     },
 
-    readSessionId(dossierDir: string): string | null {
-      const sessionIdFile = path.join(dossierDir, '.session-id');
+    readSessionId(jobDir: string): string | null {
+      const sessionIdFile = path.join(jobDir, '.session-id');
       try {
         return fs.readFileSync(sessionIdFile, 'utf-8').trim() || null;
       } catch {

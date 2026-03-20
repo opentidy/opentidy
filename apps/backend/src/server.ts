@@ -246,15 +246,9 @@ export function createApp(deps?: AppDeps) {
     }
   }
 
-  // Static file serving — production only (when web build exists)
-  // Check multiple locations: Homebrew layout, monorepo dev, symlink
-  const webDistCandidates = [
-    resolve(import.meta.dirname, '../web-dist'),       // Homebrew / packaged
-    resolve(import.meta.dirname, '../../web/dist'),    // monorepo: apps/backend/dist → apps/web/dist
-    resolve(import.meta.dirname, '../../../web/dist'), // monorepo: apps/backend/src → apps/web/dist
-  ];
-  const webDistPath = webDistCandidates.find((p) => existsSync(p));
-  if (webDistPath) {
+  // Static file serving — production only (when web-dist/ exists)
+  const webDistPath = resolve(import.meta.dirname, '../web-dist');
+  if (existsSync(webDistPath)) {
     app.use('/*', serveStatic({ root: webDistPath }));
     // SPA fallback — serve index.html for non-API routes
     app.get('*', serveStatic({ root: webDistPath, path: 'index.html' }));

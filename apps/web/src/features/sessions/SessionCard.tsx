@@ -9,14 +9,14 @@ import { sessionStatusColors } from '../../shared/utils/status-colors';
 
 export default function SessionCard({ session }: { session: Session }) {
   const navigate = useNavigate();
-  const { dossiers } = useStore();
-  const dossier = dossiers.find(d => d.id === session.dossierId);
+  const { jobs } = useStore();
+  const job = jobs.find(d => d.id === session.jobId);
   const dotColor = sessionStatusColors[session.status] ?? sessionStatusColors.finished;
-  const label = dossier?.title || session.dossierId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const label = job?.title || session.jobId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div
-      onClick={() => navigate(`/dossier/${encodeURIComponent(session.dossierId)}`)}
+      onClick={() => navigate(`/job/${encodeURIComponent(session.jobId)}`)}
       className="bg-card rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-card-hover transition-colors"
     >
       <div className="flex items-center gap-2">

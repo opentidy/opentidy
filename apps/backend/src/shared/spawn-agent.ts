@@ -11,7 +11,7 @@ import { createAgentSemaphore } from './agent-semaphore.js';
 interface SpawnAgentDeps {
   adapter: AgentAdapter;
   tracker?: {
-    start(type: AgentProcessType, dossierId?: string, pid?: number, description?: string): number;
+    start(type: AgentProcessType, jobId?: string, pid?: number, description?: string): number;
     markRunning?(id: number, pid?: number): void;
     complete(id: number, exitCode: number): void;
     fail(id: number): void;
@@ -28,7 +28,7 @@ export interface SpawnAgentOptions {
   args: string[];
   cwd: string;
   type: AgentProcessType;
-  dossierId?: string;
+  jobId?: string;
   description?: string;
   onOutput?: (chunk: string) => void;
 }
@@ -47,14 +47,14 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
   const { adapter } = deps;
 
   return function spawnAgent(opts: SpawnAgentOptions): SpawnAgentHandle {
-    const { args, cwd, type, dossierId, description, onOutput } = opts;
+    const { args, cwd, type, jobId, description, onOutput } = opts;
 
-    const trackId = deps.tracker?.start(type, dossierId, undefined, description);
+    const trackId = deps.tracker?.start(type, jobId, undefined, description);
 
     let outputPath: string | undefined;
     if (deps.outputDir && trackId != null) {
       fs.mkdirSync(deps.outputDir, { recursive: true });
-      const filename = dossierId ? `${dossierId}.jsonl` : `${type}-${trackId}.txt`;
+      const filename = jobId ? `${jobId}.jsonl` : `${type}-${trackId}.txt`;
       outputPath = path.join(deps.outputDir, filename);
       fs.writeFileSync(outputPath, '');
       deps.tracker?.setOutputPath?.(trackId, outputPath);
@@ -70,7 +70,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
         throw new Error('Process killed before start');
       }
 
-      console.log(`[spawn-agent] starting ${type}${dossierId ? ` (${dossierId})` : ''} [${adapter.name}]`);
+      console.log(`[spawn-agent] starting ${type}${jobId ? ` (${jobId})` : ''} [${adapter.name}]`);
 
       return new Promise<string>((resolve, reject) => {
         const agentEnv = adapter.getEnv();
@@ -93,7 +93,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
           if (deps.sse && trackId != null) {
             deps.sse.emit({
               type: 'process:output',
-              data: { trackId, processType: type, dossierId, content: text },
+              data: { trackId, processType: type, jobId, content: text },
               timestamp: new Date().toISOString(),
             });
           }
@@ -112,7 +112,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
             reject(new Error(`${adapter.binary} exited ${code}: ${stderr}`));
           } else {
             if (trackId != null) deps.tracker?.complete(trackId, code ?? 0);
-            console.log(`[spawn-agent] ${type} completed${dossierId ? ` (${dossierId})` : ''}`);
+            console.log(`[spawn-agent] ${type} completed${jobId ? ` (${jobId})` : ''}`);
             resolve(stdout);
           }
         });
@@ -131,7 +131,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
       kill: () => {
         killed = true;
         if (proc && !proc.killed) {
-          console.log(`[spawn-agent] killing ${type}${dossierId ? ` (${dossierId})` : ''}`);
+          console.log(`[spawn-agent] killing ${type}${jobId ? ` (${jobId})` : ''}`);
           proc.kill('SIGTERM');
         }
       },

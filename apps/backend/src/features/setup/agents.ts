@@ -18,7 +18,7 @@ const AGENT_DEFS: Record<AgentName, {
   },
   gemini: {
     label: 'Gemini CLI',
-    badge: 'experimental',
+    badge: 'coming-soon',
     installCommand: 'npm install -g @google/gemini-cli',
     authCommand: 'gemini auth login',
   },

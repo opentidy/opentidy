@@ -75,10 +75,10 @@ describe('SuggestionCard', () => {
     expect(badge.className).toContain('bg-text-tertiary/20');
   });
 
-  it('"Create dossier" button calls approveSuggestion with slug', () => {
+  it('"Create job" button calls approveSuggestion with slug', () => {
     render(<SuggestionCard suggestion={makeSuggestion({ slug: 'my-slug' })} />);
 
-    fireEvent.click(screen.getByText('Create dossier'));
+    fireEvent.click(screen.getByText('Create job'));
 
     expect(mockApproveSuggestion).toHaveBeenCalledWith('my-slug');
   });

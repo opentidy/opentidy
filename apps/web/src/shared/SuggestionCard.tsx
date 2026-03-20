@@ -82,7 +82,7 @@ export default function SuggestionCard({ suggestion }: { suggestion: Suggestion 
           onClick={() => approveSuggestion(suggestion.slug)}
           className="flex-1 py-2 text-sm font-medium rounded-lg bg-green text-white hover:bg-green/90 transition-colors"
         >
-          {t('suggestion.createDossier')}
+          {t('suggestion.createJob')}
         </button>
         <button
           onClick={() => ignoreSuggestion(suggestion.slug)}

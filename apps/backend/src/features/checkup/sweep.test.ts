@@ -9,12 +9,35 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
+function makeMockAdapter() {
+  return {
+    name: 'claude' as const,
+    binary: 'claude',
+    instructionFile: 'CLAUDE.md',
+    configEnvVar: 'CLAUDE_CONFIG_DIR',
+    experimental: false,
+    buildArgs: vi.fn(({ systemPrompt, instruction }: any) => ['-p', '--system-prompt', systemPrompt, instruction]),
+    getEnv: vi.fn(() => ({})),
+    readSessionId: vi.fn(() => null),
+    writeConfig: vi.fn(),
+  };
+}
+
+function makeMockSpawnAgent(response: string) {
+  return vi.fn().mockReturnValue({
+    promise: Promise.resolve(response),
+    kill: vi.fn(),
+    pid: undefined,
+    trackId: undefined,
+  });
+}
+
 describe('Checkup', () => {
   let wsDir: string;
 
   beforeEach(() => {
     wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
-    // Create a few dossiers
+    // Create a few jobs
     for (const id of ['invoices-acme', 'insurance-report']) {
       const dir = path.join(wsDir, id);
       fs.mkdirSync(dir, { recursive: true });
@@ -27,21 +50,22 @@ describe('Checkup', () => {
     fs.rmSync(wsDir, { recursive: true, force: true });
   });
 
-  function makeMockLauncher(activeDossierIds: string[] = []) {
+  function makeMockLauncher(activeJobIds: string[] = []) {
     return {
       launchSession: vi.fn().mockResolvedValue(undefined),
-      listActiveSessions: vi.fn().mockReturnValue(activeDossierIds.map(id => ({ dossierId: id }))),
+      listActiveSessions: vi.fn().mockReturnValue(activeJobIds.map(id => ({ jobId: id }))),
     };
   }
 
   // E2E-CRN-01
-  it('launches sessions for dossiers returned by Claude', async () => {
+  it('launches sessions for jobs returned by Claude', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('invoices-acme');
@@ -54,20 +78,22 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).not.toHaveBeenCalled();
     expect(result.launched).toEqual([]);
   });
 
-  it('launches inactive dossier and skips active dossier', async () => {
+  it('launches inactive job and skips active job', async () => {
     const mockLauncher = makeMockLauncher(['invoices-acme']);
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme', 'insurance-report'], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: ['invoices-acme', 'insurance-report'], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('insurance-report');
@@ -76,37 +102,38 @@ describe('Checkup', () => {
   });
 
   // E2E-CRN-05
-  it('checkup creates suggestions in _suggestions/', async () => {
+  it('checkup calls writeSuggestion for suggestions', async () => {
     const mockLauncher = makeMockLauncher();
-    const checkupResponse = JSON.stringify({
-      launch: [],
-      suggestions: [{ title: 'Timesheet manquant', urgency: 'normal', why: 'Pas de timesheet juin' }],
-    });
+    const mockWriteSuggestion = vi.fn().mockReturnValue('timesheet-manquant-abc123');
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(checkupResponse),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({
+        launch: [],
+        suggestions: [{ title: 'Timesheet manquant', urgency: 'normal', why: 'Pas de timesheet juin' }],
+      })),
+      adapter: makeMockAdapter(),
+      writeSuggestion: mockWriteSuggestion,
     });
 
     const result = await checkup.runCheckup();
     expect(result.suggestions).toBe(1);
-    // Verify suggestion file was written to _suggestions/
-    const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
-    expect(files.length).toBeGreaterThanOrEqual(1);
-    const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
-    expect(content).toContain('Timesheet manquant');
-    expect(content).toContain('normal');
+    expect(mockWriteSuggestion).toHaveBeenCalledWith(
+      { title: 'Timesheet manquant', urgency: 'normal', why: 'Pas de timesheet juin' },
+      'checkup',
+    );
   });
 
   // E2E-CRN-02, E2E-LCH-08
-  it('skips locked dossiers (lock checked by launcher internally)', async () => {
+  it('skips locked jobs (lock checked by launcher internally)', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: ['invoices-acme'], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).toHaveBeenCalledWith('invoices-acme');
@@ -114,13 +141,14 @@ describe('Checkup', () => {
   });
 
   // E2E-CRN-06
-  it('does nothing when no dossiers need action', async () => {
+  it('does nothing when no jobs need action', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: [], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     const result = await checkup.runCheckup();
     expect(mockLauncher.launchSession).not.toHaveBeenCalled();
@@ -134,6 +162,8 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
+      spawnAgent: makeMockSpawnAgent('{}'),
+      adapter: makeMockAdapter(),
     });
     const status = checkup.getStatus();
     expect(status.nextRun).toBeTruthy();
@@ -146,7 +176,8 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: [], suggestions: [] })),
+      adapter: makeMockAdapter(),
     });
     await checkup.runCheckup();
     const afterRun = checkup.getStatus();
@@ -165,12 +196,14 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({
         launch: ['invoices-acme'],
         suggestions: [{ title: 'Timesheet', urgency: 'normal', why: 'Missing' }],
       })),
+      adapter: makeMockAdapter(),
       notificationStore: mockNotificationStore,
       sse: mockSse,
+      writeSuggestion: vi.fn().mockReturnValue('timesheet-abc'),
     });
 
     await checkup.runCheckup();
@@ -191,7 +224,8 @@ describe('Checkup', () => {
       launcher: mockLauncher,
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent: vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] })),
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: [], suggestions: [] })),
+      adapter: makeMockAdapter(),
       notificationStore: mockNotificationStore,
     });
 
@@ -207,7 +241,7 @@ describe('Checkup', () => {
   it.todo('handles event arriving during checkup');
 
   // E2E-EDGE-10
-  it.todo('detects dormant dossier (no session for 2 weeks)');
+  it.todo('detects dormant job (no session for 2 weeks)');
 });
 
 describe('Checkup — memory context', () => {
@@ -241,8 +275,8 @@ describe('Checkup — memory context', () => {
     fs.rmSync(wsDir, { recursive: true, force: true });
   });
 
-  function captureSystemPrompt(entries: MemoryEntry[]): { runAgent: ReturnType<typeof vi.fn>; checkup: ReturnType<typeof createCheckup> } {
-    const runAgent = vi.fn().mockResolvedValue(JSON.stringify({ launch: [], suggestions: [] }));
+  function captureSystemPrompt(entries: MemoryEntry[]): { adapter: ReturnType<typeof makeMockAdapter>; checkup: ReturnType<typeof createCheckup> } {
+    const adapter = makeMockAdapter();
     const checkup = createCheckup({
       launcher: {
         launchSession: vi.fn().mockResolvedValue(undefined),
@@ -250,51 +284,48 @@ describe('Checkup — memory context', () => {
       },
       workspaceDir: wsDir,
       intervalMs: 3600_000,
-      runAgent,
+      spawnAgent: makeMockSpawnAgent(JSON.stringify({ launch: [], suggestions: [] })),
+      adapter,
       memoryManager: { readAllFiles: () => entries },
     });
-    return { runAgent, checkup };
+    return { adapter, checkup };
   }
 
   it('includes "Global memory" section when memoryManager has files', async () => {
-    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
+    const { adapter, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runAgent.mock.calls[0][0] as string[];
-    const systemPrompt = args[args.indexOf('--system-prompt') + 1];
-    expect(systemPrompt).toContain('## Global memory (persistent context)');
+    const callArgs = adapter.buildArgs.mock.calls[0][0];
+    expect(callArgs.systemPrompt).toContain('## Global memory (persistent context)');
   });
 
   it('does not include memory section when memoryManager has no files', async () => {
-    const { runAgent, checkup } = captureSystemPrompt([]);
+    const { adapter, checkup } = captureSystemPrompt([]);
     await checkup.runCheckup();
 
-    const args = runAgent.mock.calls[0][0] as string[];
-    const systemPrompt = args[args.indexOf('--system-prompt') + 1];
-    expect(systemPrompt).not.toContain('Global memory');
-    expect(systemPrompt).toContain('Checkup mode');
+    const callArgs = adapter.buildArgs.mock.calls[0][0];
+    expect(callArgs.systemPrompt).not.toContain('Global memory');
+    expect(callArgs.systemPrompt).toContain('Checkup mode');
   });
 
   it('includes category and description from memory files', async () => {
-    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
+    const { adapter, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runAgent.mock.calls[0][0] as string[];
-    const systemPrompt = args[args.indexOf('--system-prompt') + 1];
-    expect(systemPrompt).toContain('[contacts] Important contacts');
-    expect(systemPrompt).toContain('[preferences] User preferences');
+    const callArgs = adapter.buildArgs.mock.calls[0][0];
+    expect(callArgs.systemPrompt).toContain('[contacts] Important contacts');
+    expect(callArgs.systemPrompt).toContain('[preferences] User preferences');
   });
 
   it('includes last 3 lines of each file content', async () => {
-    const { runAgent, checkup } = captureSystemPrompt(memoryEntries);
+    const { adapter, checkup } = captureSystemPrompt(memoryEntries);
     await checkup.runCheckup();
 
-    const args = runAgent.mock.calls[0][0] as string[];
-    const systemPrompt = args[args.indexOf('--system-prompt') + 1];
+    const callArgs = adapter.buildArgs.mock.calls[0][0];
     // contacts.md has 5 lines → last 3 are ligne3, ligne4, ligne5
-    expect(systemPrompt).toContain('ligne3 ligne4 ligne5');
-    expect(systemPrompt).not.toContain('ligne1');
+    expect(callArgs.systemPrompt).toContain('ligne3 ligne4 ligne5');
+    expect(callArgs.systemPrompt).not.toContain('ligne1');
     // preferences.md has exactly 3 lines → all included
-    expect(systemPrompt).toContain('pref-a pref-b pref-c');
+    expect(callArgs.systemPrompt).toContain('pref-a pref-b pref-c');
   });
 });

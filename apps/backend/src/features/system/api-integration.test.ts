@@ -5,23 +5,23 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp } from '../../server.js';
 import fs from 'fs';
 import path from 'path';
-import { listDossierIds, getDossier } from '../dossiers/state.js';
-import { createDossierManager } from '../dossiers/create-manager.js';
+import { listJobIds, getJob } from '../jobs/state.js';
+import { createJobManager } from '../jobs/create-manager.js';
 import { createSuggestionsManager } from '../suggestions/parser.js';
 import { createGapsManager } from '../ameliorations/gaps.js';
 import { makeDeps } from '../../shared/test-helpers/mock-deps.js';
 import { useTmpDir } from '../../shared/test-helpers/tmpdir.js';
 
 function createRealWorkspaceDeps(wsDir: string) {
-  const dossierManager = createDossierManager(wsDir);
+  const jobManager = createJobManager(wsDir);
   const suggestionsManager = createSuggestionsManager(wsDir);
   const gapsManager = createGapsManager(wsDir);
 
   return makeDeps({
     workspace: {
-      listDossierIds: (dir: string) => listDossierIds(dir),
-      getDossier: (dir: string, id: string) => getDossier(dir, id),
-      dossierManager,
+      listJobIds: (dir: string) => listJobIds(dir),
+      getJob: (dir: string, id: string) => getJob(dir, id),
+      jobManager,
       suggestionsManager,
       gapsManager,
     },
@@ -49,58 +49,58 @@ describe('API Routes', () => {
     expect(body).toHaveProperty('uptime');
   });
 
-  // --- Dossiers ---
+  // --- Jobs ---
 
-  it('GET /api/dossiers returns empty list initially', async () => {
-    const res = await app.request('/api/dossiers');
+  it('GET /api/jobs returns empty list initially', async () => {
+    const res = await app.request('/api/jobs');
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
 
-  it('POST /api/dossier creates and GET /api/dossiers returns it', async () => {
-    const createRes = await app.request('/api/dossier', {
+  it('POST /api/job creates and GET /api/jobs returns it', async () => {
+    const createRes = await app.request('/api/job', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: 'test-dossier', instruction: 'Test instruction', confirm: true }),
+      body: JSON.stringify({ id: 'test-job', instruction: 'Test instruction', confirm: true }),
     });
     expect(createRes.status).toBe(200);
 
-    const listRes = await app.request('/api/dossiers');
-    const dossiers = await listRes.json() as any[];
-    expect(dossiers).toHaveLength(1);
-    expect(dossiers[0].id).toBe('test-dossier');
+    const listRes = await app.request('/api/jobs');
+    const jobs = await listRes.json() as any[];
+    expect(jobs).toHaveLength(1);
+    expect(jobs[0].id).toBe('test-job');
   });
 
-  it('GET /api/dossier/:id returns 404 for non-existent dossier', async () => {
-    const res = await app.request('/api/dossier/nonexistent-id');
+  it('GET /api/job/:id returns 404 for non-existent job', async () => {
+    const res = await app.request('/api/job/nonexistent-id');
     expect(res.status).toBe(404);
     const body = await res.json() as any;
-    expect(body.error).toBe('Dossier not found');
+    expect(body.error).toBe('Job not found');
   });
 
-  it('GET /api/dossier/:id returns detail', async () => {
-    // Create dossier first
-    await app.request('/api/dossier', {
+  it('GET /api/job/:id returns detail', async () => {
+    // Create job first
+    await app.request('/api/job', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: 'detail-test', instruction: 'Detailed test', confirm: true }),
     });
 
-    const res = await app.request('/api/dossier/detail-test');
+    const res = await app.request('/api/job/detail-test');
     expect(res.status).toBe(200);
-    const dossier = await res.json() as any;
-    expect(dossier.id).toBe('detail-test');
-    expect(dossier.objective).toBe('Detailed test');
+    const job = await res.json() as any;
+    expect(job.id).toBe('detail-test');
+    expect(job.objective).toBe('Detailed test');
   });
 
-  it('POST /api/dossier/:id/resume returns resumed', async () => {
-    const res = await app.request('/api/dossier/some-id/resume', { method: 'POST' });
+  it('POST /api/job/:id/resume returns resumed', async () => {
+    const res = await app.request('/api/job/some-id/resume', { method: 'POST' });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ resumed: true });
   });
 
-  it('POST /api/dossier/:id/instruction returns launched', async () => {
-    const res = await app.request('/api/dossier/some-id/instruction', {
+  it('POST /api/job/:id/instruction returns launched', async () => {
+    const res = await app.request('/api/job/some-id/instruction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ instruction: 'Do something' }),
@@ -265,7 +265,7 @@ describe('createApp without deps', () => {
 
   it('routes are not mounted without deps', async () => {
     const app = createApp();
-    const res = await app.request('/api/dossiers');
+    const res = await app.request('/api/jobs');
     expect(res.status).toBe(404);
   });
 });

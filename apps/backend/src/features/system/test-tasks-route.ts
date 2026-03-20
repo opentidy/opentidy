@@ -15,17 +15,17 @@ export function testTasksRoute(deps: AppDeps) {
   });
 
   // POST /test-tasks — launch all test tasks
-  // Creates all dossiers first (sync, fast), then launches sessions in background.
+  // Creates all jobs first (sync, fast), then launches sessions in background.
   // Title generation is skipped for test tasks — the task description is used instead.
   router.post('/test-tasks', async (c) => {
     const { TEST_TASKS } = await import('./test-tasks.js');
     console.log(`[opentidy] Launching ${TEST_TASKS.length} test tasks`);
     const created: string[] = [];
 
-    // Step 1: create all dossiers (fast, no claude -p)
+    // Step 1: create all jobs (fast, no claude -p)
     for (const task of TEST_TASKS) {
       const id = generateSlug(task.instruction, 30);
-      deps.workspace.dossierManager.createDossier(id, task.instruction, task.confirm, task.description);
+      deps.workspace.jobManager.createJob(id, task.instruction, task.confirm, task.description);
       created.push(id);
     }
 
@@ -41,7 +41,7 @@ export function testTasksRoute(deps: AppDeps) {
         console.log(`[test-tasks] Starting launch ${idx + 1}/${created.length}: ${id}`);
         try {
           await deps.launcher.launchSession(id, { source: 'test', content: task.instruction });
-          deps.sse.emit({ type: 'dossier:updated', data: { dossierId: id }, timestamp: new Date().toISOString() });
+          deps.sse.emit({ type: 'job:updated', data: { jobId: id }, timestamp: new Date().toISOString() });
           console.log(`[test-tasks] Launched ${idx + 1}/${created.length}: ${id}`);
         } catch (err) {
           console.error(`[test-tasks] FAILED ${idx + 1}/${created.length} ${id}:`, err);

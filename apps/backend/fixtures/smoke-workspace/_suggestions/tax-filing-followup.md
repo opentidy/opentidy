@@ -9,9 +9,9 @@ Email from tax authority received 2 weeks ago, no response.
 Filing deadline end of March approaching.
 
 ## Why
-Tax deadline end of March. No existing dossier for tracking.
+Tax deadline end of March. No existing job for tracking.
 Risk of penalties if not handled promptly.
 
 ## What I Would Do
-Create a dossier, analyze the email, prepare the requested documents,
+Create a job, analyze the email, prepare the requested documents,
 and submit the filing before the deadline.

@@ -32,8 +32,8 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     const resolveButtons = page.getByRole('button', { name: 'Marquer resolu' });
     await expect(resolveButtons).toHaveCount(2);
 
-    // Dossier link button — first amelioration has dossierId
-    await expect(page.getByRole('button', { name: /Dossier: insurance-report/ })).toBeVisible();
+    // Job link button — first amelioration has jobId
+    await expect(page.getByRole('button', { name: /Job: insurance-report/ })).toBeVisible();
   });
 });
 

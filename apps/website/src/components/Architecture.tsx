@@ -50,7 +50,7 @@ export function Architecture() {
             Events in, results out
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-zinc-400">
-            Each dossier gets its own isolated Claude Code session with only the
+            Each job gets its own isolated Claude Code session with only the
             context it needs. Sessions run in parallel without interfering.
           </p>
         </div>

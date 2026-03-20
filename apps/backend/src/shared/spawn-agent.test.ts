@@ -128,10 +128,10 @@ describe('createSpawnAgent', () => {
     const adapter = createMockAdapter();
     const spawnAgent = createSpawnAgent({ adapter, tracker });
 
-    const handle = spawnAgent({ args: [], cwd: '/workspace', type: 'checkup', dossierId: 'test-dossier', description: 'Test run' });
+    const handle = spawnAgent({ args: [], cwd: '/workspace', type: 'checkup', jobId: 'test-job', description: 'Test run' });
     await handle.promise;
 
-    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-dossier', undefined, 'Test run');
+    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-job', undefined, 'Test run');
     expect(tracker.markRunning).toHaveBeenCalledWith(42, 1234);
     expect(tracker.complete).toHaveBeenCalledWith(42, 0);
   });

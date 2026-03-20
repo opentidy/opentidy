@@ -6,10 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from './store';
 
 interface InstructionBarProps {
-  dossierId: string;
+  jobId: string;
 }
 
-export default function InstructionBar({ dossierId }: InstructionBarProps) {
+export default function InstructionBar({ jobId }: InstructionBarProps) {
   const { t } = useTranslation();
   const [instruction, setInstruction] = useState('');
   const [confirm, setConfirm] = useState(false);
@@ -23,7 +23,7 @@ export default function InstructionBar({ dossierId }: InstructionBarProps) {
     sendingRef.current = true;
     setSending(true);
     try {
-      await sendInstruction(dossierId, instruction, confirm);
+      await sendInstruction(jobId, instruction, confirm);
       setInstruction('');
     } finally {
       sendingRef.current = false;
@@ -34,7 +34,7 @@ export default function InstructionBar({ dossierId }: InstructionBarProps) {
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    await uploadFile(dossierId, file);
+    await uploadFile(jobId, file);
     e.target.value = '';
   }
 

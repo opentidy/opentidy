@@ -18,7 +18,7 @@ interface SchedulerDeps {
     runCheckup(): Promise<unknown>;
   };
   locks: {
-    isLocked(dossierId: string): boolean;
+    isLocked(jobId: string): boolean;
   };
   sse: {
     emit(event: SSEEvent): void;
@@ -29,7 +29,7 @@ export function createScheduler(deps: SchedulerDeps) {
   const { db, launcher, checkup, locks, sse } = deps;
 
   const insertStmt = db.prepare(`
-    INSERT INTO schedules (dossier_id, type, run_at, interval_ms, instruction, label, created_by)
+    INSERT INTO schedules (job_id, type, run_at, interval_ms, instruction, label, created_by)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -44,7 +44,7 @@ export function createScheduler(deps: SchedulerDeps) {
   `);
 
   const deleteStmt = db.prepare('DELETE FROM schedules WHERE id = ?');
-  const deleteByDossierStmt = db.prepare('DELETE FROM schedules WHERE dossier_id = ?');
+  const deleteByJobStmt = db.prepare('DELETE FROM schedules WHERE job_id = ?');
   const updateLastRunStmt = db.prepare("UPDATE schedules SET last_run_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?");
 
   const findOverdueOnceStmt = db.prepare(
@@ -69,7 +69,7 @@ export function createScheduler(deps: SchedulerDeps) {
   function rowToSchedule(row: Record<string, unknown>): Schedule {
     return {
       id: row.id as number,
-      dossierId: row.dossier_id as string | null,
+      jobId: row.job_id as string | null,
       type: row.type as 'once' | 'recurring',
       runAt: row.run_at as string | null,
       intervalMs: row.interval_ms as number | null,
@@ -82,19 +82,19 @@ export function createScheduler(deps: SchedulerDeps) {
   }
 
   async function fire(schedule: Schedule): Promise<void> {
-    if (schedule.dossierId) {
-      if (locks.isLocked(schedule.dossierId)) {
-        console.log(`[scheduler] Skipping ${schedule.label} — dossier ${schedule.dossierId} is locked`);
+    if (schedule.jobId) {
+      if (locks.isLocked(schedule.jobId)) {
+        console.log(`[scheduler] Skipping ${schedule.label} — job ${schedule.jobId} is locked`);
         return; // once stays in DB for retry, recurring waits for next cycle
       }
-      console.log(`[scheduler] Firing ${schedule.label} for dossier ${schedule.dossierId}`);
+      console.log(`[scheduler] Firing ${schedule.label} for job ${schedule.jobId}`);
       try {
-        await launcher.launchSession(schedule.dossierId, schedule.instruction
+        await launcher.launchSession(schedule.jobId, schedule.instruction
           ? { source: 'scheduler', content: schedule.instruction }
           : undefined
         );
       } catch (err) {
-        console.error(`[scheduler] Failed to launch session for ${schedule.dossierId}:`, err);
+        console.error(`[scheduler] Failed to launch session for ${schedule.jobId}:`, err);
         return;
       }
     } else if (schedule.createdBy === 'system') {
@@ -112,7 +112,7 @@ export function createScheduler(deps: SchedulerDeps) {
       updateLastRunStmt.run(schedule.id);
     }
 
-    emitSSE('schedule:fired', { id: schedule.id, label: schedule.label, dossierId: schedule.dossierId });
+    emitSSE('schedule:fired', { id: schedule.id, label: schedule.label, jobId: schedule.jobId });
   }
 
   async function checkSchedules(): Promise<void> {
@@ -158,7 +158,7 @@ export function createScheduler(deps: SchedulerDeps) {
     create(input: CreateScheduleInput): Schedule {
       const parsed = CreateScheduleSchema.parse(input);
       const result = insertStmt.run(
-        parsed.dossierId, parsed.type, parsed.runAt, parsed.intervalMs,
+        parsed.jobId, parsed.type, parsed.runAt, parsed.intervalMs,
         parsed.instruction, parsed.label, parsed.createdBy,
       );
       const row = getByIdStmt.get(result.lastInsertRowid) as Record<string, unknown>;
@@ -202,8 +202,8 @@ export function createScheduler(deps: SchedulerDeps) {
       emitSSE('schedule:deleted', { id });
     },
 
-    deleteByDossier(dossierId: string): void {
-      deleteByDossierStmt.run(dossierId);
+    deleteByJob(jobId: string): void {
+      deleteByJobStmt.run(jobId);
     },
 
     // Exposed for testing

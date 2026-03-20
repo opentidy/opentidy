@@ -53,7 +53,7 @@ describe('createScheduler', () => {
     expect(scheduler).toHaveProperty('list');
     expect(scheduler).toHaveProperty('update');
     expect(scheduler).toHaveProperty('delete');
-    expect(scheduler).toHaveProperty('deleteByDossier');
+    expect(scheduler).toHaveProperty('deleteByJob');
   });
 
   it('create() inserts and returns a schedule', () => {
@@ -61,21 +61,21 @@ describe('createScheduler', () => {
       type: 'once',
       runAt: '2026-03-20T18:29:00Z',
       label: 'Test schedule',
-      dossierId: 'invoices',
+      jobId: 'invoices',
       intervalMs: null,
       instruction: null,
       createdBy: 'user',
     });
     expect(s.id).toBeGreaterThan(0);
     expect(s.label).toBe('Test schedule');
-    expect(s.dossierId).toBe('invoices');
+    expect(s.jobId).toBe('invoices');
     expect(s.type).toBe('once');
     expect(deps.sse.emit).toHaveBeenCalledWith(expect.objectContaining({ type: 'schedule:created' }));
   });
 
   it('list() returns schedules with computed nextRun', () => {
-    scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'A', dossierId: null, intervalMs: null, instruction: null, createdBy: 'user' });
-    scheduler.create({ type: 'recurring', intervalMs: 3600000, label: 'B', dossierId: null, runAt: null, instruction: null, createdBy: 'user' });
+    scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'A', jobId: null, intervalMs: null, instruction: null, createdBy: 'user' });
+    scheduler.create({ type: 'recurring', intervalMs: 3600000, label: 'B', jobId: null, runAt: null, instruction: null, createdBy: 'user' });
     const list = scheduler.list();
     expect(list).toHaveLength(2);
     expect(list[0].nextRun).toBe('2026-03-20T18:29:00Z');
@@ -83,7 +83,7 @@ describe('createScheduler', () => {
   });
 
   it('delete() removes by id', () => {
-    const s = scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'Del', dossierId: null, intervalMs: null, instruction: null, createdBy: 'user' });
+    const s = scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'Del', jobId: null, intervalMs: null, instruction: null, createdBy: 'user' });
     scheduler.delete(s.id);
     expect(scheduler.list()).toHaveLength(0);
     expect(deps.sse.emit).toHaveBeenCalledWith(expect.objectContaining({ type: 'schedule:deleted' }));
@@ -98,18 +98,18 @@ describe('createScheduler', () => {
     expect(() => scheduler.delete(system!.id)).toThrow('Cannot delete system schedules');
   });
 
-  it('deleteByDossier() removes all schedules for a dossier', () => {
-    scheduler.create({ type: 'once', runAt: '2026-03-20T18:00:00Z', label: 'A', dossierId: 'inv', intervalMs: null, instruction: null, createdBy: 'user' });
-    scheduler.create({ type: 'once', runAt: '2026-03-21T18:00:00Z', label: 'B', dossierId: 'inv', intervalMs: null, instruction: null, createdBy: 'user' });
-    scheduler.create({ type: 'once', runAt: '2026-03-22T18:00:00Z', label: 'C', dossierId: 'other', intervalMs: null, instruction: null, createdBy: 'user' });
-    scheduler.deleteByDossier('inv');
+  it('deleteByJob() removes all schedules for a job', () => {
+    scheduler.create({ type: 'once', runAt: '2026-03-20T18:00:00Z', label: 'A', jobId: 'inv', intervalMs: null, instruction: null, createdBy: 'user' });
+    scheduler.create({ type: 'once', runAt: '2026-03-21T18:00:00Z', label: 'B', jobId: 'inv', intervalMs: null, instruction: null, createdBy: 'user' });
+    scheduler.create({ type: 'once', runAt: '2026-03-22T18:00:00Z', label: 'C', jobId: 'other', intervalMs: null, instruction: null, createdBy: 'user' });
+    scheduler.deleteByJob('inv');
     expect(scheduler.list()).toHaveLength(1);
-    expect(scheduler.list()[0].dossierId).toBe('other');
+    expect(scheduler.list()[0].jobId).toBe('other');
   });
 
   it('fires overdue one-shot and deletes it', async () => {
     // Insert a one-shot in the past
-    db.prepare("INSERT INTO schedules (dossier_id, type, run_at, label, created_by) VALUES ('inv', 'once', '2020-01-01T00:00:00Z', 'Past', 'user')").run();
+    db.prepare("INSERT INTO schedules (job_id, type, run_at, label, created_by) VALUES ('inv', 'once', '2020-01-01T00:00:00Z', 'Past', 'user')").run();
     await scheduler.checkSchedules();
     expect(deps.launcher.launchSession).toHaveBeenCalledWith('inv', undefined);
     // Should be deleted
@@ -126,9 +126,9 @@ describe('createScheduler', () => {
     expect(list[0].lastRunAt).toBeTruthy();
   });
 
-  it('skips locked dossiers', async () => {
+  it('skips locked jobs', async () => {
     deps.locks.isLocked = vi.fn().mockReturnValue(true);
-    db.prepare("INSERT INTO schedules (dossier_id, type, run_at, label, created_by) VALUES ('inv', 'once', '2020-01-01T00:00:00Z', 'Locked', 'user')").run();
+    db.prepare("INSERT INTO schedules (job_id, type, run_at, label, created_by) VALUES ('inv', 'once', '2020-01-01T00:00:00Z', 'Locked', 'user')").run();
     await scheduler.checkSchedules();
     expect(deps.launcher.launchSession).not.toHaveBeenCalled();
     // once should stay in DB for retry
@@ -143,7 +143,7 @@ describe('createScheduler', () => {
   });
 
   it('update() modifies a schedule', () => {
-    const s = scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'Old', dossierId: null, intervalMs: null, instruction: null, createdBy: 'user' });
+    const s = scheduler.create({ type: 'once', runAt: '2026-03-20T18:29:00Z', label: 'Old', jobId: null, intervalMs: null, instruction: null, createdBy: 'user' });
     const updated = scheduler.update(s.id, { label: 'New' });
     expect(updated.label).toBe('New');
   });

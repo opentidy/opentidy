@@ -51,4 +51,57 @@ describe('SuggestionsManager', () => {
     const list = sugg.listSuggestions();
     expect(list.length).toBeLessThanOrEqual(20);
   });
+
+  it('ignoreSuggestion deletes the suggestion file', () => {
+    const suggFile = path.join(wsDir, '_suggestions', 'test-sugg.md');
+    fs.writeFileSync(suggFile, '# Test');
+    sugg.ignoreSuggestion('test-sugg');
+    expect(fs.existsSync(suggFile)).toBe(false);
+  });
+
+  it('ignoreSuggestion does not throw for missing file', () => {
+    expect(() => sugg.ignoreSuggestion('nonexistent')).not.toThrow();
+  });
+
+  it('writeSuggestion creates a suggestion file with correct format', () => {
+    const slug = sugg.writeSuggestion(
+      { title: 'Tax Filing', urgency: 'urgent', why: 'Deadline approaching' },
+      'gmail',
+    );
+    expect(slug).toBeTruthy();
+    const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
+    expect(files.length).toBe(1);
+    const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
+    expect(content).toContain('# Tax Filing');
+    expect(content).toContain('**Urgency:** urgent');
+    expect(content).toContain('**Source:** gmail');
+    expect(content).toContain('## Why');
+    expect(content).toContain('Deadline approaching');
+  });
+
+  it('writeSuggestion includes context section when eventContent provided', () => {
+    sugg.writeSuggestion(
+      { title: 'New Task', urgency: 'normal', why: 'Needs action' },
+      'gmail',
+      'Email from alice@example.com about timesheets',
+    );
+    const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
+    const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
+    expect(content).toContain('## Context');
+    expect(content).toContain('Email from alice@example.com about timesheets');
+  });
+
+  it('writeSuggestion truncates long event content to 500 chars', () => {
+    const longContent = 'A'.repeat(1000);
+    sugg.writeSuggestion(
+      { title: 'Long', urgency: 'low', why: 'Test' },
+      'checkup',
+      longContent,
+    );
+    const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
+    const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
+    // Context should contain at most 500 A's
+    const contextMatch = content.match(/Original event: (A+)/);
+    expect(contextMatch![1].length).toBe(500);
+  });
 });

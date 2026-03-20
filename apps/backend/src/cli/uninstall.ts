@@ -166,7 +166,7 @@ function resolveCleanupItems(): CleanupItem[] {
   // --- Data ---
   items.push({
     scope: 'data',
-    label: 'Workspace (dossiers, SQLite, memory, audit)',
+    label: 'Workspace (jobs, SQLite, memory, audit)',
     path: workspaceDir,
     exists: existsSync(workspaceDir),
     action: () => safeRemove(workspaceDir, `Workspace (${workspaceDir})`, true),
@@ -229,7 +229,7 @@ function resolveCleanupItems(): CleanupItem[] {
 const ALL_SCOPES: { key: Scope; label: string; description: string }[] = [
   { key: 'service', label: 'Service', description: 'Stop process, remove LaunchAgent, PID locks' },
   { key: 'config', label: 'Config', description: '~/.config/opentidy/ (config + Claude Code config)' },
-  { key: 'data', label: 'Data', description: 'workspace/ (dossiers, SQLite, memory, logs)' },
+  { key: 'data', label: 'Data', description: 'workspace/ (jobs, SQLite, memory, logs)' },
   { key: 'tunnel', label: 'Tunnel', description: 'Cloudflare Tunnel service + config' },
 ];
 

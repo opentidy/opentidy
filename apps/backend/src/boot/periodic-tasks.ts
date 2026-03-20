@@ -6,8 +6,8 @@ import { createWorkspaceWatcher } from '../features/checkup/watchdog.js';
 interface PeriodicTasksDeps {
   launcher: {
     recover(): Promise<void>;
-    listActiveSessions(): { id: string; dossierId: string; pid?: number }[];
-    archiveSession(dossierId: string): Promise<void>;
+    listActiveSessions(): { id: string; jobId: string; pid?: number }[];
+    archiveSession(jobId: string): Promise<void>;
   };
   scheduler: {
     start(): void;
@@ -57,13 +57,13 @@ export function startPeriodicTasks(deps: PeriodicTasksDeps): { stop(): void } {
         process.kill(session.pid, 0);
       } catch {
         // PID is dead — session crashed without cleanup
-        console.log(`[health] session ${session.dossierId} (pid ${session.pid}) is dead, cleaning up`);
-        await deps.launcher.archiveSession(session.dossierId).catch(() => {});
+        console.log(`[health] session ${session.jobId} (pid ${session.pid}) is dead, cleaning up`);
+        await deps.launcher.archiveSession(session.jobId).catch(() => {});
       }
     }
   }, SESSION_HEALTH_CHECK_MS);
 
-  // Workspace watcher — fs.watch for dossier:updated SSE events
+  // Workspace watcher — fs.watch for job:updated SSE events
   const watchdog = createWorkspaceWatcher({ sse: deps.sse, workspaceDir: deps.workspaceDir });
   watchdog.start();
   console.log('[opentidy] Workspace watcher started (fs.watch)');

@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { useTranslation } from 'react-i18next';
-import type { Dossier } from '@opentidy/shared';
+import type { Job } from '@opentidy/shared';
 import { getArtifactUrl } from '../../shared/api';
 
 function MarkdownContent({ raw }: { raw: string }) {
@@ -40,27 +40,27 @@ function MarkdownContent({ raw }: { raw: string }) {
   );
 }
 
-export default function StateRenderer({ dossier }: { dossier: Dossier }) {
+export default function StateRenderer({ job }: { job: Job }) {
   const { t } = useTranslation();
 
   // If we have raw state.md content, render it directly
-  if (dossier.stateRaw) {
+  if (job.stateRaw) {
     return (
       <div className="space-y-6">
-        <MarkdownContent raw={dossier.stateRaw} />
+        <MarkdownContent raw={job.stateRaw} />
 
-        {dossier.artifacts.length > 0 && (
+        {job.artifacts.length > 0 && (
           <div>
             <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('common.files')}</h3>
             <ul className="space-y-1">
-              {dossier.artifacts.map((artifact) => (
+              {job.artifacts.map((artifact) => (
                 <li key={artifact} className="flex items-center gap-2 text-sm text-text-secondary">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14,2 14,8 20,8" />
                   </svg>
                   <a
-                    href={getArtifactUrl(dossier.id, artifact)}
+                    href={getArtifactUrl(job.id, artifact)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:underline hover:text-accent"
@@ -77,12 +77,12 @@ export default function StateRenderer({ dossier }: { dossier: Dossier }) {
   }
 
   // Fallback: structured rendering
-  const isTermine = dossier.status === 'COMPLETED';
-  const lastEntry = dossier.journal?.[dossier.journal.length - 1];
+  const isTermine = job.status === 'COMPLETED';
+  const lastEntry = job.journal?.[job.journal.length - 1];
 
   return (
     <div className="space-y-6">
-      {lastEntry && dossier.journal.length > 1 && (
+      {lastEntry && job.journal.length > 1 && (
         <div className={`rounded-xl p-4 ${isTermine ? 'bg-green/10 border border-green/20' : 'bg-accent/10 border border-accent/20'}`}>
           <div className="flex items-center gap-2 mb-1">
             <span className={`text-xs font-semibold uppercase tracking-wider ${isTermine ? 'text-green' : 'text-accent'}`}>
@@ -96,14 +96,14 @@ export default function StateRenderer({ dossier }: { dossier: Dossier }) {
 
       <div>
         <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('stateRenderer.objective')}</h3>
-        <p className="text-text-secondary">{dossier.objective}</p>
+        <p className="text-text-secondary">{job.objective}</p>
       </div>
 
-      {dossier.journal && dossier.journal.length > 0 && (
+      {job.journal && job.journal.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('stateRenderer.log')}</h3>
           <div className="space-y-2">
-            {dossier.journal.slice().reverse().map((entry, i) => (
+            {job.journal.slice().reverse().map((entry, i) => (
               <div key={i} className="flex items-start gap-3 text-sm">
                 <span className="text-text-tertiary text-xs w-20 shrink-0 pt-0.5">{entry.date}</span>
                 <span className="text-text-secondary">{entry.text}</span>
@@ -113,18 +113,18 @@ export default function StateRenderer({ dossier }: { dossier: Dossier }) {
         </div>
       )}
 
-      {dossier.artifacts.length > 0 && (
+      {job.artifacts.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-text-tertiary uppercase tracking-wider mb-2">{t('common.files')}</h3>
           <ul className="space-y-1">
-            {dossier.artifacts.map((artifact) => (
+            {job.artifacts.map((artifact) => (
               <li key={artifact} className="flex items-center gap-2 text-sm text-text-secondary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14,2 14,8 20,8" />
                 </svg>
                 <a
-                  href={getArtifactUrl(dossier.id, artifact)}
+                  href={getArtifactUrl(job.id, artifact)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:underline hover:text-accent"

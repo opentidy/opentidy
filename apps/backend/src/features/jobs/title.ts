@@ -4,7 +4,7 @@
 import type { AgentAdapter } from '@opentidy/shared';
 import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
 
-const TITLE_SYSTEM_PROMPT = `Generate a short, descriptive title (max 50 characters) for this dossier.
+const TITLE_SYSTEM_PROMPT = `Generate a short, descriptive title (max 50 characters) for this job.
 The title should summarize the main action and key subject.
 Examples of good titles:
 - "Monthly invoice tracking"
@@ -45,7 +45,7 @@ export function createTitleGenerator(workspaceDir: string, deps: {
       console.log('[opentidy] Generating title via agent');
       const args = deps.adapter.buildArgs({
         mode: 'one-shot', cwd: workspaceDir, systemPrompt: TITLE_SYSTEM_PROMPT,
-        instruction: `Dossier instruction:\n${instruction}`, outputFormat: 'text',
+        instruction: `Job instruction:\n${instruction}`, outputFormat: 'text',
       });
       const stdout = await deps.spawnAgent({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}` }).promise;
 

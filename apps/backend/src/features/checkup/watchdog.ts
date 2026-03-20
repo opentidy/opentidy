@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 // watchdog.ts — fs.watch workspace monitor
-// Emits dossier:updated SSE events when state.md / artifacts change.
+// Emits job:updated SSE events when state.md / artifacts change.
 // Session lifecycle (start/end) is handled by process exit in launcher/session.ts.
 
 import fs from 'fs';
@@ -21,25 +21,25 @@ export function createWorkspaceWatcher(deps: {
     try {
       watcher = fs.watch(deps.workspaceDir, { recursive: true }, (_eventType, filename) => {
         if (!filename) return;
-        // filename is relative, e.g. "dossier-id/state.md"
+        // filename is relative, e.g. "job-id/state.md"
         const normalized = filename.replace(/\\/g, '/');
         // React to state.md and artifacts/ changes
         const isRelevant = normalized.endsWith('/state.md') || normalized === 'state.md'
           || normalized.includes('/artifacts/');
         if (!isRelevant) return;
 
-        const dossierId = normalized.includes('/') ? normalized.split('/')[0] : '.';
+        const jobId = normalized.includes('/') ? normalized.split('/')[0] : '.';
         // Skip internal dirs and bare files at workspace root
-        if (dossierId === '.' || dossierId.startsWith('_')) return;
+        if (jobId === '.' || jobId.startsWith('_')) return;
 
-        // Debounce per dossier — files can be written multiple times rapidly
-        if (debounceTimers.has(dossierId)) {
-          clearTimeout(debounceTimers.get(dossierId)!);
+        // Debounce per job — files can be written multiple times rapidly
+        if (debounceTimers.has(jobId)) {
+          clearTimeout(debounceTimers.get(jobId)!);
         }
-        debounceTimers.set(dossierId, setTimeout(() => {
-          debounceTimers.delete(dossierId);
-          console.log(`[watchdog] file changed for ${dossierId}, emitting dossier:updated`);
-          deps.sse.emit({ type: 'dossier:updated', data: { dossierId }, timestamp: new Date().toISOString() });
+        debounceTimers.set(jobId, setTimeout(() => {
+          debounceTimers.delete(jobId);
+          console.log(`[watchdog] file changed for ${jobId}, emitting job:updated`);
+          deps.sse.emit({ type: 'job:updated', data: { jobId }, timestamp: new Date().toISOString() });
         }, DEBOUNCE_MS));
       });
 

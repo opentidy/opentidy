@@ -17,7 +17,7 @@ body:
       description: How can we reproduce this?
       placeholder: |
         1. Run `opentidy start`
-        2. Create a new dossier with instruction "..."
+        2. Create a new job with instruction "..."
         3. Observe error in logs
     validations:
       required: true

@@ -22,12 +22,12 @@ describe('LockManager', () => {
     expect(locks.isLocked('invoices-acme')).toBe(false);
   });
 
-  it('prevents double lock on same dossier', () => {
+  it('prevents double lock on same job', () => {
     expect(locks.acquire('invoices-acme')).toBe(true);
     expect(locks.acquire('invoices-acme')).toBe(false);
   });
 
-  it('allows parallel locks on different dossiers', () => {
+  it('allows parallel locks on different jobs', () => {
     expect(locks.acquire('invoices-acme')).toBe(true);
     expect(locks.acquire('insurance-report')).toBe(true);
     expect(locks.isLocked('invoices-acme')).toBe(true);
@@ -35,9 +35,9 @@ describe('LockManager', () => {
   });
 
   it('cleans up stale lock with dead PID', () => {
-    const lockFile = path.join(tmp.path, 'stale-dossier.lock');
+    const lockFile = path.join(tmp.path, 'stale-job.lock');
     fs.writeFileSync(lockFile, '999999');
-    expect(locks.isLocked('stale-dossier')).toBe(false);
+    expect(locks.isLocked('stale-job')).toBe(false);
   });
 
   it('cleanupStaleLocks removes all dead PID locks on boot', () => {

@@ -5,11 +5,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Mock the api module
 vi.mock('./api', () => ({
-  fetchDossiers: vi.fn().mockResolvedValue([{ id: 'acme', title: 'Acme' }]),
+  fetchJobs: vi.fn().mockResolvedValue([{ id: 'acme', title: 'Acme' }]),
   fetchSuggestions: vi.fn().mockResolvedValue([{ slug: 'test', title: 'Test' }]),
   fetchAmeliorations: vi.fn().mockResolvedValue([]),
   fetchSessions: vi.fn().mockResolvedValue([{ id: 'opentidy-acme', status: 'active' }]),
-  createDossier: vi.fn().mockResolvedValue({ created: true }),
+  createJob: vi.fn().mockResolvedValue({ created: true }),
   resumeSession: vi.fn().mockResolvedValue({ resumed: true }),
   sendInstruction: vi.fn().mockResolvedValue({ launched: true }),
   uploadFile: vi.fn().mockResolvedValue({ uploaded: true }),
@@ -26,7 +26,7 @@ import * as api from './api';
 beforeEach(() => {
   // Reset store state
   useStore.setState({
-    dossiers: [],
+    jobs: [],
     suggestions: [],
     ameliorations: [],
     sessions: [],
@@ -39,7 +39,7 @@ describe('Zustand store', () => {
   describe('initial state', () => {
     it('starts with empty arrays', () => {
       const state = useStore.getState();
-      expect(state.dossiers).toEqual([]);
+      expect(state.jobs).toEqual([]);
       expect(state.suggestions).toEqual([]);
       expect(state.ameliorations).toEqual([]);
       expect(state.sessions).toEqual([]);
@@ -48,10 +48,10 @@ describe('Zustand store', () => {
   });
 
   describe('fetch actions', () => {
-    it('fetchDossiers updates store with API data', async () => {
-      await useStore.getState().fetchDossiers();
-      expect(api.fetchDossiers).toHaveBeenCalled();
-      expect(useStore.getState().dossiers).toEqual([{ id: 'acme', title: 'Acme' }]);
+    it('fetchJobs updates store with API data', async () => {
+      await useStore.getState().fetchJobs();
+      expect(api.fetchJobs).toHaveBeenCalled();
+      expect(useStore.getState().jobs).toEqual([{ id: 'acme', title: 'Acme' }]);
     });
 
     it('fetchSuggestions updates store', async () => {
@@ -75,10 +75,10 @@ describe('Zustand store', () => {
   });
 
   describe('mutation actions', () => {
-    it('createDossier calls API then refreshes dossiers', async () => {
-      await useStore.getState().createDossier('New task', true);
-      expect(api.createDossier).toHaveBeenCalledWith('New task', true);
-      expect(api.fetchDossiers).toHaveBeenCalled();
+    it('createJob calls API then refreshes jobs', async () => {
+      await useStore.getState().createJob('New task', true);
+      expect(api.createJob).toHaveBeenCalledWith('New task', true);
+      expect(api.fetchJobs).toHaveBeenCalled();
     });
 
     it('resumeSession calls API then refreshes sessions', async () => {
@@ -92,11 +92,11 @@ describe('Zustand store', () => {
       expect(api.sendInstruction).toHaveBeenCalledWith('acme', 'Do it', false);
     });
 
-    it('approveSuggestion refreshes suggestions and dossiers', async () => {
+    it('approveSuggestion refreshes suggestions and jobs', async () => {
       await useStore.getState().approveSuggestion('test-slug', 'instruction');
       expect(api.approveSuggestion).toHaveBeenCalledWith('test-slug', 'instruction');
       expect(api.fetchSuggestions).toHaveBeenCalled();
-      expect(api.fetchDossiers).toHaveBeenCalled();
+      expect(api.fetchJobs).toHaveBeenCalled();
     });
 
     it('ignoreSuggestion refreshes suggestions', async () => {
@@ -163,8 +163,8 @@ describe('Zustand store', () => {
       expect(eventTypes).toContain('session:active');
       expect(eventTypes).toContain('session:output');
       expect(eventTypes).toContain('process:output');
-      expect(eventTypes).toContain('dossier:updated');
-      expect(eventTypes).toContain('dossier:completed');
+      expect(eventTypes).toContain('job:updated');
+      expect(eventTypes).toContain('job:completed');
       expect(eventTypes).toContain('suggestion:created');
       expect(eventTypes).toContain('amelioration:created');
       // 8 SSE refresh map + 2 custom (session:output, process:output) + 'open' + 'error' = 12
@@ -187,13 +187,13 @@ describe('Zustand store', () => {
       expect(api.fetchSessions).toHaveBeenCalled();
     });
 
-    it('dossier:updated event triggers fetchDossiers after debounce', async () => {
+    it('job:updated event triggers fetchJobs after debounce', async () => {
       connectSSE();
-      const call = mockEventSource.addEventListener.mock.calls.find((c: unknown[]) => c[0] === 'dossier:updated');
+      const call = mockEventSource.addEventListener.mock.calls.find((c: unknown[]) => c[0] === 'job:updated');
       const handler = call[1] as () => void;
       handler();
       vi.advanceTimersByTime(300);
-      expect(api.fetchDossiers).toHaveBeenCalled();
+      expect(api.fetchJobs).toHaveBeenCalled();
     });
 
     it('suggestion:created event triggers fetchSuggestions after debounce', async () => {

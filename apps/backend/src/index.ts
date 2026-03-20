@@ -228,7 +228,7 @@ const triager = createTriager({
 });
 
 // Shared triage result handler — deduplicates suggestion creation logic
-const handleTriageResult = createTriageHandler({ launcher, sse, notify, workspaceDir: WORKSPACE_DIR });
+const handleTriageResult = createTriageHandler({ launcher, sse, notify, writeSuggestion: suggestionsManager.writeSuggestion });
 
 async function triageAndHandle(event: { source: string; content: string }): Promise<void> {
   const result = await triager.triage(event);
@@ -240,11 +240,17 @@ const receiver = createWebhookReceiver({
   triage: triageAndHandle,
 });
 
-// Module lifecycle — manages enable/disable/configure and receiver start/stop
+// Shared config access — single configPath used by all subsystems
 const configPath = getConfigPath();
-const moduleLifecycle = createModuleLifecycle({
+const configFns = {
   loadConfig: () => loadConfig(configPath),
-  saveConfig: (c) => saveConfig(configPath, c),
+  saveConfig: (cfg: any) => saveConfig(configPath, cfg),
+};
+
+// Module lifecycle — manages enable/disable/configure and receiver start/stop
+const moduleLifecycle = createModuleLifecycle({
+  loadConfig: configFns.loadConfig,
+  saveConfig: configFns.saveConfig,
   manifests,
   regenerateAgentConfig: (modules, mans) => {
     regenerateAgentConfig(config, undefined, modules, mans);
@@ -266,7 +272,7 @@ for (const [name, state] of Object.entries(config.modules)) {
 }
 
 // Checkup
-const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnAgent: spawnAgentFull, adapter, sse, notificationStore, memoryManager, suggestionsManager });
+const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnAgent: spawnAgentFull, adapter, sse, notificationStore, memoryManager, suggestionsManager, writeSuggestion: suggestionsManager.writeSuggestion });
 
 // Scheduler — unified scheduling engine (replaces checkup setInterval)
 const scheduler = createScheduler({ db, launcher, checkup, locks, sse });
@@ -307,18 +313,18 @@ const app = createApp({
   version: getVersion(),
   moduleDeps: {
     manifests,
-    loadConfig: () => loadConfig(configPath),
+    loadConfig: configFns.loadConfig,
     lifecycle: moduleLifecycle,
-    saveConfig: (c) => saveConfig(configPath, c),
+    saveConfig: configFns.saveConfig,
   },
   webhookDeps: {
     manifests,
-    loadConfig: () => loadConfig(configPath),
+    loadConfig: configFns.loadConfig,
     modulesBaseDir: modulesDir,
     dedup,
   },
   setupDeps: {
-    loadConfig: () => loadConfig(getConfigPath()),
+    loadConfig: configFns.loadConfig,
     checkAgentInstalled: (agent) => {
       try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
@@ -326,10 +332,7 @@ const app = createApp({
       try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
   },
-  configFns: {
-    loadConfig: () => loadConfig(getConfigPath()),
-    saveConfig: (cfg) => saveConfig(getConfigPath(), cfg),
-  },
+  configFns,
   agentSetupDeps: {
     checkInstalled: (name) => {
       try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }

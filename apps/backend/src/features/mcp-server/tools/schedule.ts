@@ -8,9 +8,9 @@ import type { Scheduler } from '../../scheduler/scheduler.js';
 export function registerScheduleTools(server: McpServer, deps: { scheduler: Scheduler }) {
   server.registerTool('schedule_create', {
     title: 'Create Schedule',
-    description: 'Schedule a future action for a dossier (one-shot or recurring)',
+    description: 'Schedule a future action for a job (one-shot or recurring)',
     inputSchema: {
-      dossierId: z.string().nullable().optional().describe('Dossier ID, null for system tasks'),
+      jobId: z.string().nullable().optional().describe('Job ID, null for system tasks'),
       type: z.enum(['once', 'recurring']).describe('"once" for one-shot, "recurring" for periodic'),
       runAt: z.string().datetime().nullable().optional().describe('ISO 8601 datetime for one-shot schedules'),
       intervalMs: z.number().int().positive().nullable().optional().describe('Interval in ms for recurring schedules'),
@@ -19,7 +19,7 @@ export function registerScheduleTools(server: McpServer, deps: { scheduler: Sche
     },
   }, (args) => {
     const schedule = deps.scheduler.create({
-      dossierId: args.dossierId ?? null,
+      jobId: args.jobId ?? null,
       type: args.type,
       runAt: args.runAt ?? null,
       intervalMs: args.intervalMs ?? null,
@@ -32,14 +32,14 @@ export function registerScheduleTools(server: McpServer, deps: { scheduler: Sche
 
   server.registerTool('schedule_list', {
     title: 'List Schedules',
-    description: 'List all schedules, optionally filtered by dossier ID',
+    description: 'List all schedules, optionally filtered by job ID',
     inputSchema: {
-      dossierId: z.string().optional().describe('Filter by dossier ID'),
+      jobId: z.string().optional().describe('Filter by job ID'),
     },
   }, (args) => {
     let schedules = deps.scheduler.list();
-    if (args.dossierId) {
-      schedules = schedules.filter(s => s.dossierId === args.dossierId);
+    if (args.jobId) {
+      schedules = schedules.filter(s => s.jobId === args.jobId);
     }
     return { content: [{ type: 'text' as const, text: JSON.stringify(schedules) }] };
   });

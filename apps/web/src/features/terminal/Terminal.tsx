@@ -87,7 +87,7 @@ export default function Terminal() {
               }`}>
               <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[p.status] ?? 'bg-text-tertiary'}`} />
               <span className="font-mono text-xs px-1 py-0.5 rounded bg-surface-hover text-text-secondary truncate max-w-20">{p.type}</span>
-              <span className="text-text flex-1 truncate text-xs">{p.description ?? p.dossierId ?? '—'}</span>
+              <span className="text-text flex-1 truncate text-xs">{p.description ?? p.jobId ?? '—'}</span>
               {p.status === 'queued' && <span className="text-xs text-accent/60 italic">{t('terminal.statusQueued').toLowerCase()}</span>}
               <span className="text-text-tertiary text-xs shrink-0">
                 {new Date(p.startedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -109,7 +109,7 @@ export default function Terminal() {
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${statusDot[selected.status] ?? 'bg-text-tertiary'}`} />
               <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-surface-hover text-text-secondary">{selected.type}</span>
-              <span className="text-sm text-text truncate">{selected.description ?? selected.dossierId ?? '—'}</span>
+              <span className="text-sm text-text truncate">{selected.description ?? selected.jobId ?? '—'}</span>
               <span className="text-xs text-text-tertiary">{t(statusLabelKey[selected.status] ?? selected.status)}</span>
             </div>
             <button onClick={() => setSelectedId(null)} className="text-text-tertiary hover:text-text text-xs">{t('common.close')}</button>
@@ -123,10 +123,10 @@ export default function Terminal() {
                 </div>
               </div>
             )}
-            {selected.status === 'running' && selected.dossierId && (
-              <SessionOutput dossierId={selected.dossierId} />
+            {selected.status === 'running' && selected.jobId && (
+              <SessionOutput jobId={selected.jobId} />
             )}
-            {selected.status === 'running' && !selected.dossierId && (
+            {selected.status === 'running' && !selected.jobId && (
               <LiveProcessOutput trackId={selected.id} processType={selected.type} />
             )}
             {(selected.status === 'done' || selected.status === 'error') && (

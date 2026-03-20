@@ -17,7 +17,7 @@ export function createDatabase(dataDir: string): Database.Database {
     CREATE TABLE IF NOT EXISTS claude_processes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       type TEXT NOT NULL,
-      dossier_id TEXT,
+      job_id TEXT,
       pid INTEGER,
       started_at TEXT NOT NULL DEFAULT (datetime('now')),
       ended_at TEXT,
@@ -32,7 +32,7 @@ export function createDatabase(dataDir: string): Database.Database {
       timestamp TEXT NOT NULL DEFAULT (datetime('now')),
       message TEXT NOT NULL,
       link TEXT NOT NULL,
-      dossier_id TEXT
+      job_id TEXT
     );
 
     CREATE TABLE IF NOT EXISTS dedup_hashes (
@@ -41,7 +41,7 @@ export function createDatabase(dataDir: string): Database.Database {
     );
 
     CREATE TABLE IF NOT EXISTS sessions (
-      dossier_id TEXT PRIMARY KEY,
+      job_id TEXT PRIMARY KEY,
       session_name TEXT NOT NULL,
       status TEXT NOT NULL DEFAULT 'active',
       mode TEXT NOT NULL DEFAULT 'tmux',
@@ -52,7 +52,7 @@ export function createDatabase(dataDir: string): Database.Database {
 
     CREATE TABLE IF NOT EXISTS schedules (
       id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      dossier_id  TEXT,
+      job_id  TEXT,
       type        TEXT NOT NULL CHECK(type IN ('once', 'recurring')),
       run_at      TEXT,
       interval_ms INTEGER,
@@ -63,7 +63,7 @@ export function createDatabase(dataDir: string): Database.Database {
       created_at  TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
 
-    CREATE INDEX IF NOT EXISTS idx_schedules_dossier ON schedules(dossier_id);
+    CREATE INDEX IF NOT EXISTS idx_schedules_job ON schedules(job_id);
 
     CREATE INDEX IF NOT EXISTS idx_claude_processes_type ON claude_processes(type);
     CREATE INDEX IF NOT EXISTS idx_claude_processes_status ON claude_processes(status);
