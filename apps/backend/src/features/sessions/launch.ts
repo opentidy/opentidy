@@ -51,6 +51,7 @@ export function createLauncher(deps: {
   workspaceDir: string;
   terminal: { ensureReady: (name: string) => Promise<number | undefined>; killTtyd: (name: string) => void };
   adapter: AgentAdapter;
+  getAllowedTools: () => string[];
   memoryAgents?: {
     isTranscriptSubstantial(transcriptPath: string): boolean;
     runExtraction(input: { transcriptPath: string; indexContent: string; jobId: string; stateContent: string }): Promise<void>;
@@ -257,7 +258,7 @@ export function createLauncher(deps: {
     const args = adapter.buildArgs({
       mode: 'interactive',
       cwd: jobDir,
-      skipPermissions: true,
+      allowedTools: deps.getAllowedTools(),
       instruction,
       resumeSessionId: resumeId,
       pluginDir: pluginDirExists ? pluginDir : undefined,
@@ -266,7 +267,14 @@ export function createLauncher(deps: {
     // Shell-escape args that contain special characters (spaces, quotes, braces, etc.)
     const needsQuoting = (s: string) => /[\s'"{}()$\\|;&<>!`~#]/.test(s);
     const quotedArgs = args.map(a => needsQuoting(a) ? `'${a.replace(/'/g, "'\\''")}'` : a);
-    return `cd ${jobDir} && ${adapter.binary} ${quotedArgs.join(' ')}`;
+
+    // Prefix with agent env vars (e.g. CLAUDE_CONFIG_DIR) so tmux sessions use the isolated config
+    const agentEnv = adapter.getEnv();
+    const envPrefix = Object.entries(agentEnv)
+      .map(([k, v]) => `${k}="${v}"`)
+      .join(' ');
+    const prefix = envPrefix ? `${envPrefix} ` : '';
+    return `cd ${jobDir} && ${prefix}${adapter.binary} ${quotedArgs.join(' ')}`;
   }
 
   return {

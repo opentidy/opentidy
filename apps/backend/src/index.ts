@@ -34,6 +34,7 @@ import { createGitHubIssueManager } from './features/ameliorations/github-issue.
 import { createScheduler } from './features/scheduler/scheduler.js';
 import { createMcpServer } from './features/mcp-server/server.js';
 import { createGapRouter } from './features/ameliorations/route-gap.js';
+import { createPermissionResolver } from './features/permissions/resolver.js';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import os from 'os';
@@ -116,13 +117,16 @@ const sse = createSSEEmitter();
 const notificationStore = createNotificationStore(db);
 
 // Agent adapter — resolves from config (claude by default)
-const AGENT_CONFIG_DIR = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
-const adapter = resolveAgent({ configDir: path.dirname(AGENT_CONFIG_DIR) || path.join(os.homedir(), '.config', 'opentidy'), configAgent: config.agentConfig?.name });
+const AGENT_CONFIG_DIR = config.agentConfig?.configDir || config.claudeConfig?.dir || path.join(os.homedir(), '.config', 'opentidy', 'agents', 'claude');
+const adapter = resolveAgent({ configDir: AGENT_CONFIG_DIR, configAgent: config.agentConfig?.name });
 
 // Load curated module manifests
 const modulesDir = path.resolve(import.meta.dirname, '../modules');
 const manifests = loadCuratedModules(modulesDir);
 console.log(`[opentidy] Loaded ${manifests.size} curated modules`);
+
+// Permission resolver — determines allowed tools from manifests + config
+const permissionResolver = createPermissionResolver(manifests, config.permissions);
 
 // Ensure agent settings.json is up-to-date on startup (from modules)
 regenerateAgentConfig(config, undefined, config.modules, manifests);
@@ -199,6 +203,7 @@ const launcher = createLauncher({
     killTtyd: (name: string) => terminalRef?.killTtyd(name),
   },
   adapter,
+  getAllowedTools: () => permissionResolver.getAllowedTools(),
   memoryAgents,
 });
 
@@ -328,6 +333,9 @@ const app = createApp({
     checkAgentInstalled: (agent) => {
       try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
+    // TODO: checkAgentAuth currently only checks if the binary exists (same as checkAgentInstalled).
+    // It should eventually call the adapter's auth check (e.g. `claude auth status`) to verify
+    // the agent is actually authenticated, not just installed.
     checkAgentAuth: (agent) => {
       try { execFileSync('which', [agent], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
@@ -338,7 +346,15 @@ const app = createApp({
       try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
     checkAuth: (name) => {
-      try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
+      try {
+        const out = execFileSync(name, ['auth', 'status'], {
+          encoding: 'utf-8',
+          timeout: 10_000,
+          env: { ...process.env, CLAUDE_CONFIG_DIR: AGENT_CONFIG_DIR },
+        });
+        const status = JSON.parse(out);
+        return status.loggedIn === true;
+      } catch { return false; }
     },
     getActiveAgent: () => config.agentConfig?.name ?? 'claude',
   },
