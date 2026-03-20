@@ -22,5 +22,10 @@
     "configFields": [
       { "key": "wacliPath", "label": "wacli path", "type": "text", "placeholder": "/usr/local/bin/wacli" }
     ]
+  },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": ["mcp__whatsapp__list_chats", "mcp__whatsapp__read_messages", "mcp__whatsapp__search"],
+    "critical": ["mcp__whatsapp__send_message", "mcp__whatsapp__send_media"]
   }
 }

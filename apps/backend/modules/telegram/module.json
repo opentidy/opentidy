@@ -15,5 +15,10 @@
       { "key": "botToken", "label": "Bot Token", "type": "password", "required": true, "placeholder": "123456:ABC-..." },
       { "key": "chatId", "label": "Chat ID", "type": "text", "required": true, "placeholder": "123456789" }
     ]
+  },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": ["mcp__telegram__get_updates", "mcp__telegram__get_chat"],
+    "critical": ["mcp__telegram__send_message", "mcp__telegram__send_photo"]
   }
 }
