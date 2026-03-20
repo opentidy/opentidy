@@ -330,7 +330,15 @@
     "remove": "Remove",
     "save": "Save",
     "cancel": "Cancel",
-    "connect": "Connect"
+    "connect": "Connect",
+    "addModule": "Add Module",
+    "fromRegistry": "From Registry",
+    "custom": "Custom",
+    "searchRegistry": "Search MCP registry...",
+    "comingSoon": "Coming soon",
+    "command": "Command",
+    "args": "Arguments",
+    "add": "Add"
   },
   "helpTooltip": {
     "job": "A task that the assistant manages for you, from start to finish.",
