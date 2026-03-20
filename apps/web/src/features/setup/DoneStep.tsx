@@ -50,7 +50,7 @@ export function DoneStep() {
         </button>
         <button
           type="button"
-          onClick={() => handleNavigate('/toolbox')}
+          onClick={() => handleNavigate('/settings')}
           className="flex-1 rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
         >
           {t('setup.configureServices')}

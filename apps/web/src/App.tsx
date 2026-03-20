@@ -5,13 +5,14 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './shared/Layout';
 import Home from './features/home/Home';
-import DossierDetail from './features/dossiers/DossierDetail';
+import JobDetail from './features/jobs/JobDetail';
 import Terminal from './features/terminal/Terminal';
 import Nouveau from './features/nouveau/Nouveau';
 import Ameliorations from './features/ameliorations/Ameliorations';
 import SchedulePage from './features/schedule/SchedulePage';
 import Memory from './features/memory/Memory';
 import Settings from './features/settings/Settings';
+import Suggestions from './features/suggestions/Suggestions';
 import SetupWizard from './features/setup/SetupWizard';
 
 function SetupGuard({ children }: { children: React.ReactNode }) {
@@ -42,13 +43,14 @@ export default function App() {
           }
         >
           <Route path="/" element={<Home />} />
-          <Route path="/dossier/:id" element={<DossierDetail />} />
+          <Route path="/suggestions" element={<Suggestions />} />
+          <Route path="/job/:id" element={<JobDetail />} />
           <Route path="/terminal" element={<Terminal />} />
           <Route path="/nouveau" element={<Nouveau />} />
           <Route path="/ameliorations" element={<Ameliorations />} />
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/memory" element={<Memory />} />
-          <Route path="/toolbox" element={<Settings />} />
+          <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>
     </BrowserRouter>
