@@ -5,6 +5,9 @@
   "icon": "📱",
   "version": "1.0.0",
   "platform": "darwin",
+  "permissions": [
+    { "name": "messages", "label": "Messages", "app": "Messages", "reason": "Read incoming SMS and iMessage messages" }
+  ],
   "receivers": [{
     "name": "imessage",
     "mode": "polling",

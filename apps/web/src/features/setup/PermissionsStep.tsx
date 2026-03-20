@@ -7,7 +7,7 @@ import { useTranslation } from 'react-i18next';
 interface Permission {
   name: string;
   label: string;
-  app: string;
+  description: string;
   required: boolean;
   granted: boolean;
 }
@@ -28,7 +28,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
       const res = await fetch('/api/setup/permissions');
       if (res.ok) {
         const data = await res.json();
-        setPermissions(data);
+        setPermissions(data.permissions ?? []);
       }
     } catch {
       // Silently fail
@@ -41,24 +41,31 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
     fetchPermissions();
   }, []);
 
-  const handleGrant = async (id: string) => {
-    setGranting(id);
+  const handleGrant = async (name: string) => {
+    setGranting(name);
     try {
+      // Opens System Settings to the right pane
       await fetch('/api/setup/permissions/grant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ permission: name }),
       });
-      await fetch('/api/setup/permissions/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
-      });
-      await fetchPermissions();
     } catch {
       // Silently fail
     } finally {
       setGranting(null);
+    }
+  };
+
+  const handleRecheck = async () => {
+    try {
+      const res = await fetch('/api/setup/permissions/recheck', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setPermissions(data.permissions ?? []);
+      }
+    } catch {
+      // Silently fail
     }
   };
 
@@ -83,17 +90,14 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
             key={perm.name}
             className="flex items-center justify-between rounded-lg border border-border bg-bg-secondary px-4 py-3"
           >
-            <div className="flex items-center gap-3">
-              <span className="font-medium text-fg">{perm.label}</span>
-              <span
-                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                  perm.required
-                    ? 'bg-red-500/15 text-red-400'
-                    : 'bg-fg-muted/15 text-fg-muted'
-                }`}
-              >
-                {perm.required ? t('setup.required') : t('setup.optional')}
-              </span>
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-3">
+                <span className="font-medium text-fg">{perm.label}</span>
+                <span className="rounded-full bg-fg-muted/15 px-2 py-0.5 text-xs font-medium text-fg-muted">
+                  {t('setup.optional')}
+                </span>
+              </div>
+              <span className="text-xs text-fg-muted">{perm.description}</span>
             </div>
 
             {perm.granted ? (
@@ -105,7 +109,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
                 onClick={() => handleGrant(perm.name)}
                 className="rounded-lg bg-accent px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               >
-                {granting === perm.name ? t('common.loading') : t('setup.authorize')}
+                {granting === perm.name ? '...' : t('setup.authorize')}
               </button>
             )}
           </div>
@@ -119,6 +123,13 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
           className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
         >
           {t('setup.back')}
+        </button>
+        <button
+          type="button"
+          onClick={handleRecheck}
+          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
+        >
+          {t('setup.recheck', 'Recheck')}
         </button>
         <button
           type="button"

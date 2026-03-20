@@ -6,13 +6,15 @@ import { useTranslation } from 'react-i18next';
 
 interface UserInfoStepProps {
   onNext: (data: { name: string; language: string }) => void;
+  initialName?: string;
+  initialLanguage?: string;
 }
 
-export function UserInfoStep({ onNext }: UserInfoStepProps) {
+export function UserInfoStep({ onNext, initialName = '', initialLanguage }: UserInfoStepProps) {
   const { t } = useTranslation();
-  const [name, setName] = useState('');
+  const [name, setName] = useState(initialName);
   const [language, setLanguage] = useState(
-    navigator.language.startsWith('fr') ? 'fr' : 'en',
+    initialLanguage || (navigator.language.startsWith('fr') ? 'fr' : 'en'),
   );
 
   return (

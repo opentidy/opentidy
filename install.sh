@@ -41,40 +41,14 @@ else
   ok "Homebrew already installed"
 fi
 
-# --- Node.js 22 ---
+# --- Node.js 22 (forced) ---
 log "Checking Node.js $REQUIRED_NODE_MAJOR..."
-# Check if node@22 is already available (via brew install node or node@22)
-NODE_BIN=""
-if brew list "node@$REQUIRED_NODE_MAJOR" &>/dev/null; then
-  NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
-elif command -v node &>/dev/null; then
-  SYS_MAJOR="$(node --version 2>/dev/null | sed 's/^v\([0-9]*\).*/\1/')"
-  if [ "$SYS_MAJOR" -ge "$REQUIRED_NODE_MAJOR" ] 2>/dev/null; then
-    NODE_BIN="$(dirname "$(command -v node)")"
-    dim "Using system Node.js $(node --version)"
-  fi
-fi
-if [ -z "$NODE_BIN" ]; then
-  brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
-  NODE_BIN="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
-fi
-export PATH="$NODE_BIN:$PATH"
-
-# Persist node@22 in the user's shell rc file (idempotent)
-SHELL_NAME="$(basename "${SHELL:-/bin/zsh}")"
-case "$SHELL_NAME" in
-  zsh)  RC_FILE="${ZDOTDIR:-$HOME}/.zshrc" ;;
-  bash) RC_FILE="$HOME/.bashrc" ;;
-  fish) RC_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/fish/config.fish" ;;
-  *)    RC_FILE="$HOME/.profile" ;;
-esac
-if ! grep -q "node@$REQUIRED_NODE_MAJOR" "$RC_FILE" 2>/dev/null; then
-  if [ "$SHELL_NAME" = "fish" ]; then
-    echo "set -gx PATH $NODE_BIN \$PATH" >> "$RC_FILE"
-  else
-    echo "export PATH=\"$NODE_BIN:\$PATH\"" >> "$RC_FILE"
-  fi
-fi
+brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
+NODE_DIR="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
+NODE_CMD="$NODE_DIR/node"
+# Force node@22 first in PATH — overrides nvm, volta, etc.
+export PATH="$NODE_DIR:$PATH"
+ok "Node.js $("$NODE_CMD" --version)"
 
 ok "Node.js $(node --version)"
 
@@ -105,8 +79,10 @@ if ! grep -q 'better-sqlite3' .npmrc 2>/dev/null; then
   echo "onlyBuiltDependencies=better-sqlite3,esbuild" >> .npmrc
 fi
 
-pnpm install --silent
-pnpm build --silent
+# Enable pnpm via corepack to ensure it uses the correct node@22
+corepack enable pnpm &>/dev/null || true
+pnpm install --force --silent
+pnpm build &>/dev/null
 ok "Build complete"
 
 # --- Config ---
@@ -118,61 +94,24 @@ if [ ! -f "$CONFIG_FILE" ]; then
   BEARER_TOKEN="$(openssl rand -hex 32)"
   cat > "$CONFIG_FILE" <<JSON
 {
-  "version": 2,
-  "auth": {
-    "bearerToken": "$BEARER_TOKEN"
-  },
-  "server": {
-    "port": $PORT,
-    "appBaseUrl": "http://localhost:$PORT"
-  },
-  "telegram": {
-    "botToken": "",
-    "chatId": ""
-  },
-  "workspace": {
-    "dir": "",
-    "lockDir": ""
-  },
-  "update": {
-    "autoUpdate": true,
-    "checkInterval": "6h",
-    "notifyBeforeUpdate": false,
-    "delayBeforeUpdate": "0m",
-    "keepReleases": 2
-  },
-  "agentConfig": {
-    "name": "claude",
-    "configDir": ""
-  },
+  "version": 3,
+  "auth": { "bearerToken": "$BEARER_TOKEN" },
+  "server": { "port": $PORT, "appBaseUrl": "http://localhost:$PORT" },
+  "workspace": { "dir": "", "lockDir": "/tmp/opentidy-locks" },
+  "update": { "autoUpdate": true, "checkInterval": "6h", "notifyBeforeUpdate": true, "delayBeforeUpdate": "5m", "keepReleases": 3 },
+  "agentConfig": { "name": "claude", "configDir": "" },
   "language": "en",
-  "receivers": [],
-  "userInfo": {
-    "name": "",
-    "email": "",
-    "company": ""
-  },
-  "mcp": {
-    "curated": {
-      "gmail": { "enabled": false, "configured": false },
-      "camoufox": { "enabled": false, "configured": false },
-      "whatsapp": { "enabled": false, "configured": false, "wacliPath": "", "mcpServerPath": "" }
-    },
-    "marketplace": {}
-  },
-  "skills": {
-    "curated": {},
-    "user": []
-  }
+  "userInfo": { "name": "", "email": "", "company": "" },
+  "modules": { "opentidy": { "enabled": true, "source": "curated" } }
 }
 JSON
-  ok "Config created at $CONFIG_FILE"
+  ok "Config created"
 else
-  ok "Config already exists"
+  ok "Config exists"
 fi
 
-# --- LaunchAgent ---
-log "Installing LaunchAgent..."
+# --- LaunchAgent (for future reboots) ---
+log "Installing service..."
 PLIST_SRC="$INSTALL_DIR/com.opentidy.agent.plist"
 PLIST_DST="$HOME/Library/LaunchAgents/com.opentidy.agent.plist"
 
@@ -183,8 +122,16 @@ sed -e "s|__INSTALL_DIR__|$INSTALL_DIR|g" \
     -e "s|__HOME__|$HOME|g" \
     "$PLIST_SRC" > "$PLIST_DST"
 
-launchctl load "$PLIST_DST"
-ok "LaunchAgent loaded"
+launchctl load "$PLIST_DST" 2>/dev/null || true
+
+# Start server directly (more reliable than LaunchAgent for first run)
+pkill -f "node.*dist/cli.js.*start" 2>/dev/null || true
+sleep 1
+"$NODE_CMD" "$INSTALL_DIR/apps/backend/dist/cli.js" start \
+  >> "$HOME/Library/Logs/opentidy-stdout.log" \
+  2>> "$HOME/Library/Logs/opentidy-stderr.log" &
+disown
+ok "Service started"
 
 # --- Health check ---
 log "Waiting for server on port $PORT..."

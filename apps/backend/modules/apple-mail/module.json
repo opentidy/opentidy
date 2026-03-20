@@ -5,6 +5,9 @@
   "icon": "📮",
   "version": "1.0.0",
   "platform": "darwin",
+  "permissions": [
+    { "name": "mail", "label": "Mail", "app": "Mail", "reason": "Read incoming emails from Mail.app" }
+  ],
   "receivers": [{
     "name": "apple-mail",
     "mode": "polling",
