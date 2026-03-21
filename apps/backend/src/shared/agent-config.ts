@@ -116,6 +116,7 @@ interface ModuleSettingsResult {
 export function generateSettingsFromModules(
   modules: Record<string, ModuleState>,
   manifests: Map<string, ModuleManifest>,
+  modulesBaseDir?: string,
 ): ModuleSettingsResult {
   const mcpServers: Record<string, McpServerEntry> = {};
   const skills: SkillDef[] = [];
@@ -130,7 +131,14 @@ export function generateSettingsFromModules(
 
     // Collect MCP servers
     for (const mcpDef of manifest.mcpServers ?? []) {
-      const dedupKey = `${mcpDef.command}::${JSON.stringify(mcpDef.args)}`;
+      // Resolve ./relative args to absolute paths from module directory
+      const resolvedArgs = (mcpDef.args ?? []).map(arg =>
+        arg.startsWith('./') && modulesBaseDir
+          ? join(modulesBaseDir, moduleName, arg)
+          : arg
+      );
+
+      const dedupKey = `${mcpDef.command}::${JSON.stringify(resolvedArgs)}`;
       if (seenMcpKeys.has(dedupKey)) {
         console.log(`[agent-config] Deduplicating MCP "${mcpDef.name}" from module "${moduleName}" (same command+args already registered)`);
         continue;
@@ -161,7 +169,7 @@ export function generateSettingsFromModules(
         entry = {
           type: 'stdio',
           command: mcpDef.command!,
-          args: mcpDef.args ?? [],
+          args: resolvedArgs,
           ...(Object.keys(resolvedEnv).length > 0 ? { env: resolvedEnv } : {}),
         };
       }

@@ -224,6 +224,42 @@ describe('generateSettingsFromModules', () => {
     const result = generateSettingsFromModules(modules, manifests);
     expect(result.skills).toHaveLength(0);
   });
+
+  it('resolves ./ prefixed args relative to modulesBaseDir', () => {
+    const modules: Record<string, ModuleState> = {
+      'password-manager': makeModuleState(true),
+    };
+    const manifests = new Map<string, ModuleManifest>([
+      ['password-manager', makeManifest('password-manager', {
+        mcpServers: [{
+          name: 'bitwarden',
+          command: 'node',
+          args: ['./start-mcp.js'],
+        }],
+      })],
+    ]);
+    const result = generateSettingsFromModules(modules, manifests, '/opt/opentidy/modules');
+    const entry = result.mcpServers['bitwarden'] as { args: string[] };
+    expect(entry.args).toEqual(['/opt/opentidy/modules/password-manager/start-mcp.js']);
+  });
+
+  it('does not resolve non-./ args', () => {
+    const modules: Record<string, ModuleState> = {
+      gmail: makeModuleState(true),
+    };
+    const manifests = new Map<string, ModuleManifest>([
+      ['gmail', makeManifest('gmail', {
+        mcpServers: [{
+          name: 'gmail',
+          command: 'npx',
+          args: ['-y', '@gmail/mcp'],
+        }],
+      })],
+    ]);
+    const result = generateSettingsFromModules(modules, manifests, '/opt/opentidy/modules');
+    const entry = result.mcpServers['gmail'] as { args: string[] };
+    expect(entry.args).toEqual(['-y', '@gmail/mcp']);
+  });
 });
 
 describe('regenerateAgentConfig (module path)', () => {
