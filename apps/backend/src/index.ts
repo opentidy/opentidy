@@ -132,7 +132,7 @@ console.log(`[opentidy] Loaded ${manifests.size} curated modules`);
 const permissionResolver = createPermissionResolver(manifests, config.permissions);
 
 // Ensure agent settings.json is up-to-date on startup (from modules)
-regenerateAgentConfig(config, undefined, config.modules, manifests);
+regenerateAgentConfig(config, undefined, config.modules, manifests, modulesDir);
 
 // Pre-trust workspace directory so Claude Code doesn't show the trust dialog for task subdirectories
 if (adapter.name === 'claude') {
@@ -298,7 +298,7 @@ const moduleLifecycle = createModuleLifecycle({
   saveConfig: configFns.saveConfig,
   manifests,
   regenerateAgentConfig: (modules, mans) => {
-    regenerateAgentConfig(config, undefined, modules, mans);
+    regenerateAgentConfig(config, undefined, modules, mans, modulesDir);
   },
   triageHandler: async (event) => {
     await triageAndHandle({ source: event.source, content: event.content });
