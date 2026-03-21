@@ -427,7 +427,7 @@ export interface UserInfo {
 
 // === Permission System ===
 export type PermissionLevel = 'allow' | 'ask' | 'block';
-export type PermissionPreset = 'supervised' | 'autonomous' | 'full-auto';
+export type PermissionPreset = 'supervised' | 'assisted' | 'autonomous';
 
 export interface ModulePermissionLevel {
   safe: PermissionLevel;

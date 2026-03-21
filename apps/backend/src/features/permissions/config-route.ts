@@ -6,9 +6,9 @@ import { PermissionConfigSchema } from '@opentidy/shared';
 import type { PermissionConfig, PermissionPreset, ModuleManifest, ModulePermissionLevel } from '@opentidy/shared';
 
 const PRESET_DEFAULTS: Record<PermissionPreset, ModulePermissionLevel> = {
-  'supervised': { safe: 'block', critical: 'block' },
-  'autonomous': { safe: 'allow', critical: 'ask' },
-  'full-auto': { safe: 'allow', critical: 'allow' },
+  'supervised': { safe: 'ask', critical: 'block' },
+  'assisted': { safe: 'allow', critical: 'ask' },
+  'autonomous': { safe: 'allow', critical: 'allow' },
 };
 
 interface ConfigRouteDeps {
