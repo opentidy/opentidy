@@ -236,6 +236,7 @@ export function regenerateAgentConfig(
   envDir?: string,
   modules?: Record<string, ModuleState>,
   manifests?: Map<string, ModuleManifest>,
+  modulesBaseDir?: string,
 ): void {
   const configDir = config.agentConfig?.configDir || config.claudeConfig?.dir || '';
   if (!configDir) {
@@ -249,7 +250,7 @@ export function regenerateAgentConfig(
 
   if (modules && manifests) {
     // New path: generate from modules (opentidy MCP is now a regular module)
-    const moduleResult = generateSettingsFromModules(modules, manifests);
+    const moduleResult = generateSettingsFromModules(modules, manifests, modulesBaseDir);
 
     // Collect permissions from module manifests
     const modulePermissions: string[] = [];
