@@ -20,10 +20,10 @@ export function DoneStep() {
   return (
     <div className="mx-auto flex w-full max-w-md flex-col items-center gap-8 text-center">
       {/* Checkmark */}
-      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-500/15">
+      <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green/15">
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          className="h-10 w-10 text-green-400"
+          className="h-10 w-10 text-green"
           viewBox="0 0 20 20"
           fill="currentColor"
         >
@@ -36,8 +36,8 @@ export function DoneStep() {
       </div>
 
       <div>
-        <h2 className="text-xl font-bold text-fg">{t('setup.done')}</h2>
-        <p className="mt-2 text-fg-muted">{t('setup.doneDesc')}</p>
+        <h2 className="text-xl font-bold text-text">{t('setup.done')}</h2>
+        <p className="mt-1 text-text-secondary text-sm">{t('setup.doneDesc')}</p>
       </div>
 
       <div className="flex w-full flex-col gap-3 sm:flex-row">
@@ -51,7 +51,7 @@ export function DoneStep() {
         <button
           type="button"
           onClick={() => handleNavigate('/modules')}
-          className="flex-1 rounded-lg border border-border px-4 py-2.5 font-medium text-fg transition-colors hover:bg-bg-secondary"
+          className="flex-1 rounded-lg border border-border px-4 py-2.5 font-medium text-text transition-colors hover:bg-card"
         >
           {t('setup.configureServices')}
         </button>

@@ -11,7 +11,7 @@ describe('ApprovalManager', () => {
     const manager = createApprovalManager({ summarize, sendConfirmation });
 
     const promise = manager.requestApproval({
-      jobId: 'job-1',
+      taskId: 'task-1',
       toolName: 'mcp__gmail__send',
       toolInput: { to: 'test@example.com', subject: 'Hello' },
       moduleName: 'gmail',
@@ -33,7 +33,7 @@ describe('ApprovalManager', () => {
     const manager = createApprovalManager({ summarize, sendConfirmation });
 
     const promise = manager.requestApproval({
-      jobId: 'job-1', toolName: 'mcp__gmail__send',
+      taskId: 'task-1', toolName: 'mcp__gmail__send',
       toolInput: { to: 'test@example.com' }, moduleName: 'gmail',
     });
 
@@ -48,27 +48,27 @@ describe('ApprovalManager', () => {
     const manager = createApprovalManager({ summarize, sendConfirmation });
 
     manager.requestApproval({
-      jobId: 'job-1', toolName: 'mcp__gmail__send', toolInput: {}, moduleName: 'gmail',
+      taskId: 'task-1', toolName: 'mcp__gmail__send', toolInput: {}, moduleName: 'gmail',
     });
 
     await vi.waitFor(() => expect(sendConfirmation).toHaveBeenCalledOnce());
     const pending = manager.listPending();
     expect(pending).toHaveLength(1);
-    expect(pending[0].jobId).toBe('job-1');
+    expect(pending[0].taskId).toBe('task-1');
     expect(pending[0].toolName).toBe('mcp__gmail__send');
   });
 
-  it('cancels pending approvals for a job', async () => {
+  it('cancels pending approvals for a task', async () => {
     const summarize = vi.fn(async () => 'Click button');
     const sendConfirmation = vi.fn(async () => {});
     const manager = createApprovalManager({ summarize, sendConfirmation });
 
     const promise = manager.requestApproval({
-      jobId: 'job-1', toolName: 'mcp__camofox__click', toolInput: {}, moduleName: 'browser',
+      taskId: 'task-1', toolName: 'mcp__camofox__click', toolInput: {}, moduleName: 'browser',
     });
 
     await vi.waitFor(() => expect(sendConfirmation).toHaveBeenCalledOnce());
-    manager.cancelJob('job-1');
+    manager.cancelTask('task-1');
     expect(await promise).toBe(false);
   });
 });

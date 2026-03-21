@@ -10,17 +10,17 @@ export interface PermissionRouteDeps extends PermissionCheckDeps {
   // No additional deps required beyond the checker
 }
 
-function extractJobId(sessionId: string, cwd?: string): string | null {
-  // Try session_id first (format: opentidy-<jobId>)
+function extractTaskId(sessionId: string, cwd?: string): string | null {
+  // Try session_id first (format: opentidy-<taskId>)
   if (sessionId.startsWith('opentidy-')) {
     return sessionId.slice('opentidy-'.length);
   }
-  // Fallback: extract from cwd (/path/to/workspace/<jobId>)
+  // Fallback: extract from cwd (/path/to/workspace/<taskId>)
   if (cwd?.includes('/workspace/')) {
     const parts = cwd.split('/workspace/');
-    const jobId = parts[parts.length - 1]?.split('/')[0];
-    if (jobId && !jobId.startsWith('_') && !jobId.startsWith('.')) {
-      return jobId;
+    const taskId = parts[parts.length - 1]?.split('/')[0];
+    if (taskId && !taskId.startsWith('_') && !taskId.startsWith('.')) {
+      return taskId;
     }
   }
   return null;
@@ -44,19 +44,19 @@ export function permissionCheckRoute(deps: PermissionRouteDeps) {
     }
 
     const payload = parsed.data;
-    const jobId = extractJobId(payload.session_id, payload.cwd);
+    const taskId = extractTaskId(payload.session_id, payload.cwd);
 
-    if (!jobId) {
+    if (!taskId) {
       console.warn(`[permissions] Unknown session format: ${payload.session_id} (cwd: ${payload.cwd ?? 'none'})`);
-      return c.text('unknown job', 500);
+      return c.text('unknown task', 500);
     }
 
-    console.log(`[permissions] check ${payload.tool_name ?? 'unknown'} for job ${jobId} (session: ${payload.session_id})`);
+    console.log(`[permissions] check ${payload.tool_name ?? 'unknown'} for task ${taskId} (session: ${payload.session_id})`);
 
     const toolName = payload.tool_name ?? '';
     const toolInput = (payload.tool_input ?? {}) as Record<string, unknown>;
 
-    const decision = await checker.check(jobId, payload.session_id, toolName, toolInput);
+    const decision = await checker.check(taskId, payload.session_id, toolName, toolInput);
 
     if (decision === 'allow') {
       return c.text('approved', 200);

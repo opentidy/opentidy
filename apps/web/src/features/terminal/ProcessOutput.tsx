@@ -89,13 +89,13 @@ export default function ProcessOutput({ processId, status, exitCode, startedAt, 
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-4 font-mono text-xs">
+      <div className="flex-1 overflow-y-auto bg-[#0f0f11] rounded-lg p-3 font-mono text-xs text-text-secondary">
         {loading && <p className="text-text-tertiary italic">{t('common.loading')}</p>}
         {!loading && output === null && <p className="text-text-tertiary italic">{t('terminal.noLogs')}</p>}
         {!loading && output !== null && viewMode === 'raw' && (
           <div className="space-y-1">
             {output.split('\n').filter(l => l.trim()).map((line, i) => {
-              try { return <pre key={i} className="text-text whitespace-pre-wrap break-all bg-surface rounded p-2 mb-1">{JSON.stringify(JSON.parse(line), null, 2)}</pre>; }
+              try { return <pre key={i} className="text-text whitespace-pre-wrap break-all bg-card rounded p-2 mb-1">{JSON.stringify(JSON.parse(line), null, 2)}</pre>; }
               catch { return <pre key={i} className="text-text whitespace-pre-wrap">{line}</pre>; }
             })}
           </div>

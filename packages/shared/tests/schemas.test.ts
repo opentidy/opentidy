@@ -4,8 +4,8 @@
 import { describe, it, expect } from 'vitest';
 import {
   GmailWebhookSchema,
-  CreateJobSchema,
-  JobInstructionSchema,
+  CreateTaskSchema,
+  TaskInstructionSchema,
   ApproveSuggestionSchema,
   HookPayloadSchema,
   MarketplaceMcpSchema,
@@ -50,36 +50,36 @@ describe('GmailWebhookSchema', () => {
   });
 });
 
-describe('CreateJobSchema', () => {
+describe('CreateTaskSchema', () => {
   it('should validate with instruction', () => {
-    const result = CreateJobSchema.parse({ instruction: 'Do something' });
+    const result = CreateTaskSchema.parse({ instruction: 'Do something' });
     expect(result.instruction).toBe('Do something');
     expect(result.confirm).toBe(false); // default
   });
 
   it('should accept confirm override', () => {
-    const result = CreateJobSchema.parse({ instruction: 'Do something', confirm: true });
+    const result = CreateTaskSchema.parse({ instruction: 'Do something', confirm: true });
     expect(result.confirm).toBe(true);
   });
 
   it('should reject empty instruction', () => {
-    expect(() => CreateJobSchema.parse({ instruction: '' })).toThrow();
+    expect(() => CreateTaskSchema.parse({ instruction: '' })).toThrow();
   });
 
   it('should reject missing instruction', () => {
-    expect(() => CreateJobSchema.parse({})).toThrow();
+    expect(() => CreateTaskSchema.parse({})).toThrow();
   });
 });
 
-describe('JobInstructionSchema', () => {
+describe('TaskInstructionSchema', () => {
   it('should validate with instruction', () => {
-    const result = JobInstructionSchema.parse({ instruction: 'Update status' });
+    const result = TaskInstructionSchema.parse({ instruction: 'Update status' });
     expect(result.instruction).toBe('Update status');
     expect(result.confirm).toBe(false);
   });
 
   it('should reject empty instruction', () => {
-    expect(() => JobInstructionSchema.parse({ instruction: '' })).toThrow();
+    expect(() => TaskInstructionSchema.parse({ instruction: '' })).toThrow();
   });
 });
 
@@ -232,7 +232,7 @@ describe('CreateScheduleSchema', () => {
     if (result.success) {
       expect(result.data.type).toBe('once');
       expect(result.data.createdBy).toBe('user');
-      expect(result.data.jobId).toBeNull();
+      expect(result.data.taskId).toBeNull();
     }
   });
 
@@ -241,13 +241,13 @@ describe('CreateScheduleSchema', () => {
       type: 'recurring',
       intervalMs: 1800000,
       label: 'Monitor BTC',
-      jobId: 'btc-monitor',
+      taskId: 'btc-monitor',
       createdBy: 'agent',
     });
     expect(result.success).toBe(true);
     if (result.success) {
       expect(result.data.intervalMs).toBe(1800000);
-      expect(result.data.jobId).toBe('btc-monitor');
+      expect(result.data.taskId).toBe('btc-monitor');
     }
   });
 

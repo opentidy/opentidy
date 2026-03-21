@@ -99,14 +99,17 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
   const allGranted = permissions.length > 0 && permissions.every((p) => p.granted);
 
   if (loading) {
-    return <div className="flex items-center justify-center py-16 text-fg-muted">{t('common.loading')}</div>;
+    return <div className="flex items-center justify-center py-16 text-text-secondary">{t('common.loading')}</div>;
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
+    <form
+      className="mx-auto flex w-full max-w-lg flex-col gap-8"
+      onSubmit={(e) => { e.preventDefault(); if (allGranted) onNext(); }}
+    >
       <div className="text-center">
-        <h2 className="text-xl font-bold text-fg">{t('setup.permissions')}</h2>
-        <p className="mt-2 text-sm text-fg-muted">
+        <h2 className="text-xl font-bold text-text">{t('setup.permissions')}</h2>
+        <p className="mt-1 text-text-secondary text-sm">
           OpenTidy runs from your terminal, so macOS requires you to grant permissions to the terminal app that launched it. This is standard for all command-line tools on macOS.
         </p>
       </div>
@@ -116,24 +119,24 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
           <div
             key={perm.name}
             className={`rounded-lg border px-4 py-4 ${
-              perm.granted ? 'border-green-500/30 bg-green-500/5' : 'border-border bg-bg-secondary'
+              perm.granted ? 'border-green/30 bg-green/5' : 'border-border bg-card'
             }`}
           >
             <div className="flex items-center justify-between">
               <div>
-                <span className="font-medium text-fg">{perm.label}</span>
-                <p className="mt-0.5 text-xs text-fg-muted">{perm.description}</p>
+                <span className="font-medium text-text">{perm.label}</span>
+                <p className="mt-0.5 text-xs text-text-secondary">{perm.description}</p>
               </div>
               {perm.granted ? (
                 <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1.5 text-sm font-medium text-green-400">
+                  <span className="flex items-center gap-1.5 text-sm font-medium text-green">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20,6 9,17 4,12" /></svg>
                     {t('setup.authorized')}
                   </span>
                   <button
                     type="button"
                     onClick={() => handleGrant(perm.name)}
-                    className="text-xs text-fg-muted underline hover:text-fg"
+                    className="text-xs text-text-secondary underline hover:text-text"
                   >
                     Settings
                   </button>
@@ -152,9 +155,9 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
 
             {/* Step-by-step instructions — visible until granted */}
             {!perm.granted && (
-              <ol className="mt-3 space-y-1 border-t border-border/50 pt-3">
+              <ol className="mt-3 space-y-1 border-t border-border-subtle pt-3">
                 {(INSTRUCTIONS[perm.name] ?? []).map((step, i) => (
-                  <li key={i} className="flex items-start gap-2 text-xs text-fg-muted">
+                  <li key={i} className="flex items-start gap-2 text-xs text-text-secondary">
                     <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[10px] font-bold text-accent">
                       {i + 1}
                     </span>
@@ -171,19 +174,18 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg hover:bg-bg-secondary"
+          className="rounded-lg border border-border px-4 py-2.5 font-medium text-text hover:bg-card"
         >
           {t('setup.back')}
         </button>
         <button
-          type="button"
-          onClick={onNext}
+          type="submit"
           disabled={!allGranted}
           className="flex-1 rounded-lg bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-40"
         >
           {t('setup.continue')}
         </button>
       </div>
-    </div>
+    </form>
   );
 }

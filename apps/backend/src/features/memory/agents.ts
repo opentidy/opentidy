@@ -19,7 +19,7 @@ interface InjectionInput {
 interface ExtractionInput {
   transcriptPath: string
   indexContent: string
-  jobId: string
+  taskId: string
   stateContent: string
 }
 
@@ -41,7 +41,7 @@ ${input.indexContent}
 ## Triggering event
 ${input.event}
 
-## Job state (state.md)
+## Task state (state.md)
 ${input.stateContent}
 
 ## Instructions
@@ -67,9 +67,9 @@ Last injection: ${new Date().toISOString().split('T')[0]}
     return `You are OpenTidy's post-session agent. You do 3 things in a single pass after each completed session.
 
 ## Context
-- Job: ${input.jobId}
+- Task: ${input.taskId}
 - Transcript: ${input.transcriptPath}
-- Current job state.md (below)
+- Current task state.md (below)
 
 ## State.md
 ${input.stateContent}
@@ -141,7 +141,7 @@ Format for each gap:
 **Recommended actions:**
 - <Concrete action 1 the user can take>
 - <Concrete action 2 (optional)>
-**Job:** ${input.jobId}
+**Task:** ${input.taskId}
 **Session:** <session_id if found in transcript>
 **Source:** post-session
 \`\`\`
@@ -150,7 +150,7 @@ Format for each gap:
 - \`code\`: the problem is in OpenTidy's source code (bug, missing feature, architectural limitation in the opentidy codebase itself)
 - \`config\`: the problem is in Claude's configuration, prompts, hooks, or workspace setup
 - \`external\`: the problem is an external limitation (third-party API, physical access, credentials the user must provide)
-- The **Sanitized title** and **Sanitized** fields must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, job context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized fields.
+- The **Sanitized title** and **Sanitized** fields must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, task context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized fields.
 
 **If nothing actionable → write nothing.** It's OK to find no gaps.
 
@@ -227,7 +227,7 @@ Free-form content with dated entries [YYYY-MM-DD].
     await lock.acquire()
     try {
       const prompt = buildExtractionPrompt(input)
-      await runAgent(prompt, `Post-session analysis for job ${input.jobId}. Perform all 3 missions: memory, gaps, log.`, 'memory-extraction', 'Post-session memory extraction')
+      await runAgent(prompt, `Post-session analysis for task ${input.taskId}. Perform all 3 missions: memory, gaps, log.`, 'memory-extraction', 'Post-session memory extraction')
 
       // Route newly written gaps (GitHub Issues, suggestions)
       if (deps.onGapsWritten) {

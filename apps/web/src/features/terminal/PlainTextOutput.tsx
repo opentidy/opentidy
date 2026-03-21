@@ -36,8 +36,8 @@ export default function PlainTextOutput({ raw }: PlainTextOutputProps) {
     // Triage response
     if ('ignore' in obj && obj.ignore) infos.push({ label: 'Verdict', value: t('terminal.ignored') });
     if ('reason' in obj && typeof obj.reason === 'string') infos.push({ label: t('terminal.reason'), value: obj.reason });
-    if ('jobIds' in obj && Array.isArray(obj.jobIds) && obj.jobIds.length > 0)
-      infos.push({ label: 'Jobs', value: (obj.jobIds as string[]).join(', ') });
+    if ('taskIds' in obj && Array.isArray(obj.taskIds) && obj.taskIds.length > 0)
+      infos.push({ label: 'Tasks', value: (obj.taskIds as string[]).join(', ') });
     // Checkup response
     if ('launch' in obj && Array.isArray(obj.launch))
       infos.push({ label: t('terminal.sessionsLaunched'), value: obj.launch.length > 0 ? (obj.launch as string[]).join(', ') : t('terminal.none') });

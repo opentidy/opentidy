@@ -6,19 +6,19 @@ import { existsSync } from 'fs';
 import { join } from 'path';
 import type { AppDeps } from '../../server.js';
 
-export function getJobRoute(deps: AppDeps) {
+export function getTaskRoute(deps: AppDeps) {
   const app = new Hono();
 
-  app.get('/job/:id', (c) => {
+  app.get('/task/:id', (c) => {
     const id = c.req.param('id');
     const stateFile = join(deps.workspaceDir, id, 'state.md');
     if (!existsSync(stateFile)) {
-      return c.json({ error: 'Job not found' }, 404);
+      return c.json({ error: 'Task not found' }, 404);
     }
-    const job = deps.workspace.getJob(deps.workspaceDir, id);
+    const task = deps.workspace.getTask(deps.workspaceDir, id);
     const activeSessions = deps.launcher.listActiveSessions();
-    const hasActive = activeSessions.some((s) => s.jobId === id);
-    return c.json({ ...job, hasActiveSession: hasActive });
+    const hasActive = activeSessions.some((s) => s.taskId === id);
+    return c.json({ ...task, hasActiveSession: hasActive });
   });
 
   return app;

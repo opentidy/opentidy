@@ -4,23 +4,23 @@
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
-test.describe('E2E-APP-27: Deep link to job', () => {
-  test('navigate directly to /job/invoices-acme shows correct job', async ({ page }) => {
+test.describe('E2E-APP-27: Deep link to task', () => {
+  test('navigate directly to /task/invoices-acme shows correct task', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/job/invoices-acme');
+    await page.goto('/task/invoices-acme');
 
-    // Correct job is displayed
+    // Correct task is displayed
     await expect(page.getByRole('heading', { name: 'Invoices Acme' })).toBeVisible();
     await expect(page.getByText('En cours')).toBeVisible();
     // StateRenderer shows "Objectif" heading — visible in whichever viewport
     await expect(page.locator('h3:visible', { hasText: 'Objectif' })).toBeVisible();
   });
 
-  test('deep link to non-existent job shows loading state', async ({ page }) => {
+  test('deep link to non-existent task shows loading state', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/job/does-not-exist');
+    await page.goto('/task/does-not-exist');
 
-    // Shows "Chargement..." since job won't be found
+    // Shows "Chargement..." since task won't be found
     await expect(page.getByText('Chargement...')).toBeVisible();
   });
 });

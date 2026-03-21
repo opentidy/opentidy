@@ -5,13 +5,12 @@ import { useState } from 'react';
 import { UserInfoStep } from './UserInfoStep';
 import { AgentStep } from './AgentStep';
 import { PermissionsStep } from './PermissionsStep';
-import { PermissionsModeStep } from './PermissionsModeStep';
 import { ModulesStep } from './ModulesStep';
 import { DoneStep } from './DoneStep';
 
-type Step = 'user-info' | 'agent' | 'permissions' | 'permissions-mode' | 'modules' | 'done';
+type Step = 'user-info' | 'agent' | 'permissions' | 'modules' | 'done';
 
-const STEPS: Step[] = ['user-info', 'agent', 'permissions', 'permissions-mode', 'modules', 'done'];
+const STEPS: Step[] = ['user-info', 'agent', 'permissions', 'modules', 'done'];
 
 export default function SetupWizard() {
   const [step, setStep] = useState<Step>('user-info');
@@ -50,7 +49,7 @@ export default function SetupWizard() {
           <div
             key={s}
             className={`h-2 w-2 rounded-full transition-colors ${
-              i <= stepIndex ? 'bg-accent' : 'bg-border'
+              i < stepIndex ? 'bg-green' : i === stepIndex ? 'bg-accent' : 'bg-[#3a3a3c]'
             }`}
           />
         ))}
@@ -63,13 +62,10 @@ export default function SetupWizard() {
           <AgentStep onNext={() => setStep('permissions')} onBack={() => setStep('user-info')} />
         )}
         {step === 'permissions' && (
-          <PermissionsStep onNext={() => setStep('permissions-mode')} onBack={() => setStep('agent')} />
-        )}
-        {step === 'permissions-mode' && (
-          <PermissionsModeStep onNext={() => setStep('modules')} onBack={() => setStep('permissions')} />
+          <PermissionsStep onNext={() => setStep('modules')} onBack={() => setStep('agent')} />
         )}
         {step === 'modules' && (
-          <ModulesStep onNext={() => setStep('done')} onBack={() => setStep('permissions-mode')} />
+          <ModulesStep onNext={() => setStep('done')} onBack={() => setStep('permissions')} />
         )}
         {step === 'done' && <DoneStep />}
       </div>

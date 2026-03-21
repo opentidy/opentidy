@@ -18,11 +18,11 @@ export default function SecurityPanel() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">{t('settings.security')}</h2>
+        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.security')}</h2>
         <p className="text-xs text-text-tertiary">{t('settings.securityDescription')}</p>
       </div>
 
-      <div className="p-4 bg-bg rounded-lg border border-border">
+      <div className="bg-card rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-sm font-medium">{t('settings.bearerToken')}</h3>
@@ -32,14 +32,14 @@ export default function SecurityPanel() {
             <button
               type="button"
               onClick={() => setRevealed((v) => !v)}
-              className="px-3 py-1.5 text-sm border border-border rounded-lg hover:bg-card-hover transition-colors"
+              className="bg-card-hover rounded-lg px-3 py-1.5 text-xs text-text-secondary"
             >
               {revealed ? t('settings.hideToken') : t('settings.tokenHidden')}
             </button>
             <button
               type="button"
               onClick={handleCopy}
-              className="px-3 py-1.5 text-sm border border-border rounded-lg hover:bg-card-hover transition-colors"
+              className="bg-card-hover rounded-lg px-3 py-1.5 text-xs text-text-secondary"
             >
               {copied ? t('settings.copied') : t('settings.copyToken')}
             </button>

@@ -149,9 +149,9 @@ Look at `features/modules/` or `features/suggestions/` for well-structured examp
 Progressive logging with service prefixes:
 
 ```typescript
-console.error('[launcher] Failed to spawn session', { jobId, error: err.message });
+console.error('[launcher] Failed to spawn session', { taskId, error: err.message });
 console.warn('[receiver] Dedup collision', { hash });
-console.log('[triage] Event routed to job', { jobId });
+console.log('[triage] Event routed to task', { taskId });
 ```
 
 - `console.error` / `console.warn` — always, with enough context to diagnose

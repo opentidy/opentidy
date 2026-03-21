@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide walks you through installing OpenTidy, running the setup wizard, and creating your first job.
+This guide walks you through installing OpenTidy, running the setup wizard, and creating your first task.
 
 ## Prerequisites
 
@@ -45,7 +45,7 @@ The wizard uses an arrow-key menu to configure each module. You can run individu
 
 #### 1. Telegram
 
-OpenTidy sends you notifications via Telegram (job completed, checkpoint reached, errors).
+OpenTidy sends you notifications via Telegram (task completed, checkpoint reached, errors).
 
 You'll need:
 - A Telegram bot (create one via [@BotFather](https://t.me/BotFather))
@@ -102,13 +102,13 @@ opentidy status    # service state, version, uptime
 opentidy doctor    # verify deps, config, permissions, connectivity
 ```
 
-## Your first job
+## Your first task
 
 Once OpenTidy is running, open the web dashboard (default: `http://localhost:5175`).
 
-### Creating a job
+### Creating a task
 
-1. Click **New Job** in the dashboard
+1. Click **New Task** in the dashboard
 2. Describe what you want done, e.g.: *"Check my inbox for unpaid invoices from the last 3 months and list them"*
 3. Optionally enable **Confirm mode** — Claude will ask for approval before any external action (sending emails, submitting forms)
 4. Submit
@@ -120,13 +120,13 @@ OpenTidy creates a workspace directory, generates an initial `state.md`, and lau
 - Claude works autonomously in the background
 - The dashboard shows live progress via real-time updates
 - If Claude needs your input, it creates a **checkpoint** — you'll get a Telegram notification with a link to the dashboard
-- When done, the job status changes to **completed**
+- When done, the task status changes to **completed**
 
 ### Taking over
 
-If you want to interact directly with Claude on a job:
+If you want to interact directly with Claude on a task:
 
-1. Open the job in the dashboard
+1. Open the task in the dashboard
 2. Click **Take Over** — this switches from autonomous mode to an interactive terminal
 3. Talk to Claude directly in the embedded terminal
 4. When done, click **Hand Back** — Claude resumes autonomous work

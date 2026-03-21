@@ -9,17 +9,17 @@ import { existsSync } from 'fs';
 import { createAuthMiddleware } from './shared/auth.js';
 import type { SSEClient } from './shared/sse.js';
 import { ZodError } from 'zod';
-import type { Job, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
-// Job routes
-import { listJobsRoute } from './features/jobs/list.js';
-import { getJobRoute } from './features/jobs/get.js';
-import { createJobRoute } from './features/jobs/create.js';
-import { instructJobRoute } from './features/jobs/instruct.js';
-import { completeJobRoute } from './features/jobs/complete.js';
-import { resumeJobRoute } from './features/jobs/resume.js';
-import { waitingTypeJobRoute } from './features/jobs/waiting-type.js';
-import { uploadJobRoute } from './features/jobs/upload.js';
-import { downloadJobRoute } from './features/jobs/download.js';
+import type { Task, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
+// Task routes
+import { listTasksRoute } from './features/tasks/list.js';
+import { getTaskRoute } from './features/tasks/get.js';
+import { createTaskRoute } from './features/tasks/create.js';
+import { instructTaskRoute } from './features/tasks/instruct.js';
+import { completeTaskRoute } from './features/tasks/complete.js';
+import { resumeTaskRoute } from './features/tasks/resume.js';
+import { waitingTypeTaskRoute } from './features/tasks/waiting-type.js';
+import { uploadTaskRoute } from './features/tasks/upload.js';
+import { downloadTaskRoute } from './features/tasks/download.js';
 // Session routes
 import { listSessionsRoute } from './features/sessions/list.js';
 import { stopSessionRoute } from './features/sessions/stop.js';
@@ -83,12 +83,12 @@ import type { ModuleManifest, PermissionConfig } from '@opentidy/shared';
 
 export interface AppDeps {
   workspace: {
-    listJobIds: (dir: string) => string[];
-    getJob: (dir: string, id: string) => Job;
-    jobManager: {
-      createJob(id: string, instruction: string, confirm?: boolean, title?: string): void;
-      createJobFromSuggestion(slug: string, instruction?: string): void;
-      completeJob(id: string): void;
+    listTaskIds: (dir: string) => string[];
+    getTask: (dir: string, id: string) => Task;
+    taskManager: {
+      createTask(id: string, instruction: string, title?: string): void;
+      createTaskFromSuggestion(slug: string, instruction?: string): void;
+      completeTask(id: string): void;
       saveArtifact(id: string, filename: string, buffer: Buffer): void;
     };
     suggestionsManager: { listSuggestions(): Suggestion[]; ignoreSuggestion(slug: string): void };
@@ -100,6 +100,7 @@ export interface AppDeps {
     archiveSession(id: string): Promise<void>;
     sendMessage(id: string, message: string): Promise<void>;
     setSessionWaitingType?(id: string, type: 'user' | 'tiers'): void;
+    clearAll?(): void;
   };
   hooks: { handleHook(body: unknown): { status: string } };
   receiver: { handleGmailWebhook(body: unknown): Promise<{ accepted: boolean; reason?: string }> };
@@ -146,11 +147,12 @@ export interface AppDeps {
     checkerDeps: PermissionCheckDeps;
     approvalManager: {
       respond(approvalId: string, approved: boolean): boolean;
-      listPending(): Array<{ id: string; jobId: string; toolName: string; toolInput: Record<string, unknown>; moduleName: string | null; summary: string; createdAt: string }>;
+      listPending(): Array<{ id: string; taskId: string; toolName: string; toolInput: Record<string, unknown>; moduleName: string | null; summary: string; createdAt: string }>;
     };
     manifests: Map<string, ModuleManifest>;
     loadConfig: () => { permissions: PermissionConfig };
     saveConfig: (update: (cfg: Record<string, unknown>) => void) => void;
+    regenerateHooks?: () => void;
   };
 }
 
@@ -195,15 +197,15 @@ export function createApp(deps?: AppDeps) {
 
   if (deps) {
     // Mount route modules under /api prefix
-    app.route('/api', listJobsRoute(deps));
-    app.route('/api', getJobRoute(deps));
-    app.route('/api', createJobRoute(deps));
-    app.route('/api', instructJobRoute(deps));
-    app.route('/api', completeJobRoute(deps));
-    app.route('/api', resumeJobRoute(deps));
-    app.route('/api', waitingTypeJobRoute(deps));
-    app.route('/api', uploadJobRoute(deps));
-    app.route('/api', downloadJobRoute(deps));
+    app.route('/api', listTasksRoute(deps));
+    app.route('/api', getTaskRoute(deps));
+    app.route('/api', createTaskRoute(deps));
+    app.route('/api', instructTaskRoute(deps));
+    app.route('/api', completeTaskRoute(deps));
+    app.route('/api', resumeTaskRoute(deps));
+    app.route('/api', waitingTypeTaskRoute(deps));
+    app.route('/api', uploadTaskRoute(deps));
+    app.route('/api', downloadTaskRoute(deps));
     app.route('/api', listSessionsRoute(deps));
     app.route('/api', stopSessionRoute(deps));
     app.route('/api', listMemoryRoute(deps));
@@ -267,7 +269,7 @@ export function createApp(deps?: AppDeps) {
       const { checkerDeps, approvalManager, manifests: permManifests, loadConfig: permLoadConfig, saveConfig: permSaveConfig } = deps.permissionDeps;
       app.route('/api', permissionCheckRoute(checkerDeps));
       app.route('/api', permissionRespondRoute({ approvalManager, sse: deps.sse }));
-      app.route('/api', permissionConfigRoute({ loadConfig: permLoadConfig, saveConfig: permSaveConfig, manifests: permManifests }));
+      app.route('/api', permissionConfigRoute({ loadConfig: permLoadConfig, saveConfig: permSaveConfig, manifests: permManifests, regenerateHooks: deps.permissionDeps.regenerateHooks }));
     }
   }
 

@@ -66,7 +66,7 @@ export function createMemoryManager(workspaceDir: string) {
     for (const line of lines) {
       const cells = splitTableRow(line)
       if (!cells || cells.length < 4) continue
-      if (cells[0].includes('---') || cells[0] === 'fichier') continue
+      if (cells[0].includes('---') || cells[0] === 'file' || cells[0] === 'fichier') continue
       entries.push({
         filename: unescapeTableCell(cells[0]),
         category: unescapeTableCell(cells[1]),
@@ -80,8 +80,8 @@ export function createMemoryManager(workspaceDir: string) {
   function writeIndexFile(entries: MemoryIndexEntry[]): void {
     const header = `# OpenTidy Memory Index
 
-| fichier | catégorie | mis à jour | description |
-|---------|-----------|------------|-------------|
+| file | category | updated | description |
+|------|----------|---------|-------------|
 `
     const rows = entries
       .map(e => `| ${escapeTableCell(e.filename)} | ${escapeTableCell(e.category)} | ${e.updated} | ${escapeTableCell(e.description)} |`)

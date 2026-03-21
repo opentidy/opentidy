@@ -99,7 +99,8 @@ if [ ! -f "$CONFIG_FILE" ]; then
   "server": { "port": $PORT, "appBaseUrl": "http://localhost:$PORT" },
   "workspace": { "dir": "", "lockDir": "/tmp/opentidy-locks" },
   "update": { "autoUpdate": true, "checkInterval": "6h", "notifyBeforeUpdate": true, "delayBeforeUpdate": "5m", "keepReleases": 3 },
-  "agentConfig": { "name": "claude", "configDir": "" },
+  "agentConfig": { "name": "claude", "configDir": "$CONFIG_DIR/agents/claude" },
+  "claudeConfig": { "dir": "$CONFIG_DIR/agents/claude" },
   "language": "en",
   "userInfo": { "name": "", "email": "", "company": "" },
   "modules": { "opentidy": { "enabled": true, "source": "curated" } }

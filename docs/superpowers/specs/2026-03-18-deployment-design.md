@@ -202,7 +202,7 @@ name: Release
 on:
   push:
     tags: ['v*']
-jobs:
+tasks:
   test:
     runs-on: macos-latest
     steps:

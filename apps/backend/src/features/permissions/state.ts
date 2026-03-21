@@ -5,17 +5,17 @@ export function createPermissionState() {
   const grants = new Map<string, Set<string>>();
 
   return {
-    isGranted(jobId: string, moduleName: string): boolean {
-      return grants.get(jobId)?.has(moduleName) ?? false;
+    isGranted(taskId: string, moduleName: string): boolean {
+      return grants.get(taskId)?.has(moduleName) ?? false;
     },
 
-    grant(jobId: string, moduleName: string): void {
-      if (!grants.has(jobId)) grants.set(jobId, new Set());
-      grants.get(jobId)!.add(moduleName);
+    grant(taskId: string, moduleName: string): void {
+      if (!grants.has(taskId)) grants.set(taskId, new Set());
+      grants.get(taskId)!.add(moduleName);
     },
 
-    revokeJob(jobId: string): void {
-      grants.delete(jobId);
+    revokeTask(taskId: string): void {
+      grants.delete(taskId);
     },
   };
 }

@@ -1,9 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { SSEEvent } from '@opentidy/shared';
+import type { SSEEvent, SSEEventType } from '@opentidy/shared';
 
-interface SSEClient {
+/** Creates an SSEEvent with the current timestamp. Reduces boilerplate at emit call sites. */
+export function createSSEEvent(type: SSEEventType, data: Record<string, unknown>): SSEEvent {
+  return { type, data, timestamp: new Date().toISOString() };
+}
+
+export interface SSEClient {
   write: (data: string) => void;
 }
 

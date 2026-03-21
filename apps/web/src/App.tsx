@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './shared/Layout';
 import Home from './features/home/Home';
-import JobDetail from './features/jobs/JobDetail';
+import TaskDetail from './features/tasks/TaskDetail';
 import Terminal from './features/terminal/Terminal';
 import Nouveau from './features/nouveau/Nouveau';
 import Ameliorations from './features/ameliorations/Ameliorations';
@@ -45,7 +45,7 @@ export default function App() {
         >
           <Route path="/" element={<Home />} />
           <Route path="/suggestions" element={<Suggestions />} />
-          <Route path="/job/:id" element={<JobDetail />} />
+          <Route path="/task/:id" element={<TaskDetail />} />
           <Route path="/terminal" element={<Terminal />} />
           <Route path="/nouveau" element={<Nouveau />} />
           <Route path="/ameliorations" element={<Ameliorations />} />

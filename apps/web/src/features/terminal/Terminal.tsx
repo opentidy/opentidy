@@ -7,7 +7,7 @@ import { useStore } from '../../shared/store';
 import { SessionOutput } from '../sessions/SessionOutput';
 import ProcessOutput from './ProcessOutput';
 import LiveProcessOutput from './LiveProcessOutput';
-import type { ClaudeProcessType } from '@opentidy/shared';
+import type { AgentProcessType } from '@opentidy/shared';
 
 const statusDot: Record<string, string> = {
   queued: 'bg-accent/50',
@@ -30,6 +30,8 @@ export default function Terminal() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [loading, setLoading] = useState(claudeProcesses.length === 0);
 
+  // Empty deps is intentional: fetchClaudeProcesses is a stable Zustand selector reference
+  // that never changes identity, so including it would be redundant.
   useEffect(() => {
     fetchClaudeProcesses().finally(() => setLoading(false));
     const interval = setInterval(fetchClaudeProcesses, 5_000);
@@ -39,7 +41,7 @@ export default function Terminal() {
   const filtered = filter ? claudeProcesses.filter(p => p.type === filter) : claudeProcesses;
   const selected = claudeProcesses.find(p => p.id === selectedId);
 
-  const types: ClaudeProcessType[] = ['triage', 'checkup', 'title', 'memory-injection', 'memory-extraction', 'memory-prompt'];
+  const types: AgentProcessType[] = ['triage', 'checkup', 'title', 'memory-injection', 'memory-extraction', 'memory-prompt'];
 
   const queuedCount = claudeProcesses.filter(p => p.status === 'queued').length;
   const runningCount = claudeProcesses.filter(p => p.status === 'running').length;
@@ -61,7 +63,7 @@ export default function Terminal() {
         {/* Filter buttons */}
         <div className="flex gap-1.5 mb-3 flex-wrap">
           <button onClick={() => setFilter('')}
-            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${!filter ? 'bg-accent text-white' : 'bg-surface-hover text-text-secondary'}`}>
+            className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${!filter ? 'bg-accent text-white' : 'text-text-tertiary hover:text-text-secondary'}`}>
             {t('terminal.all')} ({claudeProcesses.length})
           </button>
           {types.map(tp => {
@@ -69,7 +71,7 @@ export default function Terminal() {
             if (count === 0) return null;
             return (
               <button key={tp} onClick={() => setFilter(tp)}
-                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${filter === tp ? 'bg-accent text-white' : 'bg-surface-hover text-text-secondary'}`}>
+                className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${filter === tp ? 'bg-accent text-white' : 'text-text-tertiary hover:text-text-secondary'}`}>
                 {tp} ({count})
               </button>
             );
@@ -83,11 +85,11 @@ export default function Terminal() {
           {filtered.map(p => (
             <div key={p.id} onClick={() => setSelectedId(selectedId === p.id ? null : p.id)}
               className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm cursor-pointer transition-colors ${
-                selectedId === p.id ? 'bg-accent/10 ring-1 ring-accent/30' : 'bg-surface hover:bg-surface-hover'
+                selectedId === p.id ? 'bg-accent/[.08] ring-1 ring-accent/30' : 'bg-card hover:bg-card-hover'
               }`}>
               <span className={`w-2 h-2 rounded-full shrink-0 ${statusDot[p.status] ?? 'bg-text-tertiary'}`} />
-              <span className="font-mono text-xs px-1 py-0.5 rounded bg-surface-hover text-text-secondary truncate max-w-20">{p.type}</span>
-              <span className="text-text flex-1 truncate text-xs">{p.description ?? p.jobId ?? '—'}</span>
+              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-card-hover text-text-secondary truncate max-w-20">{p.type}</span>
+              <span className="text-text flex-1 truncate text-xs">{p.description ?? p.taskId ?? '—'}</span>
               {p.status === 'queued' && <span className="text-xs text-accent/60 italic">{t('terminal.statusQueued').toLowerCase()}</span>}
               <span className="text-text-tertiary text-xs shrink-0">
                 {new Date(p.startedAt).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
@@ -108,8 +110,8 @@ export default function Terminal() {
           <div className="flex items-center justify-between px-4 py-2 border-b border-border">
             <div className="flex items-center gap-2">
               <span className={`w-2 h-2 rounded-full ${statusDot[selected.status] ?? 'bg-text-tertiary'}`} />
-              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-surface-hover text-text-secondary">{selected.type}</span>
-              <span className="text-sm text-text truncate">{selected.description ?? selected.jobId ?? '—'}</span>
+              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-card-hover text-text-secondary">{selected.type}</span>
+              <span className="text-sm text-text truncate">{selected.description ?? selected.taskId ?? '—'}</span>
               <span className="text-xs text-text-tertiary">{t(statusLabelKey[selected.status] ?? selected.status)}</span>
             </div>
             <button onClick={() => setSelectedId(null)} className="text-text-tertiary hover:text-text text-xs">{t('common.close')}</button>
@@ -123,10 +125,10 @@ export default function Terminal() {
                 </div>
               </div>
             )}
-            {selected.status === 'running' && selected.jobId && (
-              <SessionOutput jobId={selected.jobId} />
+            {selected.status === 'running' && selected.taskId && (
+              <SessionOutput taskId={selected.taskId} />
             )}
-            {selected.status === 'running' && !selected.jobId && (
+            {selected.status === 'running' && !selected.taskId && (
               <LiveProcessOutput trackId={selected.id} processType={selected.type} />
             )}
             {(selected.status === 'done' || selected.status === 'error') && (

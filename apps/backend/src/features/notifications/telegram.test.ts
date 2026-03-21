@@ -50,8 +50,8 @@ describe('Notifier', () => {
     // But notification is recorded in store
     expect(store.record).toHaveBeenCalledWith({
       message: 'Session started',
-      link: 'https://opentidy.example.com/jobs/impots-2025',
-      jobId: 'impots-2025',
+      link: 'https://opentidy.example.com/tasks/impots-2025',
+      taskId: 'impots-2025',
     });
 
     // And SSE event emitted
@@ -67,17 +67,17 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('MFA');
     expect(mock.sent[0].text).toContain('banque-lcl');
-    expect(mock.sent[0].text).toContain('https://opentidy.example.com/jobs/banque-lcl');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/tasks/banque-lcl');
   });
 
-  // E2E-NTF-03: Job terminé → notification
+  // E2E-NTF-03: Task terminé → notification
   it('notifyCompleted sends completion message with link', async () => {
     await notifier.notifyCompleted('impots-2025');
 
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('completed');
-    expect(mock.sent[0].text).toContain('https://opentidy.example.com/jobs/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/tasks/impots-2025');
   });
 
   // E2E-NTF-04: Suggestion urgente → notification
@@ -110,7 +110,7 @@ describe('Notifier', () => {
     expect(mock.sent).toHaveLength(1);
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('Email sent to contact@example-client.com');
-    expect(mock.sent[0].text).toContain('https://opentidy.example.com/jobs/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/tasks/impots-2025');
   });
 
   // E2E-NTF-06 bis: Escalation
@@ -121,21 +121,21 @@ describe('Notifier', () => {
     expect(mock.sent[0].text).toContain('Escalation');
     expect(mock.sent[0].text).toContain('impots-2025');
     expect(mock.sent[0].text).toContain('Suspicious amount > 5000EUR');
-    expect(mock.sent[0].text).toContain('https://opentidy.example.com/jobs/impots-2025');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/tasks/impots-2025');
   });
 
   // E2E-NTF-07: Notification contient lien
-  it('all job notifications contain a link to the job', async () => {
+  it('all task notifications contain a link to the task', async () => {
     await notifier.notifyMfa('d1');
     await notifier.notifyCompleted('d2');
     await notifier.notifyAction('d3', 'action');
     await notifier.notifyEscalation('d4', 'reason');
 
     expect(mock.sent).toHaveLength(4);
-    expect(mock.sent[0].text).toContain('https://opentidy.example.com/jobs/d1');
-    expect(mock.sent[1].text).toContain('https://opentidy.example.com/jobs/d2');
-    expect(mock.sent[2].text).toContain('https://opentidy.example.com/jobs/d3');
-    expect(mock.sent[3].text).toContain('https://opentidy.example.com/jobs/d4');
+    expect(mock.sent[0].text).toContain('https://opentidy.example.com/tasks/d1');
+    expect(mock.sent[1].text).toContain('https://opentidy.example.com/tasks/d2');
+    expect(mock.sent[2].text).toContain('https://opentidy.example.com/tasks/d3');
+    expect(mock.sent[3].text).toContain('https://opentidy.example.com/tasks/d4');
   });
 
   // E2E-NTF-08: Retry avec backoff
@@ -152,7 +152,7 @@ describe('Notifier', () => {
         appBaseUrl: 'https://opentidy.example.com',
       });
 
-      const promise = retryNotifier.notifyCompleted('test-job');
+      const promise = retryNotifier.notifyCompleted('test-task');
 
       // Advance past 1st retry delay (1s)
       await vi.advanceTimersByTimeAsync(1000);
@@ -174,7 +174,7 @@ describe('Notifier', () => {
         appBaseUrl: 'https://opentidy.example.com',
       });
 
-      const promise = failNotifier.notifyCompleted('test-job');
+      const promise = failNotifier.notifyCompleted('test-task');
       // Attach catch immediately to avoid unhandled rejection
       let caughtError: Error | undefined;
       const handled = promise.catch((err: Error) => { caughtError = err; });
@@ -222,7 +222,7 @@ describe('Notifier', () => {
 
   // E2E-NTF-09: Anti-spam
   describe('anti-spam rate limiting', () => {
-    it('blocks duplicate notification for same jobId + type within 60s', async () => {
+    it('blocks duplicate notification for same taskId + type within 60s', async () => {
       await notifier.notifyMfa('impots-2025');
       await notifier.notifyMfa('impots-2025');
 
@@ -230,14 +230,14 @@ describe('Notifier', () => {
       expect(mock.sent[0].text).toContain('MFA');
     });
 
-    it('allows same type for different jobIds', async () => {
-      await notifier.notifyMfa('job-a');
-      await notifier.notifyMfa('job-b');
+    it('allows same type for different taskIds', async () => {
+      await notifier.notifyMfa('task-a');
+      await notifier.notifyMfa('task-b');
 
       expect(mock.sent).toHaveLength(2);
     });
 
-    it('allows different types for same jobId', async () => {
+    it('allows different types for same taskId', async () => {
       await notifier.notifyMfa('impots-2025');
       await notifier.notifyCompleted('impots-2025');
 

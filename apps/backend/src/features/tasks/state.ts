@@ -3,12 +3,10 @@
 
 import fs from 'fs';
 import path from 'path';
-import type { JobStatus, Job, JournalEntry } from '@opentidy/shared';
-
-const VALID_STATUSES: JobStatus[] = ['IN_PROGRESS', 'COMPLETED'];
+import type { TaskStatus, Task, JournalEntry } from '@opentidy/shared';
 
 // Normalize status strings — accepts both old French and new English values
-function normalizeStatus(raw: string): JobStatus {
+function normalizeStatus(raw: string): TaskStatus {
   const upper = raw.toUpperCase().trim();
   // English values
   if (upper.startsWith('COMPLET')) return 'COMPLETED';
@@ -21,19 +19,17 @@ function normalizeStatus(raw: string): JobStatus {
   return 'IN_PROGRESS';
 }
 
-export function parseStateMd(jobDir: string): { title: string; status: JobStatus; objective: string; lastAction: string; confirm: boolean; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'user' | 'tiers' | null } {
-  const filePath = path.join(jobDir, 'state.md');
-  if (!fs.existsSync(filePath)) return { title: '', status: 'IN_PROGRESS', objective: '', lastAction: '', confirm: false, journal: [], stateRaw: '', waitingType: null };
+export function parseStateMd(taskDir: string): { title: string; status: TaskStatus; objective: string; lastAction: string; journal: JournalEntry[]; stateRaw: string; waitingFor?: string; waitingType: 'user' | 'tiers' | null } {
+  const filePath = path.join(taskDir, 'state.md');
+  if (!fs.existsSync(filePath)) return { title: '', status: 'IN_PROGRESS', objective: '', lastAction: '', journal: [], stateRaw: '', waitingType: null };
 
   const content = fs.readFileSync(filePath, 'utf-8');
   const title = content.match(/^# (.+)$/m)?.[1]?.trim() ?? '';
   const statusMatch = content.match(/(?:STATUT|STATUS)\s*:\s*(.+)$/m)?.[1]?.trim();
-  const status: JobStatus = statusMatch ? normalizeStatus(statusMatch) : 'IN_PROGRESS';
+  const status: TaskStatus = statusMatch ? normalizeStatus(statusMatch) : 'IN_PROGRESS';
   const objective = content.match(/## (?:Objectif|Objective)\n(.+)/)?.[1]?.trim() ?? '';
   const lastActionMatch = content.match(/- (\d{4}-\d{2}-\d{2})/g);
   const lastAction = lastActionMatch ? lastActionMatch[lastActionMatch.length - 1].replace('- ', '') : '';
-  const confirm = /MODE\s*:\s*CONFIRM/m.test(content);
-
   // Parse journal entries
   const journalSection = content.match(/## (?:Journal|Log)\n([\s\S]*?)(?=\n## |\n*$)/)?.[1] ?? '';
   const journal = journalSection
@@ -60,15 +56,15 @@ export function parseStateMd(jobDir: string): { title: string; status: JobStatus
     }
   }
 
-  if (content.length > 50 && !title) console.warn(`[state] ${jobDir}: no title found in non-empty state.md`);
-  if (content.length > 50 && !statusMatch) console.warn(`[state] ${jobDir}: no STATUS found in non-empty state.md`);
-  if (content.length > 50 && !objective) console.warn(`[state] ${jobDir}: no objective found in non-empty state.md`);
+  if (content.length > 50 && !title) console.warn(`[state] ${taskDir}: no title found in non-empty state.md`);
+  if (content.length > 50 && !statusMatch) console.warn(`[state] ${taskDir}: no STATUS found in non-empty state.md`);
+  if (content.length > 50 && !objective) console.warn(`[state] ${taskDir}: no objective found in non-empty state.md`);
 
-  return { title, status, objective, lastAction, confirm, journal, stateRaw: content, waitingFor, waitingType };
+  return { title, status, objective, lastAction, journal, stateRaw: content, waitingFor, waitingType };
 }
 
-export function setStatus(jobDir: string, newStatus: JobStatus): void {
-  const filePath = path.join(jobDir, 'state.md');
+export function setStatus(taskDir: string, newStatus: TaskStatus): void {
+  const filePath = path.join(taskDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, 'utf-8');
   const updated = content.match(/(?:STATUT|STATUS)\s*:\s*.+$/m)
@@ -77,8 +73,8 @@ export function setStatus(jobDir: string, newStatus: JobStatus): void {
   fs.writeFileSync(filePath, updated);
 }
 
-export function setWaitingType(jobDir: string, type: 'user' | 'tiers'): void {
-  const filePath = path.join(jobDir, 'state.md');
+export function setWaitingType(taskDir: string, type: 'user' | 'tiers'): void {
+  const filePath = path.join(taskDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   let content = fs.readFileSync(filePath, 'utf-8');
   const tag = `ATTENTE: ${type.toUpperCase()}`;
@@ -101,8 +97,8 @@ export function setWaitingType(jobDir: string, type: 'user' | 'tiers'): void {
   fs.writeFileSync(filePath, content);
 }
 
-export function clearWaitingFor(jobDir: string): void {
-  const filePath = path.join(jobDir, 'state.md');
+export function clearWaitingFor(taskDir: string): void {
+  const filePath = path.join(taskDir, 'state.md');
   if (!fs.existsSync(filePath)) return;
   const content = fs.readFileSync(filePath, 'utf-8');
   const cleaned = content.replace(/\n## (?:En attente|Waiting)\n[\s\S]*?(?=\n## |\n*$)/, '');
@@ -111,21 +107,21 @@ export function clearWaitingFor(jobDir: string): void {
   }
 }
 
-export function listJobIds(workspaceDir: string): string[] {
+export function listTaskIds(workspaceDir: string): string[] {
   return fs.readdirSync(workspaceDir)
     .filter(f => !f.startsWith('_') && !f.startsWith('.'))
     .filter(f => fs.statSync(path.join(workspaceDir, f)).isDirectory())
     .filter(f => fs.existsSync(path.join(workspaceDir, f, 'state.md')));
 }
 
-export function resolveJobDir(workspaceDir: string, id: string): string {
+export function resolveTaskDir(workspaceDir: string, id: string): string {
   return path.join(workspaceDir, id);
 }
 
-export function getJob(workspaceDir: string, id: string): Job {
-  const jobDir = resolveJobDir(workspaceDir, id);
-  const state = parseStateMd(jobDir);
-  const artifactsDir = path.join(jobDir, 'artifacts');
+export function getTask(workspaceDir: string, id: string): Task {
+  const taskDir = resolveTaskDir(workspaceDir, id);
+  const state = parseStateMd(taskDir);
+  const artifactsDir = path.join(taskDir, 'artifacts');
   const artifacts = fs.existsSync(artifactsDir) ? fs.readdirSync(artifactsDir) : [];
 
   return {

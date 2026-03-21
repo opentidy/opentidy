@@ -120,14 +120,14 @@ finite. You cannot feed it the state of all tasks plus all emails plus all messa
 Even if it fits, quality degrades when context is overloaded (degradation accelerates
 after 75% utilization — per Google ADK research).
 
-### The Solution: Focused Sessions per Job
+### The Solution: Focused Sessions per Task
 
 No specialized agents by domain. A single type of agent: a Claude Code instance
-loaded with the right context for a specific job.
+loaded with the right context for a specific task.
 
-- Claude works on "invoice tracking" — loaded with: job state, relevant contacts, Gmail access.
+- Claude works on "invoice tracking" — loaded with: task state, relevant contacts, Gmail access.
 - Claude responds to an accountant — loaded with: the email, relevant documents.
-- Claude fills an insurance report — loaded with: job state, credentials, browser.
+- Claude fills an insurance report — loaded with: task state, credentials, browser.
 
 The same Claude, just different contexts. When it finishes, it saves its state and
 terminates. Clean session each time.
@@ -149,9 +149,9 @@ terminates. Clean session each time.
 │                          WEB APP                                   │
 │                                                                    │
 │  Primary user interface:                                           │
-│  - Active jobs + status                                             │
+│  - Active tasks + status                                             │
 │  - Approve/reject actions (previews with context)                  │
-│  - Give instructions / create jobs                                 │
+│  - Give instructions / create tasks                                 │
 │  - Debug (logs, history, sessions)                                 │
 │  - MFA/captcha intervention                                        │
 │                                                                    │
@@ -167,7 +167,7 @@ terminates. Clean session each time.
 │  │          │  │          │  │           │                        │
 │  │ Webhooks │  │ Launches │  │ Reads/    │                        │
 │  │ Crons    │  │ Claude   │  │ writes    │                        │
-│  │ Web app  │  │ tmux     │  │ jobs      │                        │
+│  │ Web app  │  │ tmux     │  │ tasks      │                        │
 │  └────┬─────┘  └────┬─────┘  └─────┬─────┘                        │
 │       │              │              │                               │
 │  ┌────┴──────────────┴──────────────┴──────┐                       │
@@ -262,33 +262,33 @@ Receives everything that can trigger work and transforms it into a uniform event
 One `claude -p` call per event. The backend passes the **complete content of each
 state.md** in the prompt — Claude sees the objective, the journal, and especially
 the `## Waiting for` sections (resume criteria), enabling much more precise
-matching between an incoming event and the right job.
+matching between an incoming event and the right task.
 
 ```
 claude -p --system-prompt "Triage mode. Respond in JSON only." \
-  "Active jobs (full content of each state.md):\n\n--- invoices-2025 ---\n# Invoices 2025\nSTATUS: IN PROGRESS\n## Waiting for\nEmail sent to billing@vendor.com...\n\n---\n\nEvent:\nEmail from billing@vendor.com: March invoice"
+  "Active tasks (full content of each state.md):\n\n--- invoices-2025 ---\n# Invoices 2025\nSTATUS: IN PROGRESS\n## Waiting for\nEmail sent to billing@vendor.com...\n\n---\n\nEvent:\nEmail from billing@vendor.com: March invoice"
 ```
 
 Expected JSON response (3 cases):
 ```json
-{ "jobIds": ["invoices-2025"] }
+{ "taskIds": ["invoices-2025"] }
 { "suggestion": { "title": "...", "urgency": "normal", "source": "gmail", "why": "..." } }
 { "ignore": true, "reason": "marketing spam" }
 ```
 
 Notes:
-- `jobIds` is an array — an event can concern multiple jobs
-- If the job is already locked, the event is added to the job's CLAUDE.md
+- `taskIds` is an array — an event can concern multiple tasks
+- If the task is already locked, the event is added to the task's CLAUDE.md
   ("Pending events" section) for processing at the next launch/resume
 - No batching — one triage per event, dedup eliminates duplicates upstream
 - Rate limits: if `claude -p` is rate-limited (429), exponential backoff
 
-**Fundamental rule: Claude never creates a job itself.** Only the user can
-create a job (via the web app) or approve a suggestion from Claude.
+**Fundamental rule: Claude never creates a task itself.** Only the user can
+create a task (via the web app) or approve a suggestion from Claude.
 
-### 5.2 WORKSPACE — Job State
+### 5.2 WORKSPACE — Task State
 
-Each active job has a directory in `workspace/` with markdown files.
+Each active task has a directory in `workspace/` with markdown files.
 No database for state — human-readable files that Claude can also read.
 
 ```
@@ -303,9 +303,9 @@ workspace/
 │   └── artifacts/
 │
 ├── _inbox/
-│   └── events.md         # events not yet attached to a job
+│   └── events.md         # events not yet attached to a task
 │
-├── _suggestions/         # jobs suggested by Claude, pending user approval
+├── _suggestions/         # tasks suggested by Claude, pending user approval
 │   ├── tax-follow-up.md
 │   └── missing-timesheet-june.md
 │
@@ -318,7 +318,7 @@ workspace/
 
 #### The state.md File (Heart of the System)
 
-This is Claude's memory for a job. It contains everything Claude needs to
+This is Claude's memory for a task. It contains everything Claude needs to
 resume work in a new session.
 
 ```markdown
@@ -363,16 +363,16 @@ user intervention.
 
 **Role in the system:**
 - **Triage**: the prompt receives the full state.md — the `## Waiting for` section
-  helps Claude match an incoming event with the right job (e.g., "this job is
+  helps Claude match an incoming event with the right task (e.g., "this task is
   waiting for an email from contact@example.com" + an email arrives from that
   contact → match)
-- **Checkup**: the prompt knows that a job with `## Waiting for` should not be
+- **Checkup**: the prompt knows that a task with `## Waiting for` should not be
   relaunched unless a follow-up date is mentioned and has passed
 - **Launcher**: when a session is relaunched (event or checkup), the backend
   automatically clears the `## Waiting for` section in state.md before launching
   Claude
-- **UI**: the first line of the section is displayed on the job card in the web
-  app, so the user can see at a glance what a job is waiting for
+- **UI**: the first line of the section is displayed on the task card in the web
+  app, so the user can see at a glance what a task is waiting for
 
 Claude has one single responsibility: write the section when it leaves. The cleanup
 on return is handled by the backend, not by Claude.
@@ -434,8 +434,8 @@ Level 1 — `workspace/CLAUDE.md` (global, written once, shared by all sessions)
 - Available tools (Gmail MCP, Camoufox, Bitwarden, etc.)
 - Security rules (do not retry if a hook refuses)
 
-Level 2 — `workspace/<job>/CLAUDE.md` (generated by backend at each launch):
-- Job objective
+Level 2 — `workspace/<task>/CLAUDE.md` (generated by backend at each launch):
+- Task objective
 - Confirm mode (yes/no)
 - Triggering event or instruction
 - Relevant contacts (pre-fetched from macOS Contacts)
@@ -448,14 +448,14 @@ across `--resume`. No need to re-pass context via CLI.
 # Node.js child process (spawn)
 claude -p --output-format stream-json --verbose --dangerously-skip-permissions \
   [--plugin-dir plugins/opentidy-hooks] [--resume <session-id>] "<instruction>"
-# cwd = workspace/<job-id>/
+# cwd = workspace/<task-id>/
 ```
-The instruction/event is passed as a CLI argument. The job's CLAUDE.md provides context.
+The instruction/event is passed as a CLI argument. The task's CLAUDE.md provides context.
 
 **Interactive command (tmux, "Take over" only)**:
 ```
-tmux new-session -d -s opentidy-<job-id> \
-  "cd workspace/<job-id> && claude --dangerously-skip-permissions --resume <session-id>"
+tmux new-session -d -s opentidy-<task-id> \
+  "cd workspace/<task-id> && claude --dangerously-skip-permissions --resume <session-id>"
 ```
 
 **For sweep and triage** (`claude -p`, one-shot, no resume):
@@ -465,19 +465,19 @@ claude -p --system-prompt "Triage mode." "Event: email from accountant@firm.com.
 ```
 No dedicated CLAUDE.md — `--system-prompt` suffices for one-shot calls.
 
-**Parallelism**: multiple child processes at the same time, each on a different job.
-Per-job locks (PID, `/tmp/opentidy-locks/`) prevent two sessions from working on the
-same job.
+**Parallelism**: multiple child processes at the same time, each on a different task.
+Per-task locks (PID, `/tmp/opentidy-locks/`) prevent two sessions from working on the
+same task.
 
 **Claude sessions**:
 - **`--dangerously-skip-permissions`** on all sessions — disables Claude Code's
   built-in permission prompts. Security is ensured by PreToolUse hooks (guardrails),
   not by the built-in permission system. Hooks fire BEFORE the permission check,
   so they remain active.
-- PID lock per job in `/tmp/opentidy-locks/`
+- PID lock per task in `/tmp/opentidy-locks/`
 - Crash recovery: reconciles tmux survivors (interactive) + relaunches orphaned
-  IN PROGRESS jobs (autonomous)
-- Session ID persisted in `workspace/<job>/.session-id` for resume
+  IN PROGRESS tasks (autonomous)
+- Session ID persisted in `workspace/<task>/.session-id` for resume
 
 **Browser: Camoufox** (not Chrome/Playwright). Each session has its own Camoufox
 instance with an isolated profile. Advantages:
@@ -505,15 +505,15 @@ only if the transcript is substantial.
 in the app. In autonomous mode, process exit triggers state verification (COMPLETED,
 BLOCKED, checkpoint).
 
-### 5.4 GUARDRAILS — PreToolUse Hooks
+### 5.4 PERMISSIONS — Unified Module-Agnostic System
 
-This is the most critical component. Claude has access to everything: emails, banking,
+This is the most critical component. The agent has access to everything: emails, banking,
 invoices, browser. A mistake has real consequences.
 
 #### The Fundamental Problem
 
-The most dangerous case: Claude is CONFIDENT but WRONG. It will not trigger its own
-guardrails because it thinks everything is fine.
+The most dangerous case: the agent is CONFIDENT but WRONG. It will not trigger its own
+safeguards because it thinks everything is fine.
 
 Key stats:
 - If an agent has 85% accuracy per action, a 10-step workflow succeeds only 20% of
@@ -521,106 +521,186 @@ Key stats:
 - CMU 2025: LLMs remain confident even when they are wrong
 - RLHF worsens the problem (49.71% accuracy with 39.25% calibration error)
 
-#### The Solution: PreToolUse Hooks `type: "prompt"`
+**You cannot rely on the AI to police itself.** The permission system is deterministic,
+human-controlled, and module-agnostic.
 
-Claude Code has **PreToolUse hooks** — code that runs automatically, on the SYSTEM
-side, before every tool call. This is NOT an instruction to Claude. Claude does not
-call them, cannot skip them, does not even know they exist.
+#### Design Principles
 
-```
-Claude decides: "I'll send this email"
-    ↓
-Claude calls the tool: gmail.send(...)
-    ↓
-AUTOMATICALLY, BEFORE execution:
-    → the PreToolUse hook fires
-    → mini-Claude evaluates the action (separate context, not the same session)
-    → decision: ALLOW / DENY / ASK
-    ↓
-If ALLOW → the action executes
-If DENY  → Claude receives "action denied: [reason]"
-If ASK   → the user is notified and must approve
-```
+1. **Module-agnostic** — the core knows nothing about specific modules. Each module
+   declares its own tool risk levels in its manifest. A new module works immediately.
+2. **Human decides, not AI** — no mini-Claude gatekeeper. The system either lets the
+   action through or asks the human. Zero AI overhead for permissions.
+3. **Minimal interruption** — only critical tools trigger confirmation. Safe tools
+   (reads, navigation, local ops) always pass through silently.
+4. **Per-module granularity** — the user sets trust level per module, not globally.
 
-The `type: "prompt"` hook is a mini-Claude verifier BUILT INTO the hooks system.
-Its own separate context. This is NOT the same session verifying itself.
+#### Module Permission Manifest
 
-#### Centralized Hook Configuration
+Each module declares which of its tools are `safe` (no side effects, always allowed)
+and which are `critical` (has real-world consequences, subject to user's chosen level).
 
-**2 types of hooks, 2 distinct roles**:
-- `type: "prompt"` → **Guardrails** (mini-Claude evaluates ALLOW/DENY). Blocking.
-- `type: "command"` → **Detection + audit** (notifies the backend). Non-blocking.
-
-Both coexist on the same matcher (parallel execution).
+The `scope` field tells the system whether critical tools need confirmation every time
+(`per-call` — each action is distinct) or just once per task (`per-task` — the action is
+continuous, like browsing a website).
 
 ```json
 {
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft",
-        "hooks": [
-          { "type": "prompt", "prompt": "Verify this email send. Rules: never make a payment without approval, verify amount and recipient consistency, flag any anomaly.", "timeout": 30 },
-          { "type": "command", "command": "curl -s -X POST http://localhost:3001/api/hooks -d @-" }
-        ]
-      },
-      {
-        "matcher": "mcp__camofox__click|mcp__camofox__fill_form|mcp__camofox__camofox_evaluate_js",
-        "hooks": [
-          { "type": "prompt", "prompt": "Verify this click/form. If it is a payment button, financial submission, or irreversible confirmation, DENY. Otherwise ALLOW.", "timeout": 10 },
-          { "type": "command", "command": "curl -s -X POST http://localhost:3001/api/hooks -d @-" }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "mcp__gmail__|mcp__camofox__",
-        "hooks": [
-          { "type": "command", "command": "curl -s -X POST http://localhost:3001/api/hooks -d @-" }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "idle_prompt",
-        "hooks": [
-          { "type": "command", "command": "curl -s -X POST http://localhost:3001/api/hooks -d @-" }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      { "type": "command", "command": "curl -s -X POST http://localhost:3001/api/hooks -d @-" }
-    ]
+  "name": "gmail",
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": ["mcp__gmail__search", "mcp__gmail__read_message", "mcp__gmail__list_labels"],
+    "critical": ["mcp__gmail__send", "mcp__gmail__reply", "mcp__gmail__draft"]
   }
 }
 ```
 
-#### Hook Coverage
+```json
+{
+  "name": "camofox",
+  "toolPermissions": {
+    "scope": "per-task",
+    "safe": ["mcp__camofox__navigate", "mcp__camofox__snapshot", "mcp__camofox__get_links"],
+    "critical": ["mcp__camofox__click", "mcp__camofox__fill_form", "mcp__camofox__camofox_evaluate_js"]
+  }
+}
+```
 
-| Tool | Hook? | Timeout | Justification |
-|---|---|---|---|
-| Gmail send/reply/draft | Yes (prompt) | 30s | Irreversible external actions |
-| Camoufox click/fill_form | Yes (prompt) | 10s | Can trigger payments/submissions |
-| Camoufox evaluate/run_code | Yes (prompt) | 10s | Arbitrary JS execution |
-| Bash (network patterns) | Yes (command) | 10s | curl POST, ssh, scp = external actions |
-| Gmail search/read | No | — | Read-only, zero risk |
-| Camoufox navigate/snapshot | No | — | Navigation/reading, zero risk |
-| Read/Grep/Glob/Write internal | No | — | Local operations, zero risk |
+**Modules without a `toolPermissions` field**: all tools default to `critical` with
+scope `per-call` (fail-safe — unknown tools require confirmation).
 
-#### The 4 DNA Rules
+Note: the field is named `toolPermissions` (not `permissions`) to avoid collision
+with the existing `permissions` field on `ModuleManifest` which holds macOS
+permission requirements (`MacPermission[]`).
 
-1. **Every irreversible action → human** (hook ASK)
-2. **Every external action → verified before execution** (hook ALLOW/DENY)
-3. **Every detected anomaly → reported** (hook + notification)
-4. **Everything is logged → repairable after the fact** (PostToolUse audit trail)
+#### Three Permission Levels
+
+The user chooses one level per module:
+
+| Level | Behavior | User presence required |
+|-------|----------|----------------------|
+| **`allow`** | Execute immediately, audit log only | No |
+| **`confirm`** | Notification + wait for user response (indefinitely) | No (just their phone) |
+| **`ask`** | Native agent CLI prompt in the terminal | Yes (web terminal) |
+
+For all levels, `safe` tools always pass through. Only `critical` tools are subject
+to the chosen level.
+
+#### Presets
+
+Three presets pre-fill the level for all modules. The user can override per module.
+
+| Preset | Default level | Philosophy |
+|--------|--------------|------------|
+| **Supervised** | `ask` | User validates everything from the web terminal |
+| **Autonomous** | `confirm` | Agent works freely, pings user for critical actions |
+| **Full auto** | `allow` | Agent does everything, user reviews audit log after |
+
+#### User Configuration
+
+```json
+{
+  "permissions": {
+    "preset": "autonomous",
+    "defaultLevel": "confirm",
+    "modules": {
+      "gmail": "confirm",
+      "camofox": "allow",
+      "whatsapp": "confirm"
+    }
+  }
+}
+```
+
+A newly enabled module inherits `defaultLevel`. The user can override it in settings.
+
+#### How It Works — Implementation
+
+**No `--dangerously-skip-permissions`.** The system uses `--allowedTools` and
+PreToolUse hooks instead.
+
+At session launch, the backend:
+
+1. Reads the permission config + manifests of all enabled modules
+2. Builds the `allowedTools` list: all `safe` tools + all `allow`-level critical tools
+   + all `confirm`-level critical tools (they pass through Claude's permission system,
+   but the hook intercepts them)
+3. Tools with level `ask` are NOT in `allowedTools` → the agent CLI prompts natively
+4. Generates ONE PreToolUse hook (`type: "command"`) with a matcher covering all
+   `confirm`-level critical tools → calls `POST /api/permissions/check`
+5. All tools get a PostToolUse audit hook (non-blocking)
+
+#### Confirm Flow — per-call scope
+
+```
+Agent calls: gmail.send(to: "client@acme.com", subject: "Invoice reminder")
+  → PreToolUse hook fires
+  → POST /api/permissions/check with tool_name + tool_input
+  → Backend calls AI one-shot to summarize the action in one human sentence
+  → Notification sent (via configured channel — Telegram, web push, etc.):
+    "📧 Task 'Invoice follow-up' wants to send an email
+     To: client@acme.com — Subject: Invoice reminder
+     [✅ Approve] [❌ Deny]"
+  → Agent process waits (indefinitely — isolated tmux, blocks nothing else)
+  → User taps Approve
+  → Backend responds → hook exits 0
+  → Email sent
+```
+
+#### Confirm Flow — per-task scope
+
+```
+Agent calls: camofox.click("Search")
+  → PreToolUse hook fires
+  → POST /api/permissions/check with tool_name + tool_input + task_id
+  → Backend checks: "camofox authorized for task-456?" → No
+  → AI one-shot summarizes: "Navigate and interact on booking.com"
+  → Notification: "🌐 Task 'Compare Lyon hotels' wants to use the browser
+     [✅ Approve] [❌ Deny]"
+  → User taps Approve
+  → Backend stores: camofox ✓ for task-456
+  → hook exits 0
+
+...later in the same task...
+
+Agent calls: camofox.click("Next page")
+  → PreToolUse hook fires
+  → POST /api/permissions/check
+  → Backend checks: "camofox authorized for task-456?" → Yes
+  → hook exits 0 immediately, no notification
+```
+
+#### Audit Trail
+
+All tool calls (safe and critical, all levels) are logged via PostToolUse hooks.
+The audit log records: tool name, parameters, task ID, session ID, timestamp,
+and permission decision (auto-allowed / user-approved / user-denied).
+
+#### What This Replaces
+
+- **`--dangerously-skip-permissions`** — no longer used. Replaced by `--allowedTools`.
+- **`type: "prompt"` hooks (mini-Claude verifier)** — removed. No AI-on-AI gatekeeping,
+  no hidden token cost. The AI only summarizes actions for human-readable notifications.
+- **Hardcoded guardrails.json** — replaced by module manifests. Each module declares its
+  own risk levels. The core generates hooks dynamically at session launch.
+
+#### What Remains
+
+- **PostToolUse audit hooks** — unchanged, non-blocking
+- **Stop / SessionEnd hooks** — unchanged, lifecycle tracking
+- **Notification hooks** — unchanged, idle detection
 
 #### Honest Limitations
 
-1. The mini-Claude can also be wrong — but two independent Claudes making the same mistake is less likely
-2. The browser remains the weakest point — the `element` field helps a lot but "Submit" does not always say what is being submitted
-3. Browser slowdown — 10s per significant click. Acceptable (principle #1)
-4. Prompt hooks use Claude context — to be monitored
-5. Unanticipated cases — no system covers 100%. The ultimate safety net is the audit trail + repairability
+1. **AI summarizes, doesn't decide** — the one-shot summary for notifications costs
+   tokens, but only for `confirm`-level critical tools (not safe tools, not `allow` tools)
+2. **per-task scope trades granularity for usability** — once the user approves browser
+   for a task, all browser actions pass. If the agent navigates to an unexpected site,
+   the audit trail catches it after the fact.
+3. **`ask` mode requires presence** — only works if the user is watching the web
+   terminal. For autonomous sessions, `confirm` or `allow` are the practical choices.
+4. **Module manifest trust** — the system trusts modules to correctly categorize their
+   tools. A module that marks a dangerous tool as `safe` bypasses confirmation.
+5. **No system covers 100%** — the ultimate safety net is the audit trail + repairability.
 
 ### 5.5 WEB APP — Primary User Interface
 
@@ -630,15 +710,15 @@ The web app is the primary interface for the user.
 
 | View | Route | Content |
 |---|---|---|
-| Home | `/` | Active jobs + status, pending actions, suggestions, active sessions, recent activity |
-| Jobs | `/jobs` | List with Active/Completed/Blocked filters, search |
-| Job | `/job/:id` | Rendered state.md, checkpoint summary, sidebar (session, files, history), instruction bar |
+| Home | `/` | Active tasks + status, pending actions, suggestions, active sessions, recent activity |
+| Tasks | `/tasks` | List with Active/Completed/Blocked filters, search |
+| Task | `/task/:id` | Rendered state.md, checkpoint summary, sidebar (session, files, history), instruction bar |
 | Terminal | `/terminal` | Tmux sessions (interactive mode) — direct interaction with Claude |
-| New | `/new` | Create a job + recommendations below |
+| New | `/new` | Create a task + recommendations below |
 | Improvements | `/improvements` | Limitations detected by the assistant, improvement backlog |
 
 **Checkpoints**: when Claude writes a checkpoint.md, the web app displays a short
-summary (1-2 lines) on the job page and on the Home, with an "Open terminal" button.
+summary (1-2 lines) on the task page and on the Home, with an "Open terminal" button.
 The user opens the terminal, reads the detail, and responds directly in the conversation.
 No dedicated checkpoint pages, no action buttons in the UI (the terminal is the right
 place for that).
@@ -675,12 +755,12 @@ page, recent activity on the dashboard with a "View full logs" link.
 
 ### 5.8 SUGGESTIONS — Claude Proposes, User Decides
 
-Claude cannot create jobs. It creates suggestions in `workspace/_suggestions/`.
+Claude cannot create tasks. It creates suggestions in `workspace/_suggestions/`.
 
 **Sources**:
-- Incoming event with no matching existing job
+- Incoming event with no matching existing task
 - Sweep observation (deadline, follow-up)
-- Opportunistic discovery while working on another job
+- Opportunistic discovery while working on another task
 
 **Format** (`workspace/_suggestions/<slug>.md`):
 
@@ -695,15 +775,15 @@ DATE: 2026-03-14
 Tax authority email received 2 weeks ago, no response.
 
 ## Why
-Tax deadline end of March. No existing job for tracking.
+Tax deadline end of March. No existing task for tracking.
 
 ## What I would do
-Create a job, analyze the email, prepare the requested documents.
+Create a task, analyze the email, prepare the requested documents.
 ```
 
 **Urgency levels**: `urgent` (near deadline), `normal` (handle when possible), `low` (opportunity).
 
-**In the web app**: dedicated section on the Home. Two actions: "Create Job" or "Ignore".
+**In the web app**: dedicated section on the Home. Two actions: "Create Task" or "Ignore".
 Urgency indicated visually by a colored left border. Urgent ones trigger a Telegram notification.
 
 ---
@@ -718,7 +798,7 @@ Urgency indicated visually by a colored left border. Urgent ones trigger a Teleg
 3. LAUNCHER launches Claude (autonomous child process) with the event
 4. Claude:
    a. Reads the email (Gmail MCP)
-   b. Scans workspace/ jobs → matches "accountant-request"
+   b. Scans workspace/ tasks → matches "accountant-request"
    c. Reads workspace/accountant-request/state.md
    d. Prepares the response with supporting documents
    e. Calls gmail.reply(...)
@@ -737,9 +817,9 @@ Urgency indicated visually by a colored left border. Urgent ones trigger a Teleg
 1. Periodic cron → LAUNCHER launches Claude sweep (claude -p)
 2. Claude sweep:
    a. Scans workspace/*/state.md
-   b. Identifies jobs that need action
+   b. Identifies tasks that need action
    c. Creates suggestions if needed
-   d. Returns the list of jobs to launch
+   d. Returns the list of tasks to launch
 3. Backend parses → launches focused autonomous sessions
 4. Each session works independently
 5. NOTIFICATION → relevant results
@@ -808,7 +888,7 @@ After each process exit in autonomous mode, `handleAutonomousExit()`:
 
 ### Resuming a Session
 
-`claude --resume <session-id>` (stored in `workspace/<job>/.session-id`).
+`claude --resume <session-id>` (stored in `workspace/<task>/.session-id`).
 The session_id is captured from the `result` event of the NDJSON stream in
 autonomous mode.
 
@@ -818,7 +898,7 @@ At startup, the backend reconciles in two passes:
 
 1. **Tmux sessions (interactive)**: `tmux list-sessions` → filter `opentidy-*` →
    rebuild sessions with mode `interactive`
-2. **Orphaned jobs (autonomous)**: scan `workspace/*/state.md` → relaunch those
+2. **Orphaned tasks (autonomous)**: scan `workspace/*/state.md` → relaunch those
    that are IN PROGRESS and not waiting
 3. Cleanup stale locks via `cleanupStaleLocks()`
 
@@ -833,11 +913,11 @@ setInterval(sweep, SWEEP_INTERVAL_MS)  // default: 1h, configurable via env var
 
 sweep():
   claude -p \
-    --system-prompt "Checkup mode. Analyze workspace/. If a job has a
+    --system-prompt "Checkup mode. Analyze workspace/. If a task has a
     '## Waiting for' section, do NOT relaunch it unless a follow-up date is
     mentioned and has passed. Respond in JSON: { launch: [...], suggestions: [...] }" \
     --allowedTools "Read,Glob,Grep,Write" \
-    "Read workspace/*/state.md. For each active job, tell me if an action is
+    "Read workspace/*/state.md. For each active task, tell me if an action is
     needed (deadline, follow-up, work to advance).
     Create suggestions in _suggestions/ if needed."
   → backend parses the JSON → launches focused autonomous sessions
@@ -847,7 +927,7 @@ sweep():
 `--system-prompt` instead of CLAUDE.md (no resume, no persistence needed).
 `--allowedTools` restricts to reading + Write (to create suggestions).
 
-**Note**: `claude -p` is now also the primary execution mode for job sessions
+**Note**: `claude -p` is now also the primary execution mode for task sessions
 (with `--output-format stream-json`). The sweep/triage remain distinct one-shots
 because they have no CLAUDE.md context nor resume.
 
@@ -859,7 +939,7 @@ because they have no CLAUDE.md context nor resume.
 |---|---|---|---|
 | Tmux session for sweep | Consistent with the rest | More indirect, intermediate file | **Rejected** |
 | Pure backend with structured metadata | Zero Claude sessions | Fragile — Claude does not always write metadata correctly, optimizes something unnecessary (Claude Max unlimited) | **Rejected** |
-| Hybrid (2 separate jobs) | Separation of concerns | Same issues as metadata + added complexity | **Rejected** |
+| Hybrid (2 separate tasks) | Separation of concerns | Same issues as metadata + added complexity | **Rejected** |
 
 ---
 
@@ -941,7 +1021,7 @@ with MDM.
 2. Launcher — launches autonomous sessions (`claude -p` child process), interactive mode (tmux), manages locks
 3. Hook handler — centralized endpoint `/api/hooks`, audit + SSE (lifecycle managed by process exit in autonomous)
 4. State manager — reads workspace/ files (state.md, suggestions, gaps)
-5. API — routes for the web app (jobs, suggestions, sessions, files)
+5. API — routes for the web app (tasks, suggestions, sessions, files)
 6. SSE — real-time events to the web app
 7. Notifications — Telegram push via grammY
 8. Infrastructure — event dedup, locks, retry/backoff, crash recovery, audit trail
@@ -987,7 +1067,7 @@ with MDM.
 ### 9.7 Shared Packages (`packages/shared/`)
 
 Types and schemas shared between backend and frontend:
-- Job types (status, metadata)
+- Task types (status, metadata)
 - Suggestion types (urgency, source)
 - SSE event types
 - Zod schemas for API validation
@@ -1031,6 +1111,17 @@ An agent must support ALL of: headless mode, structured output, session resume, 
 
 ## 10. Hooks — Technical Reference
 
+### Hook Architecture
+
+OpenTidy uses two types of hooks:
+
+1. **Permission hook** (PreToolUse, `type: "command"`) — a single generic hook that
+   calls `POST /api/permissions/check`. The backend decides based on the module manifest
+   and user config. Blocking (waits for response).
+2. **Audit hook** (PostToolUse, `type: "command"`) — logs every tool call to the audit
+   trail. Non-blocking.
+3. **Lifecycle hooks** (Stop, SessionEnd, Notification) — unchanged from previous design.
+
 ### What the Hook Receives (stdin JSON)
 
 ```json
@@ -1038,7 +1129,6 @@ An agent must support ALL of: headless mode, structured output, session resume, 
   "session_id": "abc123",
   "transcript_path": "/path/to/transcript.jsonl",
   "cwd": "/current/working/dir",
-  "permission_mode": "ask",
   "hook_event_name": "PreToolUse",
   "tool_name": "mcp__gmail__send",
   "tool_use_id": "toolu_xxx",
@@ -1074,7 +1164,61 @@ Key points:
 }
 ```
 
-- `updatedInput` → can MODIFY the tool parameters before execution
+### Permission Check Flow
+
+The single PreToolUse hook calls the backend:
+```bash
+curl -s -X POST http://localhost:${OPENTIDY_PORT}/api/permissions/check -d @-
+```
+
+The backend:
+1. Extracts `tool_name` and `task_id` from the payload
+2. Looks up the module manifest → is this tool `safe` or `critical`?
+3. If `safe` → exit 0 (always allow)
+4. If `critical` → checks the user's level for this module:
+   - `allow` → exit 0
+   - `confirm` → checks scope:
+     - `per-task` + already granted → exit 0
+     - `per-task` + not yet granted → AI summary → notification → wait → exit 0 or 2
+     - `per-call` → AI summary → notification → wait → exit 0 or 2
+   - `ask` → exit 2 with reason (forces agent CLI to prompt in terminal)
+
+### Generated hooks.json
+
+At session launch, the backend generates a single hooks.json:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "<regex of all confirm-level critical tools>",
+        "hooks": [
+          { "type": "command", "command": "curl -s -X POST http://localhost:5175/api/permissions/check -d @-", "timeout": 0 }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "curl -s -X POST http://localhost:5175/api/hooks -d @-" }
+        ]
+      }
+    ],
+    "Stop": [
+      { "type": "command", "command": "..." }
+    ],
+    "SessionEnd": [
+      { "type": "command", "command": "curl -s -X POST http://localhost:5175/api/hooks -d @-" }
+    ]
+  }
+}
+```
+
+Note: `timeout: 0` on the permission hook means no timeout — the hook waits
+indefinitely for user response. Each task runs in its own isolated tmux process,
+so a waiting hook blocks nothing else.
 
 ### Matchers (Tool Selection)
 
@@ -1086,23 +1230,11 @@ Support regex, case-sensitive:
 "*"                                       → everything
 ```
 
-### Playwright/Camoufox Tools and Risks
-
-| Tool | Key Parameters | Risk |
-|---|---|---|
-| `browser_navigate` | `url` | Low |
-| `browser_click` | `ref`, `element` (description) | Variable |
-| `browser_type` | `ref`, `text`, `submit` | Medium |
-| `browser_fill_form` | `fields[]` | Medium-high |
-| `browser_evaluate` | `function` (JS code) | High |
-| `browser_snapshot` | `filename` | None |
-
 ### Constraints
 
-- Timeout: 60s default, 600s max
-- Hooks loaded at startup: changes require restart
+- Timeout: 0 for permission hooks (indefinite wait), 60s for audit hooks
+- Hooks loaded at startup: changes require session restart
 - Parallel hooks if multiple on the same matcher
-- No recursion: `type: "prompt"` is native and immune
 
 ---
 
@@ -1113,7 +1245,7 @@ Support regex, case-sensitive:
 | A — Coded workflows | Predefined steps with checkpoints | Checkpoint concept | Coded steps = rigid. Claude adapts dynamically. |
 | B — YAML rules | Routing by pattern matching | — | Breaks as soon as reality is nuanced. |
 | C — Single agent | One Claude, one virtual desk | Virtual desk as files | Single context = bottleneck. No parallelism. |
-| D — Multi-agent by domain | Accounting/admin/social agents | Isolated parallelism | Claude is already a generalist. Granularity = job, not domain. |
+| D — Multi-agent by domain | Accounting/admin/social agents | Isolated parallelism | Claude is already a generalist. Granularity = task, not domain. |
 | E — Skills only | Everything in skills, 50-line backend | Intelligence in prompts | We need plumbing. "50 lines" is unrealistic. |
 | F — Pure stateless | Each event = fresh session | Fresh sessions = robust | Cold-start overhead. Lost browser state. |
 | G — Hybrid | Stateless by default, stateful if needed | Pragmatic compromise | Integrated into final architecture (autonomous = child process, interactive = tmux). |
@@ -1122,8 +1254,10 @@ Support regex, case-sensitive:
 **Other rejected decisions**:
 - **Claude API / Agent SDK**: too expensive, no existing ecosystem
 - **Specialized agents by domain**: complexity without value
-- **`--allowedTools` for security**: Claude bypasses via browser/bash
-- **File watching (chokidar/fs.watch/polling)**: simplified watchdog to fs.watch for `job:updated` SSE only
+- **`--allowedTools` alone for security** (initially rejected: Claude bypasses via browser/bash) — **revisited and adopted** as part of the unified permission system (section 5.4). Combined with PreToolUse `type: "command"` hooks for `confirm`-level tools, this provides deterministic human-controlled security without AI-on-AI gatekeeping.
+- **`--dangerously-skip-permissions`**: replaced by `--allowedTools` + hooks. The flag disabled all permission prompts including for unknown tools. The new system only auto-approves explicitly listed tools.
+- **PreToolUse `type: "prompt"` hooks (mini-Claude verifier)**: replaced by deterministic `type: "command"` hooks. The mini-Claude approach had hidden token costs, unreliable AI-on-AI judgment, and no user control over decisions.
+- **File watching (chokidar/fs.watch/polling)**: simplified watchdog to fs.watch for `task:updated` SSE only
 - **Biome**: Claude knows ESLint+Prettier better
 - **Wouter**: too obscure vs React Router
 - **Turborepo**: overkill for 2 apps + 1 package
@@ -1140,16 +1274,16 @@ Support regex, case-sensitive:
 | POST | `/api/webhook/gmail` | Incoming Gmail webhook |
 | POST | `/api/hooks` | Centralized Claude Code hooks endpoint |
 | POST | `/api/sweep` | Manually trigger a sweep |
-| POST | `/api/job` | Create a job (user instruction) |
-| POST | `/api/job/:id/resume` | Relaunch a session with --resume |
-| POST | `/api/job/:id/instruction` | Send an instruction to a job |
-| POST | `/api/job/:id/upload` | Upload files to artifacts/ |
-| POST | `/api/suggestion/:slug/approve` | Approve a suggestion → creates a job |
+| POST | `/api/task` | Create a task (user instruction) |
+| POST | `/api/task/:id/resume` | Relaunch a session with --resume |
+| POST | `/api/task/:id/instruction` | Send an instruction to a task |
+| POST | `/api/task/:id/upload` | Upload files to artifacts/ |
+| POST | `/api/suggestion/:slug/approve` | Approve a suggestion → creates a task |
 | POST | `/api/suggestion/:slug/ignore` | Ignore a suggestion |
 | POST | `/api/session/:id/timeout` | Simulate a timeout (dev/test) |
 | POST | `/api/improvement/:id/resolve` | Mark a gap as resolved |
-| GET | `/api/jobs` | List of jobs |
-| GET | `/api/job/:id` | Job detail (state.md, checkpoint, artifacts) |
+| GET | `/api/tasks` | List of tasks |
+| GET | `/api/task/:id` | Task detail (state.md, checkpoint, artifacts) |
 | GET | `/api/suggestions` | List of suggestions |
 | GET | `/api/improvements` | List of gaps |
 | GET | `/api/sessions` | Active sessions (autonomous + interactive) |

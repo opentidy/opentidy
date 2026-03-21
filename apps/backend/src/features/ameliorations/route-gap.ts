@@ -4,6 +4,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { Amelioration } from '@opentidy/shared';
+import { generateSlug } from '../../shared/slug.js';
 
 interface GitHubIssueManager {
   findExistingIssue(title: string): Promise<{ number: number; title: string } | null>;
@@ -75,8 +76,7 @@ export function createGapRouter(deps: GapRouterDeps) {
       return;
     }
 
-    const slug = gap.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 50)
-      + '-' + Date.now().toString(36);
+    const slug = generateSlug(gap.title);
     const content = `# ${gap.title}
 
 **Urgency:** normal

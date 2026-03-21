@@ -24,7 +24,7 @@ const browserManifest: ModuleManifest = {
   description: '',
   version: '1.0.0',
   toolPermissions: {
-    scope: 'per-job',
+    scope: 'per-task',
     safe: ['mcp__camofox__navigate', 'mcp__camofox__snapshot'],
     critical: ['mcp__camofox__click', 'mcp__camofox__fill_form'],
   },
@@ -61,7 +61,7 @@ describe('createPermissionChecker', () => {
       const deps = makeDeps();
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__gmail__search', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__search', {});
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -74,7 +74,7 @@ describe('createPermissionChecker', () => {
       const deps = makeDeps();
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__camofox__navigate', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__camofox__navigate', {});
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -88,11 +88,11 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__gmail__send', { to: 'alice@example.com' });
+      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', { to: 'alice@example.com' });
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).toHaveBeenCalledWith({
-        jobId: 'job-1',
+        taskId: 'task-1',
         toolName: 'mcp__gmail__send',
         toolInput: { to: 'alice@example.com' },
         moduleName: 'gmail',
@@ -105,7 +105,7 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__gmail__send', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', {});
 
       expect(result).toBe('deny');
       expect(deps.audit.log).toHaveBeenCalledWith(
@@ -114,8 +114,8 @@ describe('createPermissionChecker', () => {
     });
   });
 
-  describe('confirm + per-job tools', () => {
-    it('requests approval for per-job critical tools on first call', async () => {
+  describe('confirm + per-task tools', () => {
+    it('requests approval for per-task critical tools on first call', async () => {
       const deps = makeDeps({
         state: {
           isGranted: vi.fn().mockReturnValue(false),
@@ -125,13 +125,13 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__camofox__click', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__camofox__click', {});
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).toHaveBeenCalledOnce();
     });
 
-    it('skips approval when per-job grant already exists', async () => {
+    it('skips approval when per-task grant already exists', async () => {
       const deps = makeDeps({
         state: {
           isGranted: vi.fn().mockReturnValue(true),
@@ -141,7 +141,7 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__camofox__click', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__camofox__click', {});
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -150,7 +150,7 @@ describe('createPermissionChecker', () => {
       );
     });
 
-    it('grants per-job after first approval', async () => {
+    it('grants per-task after first approval', async () => {
       const deps = makeDeps({
         state: {
           isGranted: vi.fn().mockReturnValue(false),
@@ -160,12 +160,12 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      await checker.check('job-1', 'session-1', 'mcp__camofox__click', {});
+      await checker.check('task-1', 'session-1', 'mcp__camofox__click', {});
 
-      expect(deps.state.grant).toHaveBeenCalledWith('job-1', 'browser');
+      expect(deps.state.grant).toHaveBeenCalledWith('task-1', 'browser');
     });
 
-    it('does not grant per-job when user denies', async () => {
+    it('does not grant per-task when user denies', async () => {
       const deps = makeDeps({
         state: {
           isGranted: vi.fn().mockReturnValue(false),
@@ -175,7 +175,7 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__camofox__click', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__camofox__click', {});
 
       expect(result).toBe('deny');
       expect(deps.state.grant).not.toHaveBeenCalled();
@@ -193,7 +193,7 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('job-1', 'session-1', 'mcp__gmail__send', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', {});
 
       expect(result).toBe('deny');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -208,7 +208,7 @@ describe('createPermissionChecker', () => {
       const deps = makeDeps();
       const checker = createPermissionChecker(deps);
 
-      await checker.check('job-1', 'sess-abc', 'mcp__gmail__read_message', { messageId: '42' });
+      await checker.check('task-1', 'sess-abc', 'mcp__gmail__read_message', { messageId: '42' });
 
       expect(deps.audit.log).toHaveBeenCalledWith({
         sessionId: 'sess-abc',

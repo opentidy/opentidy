@@ -2,6 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { Hono } from 'hono';
+import { createSSEEvent } from '../../shared/sse.js';
 import type { AppDeps } from '../../server.js';
 
 export function stopSessionRoute(deps: AppDeps) {
@@ -11,7 +12,7 @@ export function stopSessionRoute(deps: AppDeps) {
   router.post('/session/:id/stop', async (c) => {
     const id = c.req.param('id');
     await deps.launcher.archiveSession(id);
-    deps.sse.emit({ type: 'session:ended', data: { jobId: id }, timestamp: new Date().toISOString() });
+    deps.sse.emit(createSSEEvent('session:ended', { taskId: id }));
     return c.json({ stopped: true });
   });
 

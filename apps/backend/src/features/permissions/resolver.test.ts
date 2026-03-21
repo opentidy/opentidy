@@ -17,7 +17,7 @@ const gmailManifest: ModuleManifest = {
 const browserManifest: ModuleManifest = {
   name: 'browser', label: 'Browser', description: '', version: '1.0.0',
   toolPermissions: {
-    scope: 'per-job',
+    scope: 'per-task',
     safe: ['mcp__camofox__navigate', 'mcp__camofox__snapshot'],
     critical: ['mcp__camofox__click', 'mcp__camofox__fill_form'],
   },
@@ -53,7 +53,7 @@ describe('PermissionResolver', () => {
 
   it('returns allow for critical tools when module level is allow', () => {
     const result = resolver.resolve('mcp__camofox__click');
-    expect(result).toEqual({ level: 'allow', scope: 'per-job', moduleName: 'browser' });
+    expect(result).toEqual({ level: 'allow', scope: 'per-task', moduleName: 'browser' });
   });
 
   it('returns defaultLevel for modules without explicit config', () => {

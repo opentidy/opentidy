@@ -9,15 +9,15 @@ import { sessionStatusColors } from '../../shared/utils/status-colors';
 
 export default function SessionCard({ session }: { session: Session }) {
   const navigate = useNavigate();
-  const { jobs } = useStore();
-  const job = jobs.find(d => d.id === session.jobId);
+  const { tasks } = useStore();
+  const task = tasks.find(d => d.id === session.taskId);
   const dotColor = sessionStatusColors[session.status] ?? sessionStatusColors.finished;
-  const label = job?.title || session.jobId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const label = task?.title || session.taskId.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div
-      onClick={() => navigate(`/job/${encodeURIComponent(session.jobId)}`)}
-      className="bg-card rounded-xl p-3 flex items-center justify-between cursor-pointer hover:bg-card-hover transition-colors"
+      onClick={() => navigate(`/task/${encodeURIComponent(session.taskId)}`)}
+      className="bg-card rounded-xl p-3.5 flex items-center justify-between cursor-pointer hover:bg-card-hover transition-colors"
     >
       <div className="flex items-center gap-2">
         <span className={`w-2 h-2 rounded-full ${dotColor} shrink-0`} />

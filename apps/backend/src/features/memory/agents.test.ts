@@ -46,7 +46,7 @@ describe('MemoryAgents', () => {
       const prompt = agents.buildInjectionPrompt({
         indexContent: '| test.md | business | 2026-03-16 | Test |',
         event: 'Email from Jean about closure',
-        stateContent: 'Job actif',
+        stateContent: 'Task actif',
       })
       expect(prompt).toContain('INDEX.md')
       expect(prompt).toContain('Email from Jean')
@@ -60,7 +60,7 @@ describe('MemoryAgents', () => {
       const prompt = agents.buildExtractionPrompt({
         transcriptPath: '/tmp/transcript.jsonl',
         indexContent: '| test.md | business | 2026-03-16 | Test |',
-        jobId: 'test-job',
+        taskId: 'test-task',
         stateContent: 'IN_PROGRESS',
       })
       expect(prompt).toContain('/tmp/transcript.jsonl')
@@ -72,7 +72,7 @@ describe('MemoryAgents', () => {
       const prompt = agents.buildExtractionPrompt({
         transcriptPath: '/tmp/transcript.jsonl',
         indexContent: '| test.md | business | 2026-03-16 | Test |',
-        jobId: 'test-job',
+        taskId: 'test-task',
         stateContent: 'IN_PROGRESS',
       })
       expect(prompt).toContain('**Fix type:**')
@@ -95,7 +95,7 @@ describe('MemoryAgents', () => {
       await agents.runExtraction({
         transcriptPath: '/tmp/transcript.jsonl',
         indexContent: '',
-        jobId: 'test-job',
+        taskId: 'test-task',
         stateContent: 'IN_PROGRESS',
       })
 
@@ -114,7 +114,7 @@ describe('MemoryAgents', () => {
       await agents.runExtraction({
         transcriptPath: '/tmp/transcript.jsonl',
         indexContent: '',
-        jobId: 'test-job',
+        taskId: 'test-task',
         stateContent: 'IN_PROGRESS',
       })
 

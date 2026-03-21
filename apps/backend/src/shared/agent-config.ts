@@ -3,7 +3,7 @@
 
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, symlinkSync } from 'fs';
 import { join, resolve } from 'path';
-import type { OpenTidyConfig, SkillsConfig, GuardrailRule, ModuleManifest, ModuleState, SkillDef } from '@opentidy/shared';
+import type { OpenTidyConfig, SkillsConfig, ModuleManifest, ModuleState, SkillDef } from '@opentidy/shared';
 
 const BASE_PERMISSIONS = [
   'Read', 'Write', 'Edit', 'Glob', 'Grep',
@@ -177,22 +177,6 @@ export function generateSettingsFromModules(
   return { mcpServers, skills };
 }
 
-/** @deprecated Legacy guardrails builder for pre-v3 configs */
-export function buildMarketplaceGuardrails(config: OpenTidyConfig): GuardrailRule[] {
-  const port = config.server?.port || 5175;
-  const rules: GuardrailRule[] = [];
-  const marketplace = (config as any).mcp?.marketplace ?? {};
-  for (const name of Object.keys(marketplace)) {
-    rules.push({
-      event: 'post-tool',
-      type: 'http',
-      match: `mcp__${name}__`,
-      url: `http://localhost:${port}/api/hooks`,
-    });
-  }
-  return rules;
-}
-
 export function syncSkills(
   skills: SkillsConfig,
   configDir: string,
@@ -279,7 +263,16 @@ export function regenerateAgentConfig(
     console.log(`[agent-config] Regenerated settings.json (${Object.keys(settings.mcpServers).length} MCP servers)`);
   }
 
-  writeFileSync(join(configDir, 'settings.json'), JSON.stringify(settings, null, 2) + '\n');
+  // Write to both settings.json and settings.local.json.
+  // Claude Code may overwrite settings.json on first launch, but settings.local.json persists.
+  // theme + skipDangerousModePermissionPrompt skip Claude Code's onboarding flow.
+  const fullSettings = {
+    ...settings,
+    theme: 'dark',
+    skipDangerousModePermissionPrompt: true,
+  };
+  writeFileSync(join(configDir, 'settings.json'), JSON.stringify(fullSettings, null, 2) + '\n');
+  writeFileSync(join(configDir, 'settings.local.json'), JSON.stringify(fullSettings, null, 2) + '\n');
 
   // Sync skills (legacy path only — module skills are injected via instructions)
   if (!modules) {

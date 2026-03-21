@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import path from 'path';
-import type { AgentAdapter, AgentName } from './types.js';
+import type { AgentAdapter, AgentName } from '@opentidy/shared';
 import { createClaudeAdapter } from './claude.js';
 
 interface ResolveOpts {
@@ -21,11 +21,9 @@ export function resolveAgent(opts: ResolveOpts): AgentAdapter {
     throw new Error(`Unknown agent "${agentName}". Valid agents: ${VALID_AGENTS.join(', ')}`);
   }
 
-  const agentConfigDir = path.join(opts.configDir, 'agents', agentName);
-
   switch (agentName) {
     case 'claude':
-      return createClaudeAdapter(agentConfigDir);
+      return createClaudeAdapter(opts.configDir);
 
     case 'gemini':
       throw new Error('Agent "gemini" is not yet implemented (experimental). Use "claude" for now.');

@@ -15,13 +15,13 @@ interface AuditLogger {
 }
 
 interface Launcher {
-  handleSessionEnd(jobId: string): void;
-  markWaiting(jobId: string): void;
+  handleSessionEnd(taskId: string): void;
+  markWaiting(taskId: string): void;
 }
 
 interface Notifier {
-  notifyCompleted(jobId: string): void;
-  notifyIdle?(jobId: string): void;
+  notifyCompleted(taskId: string): void;
+  notifyIdle?(taskId: string): void;
 }
 
 interface SSEEmitter {
@@ -33,20 +33,20 @@ export interface HooksHandlerDeps {
   audit: AuditLogger;
   notify: Notifier;
   sse: SSEEmitter;
-  onSessionEnd?: (jobId: string) => void;
+  onSessionEnd?: (taskId: string) => void;
 }
 
-function extractJobId(payload: { session_id: string; cwd?: string }): string | null {
-  // Try session_id first (opentidy-<jobId>)
+function extractTaskId(payload: { session_id: string; cwd?: string }): string | null {
+  // Try session_id first (opentidy-<taskId>)
   if (payload.session_id.startsWith('opentidy-')) {
     return payload.session_id.slice('opentidy-'.length);
   }
-  // Fallback: extract from cwd (/path/to/workspace/<jobId>)
+  // Fallback: extract from cwd (/path/to/workspace/<taskId>)
   if (payload.cwd?.includes('/workspace/')) {
     const parts = payload.cwd.split('/workspace/');
-    const jobId = parts[parts.length - 1]?.split('/')[0];
-    if (jobId && !jobId.startsWith('_') && !jobId.startsWith('.')) {
-      return jobId;
+    const taskId = parts[parts.length - 1]?.split('/')[0];
+    if (taskId && !taskId.startsWith('_') && !taskId.startsWith('.')) {
+      return taskId;
     }
   }
   return null;
@@ -54,8 +54,8 @@ function extractJobId(payload: { session_id: string; cwd?: string }): string | n
 
 export function createHooksHandler(deps: HooksHandlerDeps) {
   function handle(payload: HookPayload): { status: string } {
-    const jobId = extractJobId(payload);
-    if (!jobId) {
+    const taskId = extractTaskId(payload);
+    if (!taskId) {
       console.warn(`[hooks] Unknown session format: ${payload.session_id} (cwd: ${payload.cwd ?? 'none'})`);
       return { status: 'ignored' };
     }
@@ -64,26 +64,26 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
 
     switch (payload.hook_event_name) {
       case 'PreToolUse':
-        handlePreToolUse(jobId, payload);
+        handlePreToolUse(taskId, payload);
         break;
       case 'PostToolUse':
-        handlePostToolUse(jobId, payload);
+        handlePostToolUse(taskId, payload);
         break;
       case 'Notification':
-        handleNotification(jobId, payload);
+        handleNotification(taskId, payload);
         break;
       case 'SessionEnd':
-        handleSessionEnd(jobId, payload);
+        handleSessionEnd(taskId, payload);
         break;
       case 'Stop':
-        handleStop(jobId, payload);
+        handleStop(taskId, payload);
         break;
     }
 
     return { status: 'ok' };
   }
 
-  function handlePreToolUse(jobId: string, payload: HookPayload): void {
+  function handlePreToolUse(taskId: string, payload: HookPayload): void {
     // Audit log only — command hooks observe, they don't decide
     deps.audit.log({
       sessionId: payload.session_id,
@@ -93,7 +93,7 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
     });
   }
 
-  function handlePostToolUse(jobId: string, payload: HookPayload): void {
+  function handlePostToolUse(taskId: string, payload: HookPayload): void {
     // Audit log only
     deps.audit.log({
       sessionId: payload.session_id,
@@ -103,30 +103,30 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
     });
   }
 
-  function handleNotification(jobId: string, payload: HookPayload): void {
+  function handleNotification(taskId: string, payload: HookPayload): void {
     // Notify only — no launcher state change needed
     if (deps.notify.notifyIdle) {
-      deps.notify.notifyIdle(jobId);
+      deps.notify.notifyIdle(taskId);
     }
   }
 
-  function handleSessionEnd(jobId: string, payload: HookPayload): void {
+  function handleSessionEnd(taskId: string, payload: HookPayload): void {
     // SessionEnd fires when Claude Code process exits — cleanup only
-    deps.launcher.handleSessionEnd(jobId);
-    deps.onSessionEnd?.(jobId);
+    deps.launcher.handleSessionEnd(taskId);
+    deps.onSessionEnd?.(taskId);
     deps.sse.emit({
       type: 'session:ended',
-      data: { jobId },
+      data: { taskId },
       timestamp: new Date().toISOString(),
     });
   }
 
-  function handleStop(jobId: string, payload: HookPayload): void {
+  function handleStop(taskId: string, payload: HookPayload): void {
     // Stop = Claude finished its turn, waiting for input → mark as idle
-    deps.launcher.markWaiting(jobId);
+    deps.launcher.markWaiting(taskId);
     deps.sse.emit({
       type: 'session:idle',
-      data: { jobId },
+      data: { taskId },
       timestamp: new Date().toISOString(),
     });
   }

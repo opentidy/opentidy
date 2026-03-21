@@ -4,6 +4,10 @@
   "description": "Receive SMS and iMessage messages",
   "icon": "📱",
   "version": "1.0.0",
+  "capabilities": [
+    "Read SMS and iMessage messages",
+    "Receive incoming messages"
+  ],
   "platform": "darwin",
   "permissions": [
     { "name": "messages", "label": "Messages", "app": "Messages", "reason": "Read incoming SMS and iMessage messages" }

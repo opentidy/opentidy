@@ -4,8 +4,8 @@
 import fs from 'fs';
 import path from 'path';
 import type { Session, AgentAdapter } from '@opentidy/shared';
-import { setStatus, parseStateMd } from '../jobs/state.js';
-import { generateJobInstructions } from './instruction-file.js';
+import { setStatus, parseStateMd } from '../tasks/state.js';
+import { generateTaskInstructions } from './instruction-file.js';
 import { createPostSessionHandlers } from './post-session.js';
 
 // Interface for mocking tmux/claude in tests
@@ -18,21 +18,21 @@ export interface SessionExecutor {
 }
 
 interface LockManager {
-  acquire(jobId: string): boolean;
-  release(jobId: string): void;
-  isLocked?(jobId: string): boolean;
+  acquire(taskId: string): boolean;
+  release(taskId: string): void;
+  isLocked?(taskId: string): boolean;
   cleanupStaleLocks?(): string[];
 }
 
 interface WorkspaceManager {
-  getJob(id: string): { id: string; title: string; objective: string; status: string; confirm?: boolean };
-  listJobIds(): string[];
+  getTask(id: string): { id: string; title: string; objective: string; status: string };
+  listTaskIds(): string[];
   dir: string;
 }
 
 interface Notifier {
-  notifyStarted?(jobId: string): void;
-  notifyCompleted(jobId: string): void;
+  notifyStarted?(taskId: string): void;
+  notifyCompleted(taskId: string): void;
 }
 
 interface SSEEmitter {
@@ -54,7 +54,7 @@ export function createLauncher(deps: {
   getAllowedTools: () => string[];
   memoryAgents?: {
     isTranscriptSubstantial(transcriptPath: string): boolean;
-    runExtraction(input: { transcriptPath: string; indexContent: string; jobId: string; stateContent: string }): Promise<void>;
+    runExtraction(input: { transcriptPath: string; indexContent: string; taskId: string; stateContent: string }): Promise<void>;
   };
   recoveryDelayMs?: number;
 }) {
@@ -68,51 +68,51 @@ export function createLauncher(deps: {
     sessions,
   );
 
-  // Wrap handleSessionEnd to write .user-stopped marker when job is still IN_PROGRESS
-  function handleSessionEnd(jobId: string): void {
-    const jobDir = path.join(deps.workspaceDir, jobId);
-    if (fs.existsSync(path.join(jobDir, 'state.md'))) {
-      const state = parseStateMd(jobDir);
+  // Wrap handleSessionEnd to write .user-stopped marker when task is still IN_PROGRESS
+  function handleSessionEnd(taskId: string): void {
+    const taskDir = path.join(deps.workspaceDir, taskId);
+    if (fs.existsSync(path.join(taskDir, 'state.md'))) {
+      const state = parseStateMd(taskDir);
       if (state.status === 'IN_PROGRESS' && !state.waitingFor) {
-        fs.writeFileSync(path.join(jobDir, USER_STOPPED_MARKER), new Date().toISOString());
-        console.log(`[launcher] marked ${jobId} as user-stopped`);
+        fs.writeFileSync(path.join(taskDir, USER_STOPPED_MARKER), new Date().toISOString());
+        console.log(`[launcher] marked ${taskId} as user-stopped`);
       }
     }
-    baseHandleSessionEnd(jobId);
+    baseHandleSessionEnd(taskId);
   }
 
-  async function launchSession(jobId: string, event?: { source: string; content: string }): Promise<void> {
-    if (sessions.has(jobId)) {
-      console.log(`[launcher] ${jobId} already has active session, skipping`);
+  async function launchSession(taskId: string, event?: { source: string; content: string }): Promise<void> {
+    if (sessions.has(taskId)) {
+      console.log(`[launcher] ${taskId} already has active session, skipping`);
       return;
     }
 
-    if (!deps.locks.acquire(jobId)) {
-      console.log(`[launcher] ${jobId} already locked, skipping`);
+    if (!deps.locks.acquire(taskId)) {
+      console.log(`[launcher] ${taskId} already locked, skipping`);
       return;
     }
 
     try {
-      const jobDir = path.join(deps.workspaceDir, jobId);
-      const sessionName = `opentidy-${jobId}`;
+      const taskDir = path.join(deps.workspaceDir, taskId);
+      const sessionName = `opentidy-${taskId}`;
 
       // Remove .user-stopped marker (explicit launch = user wants to resume)
-      const stoppedMarker = path.join(jobDir, USER_STOPPED_MARKER);
+      const stoppedMarker = path.join(taskDir, USER_STOPPED_MARKER);
       if (fs.existsSync(stoppedMarker)) fs.unlinkSync(stoppedMarker);
 
-      // Ensure job is marked IN_PROGRESS (may have been COMPLETED)
-      setStatus(jobDir, 'IN_PROGRESS');
+      // Ensure task is marked IN_PROGRESS (may have been COMPLETED)
+      setStatus(taskDir, 'IN_PROGRESS');
 
-      // Generate job instruction file (level 2 context)
-      const jobInfo = deps.workspace.getJob(jobId);
-      generateJobInstructions({
-        workspaceDir: deps.workspaceDir, jobId, jobInfo,
+      // Generate task instruction file (level 2 context)
+      const taskInfo = deps.workspace.getTask(taskId);
+      generateTaskInstructions({
+        workspaceDir: deps.workspaceDir, taskId, taskInfo,
         instructionFile: deps.adapter.instructionFile, event,
       });
 
       // Build agent command
-      const resumeId = deps.adapter.readSessionId(jobDir) ?? undefined;
-      const agentCmd = buildAgentCommand(deps.workspaceDir, jobDir, deps.adapter, event?.content, resumeId);
+      const resumeId = deps.adapter.readSessionId(taskDir) ?? undefined;
+      const agentCmd = buildAgentCommand(deps.workspaceDir, taskDir, deps.adapter, event?.content, resumeId);
 
       // Launch tmux session (or recover existing one)
       let pid: number;
@@ -136,52 +136,52 @@ export function createLauncher(deps: {
       // Track session
       const session: Session = {
         id: sessionName,
-        jobId,
+        taskId,
         status: 'active',
         startedAt: new Date().toISOString(),
         agentSessionId: resumeId,
         pid,
       };
-      sessions.set(jobId, session);
+      sessions.set(taskId, session);
 
-      deps.sse.emit({ type: 'session:started', data: { jobId }, timestamp: new Date().toISOString() });
-      deps.notify.notifyStarted?.(jobId);
-      console.log(`[launcher] ${jobId} session started (pid: ${pid})`);
+      deps.sse.emit({ type: 'session:started', data: { taskId }, timestamp: new Date().toISOString() });
+      deps.notify.notifyStarted?.(taskId);
+      console.log(`[launcher] ${taskId} session started (pid: ${pid})`);
     } catch (err) {
-      console.error(`[launcher] ${jobId}: launchSession failed, releasing lock:`, err);
-      deps.locks.release(jobId);
+      console.error(`[launcher] ${taskId}: launchSession failed, releasing lock:`, err);
+      deps.locks.release(taskId);
       throw err;
     }
   }
 
-  async function sendMessage(jobId: string, message: string): Promise<void> {
-    const session = sessions.get(jobId);
+  async function sendMessage(taskId: string, message: string): Promise<void> {
+    const session = sessions.get(taskId);
     if (!session) {
-      console.warn(`[launcher] sendMessage: no active session for ${jobId}`);
+      console.warn(`[launcher] sendMessage: no active session for ${taskId}`);
       return;
     }
-    await deps.tmuxExecutor.sendKeys(`opentidy-${jobId}`, message + '\n');
+    await deps.tmuxExecutor.sendKeys(`opentidy-${taskId}`, message + '\n');
     session.status = 'active';
-    deps.sse.emit({ type: 'session:active', data: { jobId }, timestamp: new Date().toISOString() });
-    console.log(`[launcher] sent message to ${jobId}`);
+    deps.sse.emit({ type: 'session:active', data: { taskId }, timestamp: new Date().toISOString() });
+    console.log(`[launcher] sent message to ${taskId}`);
   }
 
-  function markWaiting(jobId: string): void {
-    const session = sessions.get(jobId);
+  function markWaiting(taskId: string): void {
+    const session = sessions.get(taskId);
     if (!session) return;
     session.status = 'idle';
     // Determine waiting type from state.md
-    const jobDir = path.join(deps.workspaceDir, jobId);
-    const state = parseStateMd(jobDir);
+    const taskDir = path.join(deps.workspaceDir, taskId);
+    const state = parseStateMd(taskDir);
     session.waitingType = state.waitingType ?? 'user';
-    deps.sse.emit({ type: 'session:idle', data: { jobId, waitingType: session.waitingType }, timestamp: new Date().toISOString() });
+    deps.sse.emit({ type: 'session:idle', data: { taskId, waitingType: session.waitingType }, timestamp: new Date().toISOString() });
   }
 
-  function setSessionWaitingType(jobId: string, type: 'user' | 'tiers'): void {
-    const session = sessions.get(jobId);
+  function setSessionWaitingType(taskId: string, type: 'user' | 'tiers'): void {
+    const session = sessions.get(taskId);
     if (!session) return;
     session.waitingType = type;
-    deps.sse.emit({ type: 'session:idle', data: { jobId, waitingType: type }, timestamp: new Date().toISOString() });
+    deps.sse.emit({ type: 'session:idle', data: { taskId, waitingType: type }, timestamp: new Date().toISOString() });
   }
 
   function listActiveSessions(): Session[] {
@@ -192,56 +192,56 @@ export function createLauncher(deps: {
     // Pass 1: Reconcile surviving tmux sessions
     const activeTmux = await deps.tmuxExecutor.listSessions();
     for (const name of activeTmux.filter((s) => s.startsWith('opentidy-'))) {
-      const jobId = name.replace('opentidy-', '');
-      const jobDir = path.join(deps.workspaceDir, jobId);
-      if (!fs.existsSync(jobDir)) continue;
-      if (!deps.locks.acquire(jobId)) continue;
+      const taskId = name.replace('opentidy-', '');
+      const taskDir = path.join(deps.workspaceDir, taskId);
+      if (!fs.existsSync(taskDir)) continue;
+      if (!deps.locks.acquire(taskId)) continue;
 
-      sessions.set(jobId, {
+      sessions.set(taskId, {
         id: name,
-        jobId,
+        taskId,
         status: 'active',
         startedAt: new Date().toISOString(),
       });
 
       // Ensure ttyd is running for recovered sessions
       await deps.terminal.ensureReady(name);
-      console.log(`[launcher] recovered tmux session: ${jobId}`);
+      console.log(`[launcher] recovered tmux session: ${taskId}`);
     }
 
     if (deps.locks.cleanupStaleLocks) {
       deps.locks.cleanupStaleLocks();
     }
 
-    // Pass 2: Relaunch orphaned IN_PROGRESS jobs (no tmux, not waiting, not user-stopped)
-    const allJobIds = deps.workspace.listJobIds();
+    // Pass 2: Relaunch orphaned IN_PROGRESS tasks (no tmux, not waiting, not user-stopped)
+    const allTaskIds = deps.workspace.listTaskIds();
     const orphans: string[] = [];
 
-    for (const jobId of allJobIds) {
-      if (sessions.has(jobId)) continue;
+    for (const taskId of allTaskIds) {
+      if (sessions.has(taskId)) continue;
 
-      const jobDir = path.join(deps.workspaceDir, jobId);
-      const state = parseStateMd(jobDir);
+      const taskDir = path.join(deps.workspaceDir, taskId);
+      const state = parseStateMd(taskDir);
 
       if (state.status !== 'IN_PROGRESS') continue;
       if (state.waitingFor) continue;
-      if (fs.existsSync(path.join(jobDir, USER_STOPPED_MARKER))) continue;
+      if (fs.existsSync(path.join(taskDir, USER_STOPPED_MARKER))) continue;
 
-      orphans.push(jobId);
+      orphans.push(taskId);
     }
 
     if (orphans.length > 0) {
-      console.log(`[launcher] found ${orphans.length} orphaned job(s), delaying ${recoveryDelayMs / 1000}s before relaunch: ${orphans.join(', ')}`);
+      console.log(`[launcher] found ${orphans.length} orphaned task(s), delaying ${recoveryDelayMs / 1000}s before relaunch: ${orphans.join(', ')}`);
       await new Promise(resolve => setTimeout(resolve, recoveryDelayMs));
 
-      for (const jobId of orphans) {
+      for (const taskId of orphans) {
         try {
-          await launchSession(jobId, {
+          await launchSession(taskId, {
             source: 'recovery',
             content: 'Session recovered after backend restart. Resume your work from where you left off.',
           });
         } catch (err) {
-          console.error(`[launcher] failed to relaunch orphaned job ${jobId}:`, err);
+          console.error(`[launcher] failed to relaunch orphaned task ${taskId}:`, err);
         }
       }
     }
@@ -251,13 +251,13 @@ export function createLauncher(deps: {
 
   // --- Private helpers ---
 
-  function buildAgentCommand(workspaceDir: string, jobDir: string, adapter: AgentAdapter, instruction?: string, resumeId?: string): string {
+  function buildAgentCommand(workspaceDir: string, taskDir: string, adapter: AgentAdapter, instruction?: string, resumeId?: string): string {
     const pluginDir = path.resolve(workspaceDir, '..', 'plugins', 'opentidy-hooks');
     const pluginDirExists = fs.existsSync(pluginDir);
 
     const args = adapter.buildArgs({
       mode: 'interactive',
-      cwd: jobDir,
+      cwd: taskDir,
       allowedTools: deps.getAllowedTools(),
       instruction,
       resumeSessionId: resumeId,
@@ -274,7 +274,12 @@ export function createLauncher(deps: {
       .map(([k, v]) => `${k}="${v}"`)
       .join(' ');
     const prefix = envPrefix ? `${envPrefix} ` : '';
-    return `cd ${jobDir} && ${prefix}${adapter.binary} ${quotedArgs.join(' ')}`;
+    return `cd ${taskDir} && ${prefix}${adapter.binary} ${quotedArgs.join(' ')}`;
+  }
+
+  /** Clear all in-memory session state (used by reset — does NOT kill processes). */
+  function clearAll(): void {
+    sessions.clear();
   }
 
   return {
@@ -286,5 +291,6 @@ export function createLauncher(deps: {
     archiveSession,
     listActiveSessions,
     recover,
+    clearAll,
   };
 }

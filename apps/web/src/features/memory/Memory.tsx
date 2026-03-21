@@ -73,7 +73,7 @@ export default function Memory() {
   };
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-7">
       <h1 className="text-xl font-bold text-text mb-6">{t('memory.title')}</h1>
 
       {/* Prompt input */}
@@ -86,7 +86,7 @@ export default function Memory() {
           onChange={(e) => setPrompt(e.target.value)}
           placeholder={t('memory.placeholder')}
           rows={3}
-          className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary resize-none focus:outline-none focus:border-accent"
+          className="w-full bg-card rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent resize-none"
         />
         <div className="flex justify-end mt-2">
           <button
@@ -103,8 +103,8 @@ export default function Memory() {
         {/* Memory list */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-sm font-semibold text-text-secondary uppercase tracking-wide">{t('common.files')}</h2>
-            <span className="text-xs px-2 py-0.5 rounded-md bg-text-tertiary/20 text-text-tertiary font-medium">
+            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('common.files')}</h2>
+            <span className="text-[9px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
               {memoryIndex.length}
             </span>
           </div>
@@ -119,11 +119,11 @@ export default function Memory() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-text-tertiary text-xs border-b border-border">
-                    <th className="pb-2 pr-4 font-medium">{t('memory.file')}</th>
-                    <th className="pb-2 pr-4 font-medium">{t('memory.category')}</th>
-                    <th className="pb-2 pr-4 font-medium">{t('memory.updated')}</th>
-                    <th className="pb-2 font-medium">{t('memory.description')}</th>
+                  <tr className="text-left text-[#48484a] text-[10px] font-semibold uppercase tracking-wider border-b border-border">
+                    <th className="pb-2 pr-4">{t('memory.file')}</th>
+                    <th className="pb-2 pr-4">{t('memory.category')}</th>
+                    <th className="pb-2 pr-4">{t('memory.updated')}</th>
+                    <th className="pb-2">{t('memory.description')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -131,13 +131,13 @@ export default function Memory() {
                     <tr
                       key={entry.filename}
                       onClick={() => selectMemory(entry.filename)}
-                      className={`border-b border-border/50 cursor-pointer transition-colors hover:bg-card-hover ${
+                      className={`border-b border-border-subtle cursor-pointer hover:bg-card-hover transition-colors ${
                         selectedMemory?.filename === entry.filename ? 'bg-accent/10' : ''
                       }`}
                     >
                       <td className="py-2.5 pr-4 font-mono text-text">{entry.filename}</td>
                       <td className="py-2.5 pr-4">
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent">
+                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple/10 text-purple">
                           {entry.category}
                         </span>
                       </td>
@@ -172,7 +172,7 @@ export default function Memory() {
                     type="text"
                     value={editorCategory}
                     onChange={(e) => setEditorCategory(e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-1.5 text-sm text-text focus:outline-none focus:border-accent"
+                    className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
                   />
                 </div>
                 <div className="flex-1">
@@ -181,7 +181,7 @@ export default function Memory() {
                     type="text"
                     value={editorDescription}
                     onChange={(e) => setEditorDescription(e.target.value)}
-                    className="w-full bg-bg border border-border rounded-lg px-3 py-1.5 text-sm text-text focus:outline-none focus:border-accent"
+                    className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
                   />
                 </div>
               </div>
@@ -191,21 +191,21 @@ export default function Memory() {
                 value={editorContent}
                 onChange={(e) => setEditorContent(e.target.value)}
                 rows={12}
-                className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text font-mono resize-none focus:outline-none focus:border-accent"
+                className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text font-mono resize-none border-none focus:outline-none focus:ring-1 focus:ring-accent"
               />
 
               <div className="flex items-center gap-3 mt-3">
                 <button
                   onClick={handleSave}
                   disabled={saving}
-                  className="px-4 py-1.5 rounded-lg bg-accent text-white text-sm font-medium hover:bg-accent/90 transition-colors disabled:opacity-50"
+                  className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs transition-colors disabled:opacity-50"
                 >
                   {saving ? t('memory.saving') : t('memory.save')}
                 </button>
                 <button
                   onClick={handleArchive}
                   disabled={saving}
-                  className="px-4 py-1.5 rounded-lg border border-border text-sm text-text-tertiary hover:text-text-secondary transition-colors disabled:opacity-50"
+                  className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs transition-colors disabled:opacity-50"
                 >
                   {t('memory.archive')}
                 </button>

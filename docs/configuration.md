@@ -48,7 +48,7 @@ Override the config path with the `OPENTIDY_CONFIG_PATH` environment variable.
 | `chatId` | string | Chat ID where notifications are sent |
 | `userId` | string | (Optional) Your Telegram user ID for filtering |
 
-OpenTidy uses Telegram for push notifications — checkpoint alerts, job completions, error reports. Each notification includes a link to the web dashboard.
+OpenTidy uses Telegram for push notifications — checkpoint alerts, task completions, error reports. Each notification includes a link to the web dashboard.
 
 **Setting up a bot:**
 1. Open Telegram, search for @BotFather
@@ -80,7 +80,7 @@ If you're using a Cloudflare Tunnel, set `appBaseUrl` to your public URL (e.g., 
 | `dir` | string | `./workspace` | Path to the workspace directory |
 | `lockDir` | string | `/tmp/opentidy-locks` | Directory for PID lock files |
 
-The workspace directory contains all jobs, suggestions, gaps, and audit logs. It's created automatically on first run.
+The workspace directory contains all tasks, suggestions, gaps, and audit logs. It's created automatically on first run.
 
 ### Update
 
@@ -142,13 +142,13 @@ The workspace directory is OpenTidy's runtime data store:
 ```
 workspace/
 ├── CLAUDE.md               # Global prompt for all sessions (level 1)
-├── <job-id>/
-│   ├── CLAUDE.md            # Per-job prompt (level 2, auto-generated)
-│   ├── state.md             # Job state, progress, next steps
+├── <task-id>/
+│   ├── CLAUDE.md            # Per-task prompt (level 2, auto-generated)
+│   ├── state.md             # Task state, progress, next steps
 │   ├── checkpoint.md        # Human input needed (when applicable)
 │   ├── .session-id          # Claude Code session ID for resume
 │   └── artifacts/           # Files produced by Claude (PDFs, etc.)
-├── _suggestions/            # Jobs suggested by Claude, awaiting approval
+├── _suggestions/            # Tasks suggested by Claude, awaiting approval
 ├── _gaps/
 │   └── gaps.md              # Limitations detected by Claude
 ├── _audit/
@@ -158,6 +158,6 @@ workspace/
 
 ## Next steps
 
-- [Getting Started](getting-started.md) — installation and first job
+- [Getting Started](getting-started.md) — installation and first task
 - [Architecture](architecture.md) — how the components work together
 - [Security](security.md) — hooks and audit system

@@ -37,7 +37,7 @@ describe('Checkup', () => {
 
   beforeEach(() => {
     wsDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-ws-'));
-    // Create a few jobs
+    // Create a few tasks
     for (const id of ['invoices-acme', 'insurance-report']) {
       const dir = path.join(wsDir, id);
       fs.mkdirSync(dir, { recursive: true });
@@ -50,15 +50,15 @@ describe('Checkup', () => {
     fs.rmSync(wsDir, { recursive: true, force: true });
   });
 
-  function makeMockLauncher(activeJobIds: string[] = []) {
+  function makeMockLauncher(activeTaskIds: string[] = []) {
     return {
       launchSession: vi.fn().mockResolvedValue(undefined),
-      listActiveSessions: vi.fn().mockReturnValue(activeJobIds.map(id => ({ jobId: id }))),
+      listActiveSessions: vi.fn().mockReturnValue(activeTaskIds.map(id => ({ taskId: id }))),
     };
   }
 
   // E2E-CRN-01
-  it('launches sessions for jobs returned by Claude', async () => {
+  it('launches sessions for tasks returned by Claude', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
@@ -86,7 +86,7 @@ describe('Checkup', () => {
     expect(result.launched).toEqual([]);
   });
 
-  it('launches inactive job and skips active job', async () => {
+  it('launches inactive task and skips active task', async () => {
     const mockLauncher = makeMockLauncher(['invoices-acme']);
     const checkup = createCheckup({
       launcher: mockLauncher,
@@ -126,7 +126,7 @@ describe('Checkup', () => {
   });
 
   // E2E-CRN-02, E2E-LCH-08
-  it('skips locked jobs (lock checked by launcher internally)', async () => {
+  it('skips locked tasks (lock checked by launcher internally)', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
@@ -141,7 +141,7 @@ describe('Checkup', () => {
   });
 
   // E2E-CRN-06
-  it('does nothing when no jobs need action', async () => {
+  it('does nothing when no tasks need action', async () => {
     const mockLauncher = makeMockLauncher();
     const checkup = createCheckup({
       launcher: mockLauncher,
@@ -241,7 +241,7 @@ describe('Checkup', () => {
   it.todo('handles event arriving during checkup');
 
   // E2E-EDGE-10
-  it.todo('detects dormant job (no session for 2 weeks)');
+  it.todo('detects dormant task (no session for 2 weeks)');
 });
 
 describe('Checkup — memory context', () => {

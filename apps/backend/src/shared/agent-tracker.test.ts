@@ -33,13 +33,13 @@ describe('agent-tracker', () => {
 
   it('records a process start and returns an id > 0', () => {
     const tracker = createAgentTracker(db);
-    const id = tracker.start('triage', 'job-abc', 12345);
+    const id = tracker.start('triage', 'task-abc', 12345);
     expect(id).toBeGreaterThan(0);
   });
 
   it('completes a process with exit code — status=done, exitCode set, endedAt set', () => {
     const tracker = createAgentTracker(db);
-    const id = tracker.start('triage', 'job-xyz');
+    const id = tracker.start('triage', 'task-xyz');
     tracker.complete(id, 0);
     const processes = tracker.list();
     const proc = processes.find(p => p.id === id);
@@ -62,9 +62,9 @@ describe('agent-tracker', () => {
 
   it('lists processes with optional type filter', () => {
     const tracker = createAgentTracker(db);
-    tracker.start('triage', 'job-1');
-    tracker.start('checkup', 'job-2');
-    tracker.start('triage', 'job-3');
+    tracker.start('triage', 'task-1');
+    tracker.start('checkup', 'task-2');
+    tracker.start('triage', 'task-3');
 
     const all = tracker.list();
     expect(all).toHaveLength(3);
@@ -100,7 +100,7 @@ describe('agent-tracker', () => {
 
   it('setOutputPath stores outputPath and getById returns it', () => {
     const tracker = createAgentTracker(db);
-    const id = tracker.start('triage', 'job-abc');
+    const id = tracker.start('triage', 'task-abc');
     tracker.setOutputPath(id, '/tmp/outputs/1.txt');
     const proc = tracker.getById(id);
     expect(proc).toBeDefined();
@@ -114,7 +114,7 @@ describe('agent-tracker', () => {
 
   it('list includes outputPath when set', () => {
     const tracker = createAgentTracker(db);
-    const id = tracker.start('triage', 'job-xyz');
+    const id = tracker.start('triage', 'task-xyz');
     tracker.setOutputPath(id, '/tmp/outputs/xyz.jsonl');
     const processes = tracker.list();
     const proc = processes.find(p => p.id === id);
@@ -130,13 +130,13 @@ describe('agent-tracker', () => {
 
   it('cleanup removes old completed processes', () => {
     const tracker = createAgentTracker(db);
-    const id1 = tracker.start('triage', 'old-job');
+    const id1 = tracker.start('triage', 'old-task');
     tracker.complete(id1, 0);
 
     // Manually backdate ended_at to 31 days ago
     db.prepare("UPDATE claude_processes SET ended_at = datetime('now', '-31 days') WHERE id = ?").run(id1);
 
-    const id2 = tracker.start('triage', 'recent-job');
+    const id2 = tracker.start('triage', 'recent-task');
     tracker.complete(id2, 0);
 
     // Cleanup processes older than 30 days

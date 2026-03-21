@@ -11,23 +11,23 @@ describe('PermissionState', () => {
     state = createPermissionState();
   });
 
-  it('returns false for unknown job+module', () => {
-    expect(state.isGranted('job-1', 'gmail')).toBe(false);
+  it('returns false for unknown task+module', () => {
+    expect(state.isGranted('task-1', 'gmail')).toBe(false);
   });
 
-  it('grants and checks per-job', () => {
-    state.grant('job-1', 'camofox');
-    expect(state.isGranted('job-1', 'camofox')).toBe(true);
+  it('grants and checks per-task', () => {
+    state.grant('task-1', 'camofox');
+    expect(state.isGranted('task-1', 'camofox')).toBe(true);
   });
 
-  it('does not leak grants across jobs', () => {
-    state.grant('job-1', 'camofox');
-    expect(state.isGranted('job-2', 'camofox')).toBe(false);
+  it('does not leak grants across tasks', () => {
+    state.grant('task-1', 'camofox');
+    expect(state.isGranted('task-2', 'camofox')).toBe(false);
   });
 
-  it('revokes grants for a job', () => {
-    state.grant('job-1', 'camofox');
-    state.revokeJob('job-1');
-    expect(state.isGranted('job-1', 'camofox')).toBe(false);
+  it('revokes grants for a task', () => {
+    state.grant('task-1', 'camofox');
+    state.revokeTask('task-1');
+    expect(state.isGranted('task-1', 'camofox')).toBe(false);
   });
 });

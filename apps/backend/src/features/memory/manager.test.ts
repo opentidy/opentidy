@@ -34,7 +34,7 @@ describe('MemoryManager', () => {
       manager.ensureDir()
       const content = `# OpenTidy Memory Index
 
-| fichier | catégorie | mis à jour | description |
+| file | category | updated | description |
 |---------|-----------|------------|-------------|
 | test.md | business | 2026-03-16 | A test entry |
 `

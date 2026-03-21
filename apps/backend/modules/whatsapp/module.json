@@ -4,6 +4,13 @@
   "description": "Send and receive WhatsApp messages",
   "icon": "💬",
   "version": "1.0.0",
+  "capabilities": [
+    "Read WhatsApp messages",
+    "Search conversations",
+    "Send messages",
+    "Send media files",
+    "Receive incoming messages"
+  ],
   "mcpServers": [{
     "name": "whatsapp",
     "command": "npx",

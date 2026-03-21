@@ -15,6 +15,7 @@ interface ConfigRouteDeps {
   loadConfig: () => { permissions: PermissionConfig };
   saveConfig: (update: (config: Record<string, unknown>) => void) => void;
   manifests: Map<string, ModuleManifest>;
+  regenerateHooks?: () => void;
 }
 
 export function permissionConfigRoute(deps: ConfigRouteDeps) {
@@ -42,6 +43,7 @@ export function permissionConfigRoute(deps: ConfigRouteDeps) {
     deps.saveConfig((cfg: Record<string, unknown>) => {
       cfg.permissions = parsed.data;
     });
+    deps.regenerateHooks?.();
     return c.json({ ok: true });
   });
 
@@ -60,6 +62,7 @@ export function permissionConfigRoute(deps: ConfigRouteDeps) {
     deps.saveConfig((cfg: Record<string, unknown>) => {
       cfg.permissions = { preset, defaultLevel, modules };
     });
+    deps.regenerateHooks?.();
 
     return c.json({ ok: true, permissions: { preset, defaultLevel, modules } });
   });

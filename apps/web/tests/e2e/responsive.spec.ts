@@ -20,7 +20,7 @@ test.describe('E2E-APP-19: Mobile bottom tab bar', () => {
 
     // Tab labels
     await expect(mobileNav.getByText('Home')).toBeVisible();
-    await expect(mobileNav.getByText('Jobs')).toBeVisible();
+    await expect(mobileNav.getByText('Tasks')).toBeVisible();
     await expect(mobileNav.getByText('Nouveau')).toBeVisible();
     await expect(mobileNav.getByText('Terminal')).toBeVisible();
     await expect(mobileNav.getByText('Plus')).toBeVisible();
@@ -47,7 +47,7 @@ test.describe('E2E-APP-20: Desktop left icon rail', () => {
 
     // NavLinks by their title attributes
     await expect(desktopNav.locator('a[title="Home"]')).toBeVisible();
-    await expect(desktopNav.locator('a[title="Jobs"]')).toBeVisible();
+    await expect(desktopNav.locator('a[title="Tasks"]')).toBeVisible();
     await expect(desktopNav.locator('a[title="Terminal"]')).toBeVisible();
     await expect(desktopNav.locator('a[title="Ameliorations"]')).toBeVisible();
 

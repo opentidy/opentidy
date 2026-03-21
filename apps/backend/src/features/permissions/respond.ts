@@ -6,7 +6,7 @@ import { Hono } from 'hono';
 interface RespondDeps {
   approvalManager: {
     respond(approvalId: string, approved: boolean): boolean;
-    listPending(): Array<{ id: string; jobId: string; toolName: string; toolInput: Record<string, unknown>; moduleName: string | null; summary: string; createdAt: string }>;
+    listPending(): Array<{ id: string; taskId: string; toolName: string; toolInput: Record<string, unknown>; moduleName: string | null; summary: string; createdAt: string }>;
   };
   sse: {
     emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void;

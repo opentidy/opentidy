@@ -3,4 +3,4 @@
 
 export { resolveAgent } from './registry.js';
 export { createClaudeAdapter } from './claude.js';
-export type { AgentAdapter, AgentName, SpawnOpts, SetupOpts, GuardrailRule } from './types.js';
+export type { AgentAdapter, AgentName, SpawnOpts, SetupOpts, GuardrailRule } from '@opentidy/shared';

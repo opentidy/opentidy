@@ -51,17 +51,17 @@ export function TerminalDrawer({ open, title, moduleName, command, onClose }: Te
   return (
     <div
       data-testid="terminal-drawer"
-      className="fixed bottom-0 left-0 right-0 z-50 flex flex-col border-t border-white/10"
-      style={{ height: '40vh', backgroundColor: '#1a1a2e' }}
+      className="fixed top-0 right-0 bottom-0 z-50 flex flex-col border-l border-border bg-surface"
+      style={{ width: '50vw' }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-2">
-        <span className="truncate font-mono text-sm font-medium text-white/90">{title}</span>
+      <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-2">
+        <span className="truncate font-mono text-sm font-medium text-text/90">{title}</span>
         <button
           type="button"
           aria-label={t('setup.terminal.close')}
           onClick={onClose}
-          className="rounded p-1 text-white/60 hover:bg-white/10 hover:text-white/90 transition-colors"
+          className="rounded p-1 text-text-tertiary hover:bg-card hover:text-text transition-colors"
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
             <path
@@ -76,13 +76,13 @@ export function TerminalDrawer({ open, title, moduleName, command, onClose }: Te
       {/* Terminal body */}
       <div className="min-h-0 flex-1 overflow-hidden">
         {error ? (
-          <div className="flex items-center justify-center h-full text-red-400 text-sm font-mono px-4">
+          <div className="flex items-center justify-center h-full text-red text-sm font-mono px-4">
             {error}
           </div>
         ) : port ? (
           <TtydTerminal port={port} title={title} />
         ) : (
-          <div className="flex items-center justify-center h-full text-yellow-400 text-sm font-mono">
+          <div className="flex items-center justify-center h-full text-orange text-sm font-mono">
             {t('setup.terminal.connecting')}
           </div>
         )}

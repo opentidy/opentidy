@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 // watchdog.ts — fs.watch workspace monitor
-// Emits job:updated SSE events when state.md / artifacts change.
+// Emits task:updated SSE events when state.md / artifacts change.
 // Session lifecycle (start/end) is handled by process exit in launcher/session.ts.
 
 import fs from 'fs';
@@ -21,25 +21,25 @@ export function createWorkspaceWatcher(deps: {
     try {
       watcher = fs.watch(deps.workspaceDir, { recursive: true }, (_eventType, filename) => {
         if (!filename) return;
-        // filename is relative, e.g. "job-id/state.md"
+        // filename is relative, e.g. "task-id/state.md"
         const normalized = filename.replace(/\\/g, '/');
         // React to state.md and artifacts/ changes
         const isRelevant = normalized.endsWith('/state.md') || normalized === 'state.md'
           || normalized.includes('/artifacts/');
         if (!isRelevant) return;
 
-        const jobId = normalized.includes('/') ? normalized.split('/')[0] : '.';
+        const taskId = normalized.includes('/') ? normalized.split('/')[0] : '.';
         // Skip internal dirs and bare files at workspace root
-        if (jobId === '.' || jobId.startsWith('_')) return;
+        if (taskId === '.' || taskId.startsWith('_')) return;
 
-        // Debounce per job — files can be written multiple times rapidly
-        if (debounceTimers.has(jobId)) {
-          clearTimeout(debounceTimers.get(jobId)!);
+        // Debounce per task — files can be written multiple times rapidly
+        if (debounceTimers.has(taskId)) {
+          clearTimeout(debounceTimers.get(taskId)!);
         }
-        debounceTimers.set(jobId, setTimeout(() => {
-          debounceTimers.delete(jobId);
-          console.log(`[watchdog] file changed for ${jobId}, emitting job:updated`);
-          deps.sse.emit({ type: 'job:updated', data: { jobId }, timestamp: new Date().toISOString() });
+        debounceTimers.set(taskId, setTimeout(() => {
+          debounceTimers.delete(taskId);
+          console.log(`[watchdog] file changed for ${taskId}, emitting task:updated`);
+          deps.sse.emit({ type: 'task:updated', data: { taskId }, timestamp: new Date().toISOString() });
         }, DEBOUNCE_MS));
       });
 

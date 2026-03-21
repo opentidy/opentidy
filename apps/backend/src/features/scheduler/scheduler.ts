@@ -3,7 +3,6 @@
 
 import type Database from 'better-sqlite3';
 import type { Schedule, SSEEvent } from '@opentidy/shared';
-import { CreateScheduleSchema, UpdateScheduleSchema } from '@opentidy/shared';
 import type { CreateScheduleInput, UpdateScheduleInput } from '@opentidy/shared';
 
 const POLL_INTERVAL_MS = 10_000;
@@ -18,7 +17,7 @@ interface SchedulerDeps {
     runCheckup(): Promise<unknown>;
   };
   locks: {
-    isLocked(jobId: string): boolean;
+    isLocked(taskId: string): boolean;
   };
   sse: {
     emit(event: SSEEvent): void;
@@ -29,7 +28,7 @@ export function createScheduler(deps: SchedulerDeps) {
   const { db, launcher, checkup, locks, sse } = deps;
 
   const insertStmt = db.prepare(`
-    INSERT INTO schedules (job_id, type, run_at, interval_ms, instruction, label, created_by)
+    INSERT INTO schedules (task_id, type, run_at, interval_ms, instruction, label, created_by)
     VALUES (?, ?, ?, ?, ?, ?, ?)
   `);
 
@@ -44,7 +43,7 @@ export function createScheduler(deps: SchedulerDeps) {
   `);
 
   const deleteStmt = db.prepare('DELETE FROM schedules WHERE id = ?');
-  const deleteByJobStmt = db.prepare('DELETE FROM schedules WHERE job_id = ?');
+  const deleteByTaskStmt = db.prepare('DELETE FROM schedules WHERE task_id = ?');
   const updateLastRunStmt = db.prepare("UPDATE schedules SET last_run_at = strftime('%Y-%m-%dT%H:%M:%SZ', 'now') WHERE id = ?");
 
   const findOverdueOnceStmt = db.prepare(
@@ -69,7 +68,7 @@ export function createScheduler(deps: SchedulerDeps) {
   function rowToSchedule(row: Record<string, unknown>): Schedule {
     return {
       id: row.id as number,
-      jobId: row.job_id as string | null,
+      taskId: row.task_id as string | null,
       type: row.type as 'once' | 'recurring',
       runAt: row.run_at as string | null,
       intervalMs: row.interval_ms as number | null,
@@ -82,19 +81,19 @@ export function createScheduler(deps: SchedulerDeps) {
   }
 
   async function fire(schedule: Schedule): Promise<void> {
-    if (schedule.jobId) {
-      if (locks.isLocked(schedule.jobId)) {
-        console.log(`[scheduler] Skipping ${schedule.label} — job ${schedule.jobId} is locked`);
+    if (schedule.taskId) {
+      if (locks.isLocked(schedule.taskId)) {
+        console.log(`[scheduler] Skipping ${schedule.label} — task ${schedule.taskId} is locked`);
         return; // once stays in DB for retry, recurring waits for next cycle
       }
-      console.log(`[scheduler] Firing ${schedule.label} for job ${schedule.jobId}`);
+      console.log(`[scheduler] Firing ${schedule.label} for task ${schedule.taskId}`);
       try {
-        await launcher.launchSession(schedule.jobId, schedule.instruction
+        await launcher.launchSession(schedule.taskId, schedule.instruction
           ? { source: 'scheduler', content: schedule.instruction }
           : undefined
         );
       } catch (err) {
-        console.error(`[scheduler] Failed to launch session for ${schedule.jobId}:`, err);
+        console.error(`[scheduler] Failed to launch session for ${schedule.taskId}:`, err);
         return;
       }
     } else if (schedule.createdBy === 'system') {
@@ -112,7 +111,7 @@ export function createScheduler(deps: SchedulerDeps) {
       updateLastRunStmt.run(schedule.id);
     }
 
-    emitSSE('schedule:fired', { id: schedule.id, label: schedule.label, jobId: schedule.jobId });
+    emitSSE('schedule:fired', { id: schedule.id, label: schedule.label, taskId: schedule.taskId });
   }
 
   async function checkSchedules(): Promise<void> {
@@ -156,10 +155,9 @@ export function createScheduler(deps: SchedulerDeps) {
     },
 
     create(input: CreateScheduleInput): Schedule {
-      const parsed = CreateScheduleSchema.parse(input);
       const result = insertStmt.run(
-        parsed.jobId, parsed.type, parsed.runAt, parsed.intervalMs,
-        parsed.instruction, parsed.label, parsed.createdBy,
+        input.taskId, input.type, input.runAt, input.intervalMs,
+        input.instruction, input.label, input.createdBy,
       );
       const row = getByIdStmt.get(result.lastInsertRowid) as Record<string, unknown>;
       const schedule = rowToSchedule(row);
@@ -189,8 +187,7 @@ export function createScheduler(deps: SchedulerDeps) {
       const existing = getByIdStmt.get(id) as Record<string, unknown> | undefined;
       if (!existing) throw new Error(`Schedule ${id} not found`);
       if (existing.created_by === 'system') throw new Error('Cannot modify system schedules');
-      const parsed = UpdateScheduleSchema.parse(input);
-      updateStmt.run(parsed.label ?? null, parsed.runAt ?? null, parsed.intervalMs ?? null, parsed.instruction ?? null, id);
+      updateStmt.run(input.label ?? null, input.runAt ?? null, input.intervalMs ?? null, input.instruction ?? null, id);
       return rowToSchedule(getByIdStmt.get(id) as Record<string, unknown>);
     },
 
@@ -202,8 +199,8 @@ export function createScheduler(deps: SchedulerDeps) {
       emitSSE('schedule:deleted', { id });
     },
 
-    deleteByJob(jobId: string): void {
-      deleteByJobStmt.run(jobId);
+    deleteByTask(taskId: string): void {
+      deleteByTaskStmt.run(taskId);
     },
 
     // Exposed for testing

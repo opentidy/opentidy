@@ -19,13 +19,13 @@ export default function WelcomeCard({ onDismiss }: WelcomeCardProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="bg-card border border-border rounded-2xl p-6 md:p-8 mb-8">
+    <div className="bg-card rounded-2xl p-5 md:p-6 border border-border-subtle mb-8">
       <h2 className="text-lg font-bold text-text mb-2">{t('onboarding.welcomeTitle')}</h2>
       <p className="text-text-secondary text-sm mb-6">{t('onboarding.welcomeDescription')}</p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         {pillars.map(({ icon, titleKey, descKey }) => (
-          <div key={titleKey} className="bg-bg rounded-xl p-4 text-center">
+          <div key={titleKey} className="bg-surface rounded-xl p-4 text-center">
             <span className="text-2xl mb-2 block">{icon}</span>
             <p className="font-semibold text-text text-sm mb-1">{t(titleKey)}</p>
             <p className="text-text-tertiary text-xs">{t(descKey)}</p>
@@ -36,13 +36,13 @@ export default function WelcomeCard({ onDismiss }: WelcomeCardProps) {
       <div className="flex items-center justify-between">
         <button
           onClick={() => navigate('/nouveau')}
-          className="px-5 py-2.5 rounded-lg bg-green text-white text-sm font-medium hover:bg-green/90 transition-colors"
+          className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs shadow-[0_2px_8px_rgba(10,132,255,0.2)] hover:bg-accent/90 transition-colors"
         >
           {t('onboarding.createFirstTask')}
         </button>
         <button
           onClick={onDismiss}
-          className="text-sm text-text-tertiary hover:text-text-secondary transition-colors"
+          className="text-text-tertiary hover:text-text-secondary text-xs transition-colors"
         >
           {t('onboarding.explore')}
         </button>

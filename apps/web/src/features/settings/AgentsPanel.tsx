@@ -30,8 +30,8 @@ function AgentIcon({ agent }: { agent: AgentInfo }) {
   const abbr: Record<string, string> = { claude: 'CC', gemini: 'GC', copilot: 'CP' };
   const colors: Record<string, string> = {
     claude: agent.active ? 'bg-accent/20 text-accent' : 'bg-card-hover text-text-tertiary',
-    gemini: 'bg-blue-500/10 text-blue-400',
-    copilot: 'bg-purple-500/10 text-purple-400',
+    gemini: 'bg-accent/10 text-accent',
+    copilot: 'bg-purple/10 text-purple',
   };
 
   return (
@@ -62,7 +62,7 @@ export default function AgentsPanel() {
     setError('Agent switching not yet available');
   }
 
-  if (error && !data) return <div className="text-red-500 text-sm p-3 bg-red-500/10 rounded-lg">{error}</div>;
+  if (error && !data) return <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>;
   if (!data) return <div className="text-text-tertiary text-sm animate-pulse">{t('common.loading')}</div>;
 
   return (
@@ -72,13 +72,13 @@ export default function AgentsPanel() {
         <p className="text-xs text-text-tertiary">{t('toolbox.agentsDescription')}</p>
       </div>
 
-      {error && <div className="text-red-500 text-sm mb-4 p-3 bg-red-500/10 rounded-lg">{error}</div>}
+      {error && <div className="text-red text-sm mb-4 p-3 bg-red/10 rounded-lg">{error}</div>}
 
       <div className="space-y-3">
         {data.agents.map((agent) => (
           <div
             key={agent.name}
-            className={`p-4 bg-bg rounded-lg border transition-colors ${
+            className={`bg-card rounded-xl p-4 border transition-colors ${
               agent.active ? 'border-accent/40' : 'border-border'
             } ${agent.badge === 'coming-soon' ? 'opacity-50' : ''}`}
           >
@@ -91,13 +91,13 @@ export default function AgentsPanel() {
                     <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{t('toolbox.activeAgent')}</span>
                   )}
                   {agent.badge !== 'stable' && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${agent.badge === 'experimental' ? 'bg-amber-500/10 text-amber-500' : 'bg-gray-500/10 text-gray-400'}`}>{badgeLabel(agent.badge)}</span>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${agent.badge === 'experimental' ? 'bg-orange/10 text-orange' : 'bg-card-hover text-text-tertiary'}`}>{badgeLabel(agent.badge)}</span>
                   )}
                 </div>
 
                 {agent.installed ? (
                   <div className="flex items-center gap-3 mt-1">
-                    <span className="text-xs text-green-500 flex items-center gap-1">
+                    <span className="text-green text-xs flex items-center gap-1">
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20,6 9,17 4,12" /></svg>
                       {t('toolbox.installed')}
                     </span>

@@ -16,11 +16,27 @@ interface AuditEntry extends AuditLogInput {
   timestamp: string;
 }
 
+const MAX_LOG_SIZE = 10 * 1024 * 1024; // 10 MB
+
 export function createAuditLogger(auditDir: string) {
   const logFile = path.join(auditDir, 'actions.log');
+  const backupFile = path.join(auditDir, 'actions.log.1');
   fs.mkdirSync(auditDir, { recursive: true });
 
+  function rotateIfNeeded(): void {
+    try {
+      const stats = fs.statSync(logFile);
+      if (stats.size >= MAX_LOG_SIZE) {
+        fs.renameSync(logFile, backupFile);
+        console.log(`[audit] rotated log file (${(stats.size / 1024 / 1024).toFixed(1)} MB)`);
+      }
+    } catch {
+      // File doesn't exist yet — nothing to rotate
+    }
+  }
+
   function log(input: AuditLogInput): void {
+    rotateIfNeeded();
     const entry: AuditEntry = {
       ...input,
       timestamp: new Date().toISOString(),

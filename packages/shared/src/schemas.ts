@@ -14,14 +14,13 @@ export const GmailWebhookSchema = z.object({
   timestamp: z.string(),
 });
 
-// User instruction (create a job)
-export const CreateJobSchema = z.object({
+// User instruction (create a task)
+export const CreateTaskSchema = z.object({
   instruction: z.string().min(1),
-  confirm: z.boolean().default(false),
 });
 
-// Instruction to an existing job (structurally identical to CreateJobSchema)
-export const JobInstructionSchema = CreateJobSchema;
+// Instruction to an existing task (structurally identical to CreateTaskSchema)
+export const TaskInstructionSchema = CreateTaskSchema;
 
 // Approve a suggestion
 export const ApproveSuggestionSchema = z.object({
@@ -41,8 +40,8 @@ export const HookPayloadSchema = z.object({
 
 // Re-exported types
 export type GmailWebhook = z.infer<typeof GmailWebhookSchema>;
-export type CreateJob = z.infer<typeof CreateJobSchema>;
-export type JobInstruction = z.infer<typeof JobInstructionSchema>;
+export type CreateTask = z.infer<typeof CreateTaskSchema>;
+export type TaskInstruction = z.infer<typeof TaskInstructionSchema>;
 export type ApproveSuggestion = z.infer<typeof ApproveSuggestionSchema>;
 export type HookPayload = z.infer<typeof HookPayloadSchema>;
 
@@ -69,7 +68,7 @@ export const MemoryCreateSchema = z.object({
 
 // === Schedule schemas ===
 export const CreateScheduleSchema = z.object({
-  jobId: z.string().nullable().default(null),
+  taskId: z.string().nullable().default(null),
   type: z.enum(['once', 'recurring']),
   runAt: z.string().datetime().nullable().default(null),
   intervalMs: z.number().int().positive().nullable().default(null),
@@ -181,7 +180,7 @@ export const ConfigFieldSchema = z.object({
 });
 
 // === Permission System schemas ===
-export const PermissionScopeSchema = z.enum(['per-call', 'per-job']);
+export const PermissionScopeSchema = z.enum(['per-call', 'per-task']);
 export const PermissionLevelSchema = z.enum(['allow', 'confirm', 'ask']);
 export const PermissionPresetSchema = z.enum(['supervised', 'autonomous', 'full-auto']);
 
@@ -203,6 +202,7 @@ export const ModuleManifestSchema = z.object({
   description: z.string(),
   icon: z.string().optional(),
   version: z.string(),
+  capabilities: z.array(z.string()).optional(),
   core: z.boolean().optional(),
   platform: z.enum(['darwin', 'all']).optional(),
   mcpServers: z.array(McpServerDefSchema).optional(),

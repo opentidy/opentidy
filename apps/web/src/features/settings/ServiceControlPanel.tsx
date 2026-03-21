@@ -44,24 +44,24 @@ export default function ServiceControlPanel() {
 
   const statusColor =
     status === 'running'
-      ? 'text-green-500'
+      ? 'text-green'
       : status === 'stopped'
-        ? 'text-red-500'
+        ? 'text-red'
         : 'text-text-tertiary';
 
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-lg font-semibold">{t('settings.serviceControl')}</h2>
+        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.serviceControl')}</h2>
         <p className="text-xs text-text-tertiary">{t('settings.serviceControlDescription')}</p>
       </div>
 
-      <div className="p-4 bg-bg rounded-lg border border-border">
+      <div className="bg-card rounded-xl p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span
               className={`inline-block w-2.5 h-2.5 rounded-full ${
-                status === 'running' ? 'bg-green-500' : status === 'stopped' ? 'bg-red-500' : 'bg-gray-500'
+                status === 'running' ? 'bg-green' : status === 'stopped' ? 'bg-red' : 'bg-text-tertiary'
               }`}
             />
             <div>
@@ -75,7 +75,7 @@ export default function ServiceControlPanel() {
               type="button"
               disabled={acting || status === 'running'}
               onClick={() => handleAction('start')}
-              className="px-3 py-1.5 text-sm border border-accent/30 text-accent rounded-lg hover:bg-accent/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('common.launch')}
             </button>
@@ -83,7 +83,7 @@ export default function ServiceControlPanel() {
               type="button"
               disabled={acting || status === 'stopped'}
               onClick={() => handleAction('stop')}
-              className="px-3 py-1.5 text-sm border border-border text-text-secondary rounded-lg hover:bg-card-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('common.stop')}
             </button>
@@ -91,7 +91,7 @@ export default function ServiceControlPanel() {
               type="button"
               disabled={acting}
               onClick={() => handleAction('restart')}
-              className="px-3 py-1.5 text-sm border border-border text-text-secondary rounded-lg hover:bg-card-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {t('settings.restart')}
             </button>

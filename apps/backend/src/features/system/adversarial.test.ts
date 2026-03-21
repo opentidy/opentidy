@@ -859,7 +859,7 @@ describe('Adversarial memory API tests', () => {
       const indexPath = path.join(tmp.path, '_memory', 'INDEX.md')
       fs.writeFileSync(indexPath, `# OpenTidy Memory Index
 
-| fichier | catégorie | mis à jour | description |
+| file | category | updated | description |
 |---------|-----------|------------|-------------|
 `)
 

@@ -7,11 +7,11 @@ export interface PermissionCheckDeps {
   manifests: Map<string, ModuleManifest>;
   loadConfig: () => PermissionConfig;
   state: {
-    isGranted(jobId: string, moduleName: string): boolean;
-    grant(jobId: string, moduleName: string): void;
+    isGranted(taskId: string, moduleName: string): boolean;
+    grant(taskId: string, moduleName: string): void;
   };
   requestApproval: (opts: {
-    jobId: string;
+    taskId: string;
     toolName: string;
     toolInput: Record<string, unknown>;
     moduleName: string | null;

@@ -35,7 +35,7 @@ function PasswordInput({ value, onChange, placeholder }: {
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm pr-10"
+        className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent pr-10"
       />
       <button
         type="button"
@@ -80,7 +80,7 @@ function renderField(
         <select
           value={strValue}
           onChange={(e) => onChange(field.key, e.target.value)}
-          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
         >
           <option value="">{field.placeholder || '---'}</option>
           {(field.options || []).map((opt) => (
@@ -96,7 +96,7 @@ function renderField(
           value={strValue}
           onChange={(e) => onChange(field.key, e.target.value)}
           placeholder={field.placeholder}
-          className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
         />
       );
   }
@@ -139,7 +139,7 @@ export default function ModuleConfigDialog({
     <>
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
         <div
-          className="bg-card border border-border rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
+          className="bg-surface rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <h3 className="text-lg font-semibold mb-4">
@@ -165,7 +165,7 @@ export default function ModuleConfigDialog({
               <div key={field.key}>
                 <label className="text-sm text-text-secondary">
                   {field.label}
-                  {field.required && <span className="text-red-400 ml-0.5">*</span>}
+                  {field.required && <span className="text-red ml-0.5">*</span>}
                 </label>
                 <div className="mt-1">
                   {renderField(field, values[field.key], handleFieldChange)}
@@ -174,21 +174,21 @@ export default function ModuleConfigDialog({
             ))}
 
             {error && (
-              <div className="text-red-500 text-sm p-3 bg-red-500/10 rounded-lg">{error}</div>
+              <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>
             )}
 
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 text-sm rounded-lg hover:bg-card-hover transition-colors"
+                className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs transition-colors"
               >
                 {t('modules.cancel')}
               </button>
               <button
                 type="submit"
                 disabled={submitting}
-                className="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 transition-colors"
+                className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs disabled:opacity-50 transition-colors"
               >
                 {submitting ? t('common.loading') : t('modules.save')}
               </button>

@@ -7,6 +7,7 @@
     "confirm": "Confirm",
     "files": "Files",
     "send": "Send",
+    "retry": "Retry",
     "launch": "Launch",
     "stop": "Stop",
     "complete": "Complete",
@@ -25,21 +26,21 @@
     "idle": "Paused"
   },
   "nav": {
-    "home": "Jobs",
+    "home": "Tasks",
     "terminal": "Processes",
     "analyses": "Improvements",
     "memory": "Memory",
     "new": "New",
     "schedule": "Schedule",
-    "suggestions": "Job Proposals",
+    "suggestions": "Task Proposals",
     "modules": "Modules",
     "settings": "Settings",
     "sectionAgent": "Agent"
   },
   "home": {
     "waitingForYou": "Waiting for you",
-    "job_one": "{{count}} job",
-    "job_other": "{{count}} jobs",
+    "task_one": "{{count}} task",
+    "task_other": "{{count}} tasks",
     "claudeWaiting": "Claude is waiting for your response",
     "thirdPartyWait": "Third-party wait",
     "userWait": "User wait",
@@ -47,11 +48,11 @@
     "suggestions": "Suggestions",
     "new_one": "{{count}} new",
     "new_other": "{{count}} new",
-    "jobs": "Jobs",
+    "tasks": "Tasks",
     "active": "Active",
     "completed": "Completed",
     "search": "Search...",
-    "noJobs": "No {{filter}} jobs",
+    "noTasks": "No {{filter}} tasks",
     "checkupRunning": "Checkup running...",
     "checkupResult": "Checkup {{time}} — {{result}}",
     "checkupOk": "OK",
@@ -59,17 +60,15 @@
     "nextAt": "Next at {{time}}",
     "nextCheckup": "Next checkup at {{time}}",
     "checkupWaiting": "Checkup — waiting",
-    "deleteConfirm": "Delete everything? Sessions, jobs, locks — fresh start.",
+    "deleteConfirm": "Delete everything? Sessions, tasks, locks — fresh start.",
     "launchTestConfirm": "Launch all test tasks?",
     "runCheckup": "Run checkup",
-    "newJob": "+ New job"
+    "newTask": "+ New task"
   },
   "nouveau": {
-    "title": "New job",
-    "description": "Describe what you need. The assistant creates the job and starts working.",
+    "title": "New task",
+    "description": "Describe what you need. The assistant creates the task and starts working.",
     "placeholder": "E.g.: List my desk for sale on Marketplace, price €300...",
-    "confirmMode": "Ask me before acting",
-    "confirmModeHelp": "When enabled, the assistant asks you before sending emails, making calls, or taking actions that affect others. Recommended for getting started.",
     "recommendations": "Assistant recommendations",
     "exampleSell": "List furniture for sale on Marketplace",
     "exampleInvoice": "Follow up on an unpaid invoice",
@@ -81,17 +80,17 @@
     "exampleDoctorFull": "Find a slot with a general practitioner this week, preferably in the morning. Downtown area. Book the appointment if possible.",
     "tryExample": "Try an example:"
   },
-  "jobDetail": {
+  "taskDetail": {
     "stop": "Stop",
     "complete": "Complete",
     "completeConfirm": "Complete \"{{title}}\"?",
     "state": "State",
     "log": "Log",
     "noActiveSession": "No active session",
-    "jobCompleted": "This job is completed. Reopen it to start a session.",
-    "reopenJob": "Reopen job",
+    "taskCompleted": "This task is completed. Reopen it to start a session.",
+    "reopenTask": "Reopen task",
     "startSession": "Start a session",
-    "notFound": "Job not found"
+    "notFound": "Task not found"
   },
   "ameliorations": {
     "title": "Improvements",
@@ -113,16 +112,15 @@
     }
   },
   "suggestions": {
-    "title": "Job Proposals"
+    "title": "Task Proposals"
   },
   "suggestion": {
     "viewOriginal": "View original message",
-    "createJob": "Create job",
+    "createTask": "Create task",
     "ignore": "Ignore"
   },
   "instruction": {
-    "placeholder": "Send an instruction to this job...",
-    "confirmMode": "Ask me before acting"
+    "placeholder": "Send an instruction to this task..."
   },
   "sidebar": {
     "session": "Session",
@@ -196,8 +194,8 @@
     "emptyWaitingUser": "When the assistant needs your input, tasks will appear here.",
     "emptyWaitingTiers": "Tasks waiting for a third party (email reply, callback...) will show up here.",
     "emptySuggestions": "The assistant monitors your emails and messages. New tasks it detects will appear here.",
-    "emptyJobs": "Your active tasks will appear here.",
-    "emptyCreateCta": "Create your first job",
+    "emptyTasks": "Your active tasks will appear here.",
+    "emptyCreateCta": "Create your first task",
     "navLockedProcesses": "Visible when tasks are running",
     "navLockedAmeliorations": "Appears after a few days of use",
     "navLockedMemory": "The assistant learns over time"
@@ -247,8 +245,8 @@
     "dangerZone": "Danger zone",
     "dangerZoneDesc": "Irreversible actions. Handle with care.",
     "resetTitle": "Reset all data",
-    "resetDesc": "Delete all jobs, sessions, suggestions, gaps, and memory. This cannot be undone.",
-    "resetConfirm": "Are you sure? This will delete ALL data (jobs, sessions, memory). This cannot be undone.",
+    "resetDesc": "Delete all tasks, sessions, suggestions, gaps, and memory. This cannot be undone.",
+    "resetConfirm": "Are you sure? This will delete ALL data (tasks, sessions, memory). This cannot be undone.",
     "resetButton": "Reset everything",
     "resetting": "Resetting..."
   },
@@ -263,7 +261,7 @@
     "recurring": "Recurring",
     "dateTime": "Date & time",
     "interval": "Interval (minutes)",
-    "job": "Job (optional)",
+    "task": "Task (optional)",
     "instruction": "Instruction (optional)",
     "system": "System",
     "noSchedules": "No scheduled events"
@@ -284,12 +282,15 @@
     "agentStable": "Stable",
     "agentExperimental": "Experimental",
     "agentComingSoon": "Coming soon",
+    "agentFetchError": "Could not reach the backend.",
+    "agentBackendError": "Cannot load agents — is the backend running?",
     "permissions": "System Permissions",
     "permissionsDesc": "Grant permissions so OpenTidy can access your apps.",
     "authorize": "Open Settings",
     "authorized": "Authorized",
     "install": "Install",
     "installed": "Installed",
+    "available": "Available",
     "uninstall": "Uninstall",
     "reinstall": "Reinstall",
     "broken": "Broken",
@@ -334,8 +335,12 @@
     "level.allow": "Allow",
     "level.confirm": "Confirm",
     "level.ask": "Ask",
+    "levelDesc.allow": "Automatic",
+    "levelDesc.confirm": "Ask for sensitive",
+    "levelDesc.ask": "Always ask",
+    "securityLevel": "Security",
     "scope.per-call": "Each time",
-    "scope.per-job": "Once per job",
+    "scope.per-task": "Once per task",
     "security": "Security",
     "securityDescription": "Authentication and access control",
     "bearerToken": "Bearer Token",
@@ -370,7 +375,7 @@
     "add": "Add"
   },
   "helpTooltip": {
-    "job": "A task that the assistant manages for you, from start to finish.",
+    "task": "A task that the assistant manages for you, from start to finish.",
     "waitingUser": "The assistant is stuck and needs your response to continue.",
     "suggestion": "A task automatically detected in your emails or messages.",
     "amelioration": "Something the assistant identified to serve you better in the future."

@@ -10,12 +10,12 @@ import type { AppDeps } from '../../server.js'
 export function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
   return {
     workspace: {
-      listJobIds: () => [],
-      getJob: () => ({}) as any,
-      jobManager: {
-        createJob: () => {},
-        createJobFromSuggestion: () => {},
-        completeJob: () => {},
+      listTaskIds: () => [],
+      getTask: () => ({}) as any,
+      taskManager: {
+        createTask: () => {},
+        createTaskFromSuggestion: () => {},
+        completeTask: () => {},
         saveArtifact: () => {},
       },
       suggestionsManager: { listSuggestions: () => [], ignoreSuggestion: () => {} },

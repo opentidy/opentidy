@@ -4,6 +4,14 @@
   "description": "Read, search, and draft emails via Gmail",
   "icon": "📧",
   "version": "1.0.0",
+  "capabilities": [
+    "Read emails",
+    "Search inbox",
+    "Draft emails",
+    "Send and reply to emails",
+    "Forward emails",
+    "Receive email notifications"
+  ],
   "mcpServers": [{
     "name": "gmail",
     "command": "npx",

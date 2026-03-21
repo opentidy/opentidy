@@ -1,6 +1,6 @@
 import { Page } from '@playwright/test';
 
-export const mockJobs = [
+export const mockTasks = [
   {
     id: 'invoices-acme',
     title: 'Invoices Acme',
@@ -75,19 +75,19 @@ export const mockSuggestions = [
 export const mockSessions = [
   {
     id: 'opentidy-invoices-acme',
-    jobId: 'invoices-acme',
+    taskId: 'invoices-acme',
     status: 'active',
     startedAt: '2026-03-14T08:00:00Z',
   },
   {
     id: 'opentidy-insurance-report',
-    jobId: 'insurance-report',
+    taskId: 'insurance-report',
     status: 'idle',
     startedAt: '2026-03-14T07:00:00Z',
   },
   {
     id: 'opentidy-blocked-test',
-    jobId: 'blocked-test',
+    taskId: 'blocked-test',
     status: 'mfa',
     startedAt: '2026-03-14T06:00:00Z',
   },
@@ -101,7 +101,7 @@ export const mockAmeliorations = [
     problem: 'Cannot handle TOTP',
     impact: 'Cannot access insurance portal',
     suggestion: 'Add TOTP support',
-    jobId: 'insurance-report',
+    taskId: 'insurance-report',
     resolved: false,
   },
   {
@@ -111,7 +111,7 @@ export const mockAmeliorations = [
     problem: 'Too many API calls',
     impact: 'Delays in processing',
     suggestion: 'Add backoff',
-    jobId: null,
+    taskId: null,
     resolved: false,
   },
   {
@@ -121,7 +121,7 @@ export const mockAmeliorations = [
     problem: 'Was broken',
     impact: 'None now',
     suggestion: 'Fixed',
-    jobId: null,
+    taskId: null,
     resolved: true,
   },
 ];
@@ -129,40 +129,40 @@ export const mockAmeliorations = [
 export async function setupMockApi(
   page: Page,
   overrides?: Partial<{
-    jobs: typeof mockJobs;
+    tasks: typeof mockTasks;
     suggestions: typeof mockSuggestions;
     sessions: typeof mockSessions;
     ameliorations: typeof mockAmeliorations;
   }>,
 ) {
-  const jobs = overrides?.jobs ?? mockJobs;
+  const tasks = overrides?.tasks ?? mockTasks;
   const suggestions = overrides?.suggestions ?? mockSuggestions;
   const sessions = overrides?.sessions ?? mockSessions;
   const ameliorations = overrides?.ameliorations ?? mockAmeliorations;
 
   // GET routes
-  await page.route('**/api/jobs', (route) => {
+  await page.route('**/api/tasks', (route) => {
     if (route.request().method() === 'GET') {
-      return route.fulfill({ json: jobs });
+      return route.fulfill({ json: tasks });
     }
     return route.fallback();
   });
 
-  await page.route('**/api/job/*', (route) => {
+  await page.route('**/api/task/*', (route) => {
     const url = route.request().url();
     const method = route.request().method();
 
-    // POST /api/job (create)
-    if (method === 'POST' && url.endsWith('/api/job')) {
+    // POST /api/task (create)
+    if (method === 'POST' && url.endsWith('/api/task')) {
       return route.fulfill({ json: { created: true } });
     }
 
-    // GET /api/job/:id
+    // GET /api/task/:id
     if (method === 'GET') {
-      const segments = url.split('/api/job/')[1]?.split('/');
+      const segments = url.split('/api/task/')[1]?.split('/');
       const id = segments?.[0];
-      const job = jobs.find((d) => d.id === id);
-      if (job) return route.fulfill({ json: job });
+      const task = tasks.find((d) => d.id === id);
+      if (task) return route.fulfill({ json: task });
       return route.fulfill({ status: 404, json: { error: 'not found' } });
     }
 
@@ -190,7 +190,7 @@ export async function setupMockApi(
   );
 
   // POST routes
-  await page.route('**/api/job', (route) => {
+  await page.route('**/api/task', (route) => {
     if (route.request().method() === 'POST') {
       return route.fulfill({ json: { created: true } });
     }
@@ -205,11 +205,11 @@ export async function setupMockApi(
     route.fulfill({ json: { ignored: true } }),
   );
 
-  await page.route('**/api/job/*/instruction', (route) =>
+  await page.route('**/api/task/*/instruction', (route) =>
     route.fulfill({ json: { launched: true } }),
   );
 
-  await page.route('**/api/job/*/resume', (route) =>
+  await page.route('**/api/task/*/resume', (route) =>
     route.fulfill({ json: { resumed: true } }),
   );
 

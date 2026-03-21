@@ -15,7 +15,7 @@ export default function DangerZonePanel() {
       <h2 className="text-lg font-bold text-text mb-1">{t('toolbox.dangerZone')}</h2>
       <p className="text-sm text-text-tertiary mb-6">{t('toolbox.dangerZoneDesc')}</p>
 
-      <div className="border border-red/30 rounded-xl p-5">
+      <div className="bg-red/5 border border-red/10 rounded-xl p-4">
         <h3 className="text-sm font-semibold text-red mb-1">{t('toolbox.resetTitle')}</h3>
         <p className="text-xs text-text-tertiary mb-4">{t('toolbox.resetDesc')}</p>
         <button
@@ -25,10 +25,10 @@ export default function DangerZonePanel() {
             try { await resetEverything(); } finally { setResetting(false); }
           }}
           disabled={resetting}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+          className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
             resetting
               ? 'bg-red/20 text-red cursor-wait'
-              : 'bg-red/10 text-red hover:bg-red/20 border border-red/30'
+              : 'bg-red text-white'
           }`}
         >
           {resetting ? t('toolbox.resetting') : t('toolbox.resetButton')}

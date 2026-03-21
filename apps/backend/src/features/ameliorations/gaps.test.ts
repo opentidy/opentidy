@@ -23,12 +23,12 @@ describe('GapsManager', () => {
   it('parses gaps.md into structured entries', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Accès SFTP manquant\n\n**Problème:** Pas de credentials\n**Impact:** Bloque factures\n**Suggestion:** Demander à IT\n**Job:** invoices-acme\n\n---\n',
+      '## 2026-03-14 — Accès SFTP manquant\n\n**Problème:** Pas de credentials\n**Impact:** Bloque factures\n**Suggestion:** Demander à IT\n**Task:** invoices-acme\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list).toHaveLength(1);
     expect(list[0].title).toContain('Accès SFTP');
-    expect(list[0].jobId).toBe('invoices-acme');
+    expect(list[0].taskId).toBe('invoices-acme');
   });
 
   it('marks a gap as resolved', () => {
@@ -53,7 +53,7 @@ describe('GapsManager', () => {
   it('parses fixType and sanitized fields from structured format', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Job:** insurance-report\n\n---\n',
+      '## 2026-03-14 — MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Task:** insurance-report\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list).toHaveLength(1);

@@ -4,7 +4,7 @@
 import { Hono } from 'hono';
 import type { AppDeps } from '../../server.js';
 
-export function healthRoute(deps: AppDeps) {
+export function auditRoute(deps: AppDeps) {
   const router = new Hono();
 
   // GET /audit
