@@ -26,11 +26,7 @@ async function fetchPermissions(): Promise<PermissionConfig | null> {
   }
 }
 
-const PRESETS: { id: PermissionPreset; icon: string }[] = [
-  { id: 'supervised', icon: '🔍' },
-  { id: 'autonomous', icon: '⚡' },
-  { id: 'full-auto', icon: '🤖' },
-];
+const PRESETS: PermissionPreset[] = ['supervised', 'assisted', 'autonomous'];
 
 interface ModuleListProps {
   /** Auto-enable core modules on mount (setup wizard only) */
@@ -302,9 +298,9 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
       {/* Preset buttons with descriptions */}
       {permissions && (
         <div className="mb-5 flex gap-2">
-          {PRESETS.map(({ id, icon }) => {
+          {PRESETS.map((id) => {
             const isSelected = permissions.preset === id;
-            const presetKey = id === 'full-auto' ? 'Fullauto' : id.charAt(0).toUpperCase() + id.slice(1);
+            const presetKey = id.charAt(0).toUpperCase() + id.slice(1);
             return (
               <button
                 key={id}
@@ -317,12 +313,9 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
                     : 'border-border bg-surface hover:bg-card text-text-secondary'
                 } disabled:opacity-40`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-base">{icon}</span>
-                  <span className="text-xs font-semibold">
-                    {t(`setup.preset${presetKey}`)}
-                  </span>
-                </div>
+                <span className="text-xs font-semibold">
+                  {t(`setup.preset${presetKey}`)}
+                </span>
                 <span className="text-[10px] leading-tight text-text-tertiary line-clamp-2">
                   {t(`setup.preset${presetKey}Desc`)}
                 </span>

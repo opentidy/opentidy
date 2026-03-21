@@ -182,7 +182,7 @@ export const ConfigFieldSchema = z.object({
 // === Permission System schemas ===
 export const PermissionScopeSchema = z.enum(['per-call', 'per-task']);
 export const PermissionLevelSchema = z.enum(['allow', 'ask', 'block']);
-export const PermissionPresetSchema = z.enum(['supervised', 'autonomous', 'full-auto']);
+export const PermissionPresetSchema = z.enum(['supervised', 'assisted', 'autonomous']);
 
 const ToolDefSchema = z.object({
   tool: z.string(),

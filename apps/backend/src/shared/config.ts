@@ -129,7 +129,17 @@ function migratePermissionLevels(config: OpenTidyConfig): boolean {
     }
   }
 
-  if (changed) console.log('[config] Migrated permission levels: confirm→ask, ask→block');
+  // Migrate preset names: 'full-auto' → 'autonomous', old 'autonomous' → 'assisted'
+  if ((perms.preset as string) === 'full-auto') {
+    perms.preset = 'autonomous';
+    changed = true;
+  } else if ((perms.preset as string) === 'autonomous' && perms.modules && Object.values(perms.modules).some(v => typeof v === 'object' && (v as any).critical === 'ask')) {
+    // Old autonomous had critical='ask' (now that's assisted)
+    perms.preset = 'assisted';
+    changed = true;
+  }
+
+  if (changed) console.log('[config] Migrated permission config');
   return changed;
 }
 
