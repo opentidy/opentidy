@@ -130,6 +130,14 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
     return value;
   }
 
+  // Lookup which group (safe/critical) a tool belongs to
+  function findToolGroup(moduleName: string, toolName: string): 'safe' | 'critical' {
+    const mod = modules.find(m => m.name === moduleName);
+    const tp = mod?.toolPermissions;
+    if (tp?.safe?.some((d: any) => (typeof d === 'string' ? d : d.tool) === toolName)) return 'safe';
+    return 'critical';
+  }
+
   // Per-module permission level handler (group: safe/critical, or per-tool override)
   async function handlePermissionChange(moduleName: string, key: 'safe' | 'critical' | string, level: PermissionLevel) {
     if (!permissions) return;
@@ -138,11 +146,20 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
 
     let newValue: ModulePermissionLevel;
     if (key === 'safe' || key === 'critical') {
+      // Group-level change
       newValue = { ...current, [key]: level };
     } else {
-      // Per-tool override
-      const overrides = { ...current.overrides, [key]: level };
-      newValue = { ...current, overrides };
+      // Per-tool: check if level matches group default — if so, remove override
+      const group = findToolGroup(moduleName, key);
+      const groupLevel = current[group];
+      const overrides = { ...current.overrides };
+      if (level === groupLevel) {
+        delete overrides[key];
+      } else {
+        overrides[key] = level;
+      }
+      // Clean up empty overrides
+      newValue = { ...current, overrides: Object.keys(overrides).length > 0 ? overrides : undefined };
     }
 
     const updated: PermissionConfig = {
