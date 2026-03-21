@@ -303,4 +303,35 @@ describe('regenerateAgentConfig (module path)', () => {
     expect(settings.permissions.allow).toContain('mcp__opentidy__*');
     expect(settings._regeneratedAt).toBeDefined();
   });
+
+  it('resolves password-manager wrapper script path in settings.json', () => {
+    const modulesBaseDir = '/opt/test/modules';
+    const config = buildTestConfig({
+      agentConfig: { name: 'claude', configDir: testDir },
+      server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
+      modules: { 'password-manager': { enabled: true, source: 'curated' } },
+    });
+    const modules: Record<string, ModuleState> = {
+      'password-manager': makeModuleState(true, { apiUrl: 'https://vault.example.com/api' }),
+    };
+    const manifests = new Map<string, ModuleManifest>([
+      ['password-manager', makeManifest('password-manager', {
+        mcpServers: [{
+          name: 'bitwarden',
+          command: 'node',
+          args: ['./start-mcp.js'],
+          envFromConfig: { BW_API_BASE_URL: 'apiUrl' },
+        }],
+      })],
+    ]);
+
+    regenerateAgentConfig(config, undefined, modules, manifests, modulesBaseDir);
+
+    const settingsPath = join(testDir, 'settings.json');
+    const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
+    expect(settings.mcpServers.bitwarden).toBeDefined();
+    expect(settings.mcpServers.bitwarden.command).toBe('node');
+    expect(settings.mcpServers.bitwarden.args).toEqual(['/opt/test/modules/password-manager/start-mcp.js']);
+    expect(settings.mcpServers.bitwarden.env).toEqual({ BW_API_BASE_URL: 'https://vault.example.com/api' });
+  });
 });
