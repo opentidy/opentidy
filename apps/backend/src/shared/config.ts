@@ -134,9 +134,34 @@ function migratePermissionLevels(config: OpenTidyConfig): boolean {
     perms.preset = 'autonomous';
     changed = true;
   } else if ((perms.preset as string) === 'autonomous' && perms.modules && Object.values(perms.modules).some(v => typeof v === 'object' && (v as any).critical === 'ask')) {
-    // Old autonomous had critical='ask' (now that's assisted)
     perms.preset = 'assisted';
     changed = true;
+  }
+
+  // Re-apply preset defaults to fix stale values from old preset definitions
+  const PRESET_DEFAULTS: Record<string, { safe: string; critical: string }> = {
+    'supervised': { safe: 'ask', critical: 'ask' },
+    'assisted': { safe: 'allow', critical: 'ask' },
+    'autonomous': { safe: 'allow', critical: 'allow' },
+  };
+  const presetDef = PRESET_DEFAULTS[perms.preset as string];
+  if (presetDef) {
+    for (const [key, value] of Object.entries(perms.modules)) {
+      if (typeof value === 'object' && value) {
+        const mpl = value as Record<string, any>;
+        const hasOverrides = mpl.overrides && Object.keys(mpl.overrides).length > 0;
+        // Only re-apply if no per-tool overrides (user customization)
+        if (!hasOverrides && (mpl.safe !== presetDef.safe || mpl.critical !== presetDef.critical)) {
+          mpl.safe = presetDef.safe;
+          mpl.critical = presetDef.critical;
+          changed = true;
+        }
+      }
+    }
+    if (perms.defaultLevel !== presetDef.critical) {
+      perms.defaultLevel = presetDef.critical as any;
+      changed = true;
+    }
   }
 
   if (changed) console.log('[config] Migrated permission config');
