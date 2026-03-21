@@ -73,7 +73,7 @@ export function resetRoute(deps: AppDeps) {
         language: 'en',
         userInfo: { name: '', email: '', company: '' },
         modules: { opentidy: { enabled: true, source: 'curated' as const } },
-        permissions: { preset: 'autonomous' as const, defaultLevel: 'confirm' as const, modules: {} },
+        permissions: { preset: 'autonomous' as const, defaultLevel: 'ask' as const, modules: {} },
         setupComplete: false,
       } as any);
       console.log('[opentidy] Config reset to defaults (setupComplete=false)');

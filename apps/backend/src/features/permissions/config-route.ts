@@ -3,12 +3,12 @@
 
 import { Hono } from 'hono';
 import { PermissionConfigSchema } from '@opentidy/shared';
-import type { PermissionConfig, PermissionPreset, PermissionLevel, ModuleManifest } from '@opentidy/shared';
+import type { PermissionConfig, PermissionPreset, ModuleManifest, ModulePermissionLevel } from '@opentidy/shared';
 
-const PRESET_DEFAULTS: Record<PermissionPreset, PermissionLevel> = {
-  'supervised': 'ask',
-  'autonomous': 'confirm',
-  'full-auto': 'allow',
+const PRESET_DEFAULTS: Record<PermissionPreset, ModulePermissionLevel> = {
+  'supervised': { safe: 'block', critical: 'block' },
+  'autonomous': { safe: 'allow', critical: 'ask' },
+  'full-auto': { safe: 'allow', critical: 'allow' },
 };
 
 interface ConfigRouteDeps {
@@ -49,16 +49,17 @@ export function permissionConfigRoute(deps: ConfigRouteDeps) {
 
   router.post('/permissions/preset', async (c) => {
     const { preset } = await c.req.json() as { preset: PermissionPreset };
-    const defaultLevel = PRESET_DEFAULTS[preset];
-    if (!defaultLevel) return c.json({ error: 'invalid preset' }, 400);
+    const levels = PRESET_DEFAULTS[preset];
+    if (!levels) return c.json({ error: 'invalid preset' }, 400);
 
-    const modules: Record<string, PermissionLevel> = {};
+    const modules: Record<string, ModulePermissionLevel> = {};
     for (const [, manifest] of deps.manifests) {
       if (manifest.toolPermissions) {
-        modules[manifest.name] = defaultLevel;
+        modules[manifest.name] = { ...levels };
       }
     }
 
+    const defaultLevel = levels.critical; // backward compat: defaultLevel = critical level
     deps.saveConfig((cfg: Record<string, unknown>) => {
       cfg.permissions = { preset, defaultLevel, modules };
     });

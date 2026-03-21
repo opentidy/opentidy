@@ -4,14 +4,6 @@
   "description": "Web browsing via anti-detection browser (Camoufox)",
   "icon": "🌐",
   "version": "1.0.0",
-  "capabilities": [
-    "Visit websites",
-    "Fill forms",
-    "Click and interact with pages",
-    "Extract data from web pages",
-    "Take screenshots",
-    "Persistent browser sessions"
-  ],
   "mcpServers": [{
     "name": "camoufox",
     "command": "npx",
@@ -27,7 +19,24 @@
   },
   "toolPermissions": {
     "scope": "per-task",
-    "safe": ["mcp__camofox__navigate", "mcp__camofox__navigate_and_snapshot", "mcp__camofox__snapshot", "mcp__camofox__scroll", "mcp__camofox__scroll_and_snapshot", "mcp__camofox__get_links", "mcp__camofox__list_tabs", "mcp__camofox__screenshot", "mcp__camofox__extract_resources"],
-    "critical": ["mcp__camofox__click", "mcp__camofox__fill_form", "mcp__camofox__camofox_evaluate_js", "mcp__camofox__type_text", "mcp__camofox__type_and_submit", "mcp__camofox__batch_click"]
+    "safe": [
+      { "tool": "mcp__camofox__navigate", "label": "Visit websites" },
+      { "tool": "mcp__camofox__navigate_and_snapshot", "label": "Navigate and snapshot" },
+      { "tool": "mcp__camofox__snapshot", "label": "Take snapshots" },
+      { "tool": "mcp__camofox__scroll", "label": "Scroll pages" },
+      { "tool": "mcp__camofox__scroll_and_snapshot", "label": "Scroll and snapshot" },
+      { "tool": "mcp__camofox__get_links", "label": "Extract links" },
+      { "tool": "mcp__camofox__list_tabs", "label": "List tabs" },
+      { "tool": "mcp__camofox__screenshot", "label": "Take screenshots" },
+      { "tool": "mcp__camofox__extract_resources", "label": "Extract page data" }
+    ],
+    "critical": [
+      { "tool": "mcp__camofox__click", "label": "Click elements" },
+      { "tool": "mcp__camofox__fill_form", "label": "Fill forms" },
+      { "tool": "mcp__camofox__camofox_evaluate_js", "label": "Run JavaScript" },
+      { "tool": "mcp__camofox__type_text", "label": "Type text" },
+      { "tool": "mcp__camofox__type_and_submit", "label": "Type and submit" },
+      { "tool": "mcp__camofox__batch_click", "label": "Click multiple elements" }
+    ]
   }
 }

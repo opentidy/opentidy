@@ -181,19 +181,30 @@ export const ConfigFieldSchema = z.object({
 
 // === Permission System schemas ===
 export const PermissionScopeSchema = z.enum(['per-call', 'per-task']);
-export const PermissionLevelSchema = z.enum(['allow', 'confirm', 'ask']);
+export const PermissionLevelSchema = z.enum(['allow', 'ask', 'block']);
 export const PermissionPresetSchema = z.enum(['supervised', 'autonomous', 'full-auto']);
+
+const ToolDefSchema = z.object({
+  tool: z.string(),
+  label: z.string(),
+});
 
 export const ToolPermissionsSchema = z.object({
   scope: PermissionScopeSchema,
-  safe: z.array(z.string()),
-  critical: z.array(z.string()),
+  safe: z.array(ToolDefSchema),
+  critical: z.array(ToolDefSchema),
+});
+
+const ModulePermissionLevelSchema = z.object({
+  safe: PermissionLevelSchema,
+  critical: PermissionLevelSchema,
+  overrides: z.record(PermissionLevelSchema).optional(),
 });
 
 export const PermissionConfigSchema = z.object({
   preset: PermissionPresetSchema,
   defaultLevel: PermissionLevelSchema,
-  modules: z.record(PermissionLevelSchema),
+  modules: z.record(z.union([PermissionLevelSchema, ModulePermissionLevelSchema])),
 });
 
 export const ModuleManifestSchema = z.object({
@@ -202,7 +213,6 @@ export const ModuleManifestSchema = z.object({
   description: z.string(),
   icon: z.string().optional(),
   version: z.string(),
-  capabilities: z.array(z.string()).optional(),
   core: z.boolean().optional(),
   platform: z.enum(['darwin', 'all']).optional(),
   mcpServers: z.array(McpServerDefSchema).optional(),

@@ -4,13 +4,6 @@
   "description": "Core tools — schedule tasks, manage suggestions, track improvements",
   "icon": "🧹",
   "version": "1.0.0",
-  "capabilities": [
-    "Schedule tasks",
-    "Manage suggestions",
-    "Track improvements",
-    "Store and recall memories",
-    "Coordinate agent sessions"
-  ],
   "core": true,
   "mcpServers": [{
     "name": "opentidy",

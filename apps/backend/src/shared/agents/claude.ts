@@ -107,13 +107,13 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
 
     writeConfig(opts: SetupOpts): void {
       const resolver = createPermissionResolver(opts.manifests, opts.permissionConfig);
-      const confirmMatcher = resolver.getConfirmMatcher();
+      const askMatcher = resolver.getAskMatcher();
 
       const hooksConfig: Record<string, unknown[]> = {};
 
-      if (confirmMatcher) {
+      if (askMatcher) {
         hooksConfig['PreToolUse'] = [{
-          matcher: confirmMatcher,
+          matcher: askMatcher,
           hooks: [{
             type: 'command',
             command: `curl -s -X POST http://localhost:${opts.serverPort}/api/permissions/check -H 'Content-Type: application/json' -d @-`,

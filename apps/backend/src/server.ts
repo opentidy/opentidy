@@ -47,6 +47,8 @@ import { resetRoute } from './features/system/reset.js';
 import { processesRoute } from './features/system/processes.js';
 import { eventsRoute } from './features/system/events.js';
 import { testTasksRoute } from './features/system/test-tasks-route.js';
+// Tunnel status route
+import { tunnelStatusRoute } from './features/system/tunnel.js';
 // Terminal routes
 import { terminalPortRoute } from './features/terminal/port.js';
 // Notification routes
@@ -228,6 +230,8 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', processesRoute(deps));
     app.route('/api', eventsRoute(deps));
     app.route('/api', testTasksRoute(deps));
+    // Tunnel status route
+    app.route('/api', tunnelStatusRoute());
     // Terminal routes
     app.route('/api', terminalPortRoute(deps));
     // Notification routes

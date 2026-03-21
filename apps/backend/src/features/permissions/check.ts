@@ -21,13 +21,13 @@ export function createPermissionChecker(deps: PermissionCheckDeps) {
       return 'allow';
     }
 
-    // 2. Ask — deny defensively (should never reach endpoint in normal flow)
-    if (level === 'ask') {
-      deps.audit.log({ sessionId, toolName, toolInput, decision: 'ASK' });
+    // 2. Block — deny defensively (should never reach endpoint in normal flow)
+    if (level === 'block') {
+      deps.audit.log({ sessionId, toolName, toolInput, decision: 'BLOCK' });
       return 'deny';
     }
 
-    // level === 'confirm' from here
+    // level === 'ask' from here
 
     // 3. Per-task: check if already granted for this task session
     if (scope === 'per-task' && moduleName && deps.state.isGranted(taskId, moduleName)) {

@@ -29,7 +29,7 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
   },
   permissions: {
     preset: 'autonomous' as const,
-    defaultLevel: 'confirm' as const,
+    defaultLevel: 'ask' as const,
     modules: {},
   },
 };
@@ -90,6 +90,49 @@ function migrateV2ToV3(parsed: Record<string, any>): Record<string, any> {
   return parsed;
 }
 
+function migratePermissionLevels(config: OpenTidyConfig): boolean {
+  let changed = false;
+  const perms = config.permissions;
+  if (!perms) return false;
+
+  // Migrate defaultLevel: 'ask' (old) → 'block', 'confirm' → 'ask'
+  // Order matters: 'ask' → 'block' first, then 'confirm' → 'ask'
+  if ((perms.defaultLevel as string) === 'ask') {
+    perms.defaultLevel = 'block';
+    changed = true;
+  } else if ((perms.defaultLevel as string) === 'confirm') {
+    perms.defaultLevel = 'ask';
+    changed = true;
+  }
+
+  for (const [key, value] of Object.entries(perms.modules)) {
+    if (typeof value === 'string') {
+      if ((value as string) === 'ask') {
+        perms.modules[key] = 'block';
+        changed = true;
+      } else if ((value as string) === 'confirm') {
+        perms.modules[key] = 'ask';
+        changed = true;
+      }
+    } else if (value && typeof value === 'object') {
+      const mpl = value as Record<string, any>;
+      for (const field of ['safe', 'critical'] as const) {
+        if (mpl[field] === 'ask') { mpl[field] = 'block'; changed = true; }
+        else if (mpl[field] === 'confirm') { mpl[field] = 'ask'; changed = true; }
+      }
+      if (mpl.overrides) {
+        for (const [tk, tv] of Object.entries(mpl.overrides)) {
+          if (tv === 'ask') { mpl.overrides[tk] = 'block'; changed = true; }
+          else if (tv === 'confirm') { mpl.overrides[tk] = 'ask'; changed = true; }
+        }
+      }
+    }
+  }
+
+  if (changed) console.log('[config] Migrated permission levels: confirm→ask, ask→block');
+  return changed;
+}
+
 export function loadConfig(configPath?: string): OpenTidyConfig {
   const path = configPath || getConfigPath();
   try {
@@ -104,8 +147,11 @@ export function loadConfig(configPath?: string): OpenTidyConfig {
       console.log('[config] migrated claudeConfig → agentConfig');
     }
 
-    // Persist migration if version changed
-    if (parsed.version !== config.version) {
+    // Migrate old permission level names: confirm→ask, ask→block
+    const permsMigrated = migratePermissionLevels(config);
+
+    // Persist migration if version changed or permissions migrated
+    if (parsed.version !== config.version || permsMigrated) {
       saveConfig(path, config);
     }
 

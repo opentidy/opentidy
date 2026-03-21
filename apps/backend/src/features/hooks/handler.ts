@@ -9,7 +9,7 @@ interface AuditLogger {
     sessionId: string;
     toolName: string;
     toolInput: Record<string, unknown>;
-    decision: 'ALLOW' | 'DENY' | 'ASK';
+    decision: 'ALLOW' | 'DENY' | 'BLOCK';
     result?: string;
   }): void;
 }

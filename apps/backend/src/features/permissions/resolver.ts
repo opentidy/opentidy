@@ -1,12 +1,19 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { ModuleManifest, PermissionConfig, PermissionLevel, PermissionScope } from '@opentidy/shared';
+import type { ModuleManifest, PermissionConfig, PermissionLevel, PermissionScope, ModulePermissionLevel } from '@opentidy/shared';
 
 export interface ResolveResult {
   level: PermissionLevel;
   scope: PermissionScope;
   moduleName: string | null;
+}
+
+/** Normalize a module's permission value (string or {safe,critical,overrides}) into full form. */
+function normalizeLevel(value: PermissionLevel | ModulePermissionLevel | undefined, fallback: PermissionLevel): ModulePermissionLevel {
+  if (!value) return { safe: fallback, critical: fallback };
+  if (typeof value === 'string') return { safe: value, critical: value };
+  return value;
 }
 
 export function createPermissionResolver(
@@ -18,26 +25,33 @@ export function createPermissionResolver(
   for (const [, manifest] of manifests) {
     if (!manifest.toolPermissions) continue;
     const { scope, safe, critical } = manifest.toolPermissions;
-    for (const tool of safe) {
-      toolIndex.set(tool, { moduleName: manifest.name, isSafe: true, scope });
+    for (const entry of safe) {
+      const toolName = typeof entry === 'string' ? entry : entry.tool;
+      toolIndex.set(toolName, { moduleName: manifest.name, isSafe: true, scope });
     }
-    for (const tool of critical) {
-      toolIndex.set(tool, { moduleName: manifest.name, isSafe: false, scope });
+    for (const entry of critical) {
+      const toolName = typeof entry === 'string' ? entry : entry.tool;
+      toolIndex.set(toolName, { moduleName: manifest.name, isSafe: false, scope });
     }
   }
 
-  function getModuleLevel(moduleName: string): PermissionLevel {
-    return config.modules[moduleName] ?? config.defaultLevel;
+  function getModuleLevels(moduleName: string): ModulePermissionLevel {
+    return normalizeLevel(config.modules[moduleName], config.defaultLevel);
+  }
+
+  function getToolLevel(moduleName: string, toolName: string, isSafe: boolean): PermissionLevel {
+    const levels = getModuleLevels(moduleName);
+    // Per-tool override takes precedence
+    if (levels.overrides?.[toolName]) return levels.overrides[toolName];
+    return isSafe ? levels.safe : levels.critical;
   }
 
   function resolve(toolName: string): ResolveResult {
     const indexed = toolIndex.get(toolName);
 
     if (indexed) {
-      if (indexed.isSafe) {
-        return { level: 'allow', scope: indexed.scope, moduleName: indexed.moduleName };
-      }
-      return { level: getModuleLevel(indexed.moduleName), scope: indexed.scope, moduleName: indexed.moduleName };
+      const level = getToolLevel(indexed.moduleName, toolName, indexed.isSafe);
+      return { level, scope: indexed.scope, moduleName: indexed.moduleName };
     }
 
     // Try to guess module from tool name pattern mcp__<server>__<action>
@@ -46,7 +60,8 @@ export function createPermissionResolver(
       const serverName = match[1];
       for (const [, manifest] of manifests) {
         if (manifest.mcpServers?.some(s => s.name === serverName)) {
-          return { level: getModuleLevel(manifest.name), scope: 'per-call', moduleName: manifest.name };
+          const levels = getModuleLevels(manifest.name);
+          return { level: levels.critical, scope: 'per-call', moduleName: manifest.name };
         }
       }
     }
@@ -58,27 +73,24 @@ export function createPermissionResolver(
   function getAllowedTools(): string[] {
     const tools: string[] = [];
     for (const [toolName, info] of toolIndex) {
-      if (info.isSafe) {
+      const level = getToolLevel(info.moduleName, toolName, info.isSafe);
+      if (level === 'allow' || level === 'ask') {
         tools.push(toolName);
-      } else {
-        const level = getModuleLevel(info.moduleName);
-        if (level === 'allow' || level === 'confirm') {
-          tools.push(toolName);
-        }
       }
     }
     return tools;
   }
 
-  function getConfirmMatcher(): string {
-    const confirmTools: string[] = [];
+  function getAskMatcher(): string {
+    const askTools: string[] = [];
     for (const [toolName, info] of toolIndex) {
-      if (!info.isSafe && getModuleLevel(info.moduleName) === 'confirm') {
-        confirmTools.push(toolName);
+      const level = getToolLevel(info.moduleName, toolName, info.isSafe);
+      if (level === 'ask') {
+        askTools.push(toolName);
       }
     }
-    return confirmTools.join('|');
+    return askTools.join('|');
   }
 
-  return { resolve, getAllowedTools, getConfirmMatcher };
+  return { resolve, getAllowedTools, getAskMatcher };
 }

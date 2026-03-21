@@ -40,8 +40,8 @@ function makeDeps(overrides: Partial<PermissionCheckDeps> = {}): PermissionCheck
     manifests,
     loadConfig: () => ({
       preset: 'supervised',
-      defaultLevel: 'confirm',
-      modules: { gmail: 'confirm', browser: 'confirm' },
+      defaultLevel: 'ask',
+      modules: { gmail: 'ask', browser: 'ask' },
     }),
     state: {
       isGranted: vi.fn().mockReturnValue(false),
@@ -81,8 +81,8 @@ describe('createPermissionChecker', () => {
     });
   });
 
-  describe('confirm + per-call tools', () => {
-    it('requests approval for confirm+per-call critical tools', async () => {
+  describe('ask + per-call tools', () => {
+    it('requests approval for ask+per-call critical tools', async () => {
       const deps = makeDeps({
         requestApproval: vi.fn().mockResolvedValue(true),
       });
@@ -114,7 +114,7 @@ describe('createPermissionChecker', () => {
     });
   });
 
-  describe('confirm + per-task tools', () => {
+  describe('ask + per-task tools', () => {
     it('requests approval for per-task critical tools on first call', async () => {
       const deps = makeDeps({
         state: {
@@ -182,13 +182,13 @@ describe('createPermissionChecker', () => {
     });
   });
 
-  describe('ask level', () => {
-    it('denies ask-level tools defensively', async () => {
+  describe('block level', () => {
+    it('denies block-level tools defensively', async () => {
       const deps = makeDeps({
         loadConfig: () => ({
           preset: 'supervised',
-          defaultLevel: 'ask',
-          modules: { gmail: 'ask', browser: 'ask' },
+          defaultLevel: 'block',
+          modules: { gmail: 'block', browser: 'block' },
         }),
       });
       const checker = createPermissionChecker(deps);
@@ -198,7 +198,7 @@ describe('createPermissionChecker', () => {
       expect(result).toBe('deny');
       expect(deps.requestApproval).not.toHaveBeenCalled();
       expect(deps.audit.log).toHaveBeenCalledWith(
-        expect.objectContaining({ decision: 'ASK' }),
+        expect.objectContaining({ decision: 'BLOCK' }),
       );
     });
   });
