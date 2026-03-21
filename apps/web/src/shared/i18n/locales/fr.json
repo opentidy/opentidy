@@ -331,6 +331,8 @@
     "agents": "Agents",
     "capabilities": "Capacités",
     "permissionsTitle": "Permissions",
+    "permCustom": "Personnalisé",
+    "permTool": "Outil",
     "permissionsDesc": "Contrôlez comment l'agent gère les actions sensibles pour chaque module.",
     "criticalTools": "outils critiques",
     "mcp.default": "Donne des outils à l'agent pour interagir avec {{label}}",

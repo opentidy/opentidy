@@ -1,17 +1,5 @@
 {
   "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "mcp__camofox__click|mcp__camofox__fill_form|mcp__camofox__camofox_evaluate_js|mcp__camofox__type_text|mcp__camofox__type_and_submit|mcp__camofox__batch_click|mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft|mcp__gmail__forward|mcp__telegram__send_message|mcp__telegram__send_photo|mcp__whatsapp__send_message|mcp__whatsapp__send_media",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://localhost:5175/api/permissions/check -H 'Content-Type: application/json' -d @-",
-            "timeout": 3600000
-          }
-        ]
-      }
-    ],
     "PostToolUse": [
       {
         "hooks": [
