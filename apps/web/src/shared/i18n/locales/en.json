@@ -307,7 +307,7 @@
     "permissionsMode": "Security Mode",
     "permissionsModeDesc": "Choose how OpenTidy handles sensitive actions (sending emails, browser interactions, payments).",
     "presetSupervised": "Supervised",
-    "presetSupervisedDesc": "You approve all reads, sensitive actions are blocked. Maximum control.",
+    "presetSupervisedDesc": "The agent asks your approval for every action. Maximum control.",
     "presetAssisted": "Assisted",
     "presetAssistedDesc": "The agent reads freely but asks your approval before acting.",
     "presetAutonomous": "Autonomous",
