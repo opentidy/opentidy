@@ -173,7 +173,7 @@ export interface AuditEntry {
   sessionId: string;
   toolName: string;
   toolInput: Record<string, unknown>;
-  decision: 'ALLOW' | 'DENY' | 'ASK';
+  decision: 'ALLOW' | 'DENY' | 'BLOCK';
   result?: string;
 }
 
@@ -271,10 +271,15 @@ export interface MacPermission {
 
 export type PermissionScope = 'per-call' | 'per-task';
 
+export interface ToolDef {
+  tool: string;
+  label: string;
+}
+
 export interface ToolPermissions {
   scope: PermissionScope;
-  safe: string[];
-  critical: string[];
+  safe: ToolDef[];
+  critical: ToolDef[];
 }
 
 export interface ModuleManifest {
@@ -283,7 +288,6 @@ export interface ModuleManifest {
   description: string;
   icon?: string;
   version: string;
-  capabilities?: string[];        // human-readable list of what this module enables
   core?: boolean;                 // true = required, cannot be disabled/removed
   platform?: 'darwin' | 'all';
   mcpServers?: McpServerDef[];
@@ -352,7 +356,7 @@ export interface ModuleInfo {
   label: string;
   description: string;
   icon?: string;
-  capabilities?: string[];
+  toolPermissions?: ToolPermissions;
   core?: boolean;
   source: 'curated' | 'custom';
   enabled: boolean;
@@ -422,13 +426,19 @@ export interface UserInfo {
 
 
 // === Permission System ===
-export type PermissionLevel = 'allow' | 'confirm' | 'ask';
+export type PermissionLevel = 'allow' | 'ask' | 'block';
 export type PermissionPreset = 'supervised' | 'autonomous' | 'full-auto';
+
+export interface ModulePermissionLevel {
+  safe: PermissionLevel;
+  critical: PermissionLevel;
+  overrides?: Record<string, PermissionLevel>;
+}
 
 export interface PermissionConfig {
   preset: PermissionPreset;
   defaultLevel: PermissionLevel;
-  modules: Record<string, PermissionLevel>;
+  modules: Record<string, PermissionLevel | ModulePermissionLevel>;
 }
 
 // === Config ===

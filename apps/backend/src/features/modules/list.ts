@@ -39,7 +39,7 @@ function buildModuleInfo(
     label: manifest.label,
     description: manifest.description,
     icon: manifest.icon,
-    capabilities: manifest.capabilities,
+    toolPermissions: manifest.toolPermissions,
     core: manifest.core,
     source: state?.source ?? 'curated',
     enabled: state?.enabled ?? false,

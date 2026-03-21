@@ -155,7 +155,7 @@ describe('createClaudeAdapter', () => {
 
     const permissionConfig: PermissionConfig = {
       preset: 'supervised',
-      defaultLevel: 'confirm',
+      defaultLevel: 'ask',
       modules: {},
     };
 

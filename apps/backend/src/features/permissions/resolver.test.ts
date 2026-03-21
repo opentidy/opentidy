@@ -29,8 +29,8 @@ const noPermManifest: ModuleManifest = {
 
 const config: PermissionConfig = {
   preset: 'autonomous',
-  defaultLevel: 'confirm',
-  modules: { gmail: 'confirm', browser: 'allow' },
+  defaultLevel: 'ask',
+  modules: { gmail: 'ask', browser: 'allow' },
 };
 
 describe('PermissionResolver', () => {
@@ -48,7 +48,7 @@ describe('PermissionResolver', () => {
 
   it('returns module level for critical tools', () => {
     const result = resolver.resolve('mcp__gmail__send');
-    expect(result).toEqual({ level: 'confirm', scope: 'per-call', moduleName: 'gmail' });
+    expect(result).toEqual({ level: 'ask', scope: 'per-call', moduleName: 'gmail' });
   });
 
   it('returns allow for critical tools when module level is allow', () => {
@@ -58,15 +58,15 @@ describe('PermissionResolver', () => {
 
   it('returns defaultLevel for modules without explicit config', () => {
     const result = resolver.resolve('mcp__unknown_tool__action');
-    expect(result.level).toBe('confirm');
+    expect(result.level).toBe('ask');
   });
 
-  it('returns confirm+per-call for completely unknown tools (fail-safe)', () => {
+  it('returns ask+per-call for completely unknown tools (fail-safe)', () => {
     const result = resolver.resolve('mcp__totally_unknown__foo');
-    expect(result).toEqual({ level: 'confirm', scope: 'per-call', moduleName: null });
+    expect(result).toEqual({ level: 'ask', scope: 'per-call', moduleName: null });
   });
 
-  it('builds allowedTools list (safe + allow-level critical + confirm-level critical)', () => {
+  it('builds allowedTools list (safe + allow-level critical + ask-level critical)', () => {
     const list = resolver.getAllowedTools();
     expect(list).toContain('mcp__gmail__search');
     expect(list).toContain('mcp__gmail__send');
@@ -74,8 +74,8 @@ describe('PermissionResolver', () => {
     expect(list).toContain('mcp__camofox__click');
   });
 
-  it('builds confirm matcher regex', () => {
-    const matcher = resolver.getConfirmMatcher();
+  it('builds ask matcher regex', () => {
+    const matcher = resolver.getAskMatcher();
     expect(matcher).toContain('mcp__gmail__send');
     expect(matcher).toContain('mcp__gmail__reply');
     expect(matcher).not.toContain('mcp__camofox__click');

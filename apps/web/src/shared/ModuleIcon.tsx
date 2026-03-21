@@ -36,15 +36,6 @@ export default function ModuleIcon({ name, size = 24, className }: ModuleIconPro
         </svg>
       );
 
-    case 'cloudflare':
-      return (
-        <svg {...shared} viewBox="0 0 24 24">
-          <path d="M4 12a8 8 0 0 1 16 0" stroke="#F6821F" strokeWidth="1.5" strokeLinecap="round"/>
-          <rect x="3" y="12" width="18" height="6" rx="3" fill="#F6821F" fillOpacity="0.15" stroke="#F6821F" strokeWidth="1.5"/>
-          <path d="M7 15h10" stroke="#F6821F" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-      );
-
     case 'telegram':
       return (
         <svg {...shared} viewBox="0 0 24 24">

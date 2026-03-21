@@ -3,7 +3,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ModuleInfo, PermissionConfig, PermissionLevel, PermissionPreset } from '@opentidy/shared';
+import type { ModuleInfo, PermissionConfig, PermissionLevel, PermissionPreset, ModulePermissionLevel } from '@opentidy/shared';
 import ModuleCard from '../features/settings/ModuleCard';
 import ModuleConfigDialog from '../features/settings/ModuleConfigDialog';
 import { TerminalDrawer } from './TerminalDrawer';
@@ -115,13 +115,39 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
     }
   }
 
-  // Per-module permission level handler
-  async function handlePermissionChange(moduleName: string, level: PermissionLevel) {
+  // Normalize a module's permission value (string or {safe,critical,overrides}) into full form
+  function normalizeLevel(value: PermissionLevel | ModulePermissionLevel | undefined): ModulePermissionLevel | undefined {
+    if (!permissions) return undefined;
+    if (!value) {
+      const d = permissions.defaultLevel ?? 'ask';
+      return { safe: d, critical: d };
+    }
+    if (typeof value === 'string') return { safe: value, critical: value };
+    // Migrate old read/write format
+    if ('read' in value && !('safe' in value)) {
+      return { safe: (value as any).read, critical: (value as any).write, overrides: (value as any).overrides };
+    }
+    return value;
+  }
+
+  // Per-module permission level handler (group: safe/critical, or per-tool override)
+  async function handlePermissionChange(moduleName: string, key: 'safe' | 'critical' | string, level: PermissionLevel) {
     if (!permissions) return;
     setSavingModule(moduleName);
+    const current = normalizeLevel(permissions.modules[moduleName])!;
+
+    let newValue: ModulePermissionLevel;
+    if (key === 'safe' || key === 'critical') {
+      newValue = { ...current, [key]: level };
+    } else {
+      // Per-tool override
+      const overrides = { ...current.overrides, [key]: level };
+      newValue = { ...current, overrides };
+    }
+
     const updated: PermissionConfig = {
       ...permissions,
-      modules: { ...permissions.modules, [moduleName]: level },
+      modules: { ...permissions.modules, [moduleName]: newValue },
     };
     try {
       const res = await fetch('/api/permissions/config', {
@@ -139,9 +165,9 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
     }
   }
 
-  function getModuleLevel(moduleName: string): PermissionLevel | undefined {
+  function getModuleLevels(moduleName: string): ModulePermissionLevel | undefined {
     if (!permissions) return undefined;
-    return permissions.modules[moduleName] ?? permissions.defaultLevel ?? 'confirm';
+    return normalizeLevel(permissions.modules[moduleName]);
   }
 
   // Poll verify endpoint while terminal is open — auto-close on success
@@ -243,7 +269,7 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
           if (m) setConfiguringModule(m);
         }}
         onInstall={handleInstall}
-        permissionLevel={mod.enabled ? getModuleLevel(mod.name) : undefined}
+        permissionLevels={mod.enabled ? getModuleLevels(mod.name) : undefined}
         onPermissionChange={handlePermissionChange}
         savingPermission={savingModule === mod.name}
       />

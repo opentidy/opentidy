@@ -4,12 +4,6 @@
   "description": "Send notifications via Telegram bot",
   "icon": "📨",
   "version": "1.0.0",
-  "capabilities": [
-    "Send notifications",
-    "Send photos",
-    "Read chat updates",
-    "Receive user approvals"
-  ],
   "mcpServers": [{
     "name": "telegram",
     "command": "npx",
@@ -24,7 +18,13 @@
   },
   "toolPermissions": {
     "scope": "per-call",
-    "safe": ["mcp__telegram__get_updates", "mcp__telegram__get_chat"],
-    "critical": ["mcp__telegram__send_message", "mcp__telegram__send_photo"]
+    "safe": [
+      { "tool": "mcp__telegram__get_updates", "label": "Read chat updates" },
+      { "tool": "mcp__telegram__get_chat", "label": "Get chat info" }
+    ],
+    "critical": [
+      { "tool": "mcp__telegram__send_message", "label": "Send notifications" },
+      { "tool": "mcp__telegram__send_photo", "label": "Send photos" }
+    ]
   }
 }

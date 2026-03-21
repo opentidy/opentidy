@@ -4,13 +4,6 @@
   "description": "Send and receive WhatsApp messages",
   "icon": "💬",
   "version": "1.0.0",
-  "capabilities": [
-    "Read WhatsApp messages",
-    "Search conversations",
-    "Send messages",
-    "Send media files",
-    "Receive incoming messages"
-  ],
   "mcpServers": [{
     "name": "whatsapp",
     "command": "npx",
@@ -32,7 +25,14 @@
   },
   "toolPermissions": {
     "scope": "per-call",
-    "safe": ["mcp__whatsapp__list_chats", "mcp__whatsapp__read_messages", "mcp__whatsapp__search"],
-    "critical": ["mcp__whatsapp__send_message", "mcp__whatsapp__send_media"]
+    "safe": [
+      { "tool": "mcp__whatsapp__list_chats", "label": "List conversations" },
+      { "tool": "mcp__whatsapp__read_messages", "label": "Read messages" },
+      { "tool": "mcp__whatsapp__search", "label": "Search messages" }
+    ],
+    "critical": [
+      { "tool": "mcp__whatsapp__send_message", "label": "Send messages" },
+      { "tool": "mcp__whatsapp__send_media", "label": "Send media files" }
+    ]
   }
 }
