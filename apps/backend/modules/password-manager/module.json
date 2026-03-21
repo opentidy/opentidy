@@ -1,0 +1,40 @@
+{
+  "name": "password-manager",
+  "label": "Password Manager",
+  "description": "Access Bitwarden/Vaultwarden passwords for task execution",
+  "icon": "🔐",
+  "version": "1.0.0",
+  "mcpServers": [{
+    "name": "bitwarden",
+    "command": "node",
+    "args": ["./start-mcp.js"],
+    "envFromConfig": {
+      "BW_API_BASE_URL": "apiUrl",
+      "BW_IDENTITY_URL": "identityUrl"
+    }
+  }],
+  "skills": [{
+    "name": "password-manager-skill",
+    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Use the `list` tool with a search query to find entries, then `get` with object='password' or object='item' to retrieve credentials. Use `get` with object='totp' for 2FA codes. Never ask the user for passwords — look them up in the vault."
+  }],
+  "setup": {
+    "authCommand": "npx tsx ./setup.ts",
+    "checkCommand": "command -v bw >/dev/null 2>&1",
+    "configFields": [
+      { "key": "apiUrl", "label": "Vaultwarden API URL", "type": "text", "required": false, "placeholder": "https://vault.example.com/api (leave empty for Bitwarden cloud)" },
+      { "key": "identityUrl", "label": "Vaultwarden Identity URL", "type": "text", "required": false, "placeholder": "https://vault.example.com/identity (leave empty for Bitwarden cloud)" }
+    ]
+  },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": [
+      { "tool": "mcp__bitwarden__status", "label": "Check vault status" },
+      { "tool": "mcp__bitwarden__list", "label": "Search vault entries" },
+      { "tool": "mcp__bitwarden__sync", "label": "Sync vault data" }
+    ],
+    "critical": [
+      { "tool": "mcp__bitwarden__get", "label": "Read credential details" },
+      { "tool": "mcp__bitwarden__generate", "label": "Generate passwords" }
+    ]
+  }
+}
