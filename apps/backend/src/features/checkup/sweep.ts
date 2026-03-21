@@ -7,22 +7,22 @@ import { buildMemoryContext } from '../../shared/memory-context.js';
 
 const CHECKUP_SYSTEM_PROMPT = `Checkup mode. You analyze the workspace state.
 
-For each IN_PROGRESS job:
+For each IN_PROGRESS task:
 - If an action is needed (deadline, follow-up, work to advance) → add it to "launch"
-- If a job has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
-- If a job has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
+- If a task has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
+- If a task has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
 
 For suggestions — be VERY selective. A suggestion is a REAL actionable task the user should launch:
 - YES: "Email received from client requesting March timesheets" (concrete action triggered by an external event)
 - YES: "VAT declaration deadline is in 3 days" (urgent action with deadline)
-- NO: "Archive completed jobs" (internal housekeeping, not a task)
+- NO: "Archive completed tasks" (internal housekeeping, not a task)
 - NO: "Bitcoin tracking incomplete" (that's a gap/bug, not a suggestion)
 - NO: "Improve process X" (that's a gap, belongs in _gaps/gaps.md)
 
 If you detect a technical issue or system improvement → write it in _gaps/gaps.md, not in suggestions.
 
 Respond ONLY in JSON:
-{ "launch": ["job-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
+{ "launch": ["task-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
 
 interface CheckupStatus {
   lastRun: string | null;
@@ -35,14 +35,14 @@ interface CheckupStatus {
 export function createCheckup(deps: {
   launcher: {
     launchSession: (id: string) => Promise<void>;
-    listActiveSessions: () => Array<{ jobId: string }>;
+    listActiveSessions: () => Array<{ taskId: string }>;
   };
   workspaceDir: string;
   intervalMs: number;
   spawnAgent: SpawnAgentFn;
   adapter: AgentAdapter;
   sse?: { emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void };
-  notificationStore?: { record(input: { message: string; link: string; jobId?: string }): unknown };
+  notificationStore?: { record(input: { message: string; link: string; taskId?: string }): unknown };
   memoryManager?: { readAllFiles: () => MemoryEntry[] };
   suggestionsManager?: { listSuggestions: () => Array<{ title: string }> };
   writeSuggestion?: (suggestion: { title: string; urgency: string; why: string }, source: string) => string;
@@ -57,7 +57,7 @@ export function createCheckup(deps: {
   };
 
   async function runCheckup(): Promise<{ launched: string[]; suggestions: number }> {
-    const prompt = `Read workspace/*/state.md in ${deps.workspaceDir}. Analyze each active job.`;
+    const prompt = `Read workspace/*/state.md in ${deps.workspaceDir}. Analyze each active task.`;
 
     // Build system prompt with memory context
     const memoryContext = deps.memoryManager
@@ -91,18 +91,18 @@ export function createCheckup(deps: {
     };
 
     // Launch sessions — skip active sessions (scheduler handles precise timing)
-    const activeJobIds = new Set(deps.launcher.listActiveSessions().map(s => s.jobId));
+    const activeTaskIds = new Set(deps.launcher.listActiveSessions().map(s => s.taskId));
     const validLaunches: string[] = [];
-    for (const jobId of result.launch) {
+    for (const taskId of result.launch) {
       try {
-        if (activeJobIds.has(jobId)) {
-          console.log(`[checkup] ${jobId} has active session, skipping`);
+        if (activeTaskIds.has(taskId)) {
+          console.log(`[checkup] ${taskId} has active session, skipping`);
           continue;
         }
-        validLaunches.push(jobId);
-        await deps.launcher.launchSession(jobId);
+        validLaunches.push(taskId);
+        await deps.launcher.launchSession(taskId);
       } catch (err) {
-        console.warn(`[checkup] failed to launch ${jobId}:`, err);
+        console.warn(`[checkup] failed to launch ${taskId}:`, err);
       }
     }
 

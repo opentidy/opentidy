@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Job, Suggestion, Session } from '@opentidy/shared';
+import type { Task, Suggestion, Session } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
 import Home from './Home';
 
@@ -24,11 +24,11 @@ vi.mock('../../shared/store', () => ({
   },
 }));
 
-function makeJob(overrides: Partial<Job> = {}): Job {
+function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 'acme',
     status: 'IN_PROGRESS',
-    title: 'Job Acme',
+    title: 'Task Acme',
     objective: 'Contract issue',
     lastAction: 'il y a 2h',
     hasActiveSession: false,
@@ -55,7 +55,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
 function makeSession(overrides: Partial<Session> = {}): Session {
   return {
     id: 'opentidy-acme',
-    jobId: 'acme',
+    taskId: 'acme',
     status: 'active',
     startedAt: new Date().toISOString(),
     ...overrides,
@@ -66,10 +66,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   localStorage.clear();
   storeState = {
-    jobs: [],
+    tasks: [],
     suggestions: [],
     sessions: [],
-    fetchJobs: vi.fn().mockResolvedValue(undefined),
+    fetchTasks: vi.fn().mockResolvedValue(undefined),
     fetchSuggestions: vi.fn().mockResolvedValue(undefined),
     fetchSessions: vi.fn().mockResolvedValue(undefined),
     fetchCheckupStatus: vi.fn().mockResolvedValue(undefined),
@@ -82,7 +82,7 @@ beforeEach(() => {
 });
 
 describe('Home page', () => {
-  it('shows WelcomeCard when no jobs and onboarding not dismissed', async () => {
+  it('shows WelcomeCard when no tasks and onboarding not dismissed', async () => {
     render(
       <MemoryRouter>
         <Home />
@@ -93,8 +93,8 @@ describe('Home page', () => {
     });
   });
 
-  it('renders jobs section when component is loaded', async () => {
-    storeState.jobs = [makeJob()];
+  it('renders tasks section when component is loaded', async () => {
+    storeState.tasks = [makeTask()];
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -104,11 +104,11 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('Job Acme')).toBeDefined();
+      expect(screen.getByText('Task Acme')).toBeDefined();
     });
   });
 
-  it('does not render "En fond" section — active sessions show via job cards', async () => {
+  it('does not render "En fond" section — active sessions show via task cards', async () => {
     storeState.sessions = [makeSession({ status: 'active' })];
     storeState.suggestions = [makeSuggestion()];
 
@@ -127,7 +127,7 @@ describe('Home page', () => {
   });
 
   it('header shows OpenTidy title, not session count', async () => {
-    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-tax-filing', jobId: 'tax-filing' })];
+    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-tax-filing', taskId: 'tax-filing' })];
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -165,12 +165,12 @@ describe('Home page', () => {
       </MemoryRouter>,
     );
 
-    expect(storeState.fetchJobs).toHaveBeenCalled();
+    expect(storeState.fetchTasks).toHaveBeenCalled();
     expect(storeState.fetchSuggestions).toHaveBeenCalled();
     expect(storeState.fetchSessions).toHaveBeenCalled();
   });
 
-  it('shows WelcomeCard with finished sessions only and no jobs', async () => {
+  it('shows WelcomeCard with finished sessions only and no tasks', async () => {
     storeState.sessions = [makeSession({ status: 'finished' as Session['status'] })];
 
     render(
@@ -197,15 +197,15 @@ describe('Home page', () => {
     expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
   });
 
-  it('does not show WelcomeCard when jobs exist', async () => {
-    storeState.jobs = [makeJob()];
+  it('does not show WelcomeCard when tasks exist', async () => {
+    storeState.tasks = [makeTask()];
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText('Job Acme')).toBeDefined();
+      expect(screen.getByText('Task Acme')).toBeDefined();
     });
     expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
   });

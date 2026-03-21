@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createHooksHandler } from './handler.js';
 import type { HookPayload } from '@opentidy/shared';
 
-describe('HooksHandler — endpoint centralisé /api/hooks', () => {
+describe('HooksHandler — centralized /api/hooks endpoint', () => {
   let mockLauncher: any;
   let mockAudit: any;
   let mockNotify: any;
@@ -74,7 +74,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
 
   it('PreToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {
-      session_id: 'opentidy-test-job',
+      session_id: 'opentidy-test-task',
       hook_event_name: 'PreToolUse',
       tool_name: 'Read',
       tool_input: { file_path: '/some/file' },
@@ -83,7 +83,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     handler.handle(payload);
 
     expect(mockAudit.log).toHaveBeenCalledWith({
-      sessionId: 'opentidy-test-job',
+      sessionId: 'opentidy-test-task',
       toolName: 'Read',
       toolInput: { file_path: '/some/file' },
       decision: 'ALLOW',
@@ -154,7 +154,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     expect(mockSse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:ended',
-        data: { jobId: 'invoices-acme' },
+        data: { taskId: 'invoices-acme' },
       }),
     );
   });
@@ -183,7 +183,7 @@ describe('HooksHandler — endpoint centralisé /api/hooks', () => {
     expect(mockSse.emit).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'session:idle',
-        data: { jobId: 'invoices-acme' },
+        data: { taskId: 'invoices-acme' },
       }),
     );
   });

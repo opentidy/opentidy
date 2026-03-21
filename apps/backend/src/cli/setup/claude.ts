@@ -52,7 +52,7 @@ export async function setupClaude(): Promise<void> {
   console.log('');
 
   const templateDir = resolve(import.meta.dirname, '../../../config/claude');
-  const claudeConfigDir = resolve(dirname(configPath), 'claude-config');
+  const claudeConfigDir = resolve(dirname(configPath), 'agents', 'claude');
 
   // Generate settings.json from config
   const settings = generateClaudeSettings(config);

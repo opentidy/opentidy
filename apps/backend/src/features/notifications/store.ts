@@ -6,21 +6,21 @@ import type { NotificationRecord } from '@opentidy/shared';
 
 export function createNotificationStore(db: Database.Database) {
   const insertStmt = db.prepare(
-    'INSERT INTO notifications (timestamp, message, link, job_id) VALUES (?, ?, ?, ?)'
+    'INSERT INTO notifications (timestamp, message, link, task_id) VALUES (?, ?, ?, ?)'
   );
   const listStmt = db.prepare(
     'SELECT * FROM notifications ORDER BY id DESC LIMIT 200'
   );
 
-  function record(input: { message: string; link: string; jobId?: string }): NotificationRecord {
+  function record(input: { message: string; link: string; taskId?: string }): NotificationRecord {
     const timestamp = new Date().toISOString();
-    const result = insertStmt.run(timestamp, input.message, input.link, input.jobId ?? null);
+    const result = insertStmt.run(timestamp, input.message, input.link, input.taskId ?? null);
     return {
       id: String(result.lastInsertRowid),
       timestamp,
       message: input.message,
       link: input.link,
-      jobId: input.jobId,
+      taskId: input.taskId,
     };
   }
 
@@ -31,7 +31,7 @@ export function createNotificationStore(db: Database.Database) {
       timestamp: row.timestamp,
       message: row.message,
       link: row.link,
-      jobId: row.job_id ?? undefined,
+      taskId: row.task_id ?? undefined,
     }));
   }
 

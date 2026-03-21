@@ -190,7 +190,7 @@ est read-only (pas d'interaction, pas de browser, juste lire des fichiers et ré
 Tout le reste utilise tmux (interactif, browser, MFA).
 
 `setInterval` suffit pour un seul timer. Pas besoin de `node-cron` (syntaxe cron pour
-un seul job, c'est overkill).
+un seul task, c'est overkill).
 
 #### Approches explorées et écartées
 
@@ -200,7 +200,7 @@ Le sweep lance une session tmux classique. Claude scanne, écrit les résultats 
 les sessions.
 - Pro : cohérent avec le reste (tout en tmux)
 - Con : plus indirect, fichier intermédiaire, le sweep prend la place d'une session
-  parallèle pour un job qui n'a pas besoin d'interactivité
+  parallèle pour un task qui n'a pas besoin d'interactivité
 - **Écarté** : ajoute de la complexité pour rien, `claude -p` est plus direct
 
 **Approche C — Backend pur avec métadonnées structurées** :
@@ -215,11 +215,11 @@ lancer. Claude n'est pas utilisé pour le sweep.
 - **Écarté** : fragilité injustifiée pour une optimisation inutile. L'intelligence
   reste dans Claude (principe #4), state.md reste un scratchpad libre.
 
-**Approche hybride (2 jobs séparés)** :
-Job 1 = backend pur (dates structurées) pour les dossiers. Job 2 = `claude -p` toutes
+**Approche hybride (2 tasks séparés)** :
+Task 1 = backend pur (dates structurées) pour les dossiers. Task 2 = `claude -p` toutes
 les 4-6h pour scanner l'inbox.
-- **Écarté** : même problèmes que l'approche C pour le job 1, et la séparation
-  en 2 jobs ajoute de la complexité sans gain réel.
+- **Écarté** : même problèmes que l'approche C pour le task 1, et la séparation
+  en 2 tasks ajoute de la complexité sans gain réel.
 
 ---
 

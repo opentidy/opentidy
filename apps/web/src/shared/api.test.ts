@@ -25,24 +25,24 @@ beforeEach(() => {
 
 describe('API client', () => {
   describe('GET endpoints', () => {
-    it('fetchJobs calls GET /api/jobs', async () => {
-      const jobs = [{ id: 'test', title: 'Test' }];
-      mockFetch.mockReturnValue(mockJsonResponse(jobs));
+    it('fetchTasks calls GET /api/tasks', async () => {
+      const tasks = [{ id: 'test', title: 'Test' }];
+      mockFetch.mockReturnValue(mockJsonResponse(tasks));
 
-      const result = await api.fetchJobs();
+      const result = await api.fetchTasks();
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/jobs', undefined);
-      expect(result).toEqual(jobs);
+      expect(mockFetch).toHaveBeenCalledWith('/api/tasks', undefined);
+      expect(result).toEqual(tasks);
     });
 
-    it('fetchJob calls GET /api/job/:id', async () => {
-      const job = { id: 'acme', title: 'Acme' };
-      mockFetch.mockReturnValue(mockJsonResponse(job));
+    it('fetchTask calls GET /api/task/:id', async () => {
+      const task = { id: 'acme', title: 'Acme' };
+      mockFetch.mockReturnValue(mockJsonResponse(task));
 
-      const result = await api.fetchJob('acme');
+      const result = await api.fetchTask('acme');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme', undefined);
-      expect(result).toEqual(job);
+      expect(mockFetch).toHaveBeenCalledWith('/api/task/acme', undefined);
+      expect(result).toEqual(task);
     });
 
     it('fetchSuggestions calls GET /api/suggestions', async () => {
@@ -66,44 +66,35 @@ describe('API client', () => {
   });
 
   describe('POST endpoints', () => {
-    it('createJob sends instruction and confirm flag', async () => {
+    it('createTask sends instruction', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ created: true }));
 
-      await api.createJob('Test instruction', true);
+      await api.createTask('Test instruction');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/job', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instruction: 'Test instruction', confirm: true }),
+        body: JSON.stringify({ instruction: 'Test instruction' }),
       });
     });
 
-    it('createJob defaults confirm to false', async () => {
-      mockFetch.mockReturnValue(mockJsonResponse({ created: true }));
-
-      await api.createJob('Test');
-
-      const call = mockFetch.mock.calls[0];
-      expect(JSON.parse(call[1].body)).toEqual({ instruction: 'Test', confirm: false });
-    });
-
-    it('resumeSession calls POST /api/job/:id/resume', async () => {
+    it('resumeSession calls POST /api/task/:id/resume', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ resumed: true }));
 
       await api.resumeSession('acme');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/resume', { method: 'POST' });
+      expect(mockFetch).toHaveBeenCalledWith('/api/task/acme/resume', { method: 'POST' });
     });
 
-    it('sendInstruction sends instruction with confirm', async () => {
+    it('sendInstruction sends instruction', async () => {
       mockFetch.mockReturnValue(mockJsonResponse({ launched: true }));
 
-      await api.sendInstruction('acme', 'Do something', true);
+      await api.sendInstruction('acme', 'Do something');
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/instruction', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/task/acme/instruction', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ instruction: 'Do something', confirm: true }),
+        body: JSON.stringify({ instruction: 'Do something' }),
       });
     });
 
@@ -157,7 +148,7 @@ describe('API client', () => {
       const file = new File(['content'], 'test.pdf', { type: 'application/pdf' });
       await api.uploadFile('acme', file);
 
-      expect(mockFetch).toHaveBeenCalledWith('/api/job/acme/upload', {
+      expect(mockFetch).toHaveBeenCalledWith('/api/task/acme/upload', {
         method: 'POST',
         body: expect.any(FormData),
       });
@@ -168,13 +159,13 @@ describe('API client', () => {
     it('throws on non-ok response', async () => {
       mockFetch.mockReturnValue(mockJsonResponse(null, 404));
 
-      await expect(api.fetchJob('nonexistent')).rejects.toThrow('404');
+      await expect(api.fetchTask('nonexistent')).rejects.toThrow('404');
     });
 
     it('throws on 500 response', async () => {
       mockFetch.mockReturnValue(mockJsonResponse(null, 500));
 
-      await expect(api.fetchJobs()).rejects.toThrow('500');
+      await expect(api.fetchTasks()).rejects.toThrow('500');
     });
   });
 });

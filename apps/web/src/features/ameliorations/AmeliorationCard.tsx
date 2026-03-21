@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import type { Amelioration, AmeliorationCategory } from '@opentidy/shared';
 
 export const categoryColors: Record<AmeliorationCategory, string> = {
-  capability: 'bg-purple-500/15 text-purple-400',
-  access: 'bg-red-500/15 text-red-400',
-  config: 'bg-blue-500/15 text-blue-400',
-  process: 'bg-yellow-500/15 text-yellow-400',
-  data: 'bg-emerald-500/15 text-emerald-400',
+  capability: 'bg-accent/10 text-accent',
+  access: 'bg-orange/10 text-orange',
+  config: 'bg-purple/10 text-purple',
+  process: 'bg-green/10 text-green',
+  data: 'bg-[#64d2ff]/10 text-[#64d2ff]',
 };
 
 interface AmeliorationCardProps {
@@ -17,7 +17,7 @@ interface AmeliorationCardProps {
   categoryLabels: Record<AmeliorationCategory, string>;
   onResolve: () => void;
   onIgnore: () => void;
-  onNavigate: (jobId: string) => void;
+  onNavigate: (taskId: string) => void;
 }
 
 export default function AmeliorationCard({
@@ -29,10 +29,17 @@ export default function AmeliorationCard({
 }: AmeliorationCardProps) {
   const { t } = useTranslation();
   const status = amelioration.status ?? (amelioration.resolved ? 'resolved' : 'open');
-  const borderColor = status === 'resolved' ? 'border-l-green' : status === 'ignored' ? 'border-l-text-tertiary' : 'border-l-orange';
+  const categoryBorderColors: Record<AmeliorationCategory, string> = {
+    capability: 'border-l-accent',
+    access: 'border-l-orange',
+    config: 'border-l-purple',
+    process: 'border-l-green',
+    data: 'border-l-[#64d2ff]',
+  };
+  const borderColor = status === 'resolved' ? 'border-l-green' : status === 'ignored' ? 'border-l-text-tertiary' : (amelioration.category ? categoryBorderColors[amelioration.category] : 'border-l-orange');
 
   return (
-    <div className={`bg-card rounded-xl border-l-4 ${borderColor} p-5`}>
+    <div className={`bg-card rounded-xl border-l-4 ${borderColor} p-3.5`}>
       {/* Header: title + badges + date */}
       <div className="flex items-start justify-between gap-4 mb-2">
         <div className="flex items-center gap-2 flex-wrap">
@@ -56,7 +63,7 @@ export default function AmeliorationCard({
 
       {/* Impact */}
       {amelioration.impact && (
-        <div className="bg-bg rounded-lg px-3 py-2 mb-2">
+        <div className="bg-surface rounded-lg px-3 py-2 mb-2">
           <span className="text-xs text-text-tertiary">{t('ameliorations.impact')}</span>
           <p className="text-sm text-text-secondary">{amelioration.impact}</p>
         </div>
@@ -64,7 +71,7 @@ export default function AmeliorationCard({
 
       {/* Recommended actions */}
       {amelioration.actions?.length > 0 && (
-        <div className="bg-bg rounded-lg px-3 py-2 mb-2">
+        <div className="bg-surface rounded-lg px-3 py-2 mb-2">
           <span className="text-xs text-text-tertiary">{t('ameliorations.recommendedActions')}</span>
           <ul className="mt-1 space-y-1">
             {amelioration.actions.map((action, i) => (
@@ -79,7 +86,7 @@ export default function AmeliorationCard({
 
       {/* Legacy suggestion field (for old bullet-format gaps) */}
       {amelioration.suggestion && !amelioration.actions?.length && (
-        <div className="bg-bg rounded-lg px-3 py-2 mb-2">
+        <div className="bg-surface rounded-lg px-3 py-2 mb-2">
           <span className="text-xs text-text-tertiary">{t('ameliorations.suggestion')}</span>
           <p className="text-sm text-text-secondary">{amelioration.suggestion}</p>
         </div>
@@ -87,12 +94,12 @@ export default function AmeliorationCard({
 
       {/* Footer: links + action buttons */}
       <div className="flex items-center gap-3 mt-3">
-        {amelioration.jobId && (
+        {amelioration.taskId && (
           <button
-            onClick={() => onNavigate(amelioration.jobId as string)}
+            onClick={() => onNavigate(amelioration.taskId as string)}
             className="px-3 py-1.5 rounded-lg bg-card-hover text-sm text-text-secondary hover:text-text transition-colors"
           >
-            Job: {amelioration.jobId} →
+            Task: {amelioration.taskId} →
           </button>
         )}
         {amelioration.sessionId && (

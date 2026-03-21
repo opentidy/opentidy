@@ -32,12 +32,6 @@ describe('parseStateMd', () => {
     expect(result.status).toBe('IN_PROGRESS');
   });
 
-  it('parses confirm mode from state.md', () => {
-    fs.writeFileSync(path.join(tmp.path, 'state.md'), '# Test\n\nSTATUS : IN_PROGRESS\nMODE : CONFIRM\n\n## Objective\nTest');
-    const result = parseStateMd(tmp.path);
-    expect(result.confirm).toBe(true);
-  });
-
   it('parses waitingFor from ## Waiting section', () => {
     const stateContent = '# Factures\n\nSTATUS : IN_PROGRESS\n\n## Objective\nTest\n\n## Waiting\nEmail sent to contact@example.com on 2026-03-15.\nFollow up if no response by 2026-03-22.\n\n## Log\n- 2026-03-15 : Email sent\n';
     fs.writeFileSync(path.join(tmp.path, 'state.md'), stateContent);

@@ -4,14 +4,13 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import type { AgentProcessType } from '@opentidy/shared';
-import type { AgentAdapter } from './agents/types.js';
+import type { AgentProcessType, AgentAdapter } from '@opentidy/shared';
 import { createAgentSemaphore } from './agent-semaphore.js';
 
 interface SpawnAgentDeps {
   adapter: AgentAdapter;
   tracker?: {
-    start(type: AgentProcessType, jobId?: string, pid?: number, description?: string): number;
+    start(type: AgentProcessType, taskId?: string, pid?: number, description?: string): number;
     markRunning?(id: number, pid?: number): void;
     complete(id: number, exitCode: number): void;
     fail(id: number): void;
@@ -28,7 +27,7 @@ export interface SpawnAgentOptions {
   args: string[];
   cwd: string;
   type: AgentProcessType;
-  jobId?: string;
+  taskId?: string;
   description?: string;
   onOutput?: (chunk: string) => void;
 }
@@ -47,14 +46,14 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
   const { adapter } = deps;
 
   return function spawnAgent(opts: SpawnAgentOptions): SpawnAgentHandle {
-    const { args, cwd, type, jobId, description, onOutput } = opts;
+    const { args, cwd, type, taskId, description, onOutput } = opts;
 
-    const trackId = deps.tracker?.start(type, jobId, undefined, description);
+    const trackId = deps.tracker?.start(type, taskId, undefined, description);
 
     let outputPath: string | undefined;
     if (deps.outputDir && trackId != null) {
       fs.mkdirSync(deps.outputDir, { recursive: true });
-      const filename = jobId ? `${jobId}.jsonl` : `${type}-${trackId}.txt`;
+      const filename = taskId ? `${taskId}.jsonl` : `${type}-${trackId}.txt`;
       outputPath = path.join(deps.outputDir, filename);
       fs.writeFileSync(outputPath, '');
       deps.tracker?.setOutputPath?.(trackId, outputPath);
@@ -70,7 +69,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
         throw new Error('Process killed before start');
       }
 
-      console.log(`[spawn-agent] starting ${type}${jobId ? ` (${jobId})` : ''} [${adapter.name}]`);
+      console.log(`[spawn-agent] starting ${type}${taskId ? ` (${taskId})` : ''} [${adapter.name}]`);
 
       return new Promise<string>((resolve, reject) => {
         const agentEnv = adapter.getEnv();
@@ -93,7 +92,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
           if (deps.sse && trackId != null) {
             deps.sse.emit({
               type: 'process:output',
-              data: { trackId, processType: type, jobId, content: text },
+              data: { trackId, processType: type, taskId, content: text },
               timestamp: new Date().toISOString(),
             });
           }
@@ -112,7 +111,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
             reject(new Error(`${adapter.binary} exited ${code}: ${stderr}`));
           } else {
             if (trackId != null) deps.tracker?.complete(trackId, code ?? 0);
-            console.log(`[spawn-agent] ${type} completed${jobId ? ` (${jobId})` : ''}`);
+            console.log(`[spawn-agent] ${type} completed${taskId ? ` (${taskId})` : ''}`);
             resolve(stdout);
           }
         });
@@ -131,7 +130,7 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
       kill: () => {
         killed = true;
         if (proc && !proc.killed) {
-          console.log(`[spawn-agent] killing ${type}${jobId ? ` (${jobId})` : ''}`);
+          console.log(`[spawn-agent] killing ${type}${taskId ? ` (${taskId})` : ''}`);
           proc.kill('SIGTERM');
         }
       },
@@ -139,9 +138,4 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
       trackId: trackId ?? undefined,
     };
   };
-}
-
-export function createSpawnAgentSimple(deps: SpawnAgentDeps): (opts: SpawnAgentOptions) => Promise<string> {
-  const spawnAgent = createSpawnAgent(deps);
-  return (opts) => spawnAgent(opts).promise;
 }

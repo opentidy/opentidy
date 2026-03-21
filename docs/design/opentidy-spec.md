@@ -865,7 +865,7 @@ distincts car ils n'ont pas de contexte CLAUDE.md ni de resume.
 |---|---|---|---|
 | Session tmux pour le sweep | Cohérent avec le reste | Plus indirect, fichier intermédiaire | **Écarté** |
 | Backend pur avec métadonnées structurées | Zéro session Claude | Fragile — Claude n'écrit pas toujours les métadonnées correctement, optimise quelque chose d'inutile (Claude Max illimité) | **Écarté** |
-| Hybride (2 jobs séparés) | Séparation des concerns | Mêmes problèmes que métadonnées + complexité ajoutée | **Écarté** |
+| Hybride (2 tasks séparés) | Séparation des concerns | Mêmes problèmes que métadonnées + complexité ajoutée | **Écarté** |
 
 ---
 

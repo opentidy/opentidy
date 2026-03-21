@@ -80,7 +80,7 @@ describe('WebhookReceiver', () => {
 
     const triageCall = triage.mock.calls[0][0];
     expect(triageCall.content).toBe(
-      'Email de billing@example-client.com: Facture Mars 2026\n\nVeuillez trouver ci-joint la facture.',
+      'Email from billing@example-client.com: Facture Mars 2026\n\nVeuillez trouver ci-joint la facture.',
     );
   });
 

@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../shared/store';
-import JobCard from '../jobs/JobCard';
+import TaskCard from '../tasks/TaskCard';
 import WelcomeCard from './WelcomeCard';
 import HelpTooltip from '../../shared/HelpTooltip';
 type Filter = 'active' | 'completed';
@@ -14,7 +14,7 @@ type Filter = 'active' | 'completed';
 export default function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { jobs, sessions, fetchJobs, fetchSuggestions, fetchSessions, setWaitingType } = useStore();
+  const { tasks, sessions, fetchTasks, fetchSuggestions, fetchSessions, setWaitingType } = useStore();
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<Filter>('active');
   const [search, setSearch] = useState('');
@@ -23,25 +23,25 @@ export default function Home() {
   );
 
   useEffect(() => {
-    Promise.all([fetchJobs(), fetchSuggestions(), fetchSessions()])
+    Promise.all([fetchTasks(), fetchSuggestions(), fetchSessions()])
       .finally(() => setLoading(false));
-  }, [fetchJobs, fetchSuggestions, fetchSessions]);
+  }, [fetchTasks, fetchSuggestions, fetchSessions]);
 
-  const showWelcome = !onboardingSeen && jobs.length === 0 && !loading;
+  const showWelcome = !onboardingSeen && tasks.length === 0 && !loading;
 
   function dismissOnboarding() {
     localStorage.setItem('opentidy-onboarding-seen', 'true');
     setOnboardingSeen(true);
   }
 
-  const jobsById = new Map(jobs.map(d => [d.id, d]));
+  const tasksById = new Map(tasks.map(d => [d.id, d]));
   const idleSessions = sessions.filter((s) => s.status === 'idle');
 
-  // Determine effective waitingType: session > job > default 'user'
+  // Determine effective waitingType: session > task > default 'user'
   const getWaitingType = (s: typeof sessions[0]): 'user' | 'tiers' => {
     if (s.waitingType) return s.waitingType;
-    const job = jobsById.get(s.jobId);
-    if (job?.waitingType) return job.waitingType;
+    const task = tasksById.get(s.taskId);
+    if (task?.waitingType) return task.waitingType;
     return 'user';
   };
 
@@ -49,11 +49,11 @@ export default function Home() {
   const waitingTiers = idleSessions.filter((s) => getWaitingType(s) === 'tiers');
 
   const counts = {
-    active: jobs.filter((d) => d.status === 'IN_PROGRESS' || d.hasActiveSession).length,
-    completed: jobs.filter((d) => d.status === 'COMPLETED').length,
+    active: tasks.filter((d) => d.status === 'IN_PROGRESS' || d.hasActiveSession).length,
+    completed: tasks.filter((d) => d.status === 'COMPLETED').length,
   };
 
-  const filtered = jobs
+  const filtered = tasks
     .filter((d) => {
       if (filter === 'active') return d.status === 'IN_PROGRESS' || d.hasActiveSession;
       return d.status === 'COMPLETED';
@@ -68,15 +68,15 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="p-6 md:p-8">
+      <div className="p-5 md:p-7">
         <Header />
-        <p className="text-text-tertiary text-sm py-20 text-center animate-pulse">{t('common.loading')}</p>
+        <p className="text-text-secondary text-sm py-20 text-center animate-pulse">{t('common.loading')}</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-7">
       <Header />
 
       {showWelcome && <WelcomeCard onDismiss={dismissOnboarding} />}
@@ -85,34 +85,34 @@ export default function Home() {
       {waitingUser.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange animate-pulse" />
-            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
-              {t('home.waitingForYou')} — {t('home.job', { count: waitingUser.length })}
+            <span className="w-[7px] h-[7px] rounded-full bg-orange shadow-[0_0_6px_rgba(255,159,10,0.4)] animate-pulse" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-orange">
+              {t('home.waitingForYou')} — {t('home.task', { count: waitingUser.length })}
             </span>
           </div>
           <div className="space-y-3">
             {waitingUser.map((s) => {
-              const job = jobsById.get(s.jobId);
+              const task = tasksById.get(s.taskId);
               return (
                 <button
                   key={s.id}
-                  onClick={() => navigate(`/job/${s.jobId}`)}
-                  className="w-full text-left bg-card border border-orange/30 rounded-xl p-4 hover:border-orange/60 transition-colors"
+                  onClick={() => navigate(`/task/${s.taskId}`)}
+                  className="w-full text-left bg-card rounded-xl p-3.5 border-l-[3px] border-orange hover:bg-card-hover transition-colors duration-150 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-orange/10 flex items-center justify-center shrink-0">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+                    <div className="w-8 h-8 bg-orange/10 rounded-lg flex items-center justify-center shrink-0">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <polyline points="4,17 10,11 4,5" />
                         <line x1="12" y1="19" x2="20" y2="19" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-text truncate">{job?.title ?? s.jobId}</p>
+                      <p className="font-medium text-text truncate">{task?.title ?? s.taskId}</p>
                       <p className="text-xs text-text-tertiary mt-0.5">{t('home.claudeWaiting')}</p>
                     </div>
                     <span
                       role="button"
-                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.jobId, 'tiers'); }}
+                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.taskId, 'tiers'); }}
                       className="text-xs text-text-tertiary hover:text-accent font-medium shrink-0 px-2 py-1 rounded hover:bg-accent/10 transition-colors"
                     >
                       {t('home.thirdPartyWait')}
@@ -128,8 +128,8 @@ export default function Home() {
       {waitingUser.length === 0 && !showWelcome && (
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-orange/30" />
-            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+            <span className="w-[7px] h-[7px] rounded-full bg-orange/30" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-orange">
               {t('home.waitingForYou')}
             </span>
             <HelpTooltip text={t('helpTooltip.waitingUser')} />
@@ -142,36 +142,36 @@ export default function Home() {
       {waitingTiers.length > 0 && (
         <section className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent/60" />
-            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
-              {t('home.waitingForResponse')} — {t('home.job', { count: waitingTiers.length })}
+            <span className="w-[7px] h-[7px] rounded-full bg-accent/60 shadow-[0_0_6px_rgba(10,132,255,0.3)]" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">
+              {t('home.waitingForResponse')} — {t('home.task', { count: waitingTiers.length })}
             </span>
           </div>
           <div className="space-y-2">
             {waitingTiers.map((s) => {
-              const job = jobsById.get(s.jobId);
+              const task = tasksById.get(s.taskId);
               return (
                 <button
                   key={s.id}
-                  onClick={() => navigate(`/job/${s.jobId}`)}
-                  className="w-full text-left bg-card border border-accent/20 rounded-xl p-3 hover:border-accent/40 transition-colors"
+                  onClick={() => navigate(`/task/${s.taskId}`)}
+                  className="w-full text-left bg-card rounded-xl p-3.5 border-l-[3px] border-accent opacity-70 hover:bg-card-hover transition-colors duration-150 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-7 h-7 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                    <div className="w-8 h-8 bg-accent/10 rounded-lg flex items-center justify-center shrink-0">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-accent/60">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12,6 12,12 16,14" />
                       </svg>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-text text-sm truncate">{job?.title ?? s.jobId}</p>
-                      {job?.waitingFor && (
-                        <p className="text-xs text-text-tertiary mt-0.5 truncate">{job.waitingFor.replace(/ATTENTE\s*:\s*(USER|TIERS)\n?/i, '').trim()}</p>
+                      <p className="font-medium text-text text-sm truncate">{task?.title ?? s.taskId}</p>
+                      {task?.waitingFor && (
+                        <p className="text-xs text-text-tertiary mt-0.5 truncate">{task.waitingFor.replace(/ATTENTE\s*:\s*(USER|TIERS)\n?/i, '').trim()}</p>
                       )}
                     </div>
                     <span
                       role="button"
-                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.jobId, 'user'); }}
+                      onClick={(e) => { e.stopPropagation(); setWaitingType(s.taskId, 'user'); }}
                       className="text-xs text-text-tertiary hover:text-orange font-medium shrink-0 px-2 py-1 rounded hover:bg-orange/10 transition-colors"
                     >
                       {t('home.userWait')}
@@ -186,8 +186,8 @@ export default function Home() {
       {waitingTiers.length === 0 && !showWelcome && (
         <section className="mb-6">
           <div className="flex items-center gap-2 mb-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-accent/30" />
-            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">
+            <span className="w-[7px] h-[7px] rounded-full bg-accent/30" />
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-accent">
               {t('home.waitingForResponse')}
             </span>
           </div>
@@ -195,20 +195,20 @@ export default function Home() {
         </section>
       )}
 
-      {/* Jobs list */}
+      {/* Tasks list */}
       <section>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-semibold text-text-tertiary uppercase tracking-wider">{t('home.jobs')}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('home.tasks')}</span>
             <div className="flex gap-1.5">
               {filters.map((f) => (
                 <button
                   key={f.key}
                   onClick={() => setFilter(f.key)}
-                  className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+                  className={`text-[11px] px-2.5 py-0.5 rounded-md transition-colors ${
                     filter === f.key
-                      ? 'bg-text/10 border-text/20 text-text'
-                      : 'border-border text-text-tertiary hover:text-text-secondary'
+                      ? 'bg-card text-text font-medium'
+                      : 'text-[#48484a]'
                   }`}
                 >
                   {f.label} ({counts[f.key]})
@@ -222,22 +222,22 @@ export default function Home() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t('home.search')}
-              className="hidden md:block bg-bg border border-border rounded-lg px-3 py-1.5 text-sm text-text placeholder:text-text-tertiary outline-none focus:border-accent w-40"
+              className="hidden md:block bg-card rounded-lg px-2.5 py-1 text-xs text-text placeholder:text-text-tertiary border-none outline-none focus:ring-0 w-40"
             />
           </div>
         </div>
 
         <div className="space-y-3">
-          {filtered.map((d) => <JobCard key={d.id} job={d} session={sessions.find((s) => s.jobId === d.id)} />)}
+          {filtered.map((d) => <TaskCard key={d.id} task={d} session={sessions.find((s) => s.taskId === d.id)} />)}
           {!loading && filtered.length === 0 && (
             <div className="text-center py-8">
-              <p className="text-text-tertiary text-sm mb-3">
-                {filter === 'active' ? t('onboarding.emptyJobs') : t('home.noJobs', { filter: t('home.completed').toLowerCase() })}
+              <p className="text-text-secondary text-sm mb-3">
+                {filter === 'active' ? t('onboarding.emptyTasks') : t('home.noTasks', { filter: t('home.completed').toLowerCase() })}
               </p>
               {filter === 'active' && (
                 <button
                   onClick={() => navigate('/nouveau')}
-                  className="px-4 py-2 rounded-lg bg-green text-white text-sm font-medium hover:bg-green/90 transition-colors"
+                  className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs shadow-[0_2px_8px_rgba(10,132,255,0.2)] hover:bg-accent/90 transition-colors"
                 >
                   {t('onboarding.emptyCreateCta')}
                 </button>
@@ -288,23 +288,23 @@ function Header() {
         <h1 className="text-xl font-bold text-text">OpenTidy</h1>
       </div>
       <div className="flex items-center gap-4">
-        <span className={`text-xs hidden md:inline ${checkupRunning ? 'text-accent animate-pulse' : 'text-text-tertiary'}`}>
+        <span className={`text-[9px] hidden md:inline ${checkupRunning ? 'text-accent animate-pulse' : 'text-[#48484a]'}`}>
           {checkupLabel}
         </span>
         <button
           onClick={handleCheckup}
           disabled={checkupRunning}
-          className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors hidden md:block ${
-            checkupRunning ? 'bg-accent/20 text-accent cursor-wait' : 'bg-surface-hover text-text-secondary hover:bg-surface-active'
+          className={`text-xs transition-colors hidden md:block ${
+            checkupRunning ? 'text-accent cursor-wait' : 'text-text-tertiary hover:text-text-secondary'
           }`}
         >
           {checkupRunning ? 'Checkup...' : t('home.runCheckup')}
         </button>
         <button
           onClick={() => navigate('/nouveau')}
-          className="px-3 py-1.5 rounded-lg bg-green text-white text-sm font-medium hover:bg-green/90 transition-colors hidden md:block"
+          className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs shadow-[0_2px_8px_rgba(10,132,255,0.2)] hover:bg-accent/90 transition-colors hidden md:block"
         >
-          {t('home.newJob')}
+          {t('home.newTask')}
         </button>
       </div>
     </div>

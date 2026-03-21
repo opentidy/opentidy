@@ -7,6 +7,7 @@
     "confirm": "Confirmer",
     "files": "Fichiers",
     "send": "Envoyer",
+    "retry": "Réessayer",
     "launch": "Lancer",
     "stop": "Stopper",
     "complete": "Terminer",
@@ -25,7 +26,7 @@
     "idle": "En pause"
   },
   "nav": {
-    "home": "Jobs",
+    "home": "Tasks",
     "terminal": "Processus",
     "analyses": "Améliorations",
     "memory": "Mémoire",
@@ -38,8 +39,8 @@
   },
   "home": {
     "waitingForYou": "En attente de toi",
-    "job_one": "{{count}} job",
-    "job_other": "{{count}} jobs",
+    "task_one": "{{count}} task",
+    "task_other": "{{count}} tasks",
     "claudeWaiting": "Claude attend ta réponse",
     "thirdPartyWait": "Attente tiers",
     "userWait": "Attente utilisateur",
@@ -47,11 +48,11 @@
     "suggestions": "Suggestions",
     "new_one": "{{count}} nouvelle",
     "new_other": "{{count}} nouvelles",
-    "jobs": "Jobs",
+    "tasks": "Tasks",
     "active": "Actifs",
     "completed": "Terminés",
     "search": "Rechercher...",
-    "noJobs": "Aucun job {{filter}}",
+    "noTasks": "Aucun task {{filter}}",
     "checkupRunning": "Checkup en cours...",
     "checkupResult": "Checkup {{time}} — {{result}}",
     "checkupOk": "OK",
@@ -59,17 +60,15 @@
     "nextAt": "Prochain à {{time}}",
     "nextCheckup": "Prochain checkup à {{time}}",
     "checkupWaiting": "Checkup — en attente",
-    "deleteConfirm": "Tout supprimer ? Sessions, jobs, locks — fresh start.",
+    "deleteConfirm": "Tout supprimer ? Sessions, tasks, locks — fresh start.",
     "launchTestConfirm": "Lancer toutes les tâches de test ?",
     "runCheckup": "Lancer checkup",
-    "newJob": "+ Nouveau job"
+    "newTask": "+ Nouveau task"
   },
   "nouveau": {
-    "title": "Nouveau job",
-    "description": "Décris ce que tu veux. L'assistant crée le job et commence.",
+    "title": "Nouveau task",
+    "description": "Décris ce que tu veux. L'assistant crée le task et commence.",
     "placeholder": "Ex: Mets le bureau en vente sur 2ememain, prix 300€...",
-    "confirmMode": "Me demander avant d'agir",
-    "confirmModeHelp": "Activé : l'assistant te demande avant d'envoyer un email, passer un appel, ou agir auprès d'un tiers. Recommandé pour commencer.",
     "recommendations": "Recommandations de l'assistant",
     "exampleSell": "Mettre en vente un meuble sur Marketplace",
     "exampleInvoice": "Relancer une facture impayée",
@@ -81,17 +80,17 @@
     "exampleDoctorFull": "Trouve un créneau chez un médecin généraliste cette semaine, de préférence le matin. Quartier centre-ville. Prends le rendez-vous si possible.",
     "tryExample": "Essaie par exemple :"
   },
-  "jobDetail": {
+  "taskDetail": {
     "stop": "Stopper",
     "complete": "Terminer",
     "completeConfirm": "Terminer \"{{title}}\" ?",
     "state": "État",
     "log": "Journal",
     "noActiveSession": "Pas de session active",
-    "jobCompleted": "Ce job est terminé. Rouvre-le pour lancer une session.",
-    "reopenJob": "Rouvrir le job",
+    "taskCompleted": "Ce task est terminé. Rouvre-le pour lancer une session.",
+    "reopenTask": "Rouvrir le task",
     "startSession": "Démarrer une session",
-    "notFound": "Job introuvable"
+    "notFound": "Task introuvable"
   },
   "ameliorations": {
     "title": "Améliorations",
@@ -117,12 +116,11 @@
   },
   "suggestion": {
     "viewOriginal": "Voir le message original",
-    "createJob": "Créer le job",
+    "createTask": "Créer le task",
     "ignore": "Ignorer"
   },
   "instruction": {
-    "placeholder": "Donner une instruction à ce job...",
-    "confirmMode": "Me demander avant d'agir"
+    "placeholder": "Donner une instruction à ce task..."
   },
   "sidebar": {
     "session": "Session",
@@ -196,8 +194,8 @@
     "emptyWaitingUser": "Quand l'assistant a besoin de ton avis, les tâches apparaissent ici.",
     "emptyWaitingTiers": "Les tâches en attente d'un tiers (réponse email, rappel...) s'affichent ici.",
     "emptySuggestions": "L'assistant surveille tes emails et messages. Les nouvelles tâches détectées apparaîtront ici.",
-    "emptyJobs": "Tes tâches en cours apparaîtront ici.",
-    "emptyCreateCta": "Crée ton premier job",
+    "emptyTasks": "Tes tâches en cours apparaîtront ici.",
+    "emptyCreateCta": "Crée ton premier task",
     "navLockedProcesses": "Visible quand des tâches sont en cours",
     "navLockedAmeliorations": "S'affiche après quelques jours d'utilisation",
     "navLockedMemory": "L'assistant apprend au fil du temps"
@@ -247,8 +245,8 @@
     "dangerZone": "Zone de danger",
     "dangerZoneDesc": "Actions irréversibles. À manipuler avec précaution.",
     "resetTitle": "Réinitialiser toutes les données",
-    "resetDesc": "Supprimer tous les jobs, sessions, suggestions, gaps et mémoire. Cette action est irréversible.",
-    "resetConfirm": "Es-tu sûr ? Cela supprimera TOUTES les données (jobs, sessions, mémoire). Cette action est irréversible.",
+    "resetDesc": "Supprimer tous les tasks, sessions, suggestions, gaps et mémoire. Cette action est irréversible.",
+    "resetConfirm": "Es-tu sûr ? Cela supprimera TOUTES les données (tasks, sessions, mémoire). Cette action est irréversible.",
     "resetButton": "Tout réinitialiser",
     "resetting": "Réinitialisation..."
   },
@@ -263,7 +261,7 @@
     "recurring": "Récurrent",
     "dateTime": "Date et heure",
     "interval": "Intervalle (minutes)",
-    "job": "Job (optionnel)",
+    "task": "Task (optionnel)",
     "instruction": "Instruction (optionnel)",
     "system": "Système",
     "noSchedules": "Aucun événement planifié"
@@ -284,12 +282,15 @@
     "agentStable": "Stable",
     "agentExperimental": "Expérimental",
     "agentComingSoon": "Bientôt disponible",
+    "agentFetchError": "Impossible de contacter le backend.",
+    "agentBackendError": "Impossible de charger les agents — le backend tourne-t-il ?",
     "permissions": "Permissions système",
     "permissionsDesc": "Accorde les permissions pour qu'OpenTidy puisse accéder à tes applications.",
     "authorize": "Ouvrir Réglages",
     "authorized": "Autorisé",
     "install": "Installer",
     "installed": "Installé",
+    "available": "Disponible",
     "uninstall": "Désinstaller",
     "reinstall": "Réinstaller",
     "broken": "Cassé",
@@ -334,8 +335,12 @@
     "level.allow": "Autoriser",
     "level.confirm": "Confirmer",
     "level.ask": "Demander",
+    "levelDesc.allow": "Automatique",
+    "levelDesc.confirm": "Demander si sensible",
+    "levelDesc.ask": "Toujours demander",
+    "securityLevel": "Sécurité",
     "scope.per-call": "À chaque fois",
-    "scope.per-job": "Une fois par job",
+    "scope.per-task": "Une fois par task",
     "security": "Sécurité",
     "securityDescription": "Authentification et contrôle d'accès",
     "bearerToken": "Bearer Token",
@@ -370,7 +375,7 @@
     "add": "Ajouter"
   },
   "helpTooltip": {
-    "job": "Une tâche que l'assistant gère pour toi, de A à Z.",
+    "task": "Une tâche que l'assistant gère pour toi, de A à Z.",
     "waitingUser": "L'assistant est bloqué et a besoin de ta réponse pour continuer.",
     "suggestion": "Une tâche détectée automatiquement dans tes emails ou messages.",
     "amelioration": "Un point que l'assistant a identifié pour mieux te servir à l'avenir."

@@ -13,124 +13,85 @@ Key stats:
 
 **You cannot rely on the AI to police itself.** OpenTidy's security model is built on system-level enforcement that Claude cannot see, access, or bypass.
 
-## PreToolUse hooks — the guardrail system
+## Permission system — unified, module-agnostic
 
-Claude Code has a built-in hook system: code that runs **automatically, at the system level**, before every tool call. This is not a prompt instruction. Claude doesn't call these hooks, can't skip them, and doesn't know they exist.
+OpenTidy uses a deterministic, human-controlled permission system. No AI gatekeeping,
+no hidden token costs. Each module declares its own tool risk levels, and the user
+chooses how to handle them.
+
+### How it works
+
+Each module's manifest categorizes its tools as `safe` (read-only, no side effects)
+or `critical` (has real-world consequences). The user chooses a permission level per
+module: `allow`, `confirm`, or `ask`.
 
 ```
-Claude decides: "I'll send this email"
+Agent calls: gmail.send(to: "client@acme.com", subject: "Invoice reminder")
     │
     ▼
-Claude calls: gmail.send(...)
+PreToolUse hook fires (system-level, agent can't skip it)
     │
     ▼
-AUTOMATICALLY, BEFORE EXECUTION:
-    → PreToolUse hook fires
-    → Independent mini-Claude evaluates the action (separate context)
-    → Decision: ALLOW / DENY / ASK
+Backend checks module manifest:
+    → gmail.send is "critical", user level is "confirm"
+    → AI one-shot summarizes the action in one sentence
+    → Notification sent to user:
+      "📧 Task 'Invoice follow-up' wants to send an email
+       To: client@acme.com — Subject: Invoice reminder
+       [✅ Approve] [❌ Deny]"
     │
-    ├─ ALLOW → action executes
-    ├─ DENY  → Claude gets "action refused: [reason]"
-    └─ ASK   → user is notified and must approve
+    ├─ User approves → hook exits 0 → email sent
+    └─ User denies  → hook exits 2 → agent told "action denied"
 ```
 
-The `type: "prompt"` hook is a mini-Claude verifier with its own separate context. It is NOT the same session checking itself.
+### Three permission levels
 
-### Two types of hooks
+| Level | Behavior | User presence |
+|-------|----------|--------------|
+| **`allow`** | Execute immediately, audit log only | Not needed |
+| **`confirm`** | Notification + wait for user response | Phone only |
+| **`ask`** | Native agent CLI prompt in the terminal | Must be watching |
 
-| Type | Role | Blocking? |
-|------|------|-----------|
-| `type: "prompt"` | **Guardrails** — mini-Claude evaluates ALLOW/DENY/ASK | Yes |
-| `type: "command"` | **Detection + audit** — notifies the backend | No |
+`safe` tools always pass regardless of level. Only `critical` tools are subject to it.
 
-Both can coexist on the same matcher and run in parallel.
+### Presets
 
-### Hook configuration
+| Preset | Default level | Philosophy |
+|--------|--------------|------------|
+| **Supervised** | `ask` | User validates everything from the web terminal |
+| **Autonomous** | `confirm` | Agent works freely, pings user for critical actions |
+| **Full auto** | `allow` | Agent does everything, user reviews audit log after |
 
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Verify this email action. Rules: never make payments without approval, check amount and recipient coherence, flag any anomaly.",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://localhost:5175/api/hooks -d @-"
-          }
-        ]
-      },
-      {
-        "matcher": "mcp__browser__click|mcp__browser__fill_form|mcp__browser__evaluate_js",
-        "hooks": [
-          {
-            "type": "prompt",
-            "prompt": "Verify this browser action. If it's a payment button, financial submission, or irreversible confirmation, DENY. Otherwise ALLOW.",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://localhost:5175/api/hooks -d @-"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "mcp__gmail__|mcp__browser__",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "curl -s -X POST http://localhost:5175/api/hooks -d @-"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
+Presets pre-fill all modules. The user can override per module in settings.
 
-### Coverage
+### Scope
 
-| Tool | Hook? | Timeout | Rationale |
-|------|-------|---------|-----------|
-| Email send/reply/draft | Yes (prompt) | 30s | Irreversible external actions |
-| Browser click/fill_form | Yes (prompt) | 10s | Can trigger payments/submissions |
-| Browser evaluate_js | Yes (prompt) | 10s | Arbitrary JS execution |
-| Bash (network patterns) | Yes (command) | 10s | curl POST, ssh, scp = external actions |
-| Email search/read | No | — | Read-only, zero risk |
-| Browser navigate/snapshot | No | — | Navigation/reading, zero risk |
-| Read/Grep/Glob/Write (local) | No | — | Local operations, zero risk |
+Modules declare a `scope` for their critical tools:
+- **`per-call`** — confirm every time (email: each send is distinct)
+- **`per-task`** — confirm once, then all actions pass for that task (browser: navigation is continuous)
 
-### The four DNA rules
+### No `--dangerously-skip-permissions`
 
-1. **Every irreversible action → human approval** (hook ASK)
-2. **Every external action → verified before execution** (hook ALLOW/DENY)
-3. **Every anomaly detected → flagged** (hook + notification)
-4. **Everything is logged → repairable after the fact** (PostToolUse audit trail)
+The old approach disabled all permission prompts via `--dangerously-skip-permissions`
+and relied on `type: "prompt"` hooks (a mini-Claude verifier) for security.
 
-## `--dangerously-skip-permissions`
+**Problems with that approach:**
+- AI judging AI — same biases and failure modes
+- Hidden token cost on every sensitive tool call
+- No user control — the AI decided ALLOW/DENY autonomously
+- Fragile — prompt-based rules are subjective ("suspicious recipient")
 
-All Claude Code sessions run with `--dangerously-skip-permissions`. This disables Claude Code's built-in permission prompts — because security is enforced by PreToolUse hooks instead.
-
-**Why not use the built-in permission system?**
-- Built-in permissions are designed for interactive use (human approves each action)
-- OpenTidy runs autonomously — there's no human at the keyboard
-- PreToolUse hooks provide the same protection with more intelligence (a verifier Claude that understands context, not just "is this tool allowed?")
-- Hooks fire BEFORE the permission check, so they remain active regardless
+**New approach:** `--allowedTools` lists explicitly approved tools. `type: "command"`
+hooks call the backend deterministically. The human always decides for `confirm`-level
+tools. Zero AI in the decision loop.
 
 ## Audit trail
 
-Every external action is logged to `workspace/_audit/actions.log`. This includes:
+Every tool call is logged via PostToolUse hooks. This includes:
 - Tool name and parameters
-- Hook decision (ALLOW/DENY/ASK)
+- Permission decision (auto-allowed / user-approved / user-denied)
 - Timestamp
-- Session and job ID
+- Session and task ID
 
 The audit trail is the ultimate safety net. Even if something slips through, it's logged and traceable.
 
@@ -159,13 +120,13 @@ When using Cloudflare Tunnel for remote access:
 
 ## Honest limitations
 
-1. **The mini-Claude can also be wrong.** But two independent Claudes making the same mistake is significantly less likely than one.
+1. **`per-task` scope trades granularity for usability.** Once browser is approved for a task, all browser actions pass. The audit trail catches unexpected navigation after the fact.
 
-2. **Browser actions are the weakest point.** The `element` field helps a lot, but a "Submit" button doesn't always reveal what's being submitted.
+2. **`ask` mode requires presence.** Only works if the user is watching the web terminal. For background sessions, use `confirm` or `allow`.
 
-3. **Browser hook latency** — ~10s per significant click. Acceptable for admin tasks that aren't time-sensitive.
+3. **Module manifest trust.** The system trusts modules to correctly categorize their tools as `safe` or `critical`. A module that marks a dangerous tool as `safe` bypasses confirmation.
 
-4. **Prompt hooks use Claude context** — each hook verification costs tokens. Monitor usage if running many sessions.
+4. **AI summarizes, doesn't decide.** The one-shot summary for notifications costs tokens, but only fires for `confirm`-level critical tools — not for safe tools or `allow`-level modules.
 
 5. **No system covers 100%.** The ultimate safety net is the audit trail + repairability. If something goes wrong, you can trace exactly what happened and undo it.
 

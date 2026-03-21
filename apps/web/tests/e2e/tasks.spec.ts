@@ -4,13 +4,13 @@
 import { test, expect } from '@playwright/test';
 import { setupMockApi } from './fixtures/mock-api';
 
-test.describe('E2E-APP-06: Jobs page shows list with filters', () => {
+test.describe('E2E-APP-06: Tasks page shows list with filters', () => {
   test('displays filter buttons, search input, and + Nouveau button', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/jobs');
+    await page.goto('/tasks');
 
     // Page title
-    await expect(page.getByRole('heading', { name: 'Jobs' })).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
 
     // Filter buttons with counts — EN COURS = 2, TERMINE = 1, BLOQUE = 1
     // Note: status uses TERMINE (no accent) in mock data
@@ -20,18 +20,18 @@ test.describe('E2E-APP-06: Jobs page shows list with filters', () => {
     // "+ Nouveau" button
     await expect(page.getByRole('button', { name: '+ Nouveau' })).toBeVisible();
 
-    // Default filter "actifs" shows EN COURS jobs
+    // Default filter "actifs" shows EN COURS tasks
     await expect(page.getByText('Invoices Acme')).toBeVisible();
     await expect(page.getByText('Insurance Report')).toBeVisible();
 
-    // TERMINE and BLOQUE jobs not shown in default "actifs" filter
+    // TERMINE and BLOQUE tasks not shown in default "actifs" filter
     await expect(page.getByText('Tax Filing 2025')).not.toBeVisible();
     await expect(page.getByText('Test Blocked')).not.toBeVisible();
   });
 
-  test('switching filters shows different jobs', async ({ page }) => {
+  test('switching filters shows different tasks', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/jobs');
+    await page.goto('/tasks');
 
     // Click "Bloques"
     await page.getByRole('button', { name: /Bloques/ }).click();
@@ -49,7 +49,7 @@ test.describe('E2E-APP-23: Search filter', () => {
     }
 
     await setupMockApi(page);
-    await page.goto('/jobs');
+    await page.goto('/tasks');
 
     const searchInput = page.getByPlaceholder('Rechercher...');
     await expect(searchInput).toBeVisible();

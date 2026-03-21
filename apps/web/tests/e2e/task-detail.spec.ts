@@ -2,12 +2,12 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { test, expect } from '@playwright/test';
-import { setupMockApi, mockJobs } from './fixtures/mock-api';
+import { setupMockApi, mockTasks } from './fixtures/mock-api';
 
-test.describe('E2E-APP-08: Job detail shows rendered state', () => {
+test.describe('E2E-APP-08: Task detail shows rendered state', () => {
   test('displays title, status badge, and objective', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/job/invoices-acme');
+    await page.goto('/task/invoices-acme');
 
     // Title
     await expect(page.getByRole('heading', { name: 'Invoices Acme' })).toBeVisible();
@@ -19,7 +19,7 @@ test.describe('E2E-APP-08: Job detail shows rendered state', () => {
     await expect(page.locator('h3:visible', { hasText: 'Objectif' })).toBeVisible();
 
     // Breadcrumb link
-    await expect(page.getByText('Jobs').first()).toBeVisible();
+    await expect(page.getByText('Tasks').first()).toBeVisible();
   });
 });
 
@@ -32,7 +32,7 @@ test.describe('E2E-APP-10: Desktop sidebar shows session status and files', () =
     }
 
     await setupMockApi(page);
-    await page.goto('/job/invoices-acme');
+    await page.goto('/task/invoices-acme');
 
     // Session section in sidebar
     await expect(page.getByText('Session', { exact: true })).toBeVisible();
@@ -49,9 +49,9 @@ test.describe('E2E-APP-10: Desktop sidebar shows session status and files', () =
 test.describe('E2E-APP-11: Instruction bar', () => {
   test('can type instruction and click Envoyer to make POST request', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/job/invoices-acme');
+    await page.goto('/task/invoices-acme');
 
-    const instructionInput = page.getByPlaceholder('Donner une instruction a ce job...');
+    const instructionInput = page.getByPlaceholder('Donner une instruction a ce task...');
     await expect(instructionInput).toBeVisible();
 
     await instructionInput.fill('Relance le traitement SFTP');
@@ -62,7 +62,7 @@ test.describe('E2E-APP-11: Instruction bar', () => {
     // Intercept the POST request
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/job/invoices-acme/instruction') &&
+        req.url().includes('/api/task/invoices-acme/instruction') &&
         req.method() === 'POST',
     );
 
@@ -77,9 +77,9 @@ test.describe('E2E-APP-11: Instruction bar', () => {
 test.describe('E2E-APP-28: Instruction bar with confirm mode', () => {
   test('sends confirm flag when checkbox is checked', async ({ page }) => {
     await setupMockApi(page);
-    await page.goto('/job/invoices-acme');
+    await page.goto('/task/invoices-acme');
 
-    const instructionInput = page.getByPlaceholder('Donner une instruction a ce job...');
+    const instructionInput = page.getByPlaceholder('Donner une instruction a ce task...');
     await instructionInput.fill('Envoie la facture par email');
 
     // Check the confirm checkbox
@@ -89,7 +89,7 @@ test.describe('E2E-APP-28: Instruction bar with confirm mode', () => {
     // Intercept the POST
     const requestPromise = page.waitForRequest(
       (req) =>
-        req.url().includes('/api/job/invoices-acme/instruction') &&
+        req.url().includes('/api/task/invoices-acme/instruction') &&
         req.method() === 'POST',
     );
 

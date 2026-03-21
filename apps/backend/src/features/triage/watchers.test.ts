@@ -22,7 +22,7 @@ describe('Watcher', () => {
     vi.useRealTimers();
   });
 
-  // E2E-RCV-04: WhatsApp watcher routes to job
+  // E2E-RCV-04: WhatsApp watcher routes to task
   it('polls and triages WhatsApp messages', async () => {
     const messages = [
       { from: '+15551234567', body: 'Salut, voici le doc', timestamp: '2026-03-14T10:00:00Z' },

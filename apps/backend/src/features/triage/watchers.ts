@@ -25,7 +25,7 @@ export function createWatcher(config: WatcherConfig, deps: {
 
       await deps.triage({
         source: config.source,
-        content: `${config.source} de ${msg.from}: ${msg.body}`,
+        content: `${config.source} from ${msg.from}: ${msg.body}`,
         metadata: { from: msg.from, timestamp: msg.timestamp },
       });
     }

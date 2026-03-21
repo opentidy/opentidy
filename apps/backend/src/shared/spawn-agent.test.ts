@@ -3,7 +3,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createSpawnAgent } from './spawn-agent.js';
-import type { AgentAdapter } from './agents/types.js';
+import type { AgentAdapter } from '@opentidy/shared';
 import type { ChildProcess } from 'child_process';
 import { EventEmitter } from 'events';
 
@@ -128,10 +128,10 @@ describe('createSpawnAgent', () => {
     const adapter = createMockAdapter();
     const spawnAgent = createSpawnAgent({ adapter, tracker });
 
-    const handle = spawnAgent({ args: [], cwd: '/workspace', type: 'checkup', jobId: 'test-job', description: 'Test run' });
+    const handle = spawnAgent({ args: [], cwd: '/workspace', type: 'checkup', taskId: 'test-task', description: 'Test run' });
     await handle.promise;
 
-    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-job', undefined, 'Test run');
+    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-task', undefined, 'Test run');
     expect(tracker.markRunning).toHaveBeenCalledWith(42, 1234);
     expect(tracker.complete).toHaveBeenCalledWith(42, 0);
   });

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { JobStatus, MemoryEntry, AgentAdapter } from '@opentidy/shared';
+import type { TaskStatus, MemoryEntry, AgentAdapter } from '@opentidy/shared';
 import type { SpawnAgentFn } from '../../shared/spawn-agent.js';
 import { buildMemoryContext } from '../../shared/memory-context.js';
 
-const TRIAGE_SYSTEM_PROMPT = `Triage mode. You receive an event and the list of active jobs (with their full state.md).
+const TRIAGE_SYSTEM_PROMPT = `Triage mode. You receive an event and the list of active tasks (with their full state.md).
 Decide:
-1. If the event relates to one or more existing jobs → { "jobIds": ["id1", ...] }
-   - Check the "## Waiting" section: if a job is waiting for exactly this type of info, it's a match
+1. If the event relates to one or more existing tasks → { "taskIds": ["id1", ...] }
+   - Check the "## Waiting" section: if a task is waiting for exactly this type of info, it's a match
 2. If it's a new topic requiring a CONCRETE ACTION from the user → { "suggestion": { "title": "...", "urgency": "urgent|normal|low", "source": "...", "why": "..." } }
    - The suggestion must be a REAL task: reply to an email, handle a request, meet a deadline
    - The "why" must explain why the user should handle it and what happens if they don't
@@ -17,27 +17,27 @@ Decide:
 Respond ONLY in JSON, nothing else.`;
 
 export interface TriageResult {
-  jobIds?: string[];
+  taskIds?: string[];
   suggestion?: { title: string; urgency: string; source: string; why: string };
   ignore?: boolean;
   reason?: string;
 }
 
-interface JobSummary {
+interface TaskSummary {
   id: string;
   title: string;
-  status: JobStatus;
+  status: TaskStatus;
   stateRaw: string;
 }
 
 export function createTriager(deps: {
   runClaude: (prompt: string) => Promise<string>;
-  listJobs: () => JobSummary[];
+  listTasks: () => TaskSummary[];
   listSuggestionTitles?: () => string[];
 }) {
   async function triage(event: { source: string; content: string }): Promise<TriageResult> {
-    const jobs = deps.listJobs();
-    const jobList = jobs
+    const tasks = deps.listTasks();
+    const taskList = tasks
       .map(d => `--- ${d.id} ---\n${d.stateRaw}`)
       .join('\n\n');
 
@@ -46,7 +46,7 @@ export function createTriager(deps: {
       ? `\n\nExisting suggestions (do NOT recreate similar ones):\n${existingSuggestions.map(t => `- ${t}`).join('\n')}`
       : '';
 
-    const prompt = `Active jobs (full state.md content):\n\n${jobList}${suggestionsBlock}\n\n---\n\nEvent (source: ${event.source}):\n${event.content}`;
+    const prompt = `Active tasks (full state.md content):\n\n${taskList}${suggestionsBlock}\n\n---\n\nEvent (source: ${event.source}):\n${event.content}`;
 
     try {
       const stdout = await deps.runClaude(prompt);

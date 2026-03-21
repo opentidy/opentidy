@@ -2,8 +2,22 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { Hono } from 'hono';
+import { execFileSync } from 'child_process';
 import type { ModuleInfo, ModuleManifest, ModuleState } from '@opentidy/shared';
 import type { ModuleRouteDeps } from './types.js';
+
+function runCheckCommand(checkCommand: string): boolean {
+  try {
+    execFileSync('/bin/sh', ['-c', checkCommand], {
+      timeout: 5000,
+      stdio: 'pipe',
+      env: { ...process.env, HOME: process.env.HOME ?? '' },
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function buildModuleInfo(
   name: string,
@@ -16,14 +30,20 @@ function buildModuleInfo(
   const configured = requiredFields.length === 0 ||
     requiredFields.every((f) => moduleConfig[f.key] != null && moduleConfig[f.key] !== '');
 
+  // Check if module deps are actually present on disk
+  const checkCommand = manifest.setup?.checkCommand;
+  const ready = checkCommand ? runCheckCommand(checkCommand) : undefined;
+
   return {
     name,
     label: manifest.label,
     description: manifest.description,
     icon: manifest.icon,
+    capabilities: manifest.capabilities,
     core: manifest.core,
     source: state?.source ?? 'curated',
     enabled: state?.enabled ?? false,
+    ready,
     platform: manifest.platform,
     health: state?.health,
     healthError: state?.healthError,

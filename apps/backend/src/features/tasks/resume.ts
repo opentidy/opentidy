@@ -2,15 +2,16 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { Hono } from 'hono';
+import { createSSEEvent } from '../../shared/sse.js';
 import type { AppDeps } from '../../server.js';
 
-export function resumeJobRoute(deps: AppDeps) {
+export function resumeTaskRoute(deps: AppDeps) {
   const app = new Hono();
 
-  app.post('/job/:id/resume', async (c) => {
+  app.post('/task/:id/resume', async (c) => {
     const id = c.req.param('id');
     await deps.launcher.launchSession(id);
-    deps.sse.emit({ type: 'session:started', data: { jobId: id }, timestamp: new Date().toISOString() });
+    deps.sse.emit(createSSEEvent('session:started', { taskId: id }));
     return c.json({ resumed: true });
   });
 

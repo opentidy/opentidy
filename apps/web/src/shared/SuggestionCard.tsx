@@ -29,20 +29,20 @@ export default function SuggestionCard({ suggestion }: { suggestion: Suggestion 
   const sourceLabel = sourceIcons[suggestion.source] ?? suggestion.source;
 
   return (
-    <div className={`bg-card rounded-xl border-l-4 ${colors.border} p-4`}>
+    <div className={`bg-card rounded-xl p-4 border-l-4 ${colors.border}`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <span className={`w-2 h-2 rounded-full ${colors.dot} shrink-0`} />
+            <span className={`w-[7px] h-[7px] rounded-full ${colors.dot} shrink-0`} />
             <span className="font-semibold text-text">{suggestion.title}</span>
-            <span className={`text-xs px-2 py-0.5 rounded-md ${colors.badgeBg} ${colors.badge} font-medium capitalize`}>
+            <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${colors.badgeBg} ${colors.badge} capitalize`}>
               {suggestion.urgency}
             </span>
           </div>
           {/* Source + date */}
           <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
-            {sourceLabel && <span className="px-1.5 py-0.5 rounded bg-surface-hover">{sourceLabel}</span>}
+            {sourceLabel && <span className="text-[9px] px-1.5 py-0.5 rounded bg-card-hover text-text-secondary">{sourceLabel}</span>}
             {suggestion.date && <span>{suggestion.date}</span>}
           </div>
         </div>
@@ -69,7 +69,7 @@ export default function SuggestionCard({ suggestion }: { suggestion: Suggestion 
             {t('suggestion.viewOriginal')}
           </button>
           {expanded && (
-            <pre className="mt-2 p-3 bg-surface rounded-lg text-xs text-text-secondary whitespace-pre-wrap font-sans border border-border">
+            <pre className="mt-2 p-3 bg-[#161618] rounded-lg text-xs text-text-secondary whitespace-pre-wrap font-mono border border-border-subtle">
               {suggestion.context}
             </pre>
           )}
@@ -80,9 +80,9 @@ export default function SuggestionCard({ suggestion }: { suggestion: Suggestion 
       <div className="flex gap-3 mt-4">
         <button
           onClick={() => approveSuggestion(suggestion.slug)}
-          className="flex-1 py-2 text-sm font-medium rounded-lg bg-green text-white hover:bg-green/90 transition-colors"
+          className="flex-1 py-2 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent/90 transition-colors"
         >
-          {t('suggestion.createJob')}
+          {t('suggestion.createTask')}
         </button>
         <button
           onClick={() => ignoreSuggestion(suggestion.slug)}

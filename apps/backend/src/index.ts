@@ -5,8 +5,8 @@ import { createApp, startServer } from './server.js';
 import { createLockManager } from './shared/locks.js';
 import { createDedupStore } from './shared/dedup.js';
 import { createAuditLogger } from './features/system/audit.js';
-import { listJobIds, getJob } from './features/jobs/state.js';
-import { createJobManager } from './features/jobs/create-manager.js';
+import { listTaskIds, getTask } from './features/tasks/state.js';
+import { createTaskManager } from './features/tasks/create-manager.js';
 import { createSuggestionsManager } from './features/suggestions/parser.js';
 import { createGapsManager } from './features/ameliorations/gaps.js';
 import { createLauncher } from './features/sessions/launch.js';
@@ -20,7 +20,7 @@ import { createMemoryManager } from './features/memory/manager.js';
 import { createMemoryAgents } from './features/memory/agents.js';
 import { createWebhookReceiver } from './features/triage/webhook.js';
 import { createTriager, createAgentRunner } from './features/triage/classify.js';
-import { createTitleGenerator } from './features/jobs/title.js';
+import { createTitleGenerator } from './features/tasks/title.js';
 import { createTerminalManager } from './features/terminal/bridge.js';
 import { createNotificationStore } from './features/notifications/store.js';
 import { loadCuratedModules } from './features/modules/loader.js';
@@ -44,6 +44,7 @@ import path from 'path';
 
 import { loadConfig, saveConfig, getConfigPath } from './shared/config.js';
 import { regenerateAgentConfig } from './shared/agent-config.js';
+import { trustDirectory } from './shared/agents/claude.js';
 import { getVersion } from './cli.js';
 import { getOpenTidyPaths } from './shared/paths.js';
 
@@ -133,6 +134,22 @@ const permissionResolver = createPermissionResolver(manifests, config.permission
 // Ensure agent settings.json is up-to-date on startup (from modules)
 regenerateAgentConfig(config, undefined, config.modules, manifests);
 
+// Pre-trust workspace directory so Claude Code doesn't show the trust dialog for task subdirectories
+if (adapter.name === 'claude') {
+  trustDirectory(AGENT_CONFIG_DIR, WORKSPACE_DIR);
+}
+
+// Generate hooks.json from permission config (into the plugin dir used by --plugin-dir)
+const pluginHooksDir = path.resolve(import.meta.dirname, '../../../plugins/opentidy-hooks');
+adapter.writeConfig({
+  permissionConfig: config.permissions,
+  manifests,
+  mcpServices: {} as any,
+  configDir: pluginHooksDir,
+  serverPort: config.server.port,
+});
+console.log('[opentidy] Generated hooks.json from permission config');
+
 // Centralized agent spawner — ONE semaphore shared by all callers (max 3 concurrent)
 const spawnAgentFull = createSpawnAgent({
   adapter,
@@ -143,7 +160,7 @@ const spawnAgentFull = createSpawnAgent({
 });
 
 // Workspace managers (before memoryAgents — gap router needs gapsManager)
-const jobManager = createJobManager(WORKSPACE_DIR);
+const taskManager = createTaskManager(WORKSPACE_DIR);
 const suggestionsManager = createSuggestionsManager(WORKSPACE_DIR);
 const gapsManager = createGapsManager(WORKSPACE_DIR);
 
@@ -196,9 +213,9 @@ const approvalManager = createApprovalManager({
       .join(', ');
     return params ? `${toolName} (${params})` : toolName;
   },
-  sendConfirmation: async (approvalId, jobId, _toolName, _toolInput, _moduleName, summary) => {
-    const text = `🔔 Job ${jobId} requests permission\n${summary}\n\nApprove: ${APP_BASE_URL}/api/permissions/${approvalId}/approve\nDeny: ${APP_BASE_URL}/api/permissions/${approvalId}/deny`;
-    await notify.notifyAction(jobId, text);
+  sendConfirmation: async (approvalId, taskId, _toolName, _toolInput, _moduleName, summary) => {
+    const text = `🔔 Task ${taskId} requests permission\n${summary}\n\nApprove: ${APP_BASE_URL}/api/permissions/${approvalId}/approve\nDeny: ${APP_BASE_URL}/api/permissions/${approvalId}/deny`;
+    await notify.notifyAction(taskId, text);
   },
 });
 
@@ -210,8 +227,8 @@ const launcher = createLauncher({
   tmuxExecutor,
   locks,
   workspace: {
-    getJob: (id: string) => getJob(WORKSPACE_DIR, id),
-    listJobIds: () => listJobIds(WORKSPACE_DIR),
+    getTask: (id: string) => getTask(WORKSPACE_DIR, id),
+    listTaskIds: () => listTaskIds(WORKSPACE_DIR),
     dir: WORKSPACE_DIR,
   },
   notify,
@@ -238,9 +255,9 @@ const hooks = createHooksHandler({
   audit,
   notify,
   sse,
-  onSessionEnd: (jobId) => {
-    permissionState.revokeJob(jobId);
-    approvalManager.cancelJob(jobId);
+  onSessionEnd: (taskId) => {
+    permissionState.revokeTask(taskId);
+    approvalManager.cancelTask(taskId);
   },
 });
 
@@ -248,8 +265,8 @@ const hooks = createHooksHandler({
 const agentRunner = createAgentRunner(WORKSPACE_DIR, { memoryManager, spawnAgent: spawnAgentFull, adapter });
 const triager = createTriager({
   runClaude: agentRunner,
-  listJobs: () => listJobIds(WORKSPACE_DIR).map(id => {
-    const d = getJob(WORKSPACE_DIR, id);
+  listTasks: () => listTaskIds(WORKSPACE_DIR).map(id => {
+    const d = getTask(WORKSPACE_DIR, id);
     return { id: d.id, title: d.title, status: d.status, stateRaw: d.stateRaw ?? '' };
   }),
   listSuggestionTitles: () => suggestionsManager.listSuggestions().map(s => s.title),
@@ -309,15 +326,15 @@ const scheduler = createScheduler({ db, launcher, checkup, locks, sse });
 // TODO: module system — MCP tools call writeSuggestion/appendGap which need to be added to the managers
 const mcpServer = createMcpServer({ scheduler, suggestionsManager: suggestionsManager as any, gapsManager: gapsManager as any, sse });
 
-// Title generator — agent one-shot for descriptive job titles
+// Title generator — agent one-shot for descriptive task titles
 const generateTitle = createTitleGenerator(WORKSPACE_DIR, { spawnAgent: spawnAgentFull, adapter });
 
 // API
 const app = createApp({
   workspace: {
-    listJobIds: (dir: string) => listJobIds(dir),
-    getJob: (dir: string, id: string) => getJob(dir, id),
-    jobManager,
+    listTaskIds: (dir: string) => listTaskIds(dir),
+    getTask: (dir: string, id: string) => getTask(dir, id),
+    taskManager,
     suggestionsManager,
     gapsManager,
   },
@@ -380,6 +397,17 @@ const app = createApp({
       update(cfg);
       configFns.saveConfig(cfg as any);
     },
+    regenerateHooks: () => {
+      const freshConfig = configFns.loadConfig();
+      adapter.writeConfig({
+        permissionConfig: freshConfig.permissions,
+        manifests,
+        mcpServices: {} as any,
+        configDir: pluginHooksDir,
+        serverPort: freshConfig.server.port,
+      });
+      console.log('[opentidy] Regenerated hooks.json after permission change');
+    },
   },
   agentSetupDeps: {
     checkInstalled: (name) => {
@@ -397,6 +425,7 @@ const app = createApp({
       } catch { return false; }
     },
     getActiveAgent: () => config.agentConfig?.name ?? 'claude',
+    agentConfigDir: AGENT_CONFIG_DIR,
   },
 });
 

@@ -8,7 +8,7 @@ interface TriageHandlerDeps {
   launcher: {
     launchSession(id: string, event?: { source: string; content: string }): Promise<void>;
     sendMessage(id: string, message: string): Promise<void>;
-    listActiveSessions(): Array<{ jobId: string }>;
+    listActiveSessions(): Array<{ taskId: string }>;
   };
   sse: { emit(event: SSEEvent): void };
   notify: { notifySuggestion(title: string, urgency: UrgencyLevel): Promise<void> };
@@ -20,9 +20,9 @@ export function createTriageHandler(deps: TriageHandlerDeps) {
     result: TriageResult,
     event: { source: string; content: string },
   ): Promise<void> {
-    if (result.jobIds) {
-      const activeIds = new Set(deps.launcher.listActiveSessions().map(s => s.jobId));
-      for (const id of result.jobIds) {
+    if (result.taskIds) {
+      const activeIds = new Set(deps.launcher.listActiveSessions().map(s => s.taskId));
+      for (const id of result.taskIds) {
         if (activeIds.has(id)) {
           await deps.launcher.sendMessage(id, `New event (${event.source}): ${event.content}`);
         } else {

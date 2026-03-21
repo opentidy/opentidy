@@ -66,7 +66,7 @@ describe('createClaudeAdapter', () => {
     it('builds autonomous args with resume', () => {
       const args = adapter.buildArgs({
         mode: 'autonomous',
-        cwd: '/workspace/job-1',
+        cwd: '/workspace/task-1',
         instruction: 'Work on this',
         resumeSessionId: 'session-abc',
       });
@@ -79,17 +79,17 @@ describe('createClaudeAdapter', () => {
       const oneShotArgs = adapter.buildArgs({ mode: 'one-shot', cwd: '/workspace', instruction: 'test' });
       expect(oneShotArgs).not.toContain('--dangerously-skip-permissions');
 
-      const autonomousArgs = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace/job-1', instruction: 'Work on this' });
+      const autonomousArgs = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace/task-1', instruction: 'Work on this' });
       expect(autonomousArgs).not.toContain('--dangerously-skip-permissions');
 
-      const interactiveArgs = adapter.buildArgs({ mode: 'interactive', cwd: '/workspace/job-1' });
+      const interactiveArgs = adapter.buildArgs({ mode: 'interactive', cwd: '/workspace/task-1' });
       expect(interactiveArgs).not.toContain('--dangerously-skip-permissions');
     });
 
     it('builds interactive args without -p', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
-        cwd: '/workspace/job-1',
+        cwd: '/workspace/task-1',
         resumeSessionId: 'session-abc',
         pluginDir: '/plugins/opentidy-hooks',
       });
@@ -103,7 +103,7 @@ describe('createClaudeAdapter', () => {
     it('builds interactive args without instruction', () => {
       const args = adapter.buildArgs({
         mode: 'interactive',
-        cwd: '/workspace/job-1',
+        cwd: '/workspace/task-1',
       });
       expect(args).not.toContain('-p');
       // No instruction appended — args may be empty or last arg is not a sentence

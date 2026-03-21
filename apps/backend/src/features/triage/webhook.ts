@@ -7,6 +7,8 @@ export function createWebhookReceiver(deps: {
   triage: (event: { source: string; content: string; metadata: Record<string, string> }) => Promise<void>;
 }) {
   async function handleGmailWebhook(raw: unknown): Promise<{ accepted: boolean; reason?: string }> {
+    // safeParse intentional: webhooks must never throw — invalid payloads return
+    // { accepted: false } so the caller can respond 200 and avoid external retries.
     const parsed = GmailWebhookSchema.safeParse(raw);
     if (!parsed.success) return { accepted: false, reason: 'invalid payload' };
 
@@ -22,7 +24,7 @@ export function createWebhookReceiver(deps: {
 
     await deps.triage({
       source: 'gmail',
-      content: `Email de ${data.from}: ${data.subject}\n\n${data.body}`,
+      content: `Email from ${data.from}: ${data.subject}\n\n${data.body}`,
       metadata: { messageId: data.messageId, threadId: data.threadId ?? '', from: data.from },
     });
 

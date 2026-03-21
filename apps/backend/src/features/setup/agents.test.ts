@@ -10,6 +10,7 @@ function makeDeps(overrides: Partial<AgentSetupDeps> = {}): AgentSetupDeps {
     checkInstalled: () => false,
     checkAuth: () => false,
     getActiveAgent: () => 'claude',
+    agentConfigDir: '/tmp/opentidy-test-agents',
     ...overrides,
   };
 }
@@ -31,7 +32,7 @@ describe('GET /setup/agents', () => {
     expect(names).toContain('copilot');
   });
 
-  it('each agent has label, badge, installed, authed, active fields', async () => {
+  it('each agent has label, badge, installed, authed, onboarded, active fields', async () => {
     const app = setupAgentsRoute(makeDeps());
     const res = await app.request('/setup/agents');
     const body = await res.json() as any;
@@ -42,6 +43,7 @@ describe('GET /setup/agents', () => {
       expect(['stable', 'experimental', 'coming-soon']).toContain(agent.badge);
       expect(typeof agent.installed).toBe('boolean');
       expect(typeof agent.authed).toBe('boolean');
+      expect(typeof agent.onboarded).toBe('boolean');
       expect(typeof agent.active).toBe('boolean');
     }
   });

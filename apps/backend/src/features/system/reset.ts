@@ -4,13 +4,14 @@
 import { Hono } from 'hono';
 import { join } from 'path';
 import type { AppDeps } from '../../server.js';
+import { getOpenTidyPaths } from '../../shared/paths.js';
 
 export function resetRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /reset — kill all sessions, wipe workspace, clean locks
+  // POST /reset — factory reset: kill sessions, wipe workspace, reset config to defaults
   router.post('/reset', async (c) => {
-    console.log('[opentidy] RESET — wiping everything');
+    console.log('[opentidy] RESET — factory reset');
     const { execFileSync } = await import('child_process');
     const { readdirSync, rmSync, statSync } = await import('fs');
 
@@ -22,26 +23,21 @@ export function resetRoute(deps: AppDeps) {
       }
     } catch {}
 
-    // 2. Clean workspace jobs (keep system dirs and CLAUDE.md)
-    const keep = new Set(['_suggestions', '_gaps', '_audit', '_outputs', '.claude', 'CLAUDE.md']);
+    // 2. Clean workspace (keep _data for DB, INSTRUCTIONS.md for global prompt)
+    const keep = new Set(['_data', 'INSTRUCTIONS.md']);
     for (const entry of readdirSync(deps.workspaceDir)) {
-      if (keep.has(entry)) {
-        if (entry.startsWith('_')) {
-          const dir = join(deps.workspaceDir, entry);
-          try {
-            if (statSync(dir).isDirectory()) {
-              for (const f of readdirSync(dir)) rmSync(join(dir, f), { recursive: true, force: true });
-            }
-          } catch {}
-        }
-        continue;
-      }
+      if (keep.has(entry)) continue;
       rmSync(join(deps.workspaceDir, entry), { recursive: true, force: true });
+    }
+    // Re-create empty system dirs
+    const { mkdirSync } = await import('fs');
+    for (const dir of ['_suggestions', '_gaps', '_audit', '_outputs', '.claude']) {
+      mkdirSync(join(deps.workspaceDir, dir), { recursive: true });
     }
 
     // 3. Clean locks
     try {
-      const lockDir = '/tmp/opentidy-locks';
+      const lockDir = getOpenTidyPaths().lockDir;
       if (statSync(lockDir).isDirectory()) {
         for (const f of readdirSync(lockDir)) rmSync(join(lockDir, f), { force: true });
       }
@@ -55,15 +51,38 @@ export function resetRoute(deps: AppDeps) {
       }
     } catch {}
 
-    console.log('[opentidy] RESET complete — restarting in 1s');
-    c.header('Content-Type', 'application/json');
+    // 5. Clear in-memory state
+    deps.launcher.clearAll?.();
 
-    // 5. Schedule self-restart after response is sent
-    setTimeout(() => {
-      console.log('[opentidy] Restarting process...');
-      process.exit(0); // tsx watch or launchctl will restart us
-    }, 1000);
+    // 6. Reset config to defaults (wipes modules, permissions, userInfo, setupComplete)
+    if (deps.configFns) {
+      const config = deps.configFns.loadConfig();
+      // Preserve only infrastructure settings that depend on the machine
+      const preserved = {
+        auth: config.auth,
+        server: config.server,
+        workspace: config.workspace,
+        agentConfig: config.agentConfig,
+        claudeConfig: config.claudeConfig,
+        github: config.github,
+      };
+      deps.configFns.saveConfig({
+        ...preserved,
+        version: 3,
+        update: config.update,
+        language: 'en',
+        userInfo: { name: '', email: '', company: '' },
+        modules: { opentidy: { enabled: true, source: 'curated' as const } },
+        permissions: { preset: 'autonomous' as const, defaultLevel: 'confirm' as const, modules: {} },
+        setupComplete: false,
+      } as any);
+      console.log('[opentidy] Config reset to defaults (setupComplete=false)');
+    }
 
+    // 7. Notify all connected clients to refresh
+    deps.sse.emit({ type: 'system:reset', data: {}, timestamp: new Date().toISOString() });
+
+    console.log('[opentidy] Factory reset complete');
     return c.json({ reset: true });
   });
 

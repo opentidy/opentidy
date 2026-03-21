@@ -2,18 +2,18 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { test, expect } from '@playwright/test';
-import { setupMockApi, mockJobs } from './fixtures/mock-api';
+import { setupMockApi, mockTasks } from './fixtures/mock-api';
 
 test.describe('E2E-APP-22: SSE event triggers UI update', () => {
-  test('SSE job:updated event triggers refetch of jobs', async ({ page }) => {
+  test('SSE task:updated event triggers refetch of tasks', async ({ page }) => {
     // Start with initial data
     await setupMockApi(page);
 
-    // Track fetch calls to /api/jobs
-    let jobsFetchCount = 0;
-    await page.route('**/api/jobs', (route) => {
-      jobsFetchCount++;
-      return route.fulfill({ json: mockJobs });
+    // Track fetch calls to /api/tasks
+    let tasksFetchCount = 0;
+    await page.route('**/api/tasks', (route) => {
+      tasksFetchCount++;
+      return route.fulfill({ json: mockTasks });
     });
 
     // Instead of real SSE, we'll mock the EventSource and dispatch events client-side
@@ -32,7 +32,7 @@ test.describe('E2E-APP-22: SSE event triggers UI update', () => {
           'Cache-Control': 'no-cache',
           Connection: 'keep-alive',
         },
-        body: 'event: job:updated\ndata: {"jobId":"invoices-acme"}\n\n',
+        body: 'event: task:updated\ndata: {"taskId":"invoices-acme"}\n\n',
       });
       sseResolve?.();
     });
@@ -41,11 +41,11 @@ test.describe('E2E-APP-22: SSE event triggers UI update', () => {
     await sseConnected;
 
     // Wait for the initial fetch + SSE-triggered refetch
-    // The initial page load triggers fetchJobs, and the SSE event body triggers another
+    // The initial page load triggers fetchTasks, and the SSE event body triggers another
     // We verify the page loaded successfully with the data
     await expect(page.getByText('Invoices Acme').first()).toBeVisible();
 
     // Verify at least the initial fetch happened
-    expect(jobsFetchCount).toBeGreaterThanOrEqual(1);
+    expect(tasksFetchCount).toBeGreaterThanOrEqual(1);
   });
 });

@@ -47,11 +47,11 @@ export default function Ameliorations() {
   const openCount = ameliorations.filter((a) => (a.status ?? (a.resolved ? 'resolved' : 'open')) === 'open').length;
 
   return (
-    <div className="p-6 md:p-8">
+    <div className="p-5 md:p-7">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-text">{t('ameliorations.title')}</h1>
-          <span className="text-xs px-2 py-0.5 rounded-md bg-text-tertiary/20 text-text-tertiary font-medium">
+          <span className="text-[9px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
             {loading ? '...' : t('ameliorations.open', { count: openCount })}
           </span>
         </div>
@@ -60,10 +60,10 @@ export default function Ameliorations() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-xs px-3 py-1 rounded-full border transition-colors ${
+              className={`text-[11px] rounded-md px-2.5 py-0.5 transition-colors ${
                 filter === f
-                  ? 'bg-text/10 border-text/20 text-text'
-                  : 'border-border text-text-tertiary hover:text-text-secondary'
+                  ? 'bg-card text-text'
+                  : 'text-[#48484a]'
               }`}
             >
               {filterLabels[f]}
@@ -80,7 +80,7 @@ export default function Ameliorations() {
             categoryLabels={categoryLabels}
             onResolve={() => resolveAmelioration(amelioration.id)}
             onIgnore={() => ignoreAmelioration(amelioration.id)}
-            onNavigate={(jobId) => navigate(`/job/${jobId}`)}
+            onNavigate={(taskId) => navigate(`/task/${taskId}`)}
           />
         ))}
         {loading && filtered.length === 0 && (

@@ -3,19 +3,18 @@
 
 // types.ts — SSOT for all OpenTidy types
 
-// === Job (workspace/) ===
-export type JobStatus = 'IN_PROGRESS' | 'COMPLETED';
+// === Task (workspace/) ===
+export type TaskStatus = 'IN_PROGRESS' | 'COMPLETED';
 
-export interface Job {
-  id: string;           // job slug (directory name)
-  status: JobStatus;
+export interface Task {
+  id: string;           // task slug (directory name)
+  status: TaskStatus;
   title: string;        // extracted from state.md (# heading)
   objective: string;    // extracted from ## Objective
   lastAction: string;   // date of last action
   hasActiveSession: boolean;
   stateRaw?: string;    // raw state.md content
   artifacts: string[];  // list of files in artifacts/
-  confirm?: boolean;    // confirm mode — Claude asks before external actions
   journal: JournalEntry[];
   waitingFor?: string;  // content of ## Waiting section (if present)
   waitingType?: 'user' | 'tiers'; // USER = user must act, TIERS = waiting for third party
@@ -55,7 +54,7 @@ export interface Amelioration {
   impact: string;
   suggestion: string;
   actions: string[];           // recommended concrete actions
-  jobId?: string;              // related job
+  taskId?: string;              // related task
   sessionId?: string;          // claude session id (for output link)
   source?: AmeliorationSource; // what generated this analysis
   category?: AmeliorationCategory; // type of gap
@@ -86,7 +85,7 @@ export type SessionStatus = 'active' | 'idle';
 
 export interface Session {
   id: string;           // tmux session name
-  jobId: string;
+  taskId: string;
   status: SessionStatus;
   startedAt: string;
   agentSessionId?: string;    // for --resume
@@ -100,7 +99,7 @@ export type ScheduleCreatedBy = 'system' | 'agent' | 'user';
 
 export interface Schedule {
   id: number;
-  jobId: string | null;
+  taskId: string | null;
   type: ScheduleType;
   runAt: string | null;
   intervalMs: number | null;
@@ -122,7 +121,7 @@ export interface NotificationRecord {
   timestamp: string;
   message: string;
   link: string;
-  jobId?: string;
+  taskId?: string;
 }
 
 // === SSE ===
@@ -133,8 +132,8 @@ export type SSEEventType =
   | 'session:active'
   | 'session:output'
   | 'suggestion:created'
-  | 'job:updated'
-  | 'job:completed'
+  | 'task:updated'
+  | 'task:completed'
   | 'amelioration:created'
   | 'process:output'
   | 'notification:sent'
@@ -144,18 +143,20 @@ export type SSEEventType =
   | 'module:enabled'
   | 'module:disabled'
   | 'module:error'
-  | 'module:configured';
+  | 'module:configured'
+  | 'system:reset';
 
 export type SSEEventData =
-  | { type: 'session:started' | 'session:ended' | 'session:idle' | 'session:active'; sessionId: string; jobId: string }
-  | { type: 'session:output'; sessionId: string; jobId: string; output: string }
-  | { type: 'job:updated' | 'job:completed'; jobId: string }
+  | { type: 'session:started' | 'session:ended' | 'session:idle' | 'session:active'; sessionId: string; taskId: string }
+  | { type: 'session:output'; sessionId: string; taskId: string; output: string }
+  | { type: 'task:updated' | 'task:completed'; taskId: string }
   | { type: 'suggestion:created'; slug: string }
   | { type: 'amelioration:created'; id: string }
   | { type: 'process:output'; processId: number; output: string }
-  | { type: 'notification:sent'; notificationId: string; jobId?: string }
+  | { type: 'notification:sent'; notificationId: string; taskId?: string }
   | { type: 'schedule:created' | 'schedule:fired' | 'schedule:deleted'; scheduleId: number }
-  | { type: 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; moduleName: string };
+  | { type: 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; moduleName: string }
+  | { type: 'system:reset' };
 
 /** Extracts the data payload (without `type`) for a given SSEEventType */
 export type SSEEventDataFor<T extends SSEEventType> = Omit<Extract<SSEEventData, { type: T }>, 'type'>;
@@ -183,7 +184,7 @@ export type AgentProcessStatus = 'queued' | 'running' | 'done' | 'error';
 export interface AgentProcess {
   id: number;
   type: AgentProcessType;
-  jobId?: string;
+  taskId?: string;
   pid?: number;
   startedAt: string;
   endedAt?: string;
@@ -256,7 +257,7 @@ export interface AgentAdapter {
 
   buildArgs(opts: SpawnOpts): string[];
   getEnv(): Record<string, string>;
-  readSessionId(jobDir: string): string | null;
+  readSessionId(taskDir: string): string | null;
   writeConfig(opts: SetupOpts): void;
 }
 
@@ -268,7 +269,7 @@ export interface MacPermission {
   reason: string;            // why this permission is needed
 }
 
-export type PermissionScope = 'per-call' | 'per-job';
+export type PermissionScope = 'per-call' | 'per-task';
 
 export interface ToolPermissions {
   scope: PermissionScope;
@@ -282,6 +283,7 @@ export interface ModuleManifest {
   description: string;
   icon?: string;
   version: string;
+  capabilities?: string[];        // human-readable list of what this module enables
   core?: boolean;                 // true = required, cannot be disabled/removed
   platform?: 'darwin' | 'all';
   mcpServers?: McpServerDef[];
@@ -350,6 +352,7 @@ export interface ModuleInfo {
   label: string;
   description: string;
   icon?: string;
+  capabilities?: string[];
   core?: boolean;
   source: 'curated' | 'custom';
   enabled: boolean;

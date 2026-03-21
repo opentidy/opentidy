@@ -4,6 +4,12 @@
   "description": "Send notifications via Telegram bot",
   "icon": "📨",
   "version": "1.0.0",
+  "capabilities": [
+    "Send notifications",
+    "Send photos",
+    "Read chat updates",
+    "Receive user approvals"
+  ],
   "mcpServers": [{
     "name": "telegram",
     "command": "npx",

@@ -18,31 +18,34 @@ export function UserInfoStep({ onNext, initialName = '', initialLanguage }: User
   );
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-8">
+    <form
+      className="mx-auto flex w-full max-w-md flex-col gap-6"
+      onSubmit={(e) => { e.preventDefault(); if (name.trim()) onNext({ name: name.trim(), language }); }}
+    >
       <div className="text-center">
-        <h1 className="text-2xl font-bold text-fg">{t('setup.welcome')}</h1>
-        <p className="mt-2 text-fg-muted">{t('setup.subtitle')}</p>
+        <h1 className="text-xl font-bold text-text">{t('setup.welcome')}</h1>
+        <p className="mt-1 text-text-secondary text-sm">{t('setup.subtitle')}</p>
       </div>
 
       <div className="flex flex-col gap-5">
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-fg">{t('setup.name')}</span>
+          <span className="text-sm font-medium text-text">{t('setup.name')}</span>
           <input
             type="text"
             autoFocus
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('setup.namePlaceholder')}
-            className="rounded-lg border border-border bg-bg-secondary px-3 py-2 text-fg placeholder:text-fg-muted/50 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-fg">{t('setup.language')}</span>
+          <span className="text-sm font-medium text-text">{t('setup.language')}</span>
           <select
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="rounded-lg border border-border bg-bg-secondary px-3 py-2 text-fg focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="bg-card border border-border rounded-lg px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-accent"
           >
             <option value="en">English</option>
             <option value="fr">Fran&ccedil;ais</option>
@@ -51,13 +54,12 @@ export function UserInfoStep({ onNext, initialName = '', initialLanguage }: User
       </div>
 
       <button
-        type="button"
+        type="submit"
         disabled={!name.trim()}
-        onClick={() => onNext({ name: name.trim(), language })}
-        className="rounded-lg bg-accent px-4 py-2.5 font-medium text-white transition-opacity disabled:opacity-40"
+        className="rounded-lg bg-accent px-4 py-2.5 font-medium text-white disabled:opacity-40"
       >
         {t('setup.continue')}
       </button>
-    </div>
+    </form>
   );
 }

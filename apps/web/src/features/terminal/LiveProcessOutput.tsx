@@ -17,7 +17,7 @@ export default function LiveProcessOutput({ trackId, processType }: LiveProcessO
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [output]);
 
   return (
-    <div className="h-full overflow-y-auto p-4 font-mono text-xs">
+    <div className="h-full overflow-y-auto bg-[#0f0f11] rounded-lg p-3 font-mono text-xs text-text-secondary">
       {!output && processType && (
         <div className="text-text-tertiary italic">
           <p className="animate-pulse mb-2">{t('terminal.inProgress')}</p>

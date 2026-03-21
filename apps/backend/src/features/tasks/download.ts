@@ -6,10 +6,10 @@ import { join } from 'path';
 import { readFileSync, existsSync } from 'fs';
 import type { AppDeps } from '../../server.js';
 
-export function downloadJobRoute(deps: AppDeps) {
+export function downloadTaskRoute(deps: AppDeps) {
   const app = new Hono();
 
-  app.get('/job/:id/artifact/:filename', (c) => {
+  app.get('/task/:id/artifact/:filename', (c) => {
     const id = c.req.param('id');
     const filename = c.req.param('filename');
     // Prevent path traversal

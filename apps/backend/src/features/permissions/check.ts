@@ -6,7 +6,7 @@ import type { PermissionCheckDeps } from './types.js';
 
 export function createPermissionChecker(deps: PermissionCheckDeps) {
   async function check(
-    jobId: string,
+    taskId: string,
     sessionId: string,
     toolName: string,
     toolInput: Record<string, unknown>,
@@ -29,23 +29,23 @@ export function createPermissionChecker(deps: PermissionCheckDeps) {
 
     // level === 'confirm' from here
 
-    // 3. Per-job: check if already granted for this job session
-    if (scope === 'per-job' && moduleName && deps.state.isGranted(jobId, moduleName)) {
+    // 3. Per-task: check if already granted for this task session
+    if (scope === 'per-task' && moduleName && deps.state.isGranted(taskId, moduleName)) {
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'ALLOW' });
       return 'allow';
     }
 
     // 4. Request human approval
-    const approved = await deps.requestApproval({ jobId, toolName, toolInput, moduleName });
+    const approved = await deps.requestApproval({ taskId, toolName, toolInput, moduleName });
 
     if (!approved) {
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'DENY' });
       return 'deny';
     }
 
-    // 5. Approved — persist per-job grant if applicable
-    if (scope === 'per-job' && moduleName) {
-      deps.state.grant(jobId, moduleName);
+    // 5. Approved — persist per-task grant if applicable
+    if (scope === 'per-task' && moduleName) {
+      deps.state.grant(taskId, moduleName);
     }
 
     deps.audit.log({ sessionId, toolName, toolInput, decision: 'ALLOW' });

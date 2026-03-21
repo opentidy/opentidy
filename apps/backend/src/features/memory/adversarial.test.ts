@@ -44,7 +44,7 @@ describe('Adversarial: Memory Manager', () => {
     it('INDEX.md has extra columns in some rows → should still parse', () => {
       const content = `# OpenTidy Memory Index
 
-| fichier | catégorie | mis à jour | description |
+| file | category | updated | description |
 |---------|-----------|------------|-------------|
 | test.md | business | 2026-03-16 | A test entry | extra-col |
 | ok.md | dev | 2026-03-15 | Normal entry |
@@ -62,7 +62,7 @@ describe('Adversarial: Memory Manager', () => {
     it('INDEX.md with escaped pipes in description → parsing works', () => {
       const content = `# OpenTidy Memory Index
 
-| fichier | catégorie | mis à jour | description |
+| file | category | updated | description |
 |---------|-----------|------------|-------------|
 | test.md | business | 2026-03-16 | desc with \\| pipe char |
 `

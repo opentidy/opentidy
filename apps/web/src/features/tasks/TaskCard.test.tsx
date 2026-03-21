@@ -4,9 +4,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Job } from '@opentidy/shared';
+import type { Task } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
-import JobCard from './JobCard';
+import TaskCard from './TaskCard';
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -14,11 +14,11 @@ vi.mock('react-router-dom', async () => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-function makeJob(overrides: Partial<Job> = {}): Job {
+function makeTask(overrides: Partial<Task> = {}): Task {
   return {
     id: 'acme-corp',
     status: 'IN_PROGRESS',
-    title: 'Job Acme',
+    title: 'Task Acme',
     objective: 'Resolve contract issue with Acme',
     lastAction: 'il y a 2h',
     hasActiveSession: false,
@@ -31,22 +31,22 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe('JobCard', () => {
+describe('TaskCard', () => {
   it('displays title and objective', () => {
     render(
       <MemoryRouter>
-        <JobCard job={makeJob()} />
+        <TaskCard task={makeTask()} />
       </MemoryRouter>,
     );
 
-    expect(screen.getByText('Job Acme')).toBeDefined();
+    expect(screen.getByText('Task Acme')).toBeDefined();
     expect(screen.getByText('Resolve contract issue with Acme')).toBeDefined();
   });
 
   it('displays IN_PROGRESS status with green dot and badge', () => {
     const { container } = render(
       <MemoryRouter>
-        <JobCard job={makeJob({ status: 'IN_PROGRESS' })} />
+        <TaskCard task={makeTask({ status: 'IN_PROGRESS' })} />
       </MemoryRouter>,
     );
 
@@ -59,7 +59,7 @@ describe('JobCard', () => {
   it('displays COMPLETED status with tertiary dot and opacity', () => {
     const { container } = render(
       <MemoryRouter>
-        <JobCard job={makeJob({ status: 'COMPLETED' })} />
+        <TaskCard task={makeTask({ status: 'COMPLETED' })} />
       </MemoryRouter>,
     );
 
@@ -70,29 +70,29 @@ describe('JobCard', () => {
   it('shows "Terminal" indicator when session is active', () => {
     render(
       <MemoryRouter>
-        <JobCard job={makeJob({})} session={{ id: 's1', jobId: 'test', status: 'active', startedAt: new Date().toISOString() }} />
+        <TaskCard task={makeTask({})} session={{ id: 's1', taskId: 'test', status: 'active', startedAt: new Date().toISOString() }} />
       </MemoryRouter>,
     );
 
     expect(screen.getByText('Terminal')).toBeDefined();
   });
 
-  it('click navigates to /job/{id}', () => {
+  it('click navigates to /task/{id}', () => {
     const { container } = render(
       <MemoryRouter>
-        <JobCard job={makeJob({ id: 'my-job' })} />
+        <TaskCard task={makeTask({ id: 'my-task' })} />
       </MemoryRouter>,
     );
 
     fireEvent.click(container.firstElementChild as HTMLElement);
 
-    expect(mockNavigate).toHaveBeenCalledWith('/job/my-job');
+    expect(mockNavigate).toHaveBeenCalledWith('/task/my-task');
   });
 
   it('displays lastAction', () => {
     render(
       <MemoryRouter>
-        <JobCard job={makeJob({ lastAction: 'hier' })} />
+        <TaskCard task={makeTask({ lastAction: 'hier' })} />
       </MemoryRouter>,
     );
 

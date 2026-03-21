@@ -30,18 +30,18 @@ export default function AddModuleDialog({ open, onClose, onAdded }: AddModuleDia
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={onClose}>
       <div
-        className="bg-card border border-border rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-surface rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold mb-4">{t('modules.addModule')}</h3>
 
-        <div className="flex gap-1 mb-6 border border-border rounded-lg p-1 bg-background">
+        <div className="flex gap-1 mb-6 border border-border rounded-lg p-1 bg-bg">
           <button
             type="button"
             onClick={() => setTab('registry')}
             className={`flex-1 px-3 py-1.5 text-sm rounded-md transition-colors ${
               tab === 'registry'
-                ? 'bg-card text-text-primary font-medium shadow-sm'
+                ? 'bg-card text-text font-medium shadow-sm'
                 : 'text-text-tertiary hover:text-text-secondary'
             }`}
           >
@@ -52,7 +52,7 @@ export default function AddModuleDialog({ open, onClose, onAdded }: AddModuleDia
             onClick={() => setTab('custom')}
             className={`flex-1 px-3 py-1.5 text-sm rounded-md transition-colors ${
               tab === 'custom'
-                ? 'bg-card text-text-primary font-medium shadow-sm'
+                ? 'bg-card text-text font-medium shadow-sm'
                 : 'text-text-tertiary hover:text-text-secondary'
             }`}
           >
@@ -147,7 +147,7 @@ function RegistryTab({ onAdded, onClose }: { onAdded: () => void; onClose: () =>
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
         placeholder={t('modules.searchRegistry')}
-        className="w-full px-3 py-2 bg-background border border-border rounded-lg text-sm"
+        className="w-full bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
       />
 
       {searching && (
@@ -159,7 +159,7 @@ function RegistryTab({ onAdded, onClose }: { onAdded: () => void; onClose: () =>
       )}
 
       {error && (
-        <div className="text-red-500 text-sm p-3 bg-red-500/10 rounded-lg">{error}</div>
+        <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>
       )}
 
       {results.length > 0 && (
@@ -167,7 +167,7 @@ function RegistryTab({ onAdded, onClose }: { onAdded: () => void; onClose: () =>
           {results.map((result) => (
             <div
               key={result.name}
-              className="flex items-start justify-between gap-3 p-3 border border-border rounded-lg bg-background"
+              className="flex items-start justify-between gap-3 p-3 border border-border rounded-lg bg-card"
             >
               <div className="min-w-0">
                 <p className="text-sm font-medium truncate">{result.name}</p>
@@ -192,7 +192,7 @@ function RegistryTab({ onAdded, onClose }: { onAdded: () => void; onClose: () =>
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm rounded-lg hover:bg-card-hover transition-colors"
+          className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs transition-colors"
         >
           {t('modules.cancel')}
         </button>
@@ -251,7 +251,7 @@ function CustomTab({ onAdded, onClose }: { onAdded: () => void; onClose: () => v
       <div>
         <label className="text-sm text-text-secondary">
           {t('common.name') !== 'common.name' ? t('common.name') : 'Name'}
-          <span className="text-red-400 ml-0.5">*</span>
+          <span className="text-red ml-0.5">*</span>
         </label>
         <input
           type="text"
@@ -259,14 +259,14 @@ function CustomTab({ onAdded, onClose }: { onAdded: () => void; onClose: () => v
           onChange={(e) => setName(e.target.value)}
           placeholder="my-mcp-server"
           required
-          className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          className="w-full mt-1 bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
 
       <div>
         <label className="text-sm text-text-secondary">
           {t('modules.command')}
-          <span className="text-red-400 ml-0.5">*</span>
+          <span className="text-red ml-0.5">*</span>
         </label>
         <input
           type="text"
@@ -274,14 +274,14 @@ function CustomTab({ onAdded, onClose }: { onAdded: () => void; onClose: () => v
           onChange={(e) => setCommand(e.target.value)}
           placeholder="npx"
           required
-          className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          className="w-full mt-1 bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
 
       <div>
         <label className="text-sm text-text-secondary">
           {t('modules.args')}
-          <span className="text-red-400 ml-0.5">*</span>
+          <span className="text-red ml-0.5">*</span>
         </label>
         <input
           type="text"
@@ -289,26 +289,26 @@ function CustomTab({ onAdded, onClose }: { onAdded: () => void; onClose: () => v
           onChange={(e) => setArgs(e.target.value)}
           placeholder="-y some-mcp-server"
           required
-          className="w-full mt-1 px-3 py-2 bg-background border border-border rounded-lg text-sm"
+          className="w-full mt-1 bg-card rounded-lg px-3 py-2 text-sm text-text placeholder:text-text-tertiary border-none focus:outline-none focus:ring-1 focus:ring-accent"
         />
       </div>
 
       {error && (
-        <div className="text-red-500 text-sm p-3 bg-red-500/10 rounded-lg">{error}</div>
+        <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>
       )}
 
       <div className="flex justify-end gap-2 pt-2">
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm rounded-lg hover:bg-card-hover transition-colors"
+          className="bg-card text-text-secondary rounded-lg px-3.5 py-1.5 text-xs transition-colors"
         >
           {t('modules.cancel')}
         </button>
         <button
           type="submit"
           disabled={submitting || !name.trim() || !command.trim() || !args.trim()}
-          className="px-4 py-2 text-sm bg-accent text-white rounded-lg hover:bg-accent/90 disabled:opacity-50 transition-colors"
+          className="bg-accent text-white font-semibold rounded-lg px-3.5 py-1.5 text-xs disabled:opacity-50 transition-colors"
         >
           {submitting ? t('common.loading') : t('modules.add')}
         </button>

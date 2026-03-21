@@ -13,32 +13,34 @@ export function ModulesStep({ onNext, onBack }: ModulesStepProps) {
   const { t } = useTranslation();
 
   return (
-    <div className="mx-auto flex w-full max-w-lg flex-col gap-8">
+    <form
+      className="mx-auto flex w-full max-w-lg flex-col gap-8"
+      onSubmit={(e) => { e.preventDefault(); onNext(); }}
+    >
       <div className="text-center">
-        <h2 className="text-xl font-bold text-fg">{t('setup.modules')}</h2>
-        <p className="mt-2 text-sm text-fg-muted">{t('setup.modulesDesc')}</p>
+        <h2 className="text-xl font-bold text-text">{t('setup.modules')}</h2>
+        <p className="mt-1 text-text-secondary text-sm">{t('setup.modulesDesc')}</p>
       </div>
 
       <ModuleList autoEnableCore />
 
-      <p className="text-xs text-fg-muted text-center">{t('setup.laterInSettings')}</p>
+      <p className="text-xs text-text-secondary text-center">{t('setup.laterInSettings')}</p>
 
       <div className="flex gap-3">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-border px-4 py-2.5 font-medium text-fg hover:bg-bg-secondary"
+          className="rounded-lg border border-border px-4 py-2.5 font-medium text-text hover:bg-card"
         >
           {t('setup.back')}
         </button>
         <button
-          type="button"
-          onClick={onNext}
+          type="submit"
           className="flex-1 rounded-lg bg-accent px-4 py-2.5 font-medium text-white hover:opacity-90"
         >
           {t('setup.continue')}
         </button>
       </div>
-    </div>
+    </form>
   );
 }

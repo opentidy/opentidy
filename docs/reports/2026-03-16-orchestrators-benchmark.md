@@ -52,7 +52,7 @@
 - **Approval records** : pause agent → humain decide dans l'UI → agent reprend avec `APPROVAL_STATUS`
 - **Budget hard-stop** : `spentMonthlyCents >= budgetMonthlyCents` → auto-pause
 - **Config revision tracking** : chaque modif = snapshot before/after, rollback possible
-- **Plugin system** : VM-sandboxed workers, manifest + capabilities, cron jobs, UI injection
+- **Plugin system** : VM-sandboxed workers, manifest + capabilities, cron tasks, UI injection
 
 ---
 

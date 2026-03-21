@@ -4,31 +4,31 @@
 import fs from 'fs';
 import path from 'path';
 
+export function isPidAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function createLockManager(lockDir: string) {
   fs.mkdirSync(lockDir, { recursive: true });
 
-  function lockPath(jobId: string): string {
-    return path.join(lockDir, `${jobId}.lock`);
+  function lockPath(taskId: string): string {
+    return path.join(lockDir, `${taskId}.lock`);
   }
 
-  function isPidAlive(pid: number): boolean {
-    try {
-      process.kill(pid, 0);
-      return true;
-    } catch {
-      return false;
-    }
-  }
-
-  function acquire(jobId: string): boolean {
-    const p = lockPath(jobId);
+  function acquire(taskId: string): boolean {
+    const p = lockPath(taskId);
     try {
       // wx flag = create exclusively, fails if file already exists (atomic)
       fs.writeFileSync(p, String(process.pid), { flag: 'wx' });
       return true;
     } catch {
       // File exists — check if the holding process is still alive
-      if (!isLocked(jobId)) {
+      if (!isLocked(taskId)) {
         // Stale lock was cleaned up by isLocked, retry once
         try {
           fs.writeFileSync(p, String(process.pid), { flag: 'wx' });
@@ -41,13 +41,13 @@ export function createLockManager(lockDir: string) {
     }
   }
 
-  function release(jobId: string): void {
-    const p = lockPath(jobId);
+  function release(taskId: string): void {
+    const p = lockPath(taskId);
     if (fs.existsSync(p)) fs.unlinkSync(p);
   }
 
-  function isLocked(jobId: string): boolean {
-    const p = lockPath(jobId);
+  function isLocked(taskId: string): boolean {
+    const p = lockPath(taskId);
     if (!fs.existsSync(p)) return false;
     const pid = parseInt(fs.readFileSync(p, 'utf-8').trim(), 10);
     if (!isPidAlive(pid)) {

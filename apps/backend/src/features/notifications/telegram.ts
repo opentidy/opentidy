@@ -10,18 +10,18 @@ export interface NotifierDeps {
   appBaseUrl: string;
   chatId?: string;
   rateLimitMs?: number;
-  notificationStore?: { record(input: { message: string; link: string; jobId?: string }): unknown };
+  notificationStore?: { record(input: { message: string; link: string; taskId?: string }): unknown };
   sse?: { emit(event: { type: string; data: Record<string, unknown>; timestamp: string }): void };
 }
 
 export interface Notifier {
-  notifyStarted(jobId: string): Promise<void>;
-  notifyMfa(jobId: string): Promise<void>;
-  notifyCompleted(jobId: string): Promise<void>;
+  notifyStarted(taskId: string): Promise<void>;
+  notifyMfa(taskId: string): Promise<void>;
+  notifyCompleted(taskId: string): Promise<void>;
   notifySuggestion(title: string, urgency: UrgencyLevel): Promise<void>;
-  notifyAction(jobId: string, action: string): Promise<void>;
-  notifyEscalation(jobId: string, reason: string): Promise<void>;
-  notifyIdle(jobId: string): Promise<void>;
+  notifyAction(taskId: string, action: string): Promise<void>;
+  notifyEscalation(taskId: string, reason: string): Promise<void>;
+  notifyIdle(taskId: string): Promise<void>;
 }
 
 const MAX_RETRIES = 3;
@@ -38,8 +38,8 @@ export function createNotifier(deps: NotifierDeps): Notifier {
   // Anti-spam: track last send time per "type:key"
   const lastSent = new Map<string, number>();
 
-  function jobLink(jobId: string): string {
-    return `${appBaseUrl}/jobs/${jobId}`;
+  function taskLink(taskId: string): string {
+    return `${appBaseUrl}/tasks/${taskId}`;
   }
 
   function suggestionsLink(): string {
@@ -85,27 +85,27 @@ export function createNotifier(deps: NotifierDeps): Notifier {
     await sendWithRetry(text);
   }
 
-  function recordAndEmit(message: string, link: string, jobId?: string): void {
-    if (notificationStore) notificationStore.record({ message, link, jobId });
-    if (sse) sse.emit({ type: 'notification:sent', data: { message, jobId: jobId ?? '' }, timestamp: new Date().toISOString() });
+  function recordAndEmit(message: string, link: string, taskId?: string): void {
+    if (notificationStore) notificationStore.record({ message, link, taskId });
+    if (sse) sse.emit({ type: 'notification:sent', data: { message, taskId: taskId ?? '' }, timestamp: new Date().toISOString() });
   }
 
   return {
-    async notifyStarted(jobId) {
+    async notifyStarted(taskId) {
       // No Telegram message for session start — just record in store for Activity Feed
-      recordAndEmit(`Session started`, jobLink(jobId), jobId);
+      recordAndEmit(`Session started`, taskLink(taskId), taskId);
     },
 
-    async notifyMfa(jobId) {
-      const text = `🔐 MFA required for ${jobId}\n${jobLink(jobId)}`;
-      await send(`mfa:${jobId}`, text);
-      recordAndEmit(`MFA required`, jobLink(jobId), jobId);
+    async notifyMfa(taskId) {
+      const text = `🔐 MFA required for ${taskId}\n${taskLink(taskId)}`;
+      await send(`mfa:${taskId}`, text);
+      recordAndEmit(`MFA required`, taskLink(taskId), taskId);
     },
 
-    async notifyCompleted(jobId) {
-      const text = `✅ Job ${jobId} completed\n${jobLink(jobId)}`;
-      await send(`completed:${jobId}`, text);
-      recordAndEmit(`Job completed`, jobLink(jobId), jobId);
+    async notifyCompleted(taskId) {
+      const text = `✅ Task ${taskId} completed\n${taskLink(taskId)}`;
+      await send(`completed:${taskId}`, text);
+      recordAndEmit(`Task completed`, taskLink(taskId), taskId);
     },
 
     async notifySuggestion(title, urgency) {
@@ -115,22 +115,22 @@ export function createNotifier(deps: NotifierDeps): Notifier {
       recordAndEmit(`Suggestion: ${title}`, suggestionsLink());
     },
 
-    async notifyAction(jobId, action) {
-      const text = `ℹ️ ${jobId}: ${action}\n${jobLink(jobId)}`;
-      await send(`action:${jobId}`, text);
-      recordAndEmit(action, jobLink(jobId), jobId);
+    async notifyAction(taskId, action) {
+      const text = `ℹ️ ${taskId}: ${action}\n${taskLink(taskId)}`;
+      await send(`action:${taskId}`, text);
+      recordAndEmit(action, taskLink(taskId), taskId);
     },
 
-    async notifyEscalation(jobId, reason) {
-      const text = `⚠️ Escalation ${jobId}: ${reason}\n${jobLink(jobId)}`;
-      await send(`escalation:${jobId}`, text);
-      recordAndEmit(`Escalation: ${reason}`, jobLink(jobId), jobId);
+    async notifyEscalation(taskId, reason) {
+      const text = `⚠️ Escalation ${taskId}: ${reason}\n${taskLink(taskId)}`;
+      await send(`escalation:${taskId}`, text);
+      recordAndEmit(`Escalation: ${reason}`, taskLink(taskId), taskId);
     },
 
-    async notifyIdle(jobId) {
-      const text = `⏸️ Session ${jobId} idle\n${jobLink(jobId)}`;
-      await send(`idle:${jobId}`, text);
-      recordAndEmit(`Session idle`, jobLink(jobId), jobId);
+    async notifyIdle(taskId) {
+      const text = `⏸️ Session ${taskId} idle\n${taskLink(taskId)}`;
+      await send(`idle:${taskId}`, text);
+      recordAndEmit(`Session idle`, taskLink(taskId), taskId);
     },
   };
 }

@@ -116,7 +116,7 @@ depuis l'archival quand il en a besoin.
 ### Claude Code comme agent autonome
 
 **`claude -p` (print mode)** confirmé en production :
-- Utilisé en cron jobs par d'autres développeurs
+- Utilisé en cron tasks par d'autres développeurs
 - Supporte skills, MCP, browser
 - `--resume` pour reprendre une session
 - `--output-format json` pour parsing programmatique

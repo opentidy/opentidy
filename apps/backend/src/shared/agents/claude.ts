@@ -6,6 +6,41 @@ import path from 'path';
 import type { AgentAdapter, SpawnOpts, SetupOpts } from '@opentidy/shared';
 import { createPermissionResolver } from '../../features/permissions/resolver.js';
 
+const DEFAULT_PROJECT_ENTRY = {
+  allowedTools: [] as string[],
+  mcpContextUris: [] as string[],
+  mcpServers: {},
+  enabledMcpjsonServers: [] as string[],
+  disabledMcpjsonServers: [] as string[],
+  hasTrustDialogAccepted: true,
+  projectOnboardingSeenCount: 0,
+  hasClaudeMdExternalIncludesApproved: false,
+  hasClaudeMdExternalIncludesWarningShown: false,
+  hasCompletedProjectOnboarding: true,
+};
+
+/**
+ * Pre-trust a directory in Claude Code's .claude.json so it doesn't show
+ * the "Is this a project you trust?" dialog when opening it.
+ */
+export function trustDirectory(configDir: string, dirPath: string): void {
+  const statePath = path.join(configDir, '.claude.json');
+  try {
+    let state: Record<string, unknown> = {};
+    try { state = JSON.parse(fs.readFileSync(statePath, 'utf-8')); } catch { /* new file */ }
+
+    const projects = (state.projects ?? {}) as Record<string, Record<string, unknown>>;
+    if (projects[dirPath]?.hasTrustDialogAccepted) return; // already trusted
+
+    projects[dirPath] = { ...DEFAULT_PROJECT_ENTRY, ...projects[dirPath], hasTrustDialogAccepted: true, hasCompletedProjectOnboarding: true };
+    state.projects = projects;
+    fs.writeFileSync(statePath, JSON.stringify(state, null, 2) + '\n');
+    console.log(`[claude] Pre-trusted workspace: ${dirPath}`);
+  } catch (err) {
+    console.warn(`[claude] Failed to pre-trust ${dirPath}:`, (err as Error).message);
+  }
+}
+
 export function createClaudeAdapter(configDir: string): AgentAdapter {
   return {
     name: 'claude',
@@ -61,8 +96,8 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
       return { CLAUDE_CONFIG_DIR: configDir };
     },
 
-    readSessionId(jobDir: string): string | null {
-      const sessionIdFile = path.join(jobDir, '.session-id');
+    readSessionId(taskDir: string): string | null {
+      const sessionIdFile = path.join(taskDir, '.session-id');
       try {
         return fs.readFileSync(sessionIdFile, 'utf-8').trim() || null;
       } catch {

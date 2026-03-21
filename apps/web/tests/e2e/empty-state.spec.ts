@@ -39,9 +39,9 @@ test.describe('E2E-APP-25: Suggestions with urgency colors', () => {
 });
 
 test.describe('E2E-APP-26: Empty workspace', () => {
-  test('no jobs and no suggestions shows zen mode on Home', async ({ page }) => {
+  test('no tasks and no suggestions shows zen mode on Home', async ({ page }) => {
     await setupMockApi(page, {
-      jobs: [],
+      tasks: [],
       suggestions: [],
       sessions: [],
     });
@@ -52,11 +52,11 @@ test.describe('E2E-APP-26: Empty workspace', () => {
     await expect(page.getByText('aucune action requise')).toBeVisible();
   });
 
-  test('Jobs page shows empty message when no jobs match filter', async ({ page }) => {
-    await setupMockApi(page, { jobs: [] });
-    await page.goto('/jobs');
+  test('Tasks page shows empty message when no tasks match filter', async ({ page }) => {
+    await setupMockApi(page, { tasks: [] });
+    await page.goto('/tasks');
 
     // Empty state message
-    await expect(page.getByText('Aucun job actifs')).toBeVisible();
+    await expect(page.getByText('Aucun task actifs')).toBeVisible();
   });
 });

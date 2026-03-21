@@ -11,9 +11,8 @@ import ExampleChips from './ExampleChips';
 export default function Nouveau() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { suggestions, fetchSuggestions, createJob } = useStore();
+  const { suggestions, fetchSuggestions, createTask, uploadFile } = useStore();
   const [instruction, setInstruction] = useState('');
-  const [confirm, setConfirm] = useState(true);
   const [launching, setLaunching] = useState(false);
   const launchingRef = useRef(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -25,13 +24,11 @@ export default function Nouveau() {
     launchingRef.current = true;
     setLaunching(true);
     try {
-      // Show post-creation banner only for the very first job
-      const { jobs } = useStore.getState();
-      if (jobs.length === 0) {
-        localStorage.setItem('opentidy-first-task', 'true');
+      const { tasks } = useStore.getState();
+      if (tasks.length === 0) {
         localStorage.setItem('opentidy-onboarding-seen', 'true');
       }
-      await createJob(instruction, confirm);
+      await createTask(instruction);
       navigate('/');
     } finally {
       launchingRef.current = false;
@@ -40,7 +37,7 @@ export default function Nouveau() {
   }
 
   return (
-    <div className="p-6 md:p-8 max-w-3xl mx-auto">
+    <div className="p-5 md:p-7 max-w-xl mx-auto">
       <h1 className="text-xl font-bold text-text mb-1">{t('nouveau.title')}</h1>
       <p className="text-text-secondary text-sm mb-6">{t('nouveau.description')}</p>
 
@@ -50,12 +47,23 @@ export default function Nouveau() {
         value={instruction}
         onChange={(e) => setInstruction(e.target.value)}
         placeholder={t('nouveau.placeholder')}
-        className="w-full bg-card border border-border rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-tertiary outline-none focus:border-accent resize-none h-40"
+        className="w-full bg-card rounded-xl px-4 py-3 text-sm text-text placeholder:text-text-tertiary resize-none h-40 focus:outline-none focus:ring-1 focus:ring-accent border-none"
       />
 
-      <div className="flex items-center justify-between mt-3">
+      <div className="flex flex-col gap-3 mt-3">
         <div className="flex items-center gap-4">
-          <input ref={fileInputRef} type="file" className="hidden" />
+          <input
+            ref={fileInputRef}
+            type="file"
+            className="hidden"
+            onChange={async (e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              // Append filename to instruction so the agent knows a file was attached
+              setInstruction((prev) => prev ? `${prev}\n[attached: ${file.name}]` : `[attached: ${file.name}]`);
+              e.target.value = '';
+            }}
+          />
           <button
             onClick={() => fileInputRef.current?.click()}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border text-sm text-text-tertiary hover:bg-card-hover transition-colors"
@@ -65,18 +73,11 @@ export default function Nouveau() {
             </svg>
             {t('common.files')}
           </button>
-          <div className="flex flex-col gap-1">
-            <label className="flex items-center gap-2 text-xs text-text-tertiary cursor-pointer">
-              <input type="checkbox" checked={confirm} onChange={(e) => setConfirm(e.target.checked)} className="rounded border-border" />
-              {t('nouveau.confirmMode')}
-            </label>
-            <p className="text-[11px] text-text-tertiary/70 pl-5">{t('nouveau.confirmModeHelp')}</p>
-          </div>
         </div>
         <button
           onClick={handleLaunch}
           disabled={!instruction.trim() || launching}
-          className="px-5 py-2 rounded-lg bg-green text-white text-sm font-medium hover:bg-green/90 disabled:opacity-50 transition-colors"
+          className="w-full bg-accent text-white font-semibold rounded-xl py-3 text-sm shadow-[0_2px_8px_rgba(10,132,255,0.2)] disabled:opacity-40"
         >
           {t('common.launch')}
         </button>

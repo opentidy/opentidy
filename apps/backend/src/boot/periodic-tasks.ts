@@ -2,12 +2,13 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { createWorkspaceWatcher } from '../features/checkup/watchdog.js';
+import { isPidAlive } from '../shared/locks.js';
 
 interface PeriodicTasksDeps {
   launcher: {
     recover(): Promise<void>;
-    listActiveSessions(): { id: string; jobId: string; pid?: number }[];
-    archiveSession(jobId: string): Promise<void>;
+    listActiveSessions(): { id: string; taskId: string; pid?: number }[];
+    archiveSession(taskId: string): Promise<void>;
   };
   scheduler: {
     start(): void;
@@ -52,18 +53,15 @@ export function startPeriodicTasks(deps: PeriodicTasksDeps): { stop(): void } {
     const sessions = deps.launcher.listActiveSessions();
     for (const session of sessions) {
       if (!session.pid) continue;
-      try {
-        // Check if PID is still alive
-        process.kill(session.pid, 0);
-      } catch {
+      if (!isPidAlive(session.pid)) {
         // PID is dead — session crashed without cleanup
-        console.log(`[health] session ${session.jobId} (pid ${session.pid}) is dead, cleaning up`);
-        await deps.launcher.archiveSession(session.jobId).catch(() => {});
+        console.log(`[health] session ${session.taskId} (pid ${session.pid}) is dead, cleaning up`);
+        await deps.launcher.archiveSession(session.taskId).catch(() => {});
       }
     }
   }, SESSION_HEALTH_CHECK_MS);
 
-  // Workspace watcher — fs.watch for job:updated SSE events
+  // Workspace watcher — fs.watch for task:updated SSE events
   const watchdog = createWorkspaceWatcher({ sse: deps.sse, workspaceDir: deps.workspaceDir });
   watchdog.start();
   console.log('[opentidy] Workspace watcher started (fs.watch)');

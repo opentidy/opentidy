@@ -5,23 +5,23 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createApp } from '../../server.js';
 import fs from 'fs';
 import path from 'path';
-import { listJobIds, getJob } from '../jobs/state.js';
-import { createJobManager } from '../jobs/create-manager.js';
+import { listTaskIds, getTask } from '../tasks/state.js';
+import { createTaskManager } from '../tasks/create-manager.js';
 import { createSuggestionsManager } from '../suggestions/parser.js';
 import { createGapsManager } from '../ameliorations/gaps.js';
 import { makeDeps } from '../../shared/test-helpers/mock-deps.js';
 import { useTmpDir } from '../../shared/test-helpers/tmpdir.js';
 
 function createRealWorkspaceDeps(wsDir: string) {
-  const jobManager = createJobManager(wsDir);
+  const taskManager = createTaskManager(wsDir);
   const suggestionsManager = createSuggestionsManager(wsDir);
   const gapsManager = createGapsManager(wsDir);
 
   return makeDeps({
     workspace: {
-      listJobIds: (dir: string) => listJobIds(dir),
-      getJob: (dir: string, id: string) => getJob(dir, id),
-      jobManager,
+      listTaskIds: (dir: string) => listTaskIds(dir),
+      getTask: (dir: string, id: string) => getTask(dir, id),
+      taskManager,
       suggestionsManager,
       gapsManager,
     },
@@ -49,58 +49,58 @@ describe('API Routes', () => {
     expect(body).toHaveProperty('uptime');
   });
 
-  // --- Jobs ---
+  // --- Tasks ---
 
-  it('GET /api/jobs returns empty list initially', async () => {
-    const res = await app.request('/api/jobs');
+  it('GET /api/tasks returns empty list initially', async () => {
+    const res = await app.request('/api/tasks');
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
 
-  it('POST /api/job creates and GET /api/jobs returns it', async () => {
-    const createRes = await app.request('/api/job', {
+  it('POST /api/task creates and GET /api/tasks returns it', async () => {
+    const createRes = await app.request('/api/task', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: 'test-job', instruction: 'Test instruction', confirm: true }),
+      body: JSON.stringify({ id: 'test-task', instruction: 'Test instruction', confirm: true }),
     });
     expect(createRes.status).toBe(200);
 
-    const listRes = await app.request('/api/jobs');
-    const jobs = await listRes.json() as any[];
-    expect(jobs).toHaveLength(1);
-    expect(jobs[0].id).toBe('test-job');
+    const listRes = await app.request('/api/tasks');
+    const tasks = await listRes.json() as any[];
+    expect(tasks).toHaveLength(1);
+    expect(tasks[0].id).toBe('test-task');
   });
 
-  it('GET /api/job/:id returns 404 for non-existent job', async () => {
-    const res = await app.request('/api/job/nonexistent-id');
+  it('GET /api/task/:id returns 404 for non-existent task', async () => {
+    const res = await app.request('/api/task/nonexistent-id');
     expect(res.status).toBe(404);
     const body = await res.json() as any;
-    expect(body.error).toBe('Job not found');
+    expect(body.error).toBe('Task not found');
   });
 
-  it('GET /api/job/:id returns detail', async () => {
-    // Create job first
-    await app.request('/api/job', {
+  it('GET /api/task/:id returns detail', async () => {
+    // Create task first
+    await app.request('/api/task', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: 'detail-test', instruction: 'Detailed test', confirm: true }),
     });
 
-    const res = await app.request('/api/job/detail-test');
+    const res = await app.request('/api/task/detail-test');
     expect(res.status).toBe(200);
-    const job = await res.json() as any;
-    expect(job.id).toBe('detail-test');
-    expect(job.objective).toBe('Detailed test');
+    const task = await res.json() as any;
+    expect(task.id).toBe('detail-test');
+    expect(task.objective).toBe('Detailed test');
   });
 
-  it('POST /api/job/:id/resume returns resumed', async () => {
-    const res = await app.request('/api/job/some-id/resume', { method: 'POST' });
+  it('POST /api/task/:id/resume returns resumed', async () => {
+    const res = await app.request('/api/task/some-id/resume', { method: 'POST' });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ resumed: true });
   });
 
-  it('POST /api/job/:id/instruction returns launched', async () => {
-    const res = await app.request('/api/job/some-id/instruction', {
+  it('POST /api/task/:id/instruction returns launched', async () => {
+    const res = await app.request('/api/task/some-id/instruction', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ instruction: 'Do something' }),
@@ -265,7 +265,7 @@ describe('createApp without deps', () => {
 
   it('routes are not mounted without deps', async () => {
     const app = createApp();
-    const res = await app.request('/api/jobs');
+    const res = await app.request('/api/tasks');
     expect(res.status).toBe(404);
   });
 });

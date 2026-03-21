@@ -25,7 +25,7 @@ export default function ExampleChips({ onSelect }: ExampleChipsProps) {
           <button
             key={labelKey}
             onClick={() => onSelect(t(fullKey))}
-            className="px-3 py-1.5 rounded-full border border-border text-xs text-text-secondary hover:border-accent hover:text-accent transition-colors"
+            className="bg-card rounded-lg px-3 py-1.5 text-xs text-text-secondary hover:bg-card-hover cursor-pointer transition-colors duration-150"
           >
             {t(labelKey)}
           </button>

@@ -1,22 +1,18 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import PermissionsPanel from './PermissionsPanel';
 import SecurityPanel from './SecurityPanel';
 import ServiceControlPanel from './ServiceControlPanel';
 import DangerZonePanel from './DangerZonePanel';
 
 export default function Settings() {
   return (
-    <div className="p-6 md:p-8 space-y-8 overflow-y-auto h-full">
-      <PermissionsPanel />
-      <div className="border-t border-border pt-8">
-        <SecurityPanel />
-      </div>
-      <div className="border-t border-border pt-8">
+    <div className="p-5 md:p-7 space-y-6 overflow-y-auto h-full">
+      <SecurityPanel />
+      <div className="border-t border-border pt-6">
         <ServiceControlPanel />
       </div>
-      <div className="border-t border-border pt-8">
+      <div className="border-t border-border pt-6">
         <DangerZonePanel />
       </div>
     </div>

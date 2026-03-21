@@ -134,14 +134,14 @@ export default function SchedulePage() {
           <time dateTime={weekStart.toISOString().slice(0, 7)}>{formatMonth(weekStart)}</time>
         </h1>
         <div className="flex items-center gap-3">
-          <div className="flex items-center rounded-md border border-white/10">
-            <button onClick={prevWeek} className="flex h-8 w-8 items-center justify-center rounded-l-md hover:bg-white/5 text-text-tertiary hover:text-text transition-colors">
+          <div className="flex items-center rounded-md border border-border-subtle">
+            <button onClick={prevWeek} className="flex h-8 w-8 items-center justify-center rounded-l-md hover:bg-card-hover text-text-tertiary hover:text-text transition-colors">
               <ChevronLeftIcon className="size-4" />
             </button>
-            <button onClick={goToday} className="hidden md:block px-3 text-xs font-medium text-text-secondary hover:bg-white/5 h-8 transition-colors">
+            <button onClick={goToday} className="hidden md:block px-3 text-xs font-medium text-text-secondary hover:bg-card-hover h-8 transition-colors">
               {t('common.today') || 'Today'}
             </button>
-            <button onClick={nextWeek} className="flex h-8 w-8 items-center justify-center rounded-r-md hover:bg-white/5 text-text-tertiary hover:text-text transition-colors">
+            <button onClick={nextWeek} className="flex h-8 w-8 items-center justify-center rounded-r-md hover:bg-card-hover text-text-tertiary hover:text-text transition-colors">
               <ChevronRightIcon className="size-4" />
             </button>
           </div>
@@ -149,10 +149,10 @@ export default function SchedulePage() {
       </header>
 
       {/* Week grid */}
-      <div className="flex-1 overflow-auto rounded-lg border border-white/[0.06]">
+      <div className="flex-1 overflow-auto rounded-lg border border-border-subtle">
         <div className="min-w-[640px]">
           {/* Day headers */}
-          <div className="sticky top-0 z-10 grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-white/[0.06] bg-bg">
+          <div className="sticky top-0 z-10 grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border-subtle bg-bg">
             <div />
             {weekDays.map((day, i) => (
               <div key={i} className="flex items-center justify-center py-2.5 text-center">
@@ -170,9 +170,9 @@ export default function SchedulePage() {
 
           {/* Time grid */}
           {HOURS.map(hour => (
-            <div key={hour} className="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-white/[0.03]">
+            <div key={hour} className="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border-subtle">
               {/* Time label */}
-              <div className="py-3 pr-2 text-right text-[10px] text-text-tertiary/60 tabular-nums -mt-2">
+              <div className="py-3 pr-2 text-right text-[10px] text-[#48484a] tabular-nums -mt-2">
                 {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
               </div>
               {/* Day columns */}
@@ -181,12 +181,12 @@ export default function SchedulePage() {
                 return (
                   <div
                     key={dayIndex}
-                    className={`relative min-h-[3rem] border-l border-white/[0.03] ${
+                    className={`relative min-h-[3rem] border-l border-border-subtle ${
                       isToday(day) ? 'bg-accent/[0.03]' : ''
                     }`}
                   >
                     {slotEvents.map((ev, j) => {
-                      const colors = ev.schedule.jobId ? hashColor(ev.schedule.jobId) : { bg: 'rgba(107,114,128,0.12)', border: '#6b7280', text: '#9ca3af' };
+                      const colors = ev.schedule.taskId ? hashColor(ev.schedule.taskId) : { bg: 'rgba(99,99,102,0.12)', border: '#48484a', text: '#86868b' };
                       return (
                         <button
                           key={`${ev.schedule.id}-${j}`}
@@ -212,14 +212,14 @@ export default function SchedulePage() {
       {/* System tasks footer */}
       {systemSchedules.length > 0 && (
         <div className="mt-3 flex items-center gap-3 px-1">
-          <span className="text-[10px] uppercase tracking-widest text-text-tertiary/50 font-medium">{t('schedule.system')}</span>
-          <div className="h-px flex-1 bg-white/[0.04]" />
+          <span className="text-[10px] uppercase tracking-widest text-[#48484a] font-medium">{t('schedule.system')}</span>
+          <div className="h-px flex-1 bg-border-subtle" />
           {systemSchedules.map(s => (
             <div key={s.id} className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
               <span className="w-1 h-1 rounded-full bg-green/60" />
               <span>{s.label}</span>
               {s.intervalMs && (
-                <span className="text-text-tertiary/50">
+                <span className="text-[#48484a]">
                   {s.intervalMs >= 3600000 ? `${Math.round(s.intervalMs / 3600000)}h` : `${Math.round(s.intervalMs / 60000)}m`}
                 </span>
               )}

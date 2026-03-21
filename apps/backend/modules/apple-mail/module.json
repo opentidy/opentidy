@@ -4,6 +4,10 @@
   "description": "Receive emails from Apple Mail",
   "icon": "📮",
   "version": "1.0.0",
+  "capabilities": [
+    "Read emails from Apple Mail",
+    "Receive incoming email notifications"
+  ],
   "platform": "darwin",
   "permissions": [
     { "name": "mail", "label": "Mail", "app": "Mail", "reason": "Read incoming emails from Mail.app" }

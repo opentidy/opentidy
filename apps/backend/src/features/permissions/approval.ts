@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 interface PendingApproval {
   id: string;
-  jobId: string;
+  taskId: string;
   toolName: string;
   toolInput: Record<string, unknown>;
   moduleName: string | null;
@@ -15,7 +15,7 @@ interface PendingApproval {
 }
 
 interface ApprovalRequest {
-  jobId: string;
+  taskId: string;
   toolName: string;
   toolInput: Record<string, unknown>;
   moduleName: string | null;
@@ -25,7 +25,7 @@ interface ApprovalDeps {
   summarize: (toolName: string, toolInput: Record<string, unknown>) => Promise<string>;
   sendConfirmation: (
     approvalId: string,
-    jobId: string,
+    taskId: string,
     toolName: string,
     toolInput: Record<string, unknown>,
     moduleName: string | null,
@@ -50,7 +50,7 @@ export function createApprovalManager(deps: ApprovalDeps) {
     return new Promise<boolean>((resolvePromise) => {
       pending.set(id, {
         id,
-        jobId: opts.jobId,
+        taskId: opts.taskId,
         toolName: opts.toolName,
         toolInput: opts.toolInput,
         moduleName: opts.moduleName,
@@ -59,7 +59,7 @@ export function createApprovalManager(deps: ApprovalDeps) {
         resolve: resolvePromise,
       });
       deps
-        .sendConfirmation(id, opts.jobId, opts.toolName, opts.toolInput, opts.moduleName, summary)
+        .sendConfirmation(id, opts.taskId, opts.toolName, opts.toolInput, opts.moduleName, summary)
         .catch((err) => console.error('[permissions] Failed to send confirmation:', err));
     });
   }
@@ -72,9 +72,9 @@ export function createApprovalManager(deps: ApprovalDeps) {
     return true;
   }
 
-  function cancelJob(jobId: string): void {
+  function cancelTask(taskId: string): void {
     for (const [id, entry] of pending) {
-      if (entry.jobId === jobId) {
+      if (entry.taskId === taskId) {
         pending.delete(id);
         entry.resolve(false);
       }
@@ -85,5 +85,5 @@ export function createApprovalManager(deps: ApprovalDeps) {
     return Array.from(pending.values()).map(({ resolve: _, ...rest }) => rest);
   }
 
-  return { requestApproval, respond, cancelJob, listPending };
+  return { requestApproval, respond, cancelTask, listPending };
 }
