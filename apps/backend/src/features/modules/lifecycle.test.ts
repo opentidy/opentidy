@@ -63,11 +63,11 @@ describe('createModuleLifecycle', () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, triageHandler, dedup, sse, manifests } = makeDeps();
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, triageHandler, dedup, sse });
 
-      await lifecycle.enable('gmail');
+      await lifecycle.enable('email');
 
       expect(saveConfig).toHaveBeenCalledOnce();
       const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
-      expect(savedConfig.modules['gmail'].enabled).toBe(true);
+      expect(savedConfig.modules['email'].enabled).toBe(true);
 
       expect(regenerateAgentConfig).toHaveBeenCalledOnce();
       expect(regenerateAgentConfig).toHaveBeenCalledWith(savedConfig.modules, manifests);
@@ -77,27 +77,27 @@ describe('createModuleLifecycle', () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, sseEmit, manifests } = makeDeps();
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.enable('gmail');
+      await lifecycle.enable('email');
 
       expect(sseEmit).toHaveBeenCalledOnce();
       const event = sseEmit.mock.calls[0][0] as SSEEvent;
       expect(event.type).toBe('module:enabled');
-      expect(event.data).toEqual({ name: 'gmail' });
+      expect(event.data).toEqual({ name: 'email' });
     });
   });
 
   describe('disable()', () => {
     it('sets config to disabled and calls regenerateAgentConfig', async () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, triageHandler, dedup, sse, manifests } = makeDeps({
-        modules: { gmail: { enabled: true, source: 'curated' } },
+        modules: { email: { enabled: true, source: 'curated' } },
       });
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, triageHandler, dedup, sse });
 
-      await lifecycle.disable('gmail');
+      await lifecycle.disable('email');
 
       expect(saveConfig).toHaveBeenCalledOnce();
       const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
-      expect(savedConfig.modules['gmail'].enabled).toBe(false);
+      expect(savedConfig.modules['email'].enabled).toBe(false);
 
       expect(regenerateAgentConfig).toHaveBeenCalledOnce();
     });
@@ -106,47 +106,47 @@ describe('createModuleLifecycle', () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, sseEmit, manifests } = makeDeps();
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.disable('gmail');
+      await lifecycle.disable('email');
 
       expect(sseEmit).toHaveBeenCalledOnce();
       const event = sseEmit.mock.calls[0][0] as SSEEvent;
       expect(event.type).toBe('module:disabled');
-      expect(event.data).toEqual({ name: 'gmail' });
+      expect(event.data).toEqual({ name: 'email' });
     });
   });
 
   describe('configure()', () => {
     it('merges config values into module config and saves', async () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
-        modules: { gmail: { enabled: false, source: 'curated', config: { foo: 'bar' } } },
+        modules: { email: { enabled: false, source: 'curated', config: { foo: 'bar' } } },
       });
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.configure('gmail', { apiKey: 'secret', foo: 'overridden' });
+      await lifecycle.configure('email', { apiKey: 'secret', foo: 'overridden' });
 
       expect(saveConfig).toHaveBeenCalledOnce();
       const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
-      expect(savedConfig.modules['gmail'].config).toEqual({ foo: 'overridden', apiKey: 'secret' });
+      expect(savedConfig.modules['email'].config).toEqual({ foo: 'overridden', apiKey: 'secret' });
     });
 
     it('calls regenerateAgentConfig if module is enabled', async () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
-        modules: { gmail: { enabled: true, source: 'curated' } },
+        modules: { email: { enabled: true, source: 'curated' } },
       });
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.configure('gmail', { apiKey: 'secret' });
+      await lifecycle.configure('email', { apiKey: 'secret' });
 
       expect(regenerateAgentConfig).toHaveBeenCalledOnce();
     });
 
     it('does NOT call regenerateAgentConfig if module is disabled', async () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
-        modules: { gmail: { enabled: false, source: 'curated' } },
+        modules: { email: { enabled: false, source: 'curated' } },
       });
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.configure('gmail', { apiKey: 'secret' });
+      await lifecycle.configure('email', { apiKey: 'secret' });
 
       expect(regenerateAgentConfig).not.toHaveBeenCalled();
     });
@@ -155,30 +155,132 @@ describe('createModuleLifecycle', () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, sse, sseEmit, manifests } = makeDeps();
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
 
-      await lifecycle.configure('gmail', { apiKey: 'secret' });
+      await lifecycle.configure('email', { apiKey: 'secret' });
 
       expect(sseEmit).toHaveBeenCalledOnce();
       const event = sseEmit.mock.calls[0][0] as SSEEvent;
       expect(event.type).toBe('module:configured');
-      expect(event.data).toEqual({ name: 'gmail' });
+      expect(event.data).toEqual({ name: 'email' });
+    });
+
+    it('routes keychain fields to keychain and excludes them from config.json', async () => {
+      const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
+        modules: { browser: { enabled: false, source: 'curated' } },
+      });
+      manifests.set('browser', makeManifest('browser', {
+        setup: {
+          configFields: [
+            { key: 'capsolverApiKey', label: 'CapSolver API Key', type: 'password', storage: 'keychain' },
+          ],
+        },
+      }));
+
+      const mockSetPassword = vi.fn();
+      const lifecycle = createModuleLifecycle({
+        loadConfig, saveConfig, manifests, regenerateAgentConfig, sse,
+        keychain: {
+          setPassword: mockSetPassword,
+          getPassword: vi.fn(),
+          deletePassword: vi.fn(),
+        },
+      });
+
+      await lifecycle.configure('browser', { capsolverApiKey: 'CAP-abc123' });
+
+      expect(mockSetPassword).toHaveBeenCalledWith('browser', 'capsolverApiKey', 'CAP-abc123');
+      const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
+      expect(savedConfig.modules['browser'].config).toEqual({});
+    });
+
+    it('stores non-keychain fields normally alongside keychain routing', async () => {
+      const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
+        modules: { browser: { enabled: false, source: 'curated' } },
+      });
+      manifests.set('browser', makeManifest('browser', {
+        setup: {
+          configFields: [
+            { key: 'capsolverApiKey', label: 'Key', type: 'password', storage: 'keychain' },
+            { key: 'someOption', label: 'Option', type: 'text' },
+          ],
+        },
+      }));
+
+      const mockSetPassword = vi.fn();
+      const lifecycle = createModuleLifecycle({
+        loadConfig, saveConfig, manifests, regenerateAgentConfig, sse,
+        keychain: {
+          setPassword: mockSetPassword,
+          getPassword: vi.fn(),
+          deletePassword: vi.fn(),
+        },
+      });
+
+      await lifecycle.configure('browser', { capsolverApiKey: 'CAP-abc', someOption: 'value' });
+
+      expect(mockSetPassword).toHaveBeenCalledWith('browser', 'capsolverApiKey', 'CAP-abc');
+      const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
+      expect(savedConfig.modules['browser'].config).toEqual({ someOption: 'value' });
+    });
+
+    it('deletes keychain entry when value is empty string', async () => {
+      const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
+        modules: { browser: { enabled: false, source: 'curated' } },
+      });
+      manifests.set('browser', makeManifest('browser', {
+        setup: {
+          configFields: [
+            { key: 'capsolverApiKey', label: 'Key', type: 'password', storage: 'keychain' },
+          ],
+        },
+      }));
+
+      const mockDeletePassword = vi.fn();
+      const lifecycle = createModuleLifecycle({
+        loadConfig, saveConfig, manifests, regenerateAgentConfig, sse,
+        keychain: {
+          setPassword: vi.fn(),
+          getPassword: vi.fn(),
+          deletePassword: mockDeletePassword,
+        },
+      });
+
+      await lifecycle.configure('browser', { capsolverApiKey: '' });
+
+      expect(mockDeletePassword).toHaveBeenCalledWith('browser', 'capsolverApiKey');
+    });
+
+    it('works without keychain dep (modules without keychain fields)', async () => {
+      const { loadConfig, saveConfig, regenerateAgentConfig, sse, manifests } = makeDeps({
+        modules: { email: { enabled: false, source: 'curated' } },
+      });
+      manifests.set('email', makeManifest('email'));
+
+      const lifecycle = createModuleLifecycle({
+        loadConfig, saveConfig, manifests, regenerateAgentConfig, sse,
+      });
+
+      await lifecycle.configure('email', { apiKey: 'plain-value' });
+
+      const savedConfig = saveConfig.mock.calls[0][0] as OpenTidyConfig;
+      expect(savedConfig.modules['email'].config).toEqual({ apiKey: 'plain-value' });
     });
   });
 
   describe('startReceivers()', () => {
     it('does nothing for a webhook-mode receiver (no process started)', async () => {
       const { loadConfig, saveConfig, regenerateAgentConfig, triageHandler, dedup, sse, manifests } = makeDeps({
-        modules: { gmail: { enabled: true, source: 'curated' } },
+        modules: { email: { enabled: true, source: 'curated' } },
       });
 
-      const webhookManifest = makeManifest('gmail', {
-        receivers: [{ name: 'gmail-webhook', mode: 'webhook', source: 'gmail' }],
+      const emailManifest = makeManifest('email', {
+        receivers: [{ name: 'email-imap', mode: 'polling', source: 'email' }],
       });
-      manifests.set('gmail', webhookManifest);
+      manifests.set('email', emailManifest);
 
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, triageHandler, dedup, sse });
 
       // Should not throw and no dynamic import should be triggered
-      await lifecycle.startReceivers('gmail');
+      await lifecycle.startReceivers('email');
 
       expect(triageHandler).not.toHaveBeenCalled();
     });
