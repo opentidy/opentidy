@@ -68,7 +68,7 @@ export interface Amelioration {
 }
 
 // === Event (receiver) ===
-export type BuiltinEventSource = 'gmail' | 'whatsapp' | 'sms' | 'app' | 'telegram' | 'checkup';
+export type BuiltinEventSource = 'email' | 'whatsapp' | 'sms' | 'app' | 'telegram' | 'checkup';
 export type EventSource = BuiltinEventSource | 'mail' | 'imap';
 
 export interface AppEvent {
@@ -91,6 +91,19 @@ export interface Session {
   agentSessionId?: string;    // for --resume
   pid?: number;
   waitingType?: 'user' | 'tiers'; // type of wait when idle
+}
+
+// === Session History ===
+export type SessionHistoryStatus = 'running' | 'completed' | 'stopped' | 'error';
+
+export interface SessionHistoryEntry {
+  id: number;
+  taskId: string;
+  agentSessionId?: string;    // agent CLI session ID (for --resume)
+  startedAt: string;
+  endedAt?: string;
+  status: SessionHistoryStatus;
+  trigger?: string;           // what started this session (e.g. 'user', 'recovery', 'checkup')
 }
 
 // === Schedule (scheduler) ===
@@ -140,10 +153,13 @@ export type SSEEventType =
   | 'schedule:created'
   | 'schedule:fired'
   | 'schedule:deleted'
+  | 'module:added'
   | 'module:enabled'
   | 'module:disabled'
   | 'module:error'
   | 'module:configured'
+  | 'module:auth-required'
+  | 'module:auth-complete'
   | 'system:reset';
 
 export type SSEEventData =
@@ -155,7 +171,9 @@ export type SSEEventData =
   | { type: 'process:output'; processId: number; output: string }
   | { type: 'notification:sent'; notificationId: string; taskId?: string }
   | { type: 'schedule:created' | 'schedule:fired' | 'schedule:deleted'; scheduleId: number }
-  | { type: 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; moduleName: string }
+  | { type: 'module:added' | 'module:enabled' | 'module:disabled' | 'module:configured' | 'module:error'; name: string }
+  | { type: 'module:auth-required'; name: string; qr: string }
+  | { type: 'module:auth-complete'; name: string }
   | { type: 'system:reset' };
 
 /** Extracts the data payload (without `type`) for a given SSEEventType */
@@ -192,6 +210,7 @@ export interface AgentProcess {
   exitCode?: number;
   outputPath?: string;
   description?: string;
+  instruction?: string;
 }
 
 /** @deprecated Use AgentProcessType */
@@ -289,17 +308,23 @@ export interface ModuleManifest {
   icon?: string;
   version: string;
   core?: boolean;                 // true = required, cannot be disabled/removed
+  cli?: string[];                  // CLI tools this module requires (e.g. ["himalaya"])
   platform?: 'darwin' | 'all';
   mcpServers?: McpServerDef[];
   skills?: SkillDef[];
   receivers?: ReceiverDef[];
   permissions?: MacPermission[];  // macOS permissions this module needs
   toolPermissions?: ToolPermissions;
+  daemon?: DaemonDef;
   setup?: {
     authCommand?: string;
     checkCommand?: string;
     configFields?: ConfigField[];
   };
+}
+
+export interface DaemonDef {
+  entry: string;
 }
 
 export interface McpServerDef {
@@ -334,6 +359,7 @@ export interface ConfigField {
   required?: boolean;
   placeholder?: string;
   options?: string[];
+  storage?: 'config' | 'keychain';
 }
 
 export interface ModuleState {
@@ -351,6 +377,29 @@ export interface ReceiverEvent {
   metadata: Record<string, string>;
 }
 
+export interface ToolSchema {
+  description: string;
+  inputSchema: Record<string, unknown>;
+}
+
+export type ToolHandler = (input: Record<string, unknown>) => Promise<unknown>;
+
+export interface ModuleLogger {
+  log(msg: string, ...args: unknown[]): void;
+  warn(msg: string, ...args: unknown[]): void;
+  error(msg: string, ...args: unknown[]): void;
+}
+
+export interface ModuleContext {
+  config: Record<string, unknown>;
+  dataDir: string;
+  emit(event: ReceiverEvent): void;
+  emitSSE(event: SSEEvent): void;
+  registerTool(name: string, schema: ToolSchema, handler: ToolHandler): void;
+  logger: ModuleLogger;
+  onShutdown(fn: () => void | Promise<void>): void;
+}
+
 export interface ModuleInfo {
   name: string;
   label: string;
@@ -358,6 +407,7 @@ export interface ModuleInfo {
   icon?: string;
   toolPermissions?: ToolPermissions;
   core?: boolean;
+  cli?: string[];
   source: 'curated' | 'custom';
   enabled: boolean;
   /** true if checkCommand passes — module deps are present on disk */
@@ -366,9 +416,10 @@ export interface ModuleInfo {
   health?: 'ok' | 'error' | 'unknown';
   healthError?: string;
   components: {
-    mcpServers: string[];
-    skills: string[];
-    receivers: string[];
+    mcpServers: { name: string; package?: string }[];
+    skills: { name: string }[];
+    receivers: { name: string; mode: string; source: string }[];
+    daemon?: { tools: string[] };
   };
   setup?: {
     needsAuth: boolean;
@@ -439,6 +490,8 @@ export interface PermissionConfig {
   preset: PermissionPreset;
   defaultLevel: PermissionLevel;
   modules: Record<string, PermissionLevel | ModulePermissionLevel>;
+  /** Per-builtin capability overrides on top of the preset (e.g. { runCommands: 'ask' }) */
+  builtins?: Record<string, PermissionLevel>;
 }
 
 // === Config ===
@@ -474,6 +527,10 @@ export interface OpenTidyConfig {
   modules: Record<string, ModuleState>;
   permissions: PermissionConfig;
   userInfo: UserInfo;
+  preferences?: {
+    scanInterval: string;          // '30m' | '1h' | '2h' | '6h' | 'disabled'
+    notificationRateLimit: number; // 0 (instant) | 60000 (1min) | 300000 (5min)
+  };
   github?: {
     token: string;
     owner?: string;  // defaults to 'opentidy'
