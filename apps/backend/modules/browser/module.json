@@ -4,18 +4,29 @@
   "description": "Web browsing via anti-detection browser (Camoufox)",
   "icon": "🌐",
   "version": "1.0.0",
+  "cli": ["camoufox"],
   "mcpServers": [{
     "name": "camoufox",
-    "command": "npx",
-    "args": ["-y", "camofox-mcp@latest"]
+    "command": "node",
+    "args": ["./start-mcp.js"]
   }],
   "skills": [{
     "name": "browser-skill",
-    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins."
+    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins. If a CAPTCHA appears, wait 15-30 seconds — the CapSolver extension (if configured) solves them automatically. Do NOT interact with CAPTCHA elements yourself."
   }],
   "setup": {
     "authCommand": "command -v pipx >/dev/null || brew install pipx && pipx install camoufox && camoufox fetch",
-    "checkCommand": "pipx list --short 2>/dev/null | grep -q camoufox"
+    "checkCommand": "pipx list --short 2>/dev/null | grep -q camoufox",
+    "configFields": [
+      {
+        "key": "capsolverApiKey",
+        "label": "CapSolver API Key",
+        "type": "password",
+        "required": false,
+        "storage": "keychain",
+        "placeholder": "CAP-xxx (optional — enables automatic CAPTCHA solving)"
+      }
+    ]
   },
   "toolPermissions": {
     "scope": "per-task",
@@ -28,15 +39,15 @@
       { "tool": "mcp__camofox__get_links", "label": "Extract links" },
       { "tool": "mcp__camofox__list_tabs", "label": "List tabs" },
       { "tool": "mcp__camofox__screenshot", "label": "Take screenshots" },
-      { "tool": "mcp__camofox__extract_resources", "label": "Extract page data" }
+      { "tool": "mcp__camofox__extract_resources", "label": "Extract page data" },
+      { "tool": "mcp__camofox__click", "label": "Click elements" },
+      { "tool": "mcp__camofox__type_text", "label": "Type text" },
+      { "tool": "mcp__camofox__batch_click", "label": "Click multiple elements" }
     ],
     "critical": [
-      { "tool": "mcp__camofox__click", "label": "Click elements" },
       { "tool": "mcp__camofox__fill_form", "label": "Fill forms" },
       { "tool": "mcp__camofox__camofox_evaluate_js", "label": "Run JavaScript" },
-      { "tool": "mcp__camofox__type_text", "label": "Type text" },
-      { "tool": "mcp__camofox__type_and_submit", "label": "Type and submit" },
-      { "tool": "mcp__camofox__batch_click", "label": "Click multiple elements" }
+      { "tool": "mcp__camofox__type_and_submit", "label": "Type and submit" }
     ]
   }
 }
