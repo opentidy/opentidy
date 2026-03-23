@@ -8,7 +8,6 @@ import {
   TaskInstructionSchema,
   ApproveSuggestionSchema,
   HookPayloadSchema,
-  MarketplaceMcpSchema,
   UserSkillSchema,
   CreateScheduleSchema,
   UpdateScheduleSchema,
@@ -16,6 +15,7 @@ import {
   ModuleManifestSchema,
   ModuleStateSchema,
   ReceiverDefSchema,
+  MODULE_NAME_REGEX,
 } from '../src/schemas.js';
 
 describe('GmailWebhookSchema', () => {
@@ -136,50 +136,18 @@ describe('HookPayloadSchema', () => {
   });
 });
 
-describe('MarketplaceMcpSchema', () => {
-  it('validates a valid marketplace MCP', () => {
-    const result = MarketplaceMcpSchema.safeParse({
-      label: 'Notion',
-      command: 'npx',
-      args: ['@notionhq/notion-mcp'],
-      envFile: 'mcp-notion.env',
-      permissions: ['mcp__notion__*'],
-      source: 'registry.modelcontextprotocol.io',
-    });
-    expect(result.success).toBe(true);
+describe('MODULE_NAME_REGEX', () => {
+  it('accepts valid module names', () => {
+    expect(MODULE_NAME_REGEX.test('gmail')).toBe(true);
+    expect(MODULE_NAME_REGEX.test('password-manager')).toBe(true);
+    expect(MODULE_NAME_REGEX.test('my-module-123')).toBe(true);
   });
 
-  it('rejects invalid permission pattern', () => {
-    const result = MarketplaceMcpSchema.safeParse({
-      label: 'Bad',
-      command: 'npx',
-      args: [],
-      permissions: ['invalid-pattern'],
-      source: 'custom',
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it('accepts granular permissions', () => {
-    const result = MarketplaceMcpSchema.safeParse({
-      label: 'Notion',
-      command: 'npx',
-      args: [],
-      permissions: ['mcp__notion__read_page'],
-      source: 'custom',
-    });
-    expect(result.success).toBe(true);
-  });
-
-  it('accepts hyphenated MCP names', () => {
-    const result = MarketplaceMcpSchema.safeParse({
-      label: 'Google Drive',
-      command: 'npx',
-      args: [],
-      permissions: ['mcp__google-drive__*'],
-      source: 'custom',
-    });
-    expect(result.success).toBe(true);
+  it('rejects invalid module names', () => {
+    expect(MODULE_NAME_REGEX.test('../evil')).toBe(false);
+    expect(MODULE_NAME_REGEX.test('My Module')).toBe(false);
+    expect(MODULE_NAME_REGEX.test('module_name')).toBe(false);
+    expect(MODULE_NAME_REGEX.test('')).toBe(false);
   });
 });
 
@@ -317,20 +285,17 @@ describe('SetupUserInfoSchema', () => {
 describe('ModuleManifestSchema', () => {
   it('accepts a valid manifest', () => {
     const result = ModuleManifestSchema.safeParse({
-      name: 'gmail',
-      label: 'Gmail',
-      description: 'Gmail integration via MCP',
+      name: 'email',
+      label: 'Email',
+      description: 'Email integration via IMAP/SMTP',
       version: '1.0.0',
-      mcpServers: [
-        { name: 'gmail', command: 'npx', args: ['@google/gmail-mcp'], permissions: ['mcp__gmail__*'] },
-      ],
       receivers: [
-        { name: 'gmail-webhook', mode: 'webhook', source: 'gmail' },
+        { name: 'email-imap', mode: 'polling', source: 'email' },
       ],
       setup: {
-        authCommand: 'npx @google/gmail-mcp auth',
+        authCommand: 'npx tsx ./setup.ts',
         configFields: [
-          { key: 'email', label: 'Gmail address', type: 'text', required: true },
+          { key: 'provider', label: 'Email provider', type: 'text', required: true },
         ],
       },
     });
@@ -344,6 +309,85 @@ describe('ModuleManifestSchema', () => {
       version: '1.0.0',
     });
     expect(result.success).toBe(false);
+  });
+
+  it('accepts configField with storage: keychain', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'browser',
+      label: 'Browser',
+      description: 'Web browsing',
+      version: '1.0.0',
+      setup: {
+        configFields: [
+          { key: 'capsolverApiKey', label: 'CapSolver API Key', type: 'password', storage: 'keychain' },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('accepts configField without storage (defaults to config)', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'telegram',
+      label: 'Telegram',
+      description: 'Messaging',
+      version: '1.0.0',
+      setup: {
+        configFields: [
+          { key: 'botToken', label: 'Bot Token', type: 'password' },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects configField with invalid storage value', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'test',
+      label: 'Test',
+      description: 'Test',
+      version: '1.0.0',
+      setup: {
+        configFields: [
+          { key: 'k', label: 'L', type: 'text', storage: 'invalid' },
+        ],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe('ModuleManifestSchema daemon', () => {
+  it('accepts manifest with daemon field', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'test-daemon',
+      label: 'Test Daemon',
+      description: 'A test daemon module',
+      version: '1.0.0',
+      daemon: { entry: './daemon.ts' },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it('rejects daemon with missing entry', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'test-daemon',
+      label: 'Test Daemon',
+      description: 'A test daemon module',
+      version: '1.0.0',
+      daemon: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it('accepts manifest without daemon field', () => {
+    const result = ModuleManifestSchema.safeParse({
+      name: 'test',
+      label: 'Test',
+      description: 'No daemon',
+      version: '1.0.0',
+    });
+    expect(result.success).toBe(true);
   });
 });
 

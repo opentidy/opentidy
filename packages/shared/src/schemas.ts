@@ -90,21 +90,10 @@ export const UpdateScheduleSchema = z.object({
 export type CreateScheduleInput = z.infer<typeof CreateScheduleSchema>;
 export type UpdateScheduleInput = z.infer<typeof UpdateScheduleSchema>;
 
-// === MCP & Skills Config Schemas ===
-export const CuratedMcpStateSchema = z.object({
-  enabled: z.boolean(),
-  configured: z.boolean(),
-});
+// === Module name validation ===
+export const MODULE_NAME_REGEX = /^[a-z0-9-]+$/;
 
-export const MarketplaceMcpSchema = z.object({
-  label: z.string().min(1),
-  command: z.string().min(1),
-  args: z.array(z.string()),
-  envFile: z.string().optional(),
-  permissions: z.array(z.string().regex(/^mcp__[a-z0-9_-]+__(\*|[a-z0-9_-]+)$/)),
-  source: z.enum(['registry.modelcontextprotocol.io', 'custom']),
-});
-
+// === Legacy Config Schemas (still used by UserSkillSchema) ===
 export const CuratedSkillStateSchema = z.object({
   enabled: z.boolean(),
 });
@@ -115,25 +104,11 @@ export const UserSkillSchema = z.object({
   enabled: z.boolean(),
 });
 
-export const McpConfigV2Schema = z.object({
-  curated: z.object({
-    gmail: CuratedMcpStateSchema,
-    camoufox: CuratedMcpStateSchema,
-    whatsapp: CuratedMcpStateSchema.extend({
-      wacliPath: z.string(),
-      mcpServerPath: z.string(),
-    }),
-    opentidy: CuratedMcpStateSchema.optional().default({ enabled: true, configured: true }),
-  }),
-  marketplace: z.record(z.string(), MarketplaceMcpSchema),
-});
-
 export const SkillsConfigSchema = z.object({
   curated: z.record(z.string(), CuratedSkillStateSchema),
   user: z.array(UserSkillSchema),
 });
 
-export type MarketplaceMcpInput = z.infer<typeof MarketplaceMcpSchema>;
 export type UserSkillInput = z.infer<typeof UserSkillSchema>;
 
 // === Setup schemas ===
@@ -177,6 +152,7 @@ export const ConfigFieldSchema = z.object({
   required: z.boolean().optional(),
   placeholder: z.string().optional(),
   options: z.array(z.string()).optional(),
+  storage: z.enum(['config', 'keychain']).optional(),
 });
 
 // === Permission System schemas ===
@@ -205,6 +181,11 @@ export const PermissionConfigSchema = z.object({
   preset: PermissionPresetSchema,
   defaultLevel: PermissionLevelSchema,
   modules: z.record(z.union([PermissionLevelSchema, ModulePermissionLevelSchema])),
+  builtins: z.record(PermissionLevelSchema).optional(),
+});
+
+const DaemonDefSchema = z.object({
+  entry: z.string().min(1),
 });
 
 export const ModuleManifestSchema = z.object({
@@ -214,11 +195,19 @@ export const ModuleManifestSchema = z.object({
   icon: z.string().optional(),
   version: z.string(),
   core: z.boolean().optional(),
+  cli: z.array(z.string()).optional(),
   platform: z.enum(['darwin', 'all']).optional(),
   mcpServers: z.array(McpServerDefSchema).optional(),
   skills: z.array(SkillDefSchema).optional(),
   receivers: z.array(ReceiverDefSchema).optional(),
+  permissions: z.array(z.object({
+    name: z.string().min(1),
+    label: z.string().min(1),
+    app: z.string().min(1),
+    reason: z.string().min(1),
+  })).optional(),
   toolPermissions: ToolPermissionsSchema.optional(),
+  daemon: DaemonDefSchema.optional(),
   setup: z.object({
     authCommand: z.string().optional(),
     checkCommand: z.string().optional(),
