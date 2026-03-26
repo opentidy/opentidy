@@ -3,7 +3,7 @@
 
 import type { MiddlewareHandler } from 'hono';
 
-const PUBLIC_PATHS = ['/api/health', '/api/hooks', '/api/webhook/gmail'];
+const PUBLIC_PATHS = ['/api/health', '/api/hooks', '/api/webhooks/'];
 
 export function createAuthMiddleware(bearerToken: string): MiddlewareHandler {
   return async (c, next) => {

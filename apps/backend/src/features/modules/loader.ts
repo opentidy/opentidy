@@ -44,3 +44,43 @@ export function loadCuratedModules(modulesBaseDir: string): Map<string, ModuleMa
 
   return modules;
 }
+
+export function loadCustomModules(
+  customModulesDir: string,
+  curatedNames?: Set<string>,
+): Map<string, ModuleManifest> {
+  const modules = new Map<string, ModuleManifest>();
+
+  if (!existsSync(customModulesDir)) {
+    return modules;
+  }
+
+  const entries = readdirSync(customModulesDir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
+    const moduleDir = join(customModulesDir, entry.name);
+    const manifestPath = join(moduleDir, 'module.json');
+    if (!existsSync(manifestPath)) continue;
+
+    try {
+      const manifest = loadModuleManifest(moduleDir);
+
+      if (curatedNames?.has(manifest.name)) {
+        console.warn(`[modules] Skipping custom module "${manifest.name}" — name collides with a curated module`);
+        continue;
+      }
+
+      if (manifest.platform === 'darwin' && process.platform !== 'darwin') {
+        console.log(`[modules] Skipping custom module ${manifest.name} (darwin-only)`);
+        continue;
+      }
+
+      modules.set(manifest.name, manifest);
+      console.log(`[modules] Loaded custom: ${manifest.name}`);
+    } catch (err) {
+      console.error(`[modules] Failed to load custom module ${entry.name}:`, (err as Error).message);
+    }
+  }
+
+  return modules;
+}

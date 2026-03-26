@@ -62,11 +62,11 @@ export function getModuleStatuses(): ModuleStatus[] {
         : 'Not configured',
     },
     {
-      name: 'Gmail',
-      key: 'gmail',
-      done: !!(config?.modules?.gmail?.enabled),
-      detail: config?.modules?.gmail?.enabled
-        ? 'OAuth configured'
+      name: 'Email',
+      key: 'email',
+      done: !!(config?.modules?.email?.enabled),
+      detail: config?.modules?.email?.enabled
+        ? 'IMAP/SMTP configured (himalaya)'
         : 'Not configured',
     },
     {

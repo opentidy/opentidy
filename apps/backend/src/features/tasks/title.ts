@@ -47,7 +47,7 @@ export function createTitleGenerator(workspaceDir: string, deps: {
         mode: 'one-shot', cwd: workspaceDir, systemPrompt: TITLE_SYSTEM_PROMPT,
         instruction: `Task instruction:\n${instruction}`, outputFormat: 'text',
       });
-      const stdout = await deps.spawnAgent({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}` }).promise;
+      const stdout = await deps.spawnAgent({ args, cwd: workspaceDir, type: 'title', description: `Title generation: ${instruction.slice(0, 100)}`, instruction }).promise;
 
       const title = cleanTitle(stdout);
       if (!title) {

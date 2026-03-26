@@ -23,7 +23,7 @@ describe('SuggestionsManager', () => {
   it('lists all suggestions with parsed fields', () => {
     fs.writeFileSync(
       path.join(wsDir, '_suggestions', 'test.md'),
-      '# Test Suggestion\nURGENCY: normal\nSOURCE: gmail\nDATE: 2026-03-14\n\n## Summary\nTest\n\n## Why\nReason\n\n## What I would do\nAction',
+      '# Test Suggestion\nURGENCY: normal\nSOURCE: email\nDATE: 2026-03-14\n\n## Summary\nTest\n\n## Why\nReason\n\n## What I would do\nAction',
     );
     const list = sugg.listSuggestions();
     expect(list).toHaveLength(1);
@@ -66,7 +66,7 @@ describe('SuggestionsManager', () => {
   it('writeSuggestion creates a suggestion file with correct format', () => {
     const slug = sugg.writeSuggestion(
       { title: 'Tax Filing', urgency: 'urgent', why: 'Deadline approaching' },
-      'gmail',
+      'email',
     );
     expect(slug).toBeTruthy();
     const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
@@ -74,7 +74,7 @@ describe('SuggestionsManager', () => {
     const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
     expect(content).toContain('# Tax Filing');
     expect(content).toContain('**Urgency:** urgent');
-    expect(content).toContain('**Source:** gmail');
+    expect(content).toContain('**Source:** email');
     expect(content).toContain('## Why');
     expect(content).toContain('Deadline approaching');
   });
@@ -82,7 +82,7 @@ describe('SuggestionsManager', () => {
   it('writeSuggestion includes context section when eventContent provided', () => {
     sugg.writeSuggestion(
       { title: 'New Task', urgency: 'normal', why: 'Needs action' },
-      'gmail',
+      'email',
       'Email from alice@example.com about timesheets',
     );
     const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
@@ -101,7 +101,7 @@ describe('SuggestionsManager', () => {
     const files = fs.readdirSync(path.join(wsDir, '_suggestions'));
     const content = fs.readFileSync(path.join(wsDir, '_suggestions', files[0]), 'utf-8');
     // Context should contain at most 500 A's
-    const contextMatch = content.match(/Original event: (A+)/);
+    const contextMatch = content.match(/## Context\n(A+)/);
     expect(contextMatch![1].length).toBe(500);
   });
 });

@@ -12,7 +12,7 @@ describe('PermissionState', () => {
   });
 
   it('returns false for unknown task+module', () => {
-    expect(state.isGranted('task-1', 'gmail')).toBe(false);
+    expect(state.isGranted('task-1', 'email')).toBe(false);
   });
 
   it('grants and checks per-task', () => {

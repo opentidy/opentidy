@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { mkdtempSync, writeFileSync, rmSync, mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { generateSettingsFromModules, regenerateAgentConfig, syncSkills, readEnvFile } from './agent-config.js';
+import { generateSettingsFromModules, regenerateAgentConfig, syncSkills, syncModuleSkills, readEnvFile } from './agent-config.js';
 import type { ModuleManifest, ModuleState } from '@opentidy/shared';
 import { loadConfig } from './config.js';
 
@@ -78,6 +78,65 @@ describe('syncSkills', () => {
   });
 });
 
+describe('syncModuleSkills', () => {
+  let testDir: string;
+
+  beforeEach(() => {
+    testDir = mkdtempSync(join(tmpdir(), 'opentidy-modskills-'));
+  });
+
+  afterEach(() => {
+    rmSync(testDir, { recursive: true, force: true });
+  });
+
+  it('writes skill as SKILL.md with frontmatter', () => {
+    syncModuleSkills([{ name: 'browser-skill', content: 'Use Camoufox for browsing.' }], testDir);
+
+    const skillPath = join(testDir, 'skills', 'browser-skill', 'SKILL.md');
+    expect(existsSync(skillPath)).toBe(true);
+    const content = readFileSync(skillPath, 'utf-8');
+    expect(content).toContain('name: browser-skill');
+    expect(content).toContain('Use Camoufox for browsing.');
+  });
+
+  it('creates .module-generated marker', () => {
+    syncModuleSkills([{ name: 'my-skill', content: 'content' }], testDir);
+    expect(existsSync(join(testDir, 'skills', 'my-skill', '.module-generated'))).toBe(true);
+  });
+
+  it('cleans up old module skills on re-sync', () => {
+    // First sync: write a skill
+    syncModuleSkills([{ name: 'old-skill', content: 'old' }], testDir);
+    expect(existsSync(join(testDir, 'skills', 'old-skill'))).toBe(true);
+
+    // Second sync: different skill — old one should be gone
+    syncModuleSkills([{ name: 'new-skill', content: 'new' }], testDir);
+    expect(existsSync(join(testDir, 'skills', 'old-skill'))).toBe(false);
+    expect(existsSync(join(testDir, 'skills', 'new-skill', 'SKILL.md'))).toBe(true);
+  });
+
+  it('does not delete non-module skills', () => {
+    // Create a user skill (no .module-generated marker)
+    const userSkillDir = join(testDir, 'skills', 'user-skill');
+    mkdirSync(userSkillDir, { recursive: true });
+    writeFileSync(join(userSkillDir, 'SKILL.md'), '---\nname: user-skill\n---\nUser content');
+
+    syncModuleSkills([{ name: 'mod-skill', content: 'module content' }], testDir);
+
+    // User skill preserved, module skill written
+    expect(existsSync(join(userSkillDir, 'SKILL.md'))).toBe(true);
+    expect(existsSync(join(testDir, 'skills', 'mod-skill', 'SKILL.md'))).toBe(true);
+  });
+
+  it('handles empty skills array (cleanup only)', () => {
+    syncModuleSkills([{ name: 'to-remove', content: 'x' }], testDir);
+    expect(existsSync(join(testDir, 'skills', 'to-remove'))).toBe(true);
+
+    syncModuleSkills([], testDir);
+    expect(existsSync(join(testDir, 'skills', 'to-remove'))).toBe(false);
+  });
+});
+
 function makeManifest(name: string, overrides: Partial<ModuleManifest> = {}): ModuleManifest {
   return {
     name,
@@ -101,11 +160,11 @@ describe('generateSettingsFromModules', () => {
 
   it('ignores disabled modules', () => {
     const modules: Record<string, ModuleState> = {
-      gmail: makeModuleState(false),
+      email: makeModuleState(false),
     };
     const manifests = new Map<string, ModuleManifest>([
-      ['gmail', makeManifest('gmail', {
-        mcpServers: [{ name: 'gmail', command: 'npx', args: ['@gmail/mcp'] }],
+      ['email', makeManifest('email', {
+        mcpServers: [{ name: 'email', command: 'npx', args: ['@email/mcp'] }],
       })],
     ]);
     const result = generateSettingsFromModules(modules, manifests);
@@ -122,12 +181,12 @@ describe('generateSettingsFromModules', () => {
 
   it('collects MCP servers from 2 active modules', () => {
     const modules: Record<string, ModuleState> = {
-      gmail: makeModuleState(true),
+      email: makeModuleState(true),
       notion: makeModuleState(true),
     };
     const manifests = new Map<string, ModuleManifest>([
-      ['gmail', makeManifest('gmail', {
-        mcpServers: [{ name: 'gmail', command: 'npx', args: ['@gmail/mcp'] }],
+      ['email', makeManifest('email', {
+        mcpServers: [{ name: 'email', command: 'npx', args: ['@email/mcp'] }],
       })],
       ['notion', makeManifest('notion', {
         mcpServers: [{ name: 'notion', command: 'npx', args: ['@notion/mcp'] }],
@@ -135,9 +194,9 @@ describe('generateSettingsFromModules', () => {
     ]);
     const result = generateSettingsFromModules(modules, manifests);
     expect(Object.keys(result.mcpServers)).toHaveLength(2);
-    expect(result.mcpServers['gmail']).toBeDefined();
+    expect(result.mcpServers['email']).toBeDefined();
     expect(result.mcpServers['notion']).toBeDefined();
-    expect(result.mcpServers['gmail']).toMatchObject({ type: 'stdio', command: 'npx', args: ['@gmail/mcp'] });
+    expect(result.mcpServers['email']).toMatchObject({ type: 'stdio', command: 'npx', args: ['@email/mcp'] });
   });
 
   it('deduplicates MCPs with same command+args from different modules', () => {
@@ -245,20 +304,20 @@ describe('generateSettingsFromModules', () => {
 
   it('does not resolve non-./ args', () => {
     const modules: Record<string, ModuleState> = {
-      gmail: makeModuleState(true),
+      email: makeModuleState(true),
     };
     const manifests = new Map<string, ModuleManifest>([
-      ['gmail', makeManifest('gmail', {
+      ['email', makeManifest('email', {
         mcpServers: [{
-          name: 'gmail',
+          name: 'email',
           command: 'npx',
-          args: ['-y', '@gmail/mcp'],
+          args: ['-y', '@email/mcp'],
         }],
       })],
     ]);
     const result = generateSettingsFromModules(modules, manifests, '/opt/opentidy/modules');
-    const entry = result.mcpServers['gmail'] as { args: string[] };
-    expect(entry.args).toEqual(['-y', '@gmail/mcp']);
+    const entry = result.mcpServers['email'] as { args: string[] };
+    expect(entry.args).toEqual(['-y', '@email/mcp']);
   });
 });
 
@@ -277,15 +336,15 @@ describe('regenerateAgentConfig (module path)', () => {
     const config = buildTestConfig({
       agentConfig: { name: 'claude', configDir: testDir },
       server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
-      modules: { gmail: { enabled: true, source: 'curated' }, opentidy: { enabled: true, source: 'curated' } },
+      modules: { email: { enabled: true, source: 'curated' }, opentidy: { enabled: true, source: 'curated' } },
     });
     const modules: Record<string, ModuleState> = {
-      gmail: makeModuleState(true),
+      email: makeModuleState(true),
       opentidy: makeModuleState(true),
     };
     const manifests = new Map<string, ModuleManifest>([
-      ['gmail', makeManifest('gmail', {
-        mcpServers: [{ name: 'gmail', command: 'npx', args: ['@gmail/mcp'] }],
+      ['email', makeManifest('email', {
+        mcpServers: [{ name: 'email', command: 'npx', args: ['@email/mcp'] }],
       })],
       ['opentidy', makeManifest('opentidy', {
         mcpServers: [{ name: 'opentidy', url: 'http://localhost:5175/mcp', permissions: ['mcp__opentidy__*'] }],
@@ -297,11 +356,22 @@ describe('regenerateAgentConfig (module path)', () => {
     const settingsPath = join(testDir, 'settings.json');
     expect(existsSync(settingsPath)).toBe(true);
     const settings = JSON.parse(readFileSync(settingsPath, 'utf-8'));
-    expect(settings.mcpServers.gmail).toBeDefined();
+    expect(settings.mcpServers.email).toBeDefined();
     expect(settings.mcpServers.opentidy).toBeDefined();
     expect(settings.mcpServers.opentidy.url).toContain('5175');
+    // Explicit permissions from manifest
     expect(settings.permissions.allow).toContain('mcp__opentidy__*');
+    // Auto-generated wildcard for MCP without explicit permissions
+    expect(settings.permissions.allow).toContain('mcp__email__*');
     expect(settings._regeneratedAt).toBeDefined();
+
+    // Also writes standalone mcp-config.json for --strict-mcp-config usage
+    const mcpConfigPath = join(testDir, 'mcp-config.json');
+    expect(existsSync(mcpConfigPath)).toBe(true);
+    const mcpConfig = JSON.parse(readFileSync(mcpConfigPath, 'utf-8'));
+    expect(mcpConfig.mcpServers.email).toBeDefined();
+    expect(mcpConfig.mcpServers.opentidy).toBeDefined();
+    expect(mcpConfig.permissions).toBeUndefined(); // only mcpServers, no permissions
   });
 
   it('resolves password-manager wrapper script path in settings.json', () => {
@@ -333,5 +403,28 @@ describe('regenerateAgentConfig (module path)', () => {
     expect(settings.mcpServers.bitwarden.command).toBe('node');
     expect(settings.mcpServers.bitwarden.args).toEqual(['/opt/test/modules/password-manager/start-mcp.js']);
     expect(settings.mcpServers.bitwarden.env).toEqual({ BW_API_BASE_URL: 'https://vault.example.com/api' });
+  });
+
+  it('writes module skills to skills directory', () => {
+    const config = buildTestConfig({
+      agentConfig: { name: 'claude', configDir: testDir },
+      server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
+    });
+    const modules: Record<string, ModuleState> = {
+      browser: makeModuleState(true),
+    };
+    const manifests = new Map<string, ModuleManifest>([
+      ['browser', makeManifest('browser', {
+        skills: [{ name: 'browser-skill', content: 'Use Camoufox for browsing.' }],
+      })],
+    ]);
+
+    regenerateAgentConfig(config, undefined, modules, manifests);
+
+    const skillPath = join(testDir, 'skills', 'browser-skill', 'SKILL.md');
+    expect(existsSync(skillPath)).toBe(true);
+    const content = readFileSync(skillPath, 'utf-8');
+    expect(content).toContain('Use Camoufox for browsing.');
+    expect(existsSync(join(testDir, 'skills', 'browser-skill', '.module-generated'))).toBe(true);
   });
 });

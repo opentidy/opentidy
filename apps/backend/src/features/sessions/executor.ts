@@ -7,6 +7,35 @@ import type { SessionExecutor } from './launch.js';
 
 const execFile = promisify(execFileCb);
 
+/**
+ * Recursively kill all descendant processes of a given PID.
+ * Kills children first (bottom-up) to avoid orphan reparenting races.
+ */
+export async function killProcessTree(pid: number): Promise<void> {
+  if (process.platform === 'win32' || !pid || pid <= 1) return;
+
+  // Find direct children
+  let childPids: number[] = [];
+  try {
+    const { stdout } = await execFile('pgrep', ['-P', String(pid)]);
+    childPids = stdout.trim().split('\n').filter(Boolean).map(Number).filter(n => n > 1);
+  } catch {
+    // No children or pgrep failed
+  }
+
+  // Kill children recursively first
+  for (const childPid of childPids) {
+    await killProcessTree(childPid);
+  }
+
+  // Then kill this process
+  try {
+    process.kill(pid, 'SIGTERM');
+  } catch {
+    // Already dead
+  }
+}
+
 export function createTmuxExecutor(): SessionExecutor {
   async function launchTmux(name: string, command: string): Promise<number> {
     console.log(`[tmux] new-session -d -s ${name}`);
@@ -31,6 +60,19 @@ export function createTmuxExecutor(): SessionExecutor {
   }
 
   async function killSession(name: string): Promise<void> {
+    // Kill all processes in every pane before destroying the session.
+    // tmux kill-session sends SIGHUP, but Claude Code and its MCP children
+    // may survive it. Explicitly killing the process tree prevents orphans.
+    try {
+      const { stdout } = await execFile('tmux', ['list-panes', '-t', name, '-F', '#{pane_pid}']);
+      const panePids = stdout.trim().split('\n').filter(Boolean).map(Number).filter(n => n > 1);
+      for (const panePid of panePids) {
+        await killProcessTree(panePid);
+      }
+    } catch {
+      // Session may already be gone
+    }
+
     try {
       await execFile('tmux', ['kill-session', '-t', name]);
     } catch {

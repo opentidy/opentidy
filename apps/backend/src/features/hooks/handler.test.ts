@@ -40,7 +40,7 @@ describe('HooksHandler — centralized /api/hooks endpoint', () => {
     const payload: HookPayload = {
       session_id: 'opentidy-invoices-acme',
       hook_event_name: 'PostToolUse',
-      tool_name: 'mcp__gmail__send',
+      tool_name: 'mcp__email__send',
       tool_input: { to: 'billing@example-client.com', subject: 'Facture mars' },
     };
 
@@ -48,7 +48,7 @@ describe('HooksHandler — centralized /api/hooks endpoint', () => {
 
     expect(mockAudit.log).toHaveBeenCalledWith({
       sessionId: 'opentidy-invoices-acme',
-      toolName: 'mcp__gmail__send',
+      toolName: 'mcp__email__send',
       toolInput: { to: 'billing@example-client.com', subject: 'Facture mars' },
       decision: 'ALLOW',
     });

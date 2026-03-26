@@ -23,6 +23,8 @@ import { downloadTaskRoute } from './features/tasks/download.js';
 // Session routes
 import { listSessionsRoute } from './features/sessions/list.js';
 import { stopSessionRoute } from './features/sessions/stop.js';
+import { sessionHistoryRoute } from './features/sessions/history-route.js';
+import type { SessionHistory } from './features/sessions/history.js';
 // Memory routes
 import { listMemoryRoute } from './features/memory/list.js';
 import { createMemoryRoute } from './features/memory/create.js';
@@ -40,7 +42,6 @@ import { resolveAmeliorationRoute } from './features/ameliorations/resolve.js';
 import { ignoreAmeliorationRoute } from './features/ameliorations/ignore.js';
 // Hooks + Triage routes
 import { hookRoute } from './features/hooks/handler.js';
-import { webhookGmailRoute } from './features/triage/webhook-route.js';
 // System routes
 import { auditRoute } from './features/system/audit-route.js';
 import { resetRoute } from './features/system/reset.js';
@@ -67,9 +68,13 @@ import { addModuleRoute } from './features/modules/add.js';
 import { removeModuleRoute } from './features/modules/remove.js';
 import { moduleHealthRoute } from './features/modules/health.js';
 import { verifyModuleRoute } from './features/modules/verify.js';
+import { createModuleSessionRoute } from './features/modules/create-session.js';
 import { webhookRoute } from './features/modules/webhook.js';
+import { restartModuleRoute } from './features/modules/restart.js';
 import type { ModuleRouteDeps } from './features/modules/types.js';
 import type { WebhookDeps } from './features/modules/webhook.js';
+// Preferences route
+import { preferencesRoute, type PreferencesDeps } from './features/settings/preferences.js';
 // Setup routes
 import { setupStatusRoute, type SetupDeps } from './features/setup/status.js';
 import { setupUserInfoRoute, type UserInfoDeps } from './features/setup/user-info.js';
@@ -105,7 +110,6 @@ export interface AppDeps {
     clearAll?(): void;
   };
   hooks: { handleHook(body: unknown): { status: string } };
-  receiver: { handleGmailWebhook(body: unknown): Promise<{ accepted: boolean; reason?: string }> };
   checkup: {
     runCheckup(): Promise<{ launched: string[]; suggestions: number }>;
     getStatus(): { lastRun: string | null; nextRun: string | null; result: string; launched: string[]; suggestions: number };
@@ -115,7 +119,10 @@ export interface AppDeps {
   terminal?: {
     ensureReady: (sessionName: string) => Promise<number | undefined>;
     runCommand?: (command: string) => Promise<{ sessionName: string; port: number }>;
+    getSessionStatus?: (sessionName: string) => Promise<{ running: boolean; exitCode?: number }>;
   };
+  modulePaths?: { curated: string; custom: string };
+  onModuleSetup?: (moduleName: string, sessionName: string) => void;
   notificationStore?: { list(): NotificationRecord[] };
   audit?: { read(): AuditEntry[] };
   generateTitle?: (instruction: string) => Promise<string>;
@@ -156,6 +163,14 @@ export interface AppDeps {
     saveConfig: (update: (cfg: Record<string, unknown>) => void) => void;
     regenerateHooks?: () => void;
   };
+  createSessionDeps?: {
+    paths: { customModules: string };
+    taskManager: { createTask(id: string, instruction: string, title?: string): void };
+    launcher: { launchSession(taskId: string): Promise<void> };
+  };
+  preferencesDeps?: PreferencesDeps;
+  db?: { exec(sql: string): void;};
+  sessionHistory?: SessionHistory;
 }
 
 export function createApp(deps?: AppDeps) {
@@ -210,6 +225,9 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', downloadTaskRoute(deps));
     app.route('/api', listSessionsRoute(deps));
     app.route('/api', stopSessionRoute(deps));
+    if (deps.sessionHistory) {
+      app.route('/api', sessionHistoryRoute({ sessionHistory: deps.sessionHistory }));
+    }
     app.route('/api', listMemoryRoute(deps));
     app.route('/api', promptMemoryRoute(deps));
     app.route('/api', createMemoryRoute(deps));
@@ -223,7 +241,6 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', resolveAmeliorationRoute(deps));
     app.route('/api', ignoreAmeliorationRoute(deps));
     app.route('/api', hookRoute(deps));
-    app.route('/api', webhookGmailRoute(deps));
     // System routes
     app.route('/api', auditRoute(deps));
     app.route('/api', resetRoute(deps));
@@ -252,6 +269,10 @@ export function createApp(deps?: AppDeps) {
       app.route('/api', removeModuleRoute(deps.moduleDeps));
       app.route('/api', moduleHealthRoute(deps.moduleDeps));
       app.route('/api', verifyModuleRoute(deps.moduleDeps));
+      app.route('/api', restartModuleRoute(deps.moduleDeps));
+    }
+    if (deps.createSessionDeps) {
+      app.route('/api', createModuleSessionRoute(deps.createSessionDeps));
     }
     if (deps.webhookDeps) {
       app.route('/api', webhookRoute(deps.webhookDeps));
@@ -267,6 +288,10 @@ export function createApp(deps?: AppDeps) {
     app.route('/api', setupPermissionsRoute({ checkPermission: defaultCheckPermission }));
     if (deps.agentSetupDeps) {
       app.route('/api', setupAgentsRoute(deps.agentSetupDeps));
+    }
+    // Preferences route
+    if (deps.preferencesDeps) {
+      app.route('/api', preferencesRoute(deps.preferencesDeps));
     }
     // Permission check + approval + config routes
     if (deps.permissionDeps) {

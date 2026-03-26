@@ -32,21 +32,37 @@ describe('ReceiverPlugin', () => {
     expect(plugins).toEqual([]);
   });
 
-  it('loadReceiverPlugins loads built-in plugin by name', async () => {
-    const { loadReceiverPlugins } = await import('./plugin.js');
+  it('loadReceiverPlugins loads registered built-in plugin by name', async () => {
+    const { loadReceiverPlugins, registerBuiltinReceiver } = await import('./plugin.js');
+
+    registerBuiltinReceiver('test-builtin', () => ({
+      name: 'test-builtin',
+      source: 'test',
+      init: () => {},
+      start: () => {},
+      stop: () => {},
+    }));
 
     const plugins = await loadReceiverPlugins({
-      receivers: [{ type: 'gmail-webhook', enabled: true }],
+      receivers: [{ type: 'test-builtin', enabled: true }],
     });
     expect(plugins).toHaveLength(1);
-    expect(plugins[0].name).toBe('gmail-webhook');
+    expect(plugins[0].name).toBe('test-builtin');
   });
 
   it('loadReceiverPlugins skips disabled plugins', async () => {
-    const { loadReceiverPlugins } = await import('./plugin.js');
+    const { loadReceiverPlugins, registerBuiltinReceiver } = await import('./plugin.js');
+
+    registerBuiltinReceiver('test-disabled', () => ({
+      name: 'test-disabled',
+      source: 'test',
+      init: () => {},
+      start: () => {},
+      stop: () => {},
+    }));
 
     const plugins = await loadReceiverPlugins({
-      receivers: [{ type: 'gmail-webhook', enabled: false }],
+      receivers: [{ type: 'test-disabled', enabled: false }],
     });
     expect(plugins).toEqual([]);
   });

@@ -21,8 +21,13 @@ For suggestions — be VERY selective. A suggestion is a REAL actionable task th
 
 If you detect a technical issue or system improvement → write it in _gaps/gaps.md, not in suggestions.
 
+Each suggestion MUST have enough detail for the user to understand the situation without opening any email or file:
+- "summary": a one-liner factual description of the situation (what happened, who sent it, what's affected)
+- "why": specific reasons — mention concrete details (dates, amounts, names, consequences). Never be vague like "3 problems". List them.
+- "whatIWouldDo": the concrete steps you would take to resolve this
+
 Respond ONLY in JSON:
-{ "launch": ["task-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "why": "..." }] }`;
+{ "launch": ["task-id", ...], "suggestions": [{ "title": "...", "urgency": "urgent|normal|low", "summary": "...", "why": "...", "whatIWouldDo": "..." }] }`;
 
 interface CheckupStatus {
   lastRun: string | null;
@@ -45,7 +50,7 @@ export function createCheckup(deps: {
   notificationStore?: { record(input: { message: string; link: string; taskId?: string }): unknown };
   memoryManager?: { readAllFiles: () => MemoryEntry[] };
   suggestionsManager?: { listSuggestions: () => Array<{ title: string }> };
-  writeSuggestion?: (suggestion: { title: string; urgency: string; why: string }, source: string) => string;
+  writeSuggestion?: (suggestion: { title: string; urgency: string; why: string; summary?: string; whatIWouldDo?: string }, source: string) => string;
 }) {
   const startedAt = Date.now();
   const status: CheckupStatus = {
@@ -76,7 +81,7 @@ export function createCheckup(deps: {
       mode: 'one-shot', cwd: deps.workspaceDir, systemPrompt,
       instruction: prompt, allowedTools: ['Read', 'Glob', 'Grep', 'Write'],
     });
-    const stdout = await deps.spawnAgent({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan' }).promise;
+    const stdout = await deps.spawnAgent({ args: clArgs, cwd: deps.workspaceDir, type: 'checkup', description: 'Periodic workspace scan', instruction: prompt }).promise;
 
     // Parse JSON from the response (Claude may wrap in ```json)
     const jsonMatch = stdout.match(/\{[\s\S]*\}/);
@@ -87,7 +92,7 @@ export function createCheckup(deps: {
 
     const result = JSON.parse(jsonMatch[0]) as {
       launch: string[];
-      suggestions: Array<{ title: string; urgency: string; why: string }>;
+      suggestions: Array<{ title: string; urgency: string; why: string; summary?: string; whatIWouldDo?: string }>;
     };
 
     // Launch sessions — skip active sessions (scheduler handles precise timing)

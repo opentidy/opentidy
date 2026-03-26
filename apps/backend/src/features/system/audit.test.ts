@@ -16,7 +16,7 @@ describe('AuditLogger', () => {
   it('logs an action with all required fields', () => {
     audit.log({
       sessionId: 'session-1',
-      toolName: 'mcp__gmail__send',
+      toolName: 'mcp__email__send',
       toolInput: { to: 'billing@example-client.com', subject: 'Facture' },
       decision: 'ALLOW',
     });
@@ -24,14 +24,14 @@ describe('AuditLogger', () => {
     const entries = audit.read();
     expect(entries).toHaveLength(1);
     expect(entries[0].sessionId).toBe('session-1');
-    expect(entries[0].toolName).toBe('mcp__gmail__send');
+    expect(entries[0].toolName).toBe('mcp__email__send');
     expect(entries[0].decision).toBe('ALLOW');
     expect(entries[0].timestamp).toBeDefined();
   });
 
   it('appends multiple entries', () => {
-    audit.log({ sessionId: 's1', toolName: 'gmail.send', toolInput: {}, decision: 'ALLOW' });
-    audit.log({ sessionId: 's2', toolName: 'gmail.send', toolInput: {}, decision: 'DENY' });
+    audit.log({ sessionId: 's1', toolName: 'email.send', toolInput: {}, decision: 'ALLOW' });
+    audit.log({ sessionId: 's2', toolName: 'email.send', toolInput: {}, decision: 'DENY' });
     expect(audit.read()).toHaveLength(2);
   });
 });

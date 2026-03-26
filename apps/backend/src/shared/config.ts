@@ -27,6 +27,10 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
   modules: {
     opentidy: { enabled: true, source: 'curated' as const },
   },
+  preferences: {
+    scanInterval: '2h',
+    notificationRateLimit: 60_000,
+  },
   permissions: {
     preset: 'autonomous' as const,
     defaultLevel: 'ask' as const,

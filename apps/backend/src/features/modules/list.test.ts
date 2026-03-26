@@ -29,6 +29,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -46,16 +47,16 @@ describe('listModulesRoute', () => {
 
   it('returns curated modules from manifests', async () => {
     const deps = makeDeps(makeConfig({
-      modules: { gmail: { enabled: true, source: 'curated' } },
+      modules: { email: { enabled: true, source: 'curated' } },
     }));
-    deps.manifests.set('gmail', {
-      name: 'gmail',
-      label: 'Gmail',
-      description: 'Gmail integration',
+    deps.manifests.set('email', {
+      name: 'email',
+      label: 'Email',
+      description: 'Email integration',
       version: '1.0.0',
-      mcpServers: [{ name: 'gmail-server', command: 'node', args: ['gmail.js'] }],
+      mcpServers: [{ name: 'email-server', command: 'node', args: ['email.js'] }],
       skills: [{ name: 'email-skill', content: 'send emails' }],
-      receivers: [{ name: 'gmail-webhook', mode: 'webhook', source: 'gmail' }],
+      receivers: [{ name: 'email-imap', mode: 'polling', source: 'email' }],
     });
 
     const app = listModulesRoute(deps);
@@ -64,23 +65,23 @@ describe('listModulesRoute', () => {
 
     const body = (await res.json() as any).modules;
     expect(body).toHaveLength(1);
-    expect(body[0].name).toBe('gmail');
-    expect(body[0].label).toBe('Gmail');
+    expect(body[0].name).toBe('email');
+    expect(body[0].label).toBe('Email');
     expect(body[0].enabled).toBe(true);
     expect(body[0].source).toBe('curated');
-    expect(body[0].components.mcpServers).toEqual(['gmail-server']);
-    expect(body[0].components.skills).toEqual(['email-skill']);
-    expect(body[0].components.receivers).toEqual(['gmail-webhook']);
+    expect(body[0].components.mcpServers).toEqual([{ name: 'email-server' }]);
+    expect(body[0].components.skills).toEqual([{ name: 'email-skill' }]);
+    expect(body[0].components.receivers).toEqual([{ name: 'email-imap', mode: 'polling', source: 'email' }]);
   });
 
   it('marks setup.configured=false when required config fields are missing', async () => {
     const deps = makeDeps(makeConfig({
-      modules: { gmail: { enabled: false, source: 'curated', config: {} } },
+      modules: { email: { enabled: false, source: 'curated', config: {} } },
     }));
-    deps.manifests.set('gmail', {
-      name: 'gmail',
-      label: 'Gmail',
-      description: 'Gmail integration',
+    deps.manifests.set('email', {
+      name: 'email',
+      label: 'Email',
+      description: 'Email integration',
       version: '1.0.0',
       setup: {
         configFields: [

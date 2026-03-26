@@ -29,6 +29,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -37,12 +38,12 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
 describe('configureModuleRoute', () => {
   it('configures a known module and returns success', async () => {
     const deps = makeDeps();
-    deps.manifests.set('gmail', {
-      name: 'gmail', label: 'Gmail', description: 'Gmail integration', version: '1.0.0',
+    deps.manifests.set('email', {
+      name: 'email', label: 'Email', description: 'Email integration', version: '1.0.0',
     });
 
     const app = configureModuleRoute(deps);
-    const res = await app.request('/modules/gmail/configure', {
+    const res = await app.request('/modules/email/configure', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ apiKey: 'secret-123' }),
@@ -50,7 +51,7 @@ describe('configureModuleRoute', () => {
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true });
-    expect(deps.lifecycle.configure).toHaveBeenCalledWith('gmail', { apiKey: 'secret-123' });
+    expect(deps.lifecycle.configure).toHaveBeenCalledWith('email', { apiKey: 'secret-123' });
   });
 
   it('returns 404 for unknown module', async () => {

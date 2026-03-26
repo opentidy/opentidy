@@ -67,12 +67,12 @@ describe('generateTaskInstructions', () => {
       taskId: 'test-task',
       taskInfo: { title: 'Test', objective: 'Do stuff' },
       instructionFile: 'CLAUDE.md',
-      event: { source: 'gmail', content: 'New email received' },
+      event: { source: 'email', content: 'New email received' },
     });
 
     expect(fs.writeFileSync).toHaveBeenCalledWith(
       '/workspace/test-task/INSTRUCTIONS.md',
-      expect.stringContaining('Source: gmail'),
+      expect.stringContaining('Source: email'),
     );
   });
 });

@@ -5,12 +5,12 @@ import { describe, it, expect } from 'vitest';
 import { createPermissionResolver } from './resolver';
 import type { ModuleManifest, PermissionConfig } from '@opentidy/shared';
 
-const gmailManifest: ModuleManifest = {
-  name: 'gmail', label: 'Gmail', description: '', version: '1.0.0',
+const emailManifest: ModuleManifest = {
+  name: 'email', label: 'Email', description: '', version: '1.0.0',
   toolPermissions: {
     scope: 'per-call',
-    safe: ['mcp__gmail__search', 'mcp__gmail__read_message'],
-    critical: ['mcp__gmail__send', 'mcp__gmail__reply'],
+    safe: ['mcp__email__search', 'mcp__email__read_message'],
+    critical: ['mcp__email__send', 'mcp__email__reply'],
   },
 };
 
@@ -30,25 +30,25 @@ const noPermManifest: ModuleManifest = {
 const config: PermissionConfig = {
   preset: 'autonomous',
   defaultLevel: 'ask',
-  modules: { gmail: 'ask', browser: 'allow' },
+  modules: { email: { safe: 'allow', critical: 'ask' }, browser: 'allow' },
 };
 
 describe('PermissionResolver', () => {
   const manifests = new Map<string, ModuleManifest>([
-    ['gmail', gmailManifest],
+    ['email', emailManifest],
     ['browser', browserManifest],
     ['unknown', noPermManifest],
   ]);
   const resolver = createPermissionResolver(manifests, config);
 
   it('returns allow for safe tools regardless of module level', () => {
-    const result = resolver.resolve('mcp__gmail__search');
-    expect(result).toEqual({ level: 'allow', scope: 'per-call', moduleName: 'gmail' });
+    const result = resolver.resolve('mcp__email__search');
+    expect(result).toEqual({ level: 'allow', scope: 'per-call', moduleName: 'email' });
   });
 
   it('returns module level for critical tools', () => {
-    const result = resolver.resolve('mcp__gmail__send');
-    expect(result).toEqual({ level: 'ask', scope: 'per-call', moduleName: 'gmail' });
+    const result = resolver.resolve('mcp__email__send');
+    expect(result).toEqual({ level: 'ask', scope: 'per-call', moduleName: 'email' });
   });
 
   it('returns allow for critical tools when module level is allow', () => {
@@ -68,16 +68,16 @@ describe('PermissionResolver', () => {
 
   it('builds allowedTools list (safe + allow-level critical + ask-level critical)', () => {
     const list = resolver.getAllowedTools();
-    expect(list).toContain('mcp__gmail__search');
-    expect(list).toContain('mcp__gmail__send');
+    expect(list).toContain('mcp__email__search');
+    expect(list).toContain('mcp__email__send');
     expect(list).toContain('mcp__camofox__navigate');
     expect(list).toContain('mcp__camofox__click');
   });
 
   it('builds ask matcher regex', () => {
     const matcher = resolver.getAskMatcher();
-    expect(matcher).toContain('mcp__gmail__send');
-    expect(matcher).toContain('mcp__gmail__reply');
+    expect(matcher).toContain('mcp__email__send');
+    expect(matcher).toContain('mcp__email__reply');
     expect(matcher).not.toContain('mcp__camofox__click');
   });
 });

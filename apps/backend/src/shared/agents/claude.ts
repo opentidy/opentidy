@@ -52,11 +52,16 @@ export function createClaudeAdapter(configDir: string): AgentAdapter {
     buildArgs(opts: SpawnOpts): string[] {
       const args: string[] = [];
 
-      // One-shot calls (triage, sweep, memory) use strict MCP config with no servers.
-      // Reasons: speed (no MCP startup), isolation (no side effects), reduced attack surface.
-      // Autonomous/interactive sessions load MCPs from CLAUDE_CONFIG_DIR/settings.json.
+      // Always use --strict-mcp-config to block cloud account integrations (claude.ai MCP servers).
+      // One-shot: empty config (no MCP needed, faster startup).
+      // Autonomous/interactive: load from mcp-config.json (module-configured servers only).
       if (opts.mode === 'one-shot') {
         args.push('--strict-mcp-config', '--mcp-config', '{"mcpServers":{}}');
+      } else {
+        const mcpConfigPath = path.join(configDir, 'mcp-config.json');
+        if (fs.existsSync(mcpConfigPath)) {
+          args.push('--strict-mcp-config', '--mcp-config', mcpConfigPath);
+        }
       }
 
       if (opts.mode === 'one-shot' || opts.mode === 'autonomous') {

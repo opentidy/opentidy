@@ -9,7 +9,6 @@ import {
   setupUserInfo,
   setupTelegram,
   setupAuth,
-  setupGmail,
   setupCamoufox,
   setupWhatsApp,
   setupClaude,
@@ -52,7 +51,6 @@ const MODULES: Record<string, () => Promise<void>> = {
   'user-info': setupUserInfo,
   telegram: setupTelegram,
   auth: setupAuth,
-  gmail: setupGmail,
   camoufox: setupCamoufox,
   whatsapp: setupWhatsApp,
   claude: setupClaude,
@@ -63,7 +61,7 @@ const MODULES: Record<string, () => Promise<void>> = {
 
 const MODULE_ORDER = [
   'user-info', 'telegram', 'auth',
-  'gmail', 'camoufox', 'whatsapp',
+  'camoufox', 'whatsapp',
   'claude', 'cloudflare', 'github', 'permissions',
 ];
 

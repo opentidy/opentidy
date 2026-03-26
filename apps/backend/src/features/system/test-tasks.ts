@@ -40,7 +40,7 @@ export const TEST_TASKS: TestTask[] = [
     description: 'Email send + Waiting For + triage relay + memory extraction',
     instruction:
       'Send an email to user@example.com with subject "Test OpenTidy — reply to me" and body "This is a test of the tracking system. Just reply OK.". Then add a "## Waiting For" section in state.md explaining you are waiting for the reply to this email. When your session resumes (the system will relaunch you when the reply arrives), read the reply via Gmail MCP, note it in the journal and finish.',
-    tests: ['apple-mail', 'waiting', 'triage-relaunch', 'gmail-read', 'resume', 'memory-extraction', 'exit'],
+    tests: ['email', 'waiting', 'triage-relaunch', 'email-read', 'resume', 'memory-extraction', 'exit'],
   },
 
   // --- RECURRING TASK ---
@@ -72,7 +72,7 @@ export const TEST_TASKS: TestTask[] = [
     description: 'Conditional email monitoring (Gmail watch, action)',
     instruction:
       'Monitor my emails for the next 2 hours. If I receive an email with "URGENT" in the subject, summarize it and send me a recap at user@example.com with subject "OpenTidy — Urgent email detected". Note each check in state.md.',
-    tests: ['gmail-read', 'conditional', 'recurrence', 'apple-mail'],
+    tests: ['email-read', 'conditional', 'recurrence', 'email'],
   },
 
   // --- CROSS-TOOL ---
@@ -80,7 +80,7 @@ export const TEST_TASKS: TestTask[] = [
     description: 'Cross-tool workflow (browser + email + file)',
     instruction:
       '1) Search for 3 tech conferences in Europe (March-June 2026) related to AI and automation. 2) For each, find the dates, location, ticket price, and registration link. 3) Send me an email at user@example.com with the 3 conferences and registration links. 4) Put everything in artifacts/conferences-2026.md',
-    tests: ['camoufox', 'apple-mail', 'multi-step', 'artifacts'],
+    tests: ['camoufox', 'email', 'multi-step', 'artifacts'],
   },
 
   // --- SECURITY HOOKS (guardrails) ---
@@ -104,7 +104,7 @@ export const TEST_TASKS: TestTask[] = [
     description: 'Memory — task that depends on injected memory context',
     instruction:
       'Draft a follow-up email to my accountant to check on a pending company closure. Use the information from memory ("Memory context" section in CLAUDE.md) to get their name and contact details. Send the email to user@example.com (this is a test). Put a copy in artifacts/email-accountant-followup.md. If you don\'t have the accountant info in memory, create a checkpoint explaining what you\'re missing.',
-    tests: ['memory-injection', 'checkpoint-if-no-memory', 'apple-mail', 'artifacts'],
+    tests: ['memory-injection', 'checkpoint-if-no-memory', 'email', 'artifacts'],
   },
 
   // --- MEMORY: FACT EXTRACTION ---

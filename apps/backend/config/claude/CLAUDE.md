@@ -113,16 +113,7 @@ Only use Playwright (mcp__plugin_playwright__*) and Chrome (mcp__claude-in-chrom
 If you use a fallback, note it in the state.md journal with the reason for the Camoufox failure.
 
 ## Other tools
-- Gmail MCP — for reading, searching, listing emails. WARNING: it can only **create drafts**, not send.
-- **Apple Mail** (via osascript) — for **sending** emails. The user's Gmail account is connected in Mail.app. Use osascript:
-  ```bash
-  osascript -e 'tell application "Mail"
-    set newMsg to make new outgoing message with properties {subject:"SUBJECT", content:"CONTENT", visible:false}
-    tell newMsg to make new to recipient at end of to recipients with properties {address:"RECIPIENT"}
-    send newMsg
-  end tell'
-  ```
-  Use Gmail MCP for reading/searching, and Apple Mail for sending.
+- **Email** (himalaya CLI via email module) — for reading, searching, and sending emails. Uses the himalaya CLI under the hood.
 - Bitwarden (passwords via /bitwarden)
 - Google Calendar, Notion, macOS Contacts
 

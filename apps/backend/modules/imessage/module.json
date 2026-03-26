@@ -1,12 +1,16 @@
 {
   "name": "imessage",
   "label": "iMessage",
-  "description": "Receive SMS and iMessage messages",
+  "description": "Send and receive SMS and iMessage messages via Messages.app",
   "icon": "📱",
   "version": "1.0.0",
   "platform": "darwin",
+  "setup": {
+    "checkCommand": "test -r \"$HOME/Library/Messages/chat.db\""
+  },
   "permissions": [
-    { "name": "messages", "label": "Messages", "app": "Messages", "reason": "Read incoming SMS and iMessage messages" }
+    { "name": "messages", "label": "Messages", "app": "Messages", "reason": "Read incoming SMS and iMessage messages" },
+    { "name": "full-disk-access", "label": "Full Disk Access", "app": "Terminal", "reason": "Read the Messages SQLite database at ~/Library/Messages/chat.db" }
   ],
   "receivers": [{
     "name": "imessage",
@@ -14,5 +18,18 @@
     "source": "sms",
     "pollInterval": 300000,
     "entry": "./receiver.ts"
-  }]
+  }],
+  "skills": [{
+    "name": "imessage-skill",
+    "content": "You can read and send iMessage/SMS on macOS using the Messages.app SQLite database and AppleScript.\n\n## Reading messages\n\nThe Messages database is at `~/Library/Messages/chat.db` (requires Full Disk Access for Terminal).\n\n```bash\n# List recent conversations (last 20 messages across all chats)\nsqlite3 -json ~/Library/Messages/chat.db \"\n  SELECT\n    m.rowid AS message_id,\n    m.date / 1000000000 + 978307200 AS unix_ts,\n    datetime(m.date / 1000000000 + 978307200, 'unixepoch', 'localtime') AS date,\n    CASE WHEN m.is_from_me = 1 THEN 'me' ELSE coalesce(h.id, 'unknown') END AS sender,\n    c.chat_identifier AS chat,\n    m.text\n  FROM message m\n  LEFT JOIN handle h ON m.handle_id = h.rowid\n  LEFT JOIN chat_message_join cmj ON cmj.message_id = m.rowid\n  LEFT JOIN chat c ON cmj.chat_id = c.rowid\n  WHERE m.text IS NOT NULL\n  ORDER BY m.date DESC\n  LIMIT 20;\n\"\n\n# List messages from a specific contact\nsqlite3 -json ~/Library/Messages/chat.db \"\n  SELECT\n    m.rowid AS message_id,\n    datetime(m.date / 1000000000 + 978307200, 'unixepoch', 'localtime') AS date,\n    CASE WHEN m.is_from_me = 1 THEN 'me' ELSE h.id END AS sender,\n    m.text\n  FROM message m\n  LEFT JOIN handle h ON m.handle_id = h.rowid\n  LEFT JOIN chat_message_join cmj ON cmj.message_id = m.rowid\n  LEFT JOIN chat c ON cmj.chat_id = c.rowid\n  WHERE c.chat_identifier = '+33612345678'\n    AND m.text IS NOT NULL\n  ORDER BY m.date DESC\n  LIMIT 20;\n\"\n\n# Search messages by keyword\nsqlite3 -json ~/Library/Messages/chat.db \"\n  SELECT\n    m.rowid AS message_id,\n    datetime(m.date / 1000000000 + 978307200, 'unixepoch', 'localtime') AS date,\n    CASE WHEN m.is_from_me = 1 THEN 'me' ELSE h.id END AS sender,\n    c.chat_identifier AS chat,\n    m.text\n  FROM message m\n  LEFT JOIN handle h ON m.handle_id = h.rowid\n  LEFT JOIN chat_message_join cmj ON cmj.message_id = m.rowid\n  LEFT JOIN chat c ON cmj.chat_id = c.rowid\n  WHERE m.text LIKE '%keyword%'\n  ORDER BY m.date DESC\n  LIMIT 20;\n\"\n\n# List all conversations with last message date\nsqlite3 -json ~/Library/Messages/chat.db \"\n  SELECT\n    c.chat_identifier,\n    c.display_name,\n    datetime(MAX(m.date) / 1000000000 + 978307200, 'unixepoch', 'localtime') AS last_message\n  FROM chat c\n  JOIN chat_message_join cmj ON cmj.chat_id = c.rowid\n  JOIN message m ON cmj.message_id = m.rowid\n  GROUP BY c.rowid\n  ORDER BY MAX(m.date) DESC\n  LIMIT 30;\n\"\n\n# Read messages since a specific date (useful for polling)\nsqlite3 -json ~/Library/Messages/chat.db \"\n  SELECT\n    m.rowid AS message_id,\n    datetime(m.date / 1000000000 + 978307200, 'unixepoch', 'localtime') AS date,\n    CASE WHEN m.is_from_me = 1 THEN 'me' ELSE h.id END AS sender,\n    c.chat_identifier AS chat,\n    m.text\n  FROM message m\n  LEFT JOIN handle h ON m.handle_id = h.rowid\n  LEFT JOIN chat_message_join cmj ON cmj.message_id = m.rowid\n  LEFT JOIN chat c ON cmj.chat_id = c.rowid\n  WHERE m.text IS NOT NULL\n    AND m.date / 1000000000 + 978307200 > strftime('%s', '2026-03-22 00:00:00')\n  ORDER BY m.date DESC;\n\"\n```\n\n## Sending messages\n\nUse AppleScript via `osascript` to send messages through Messages.app.\n\n```bash\n# Send an iMessage or SMS\nosascript -e 'tell application \"Messages\"\n  set targetService to 1st account whose service type = iMessage\n  set targetBuddy to participant \"+33612345678\" of targetService\n  send \"Hello!\" to targetBuddy\nend tell'\n\n# Send to an email-based iMessage contact\nosascript -e 'tell application \"Messages\"\n  set targetService to 1st account whose service type = iMessage\n  set targetBuddy to participant \"user@example.com\" of targetService\n  send \"Hello!\" to targetBuddy\nend tell'\n```\n\n## Key notes\n- Always use `-json` flag with sqlite3 for machine-readable output\n- The Messages database uses Apple's CoreData timestamp: nanoseconds since 2001-01-01. The formula `date / 1000000000 + 978307200` converts to Unix timestamp\n- `chat_identifier` is the phone number (e.g., `+33612345678`) or email for iMessage contacts\n- `is_from_me = 1` means the message was sent by the user, `0` means received\n- Full Disk Access must be granted to Terminal/iTerm for database reads\n- Never send messages without explicit user approval\n- For group chats, `chat_identifier` starts with `chat` and `display_name` contains the group name"
+  }],
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": [
+      { "tool": "Bash(sqlite3*chat.db:*)", "label": "Read messages database" }
+    ],
+    "critical": [
+      { "tool": "Bash(osascript*Messages:*)", "label": "Send iMessage/SMS" }
+    ]
+  }
 }

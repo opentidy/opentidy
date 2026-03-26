@@ -5,8 +5,10 @@ import fs from 'fs';
 import path from 'path';
 import type { Session, AgentAdapter } from '@opentidy/shared';
 import { setStatus, parseStateMd } from '../tasks/state.js';
+import type { ModuleManifest, ModuleState } from '@opentidy/shared';
 import { generateTaskInstructions } from './instruction-file.js';
 import { createPostSessionHandlers } from './post-session.js';
+import type { SessionHistory } from './history.js';
 
 // Interface for mocking tmux/claude in tests
 export interface SessionExecutor {
@@ -56,13 +58,16 @@ export function createLauncher(deps: {
     isTranscriptSubstantial(transcriptPath: string): boolean;
     runExtraction(input: { transcriptPath: string; indexContent: string; taskId: string; stateContent: string }): Promise<void>;
   };
+  /** Module manifests + config — used to generate capabilities index in task instructions */
+  modules?: { manifests: Map<string, ModuleManifest>; loadConfig: () => { modules: Record<string, ModuleState> } };
   recoveryDelayMs?: number;
+  sessionHistory?: SessionHistory;
 }) {
   const sessions = new Map<string, Session>();
   const recoveryDelayMs = deps.recoveryDelayMs ?? DEFAULT_RECOVERY_DELAY_MS;
 
   // Post-session cleanup handlers (extracted module)
-  const { handleSessionEnd: baseHandleSessionEnd, archiveSession } = createPostSessionHandlers(
+  const { handleSessionEnd: baseHandleSessionEnd, archiveSession: baseArchiveSession } = createPostSessionHandlers(
     { tmuxExecutor: deps.tmuxExecutor, locks: deps.locks, sse: deps.sse, terminal: deps.terminal,
       memoryAgents: deps.memoryAgents, workspaceDir: deps.workspaceDir },
     sessions,
@@ -71,14 +76,22 @@ export function createLauncher(deps: {
   // Wrap handleSessionEnd to write .user-stopped marker when task is still IN_PROGRESS
   function handleSessionEnd(taskId: string): void {
     const taskDir = path.join(deps.workspaceDir, taskId);
+    let historyStatus: 'completed' | 'stopped' = 'completed';
     if (fs.existsSync(path.join(taskDir, 'state.md'))) {
       const state = parseStateMd(taskDir);
       if (state.status === 'IN_PROGRESS' && !state.waitingFor) {
         fs.writeFileSync(path.join(taskDir, USER_STOPPED_MARKER), new Date().toISOString());
         console.log(`[launcher] marked ${taskId} as user-stopped`);
+        historyStatus = 'stopped';
       }
     }
+    deps.sessionHistory?.recordEndByTask(taskId, historyStatus);
     baseHandleSessionEnd(taskId);
+  }
+
+  async function archiveSession(taskId: string): Promise<void> {
+    deps.sessionHistory?.recordEndByTask(taskId, 'stopped');
+    await baseArchiveSession(taskId);
   }
 
   async function launchSession(taskId: string, event?: { source: string; content: string }): Promise<void> {
@@ -108,6 +121,10 @@ export function createLauncher(deps: {
       generateTaskInstructions({
         workspaceDir: deps.workspaceDir, taskId, taskInfo,
         instructionFile: deps.adapter.instructionFile, event,
+        modules: deps.modules ? {
+          manifests: deps.modules.manifests,
+          states: deps.modules.loadConfig().modules,
+        } : undefined,
       });
 
       // Build agent command
@@ -143,6 +160,10 @@ export function createLauncher(deps: {
         pid,
       };
       sessions.set(taskId, session);
+
+      // Persist to session history
+      const trigger = event?.source ?? 'user';
+      deps.sessionHistory?.recordStart(taskId, { agentSessionId: resumeId, trigger });
 
       deps.sse.emit({ type: 'session:started', data: { taskId }, timestamp: new Date().toISOString() });
       deps.notify.notifyStarted?.(taskId);

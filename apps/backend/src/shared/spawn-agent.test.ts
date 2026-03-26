@@ -131,7 +131,7 @@ describe('createSpawnAgent', () => {
     const handle = spawnAgent({ args: [], cwd: '/workspace', type: 'checkup', taskId: 'test-task', description: 'Test run' });
     await handle.promise;
 
-    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-task', undefined, 'Test run');
+    expect(tracker.start).toHaveBeenCalledWith('checkup', 'test-task', undefined, 'Test run', undefined);
     expect(tracker.markRunning).toHaveBeenCalledWith(42, 1234);
     expect(tracker.complete).toHaveBeenCalledWith(42, 0);
   });

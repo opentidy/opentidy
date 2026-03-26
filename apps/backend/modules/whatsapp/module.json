@@ -3,36 +3,23 @@
   "label": "WhatsApp",
   "description": "Send and receive WhatsApp messages",
   "icon": "💬",
-  "version": "1.0.0",
-  "mcpServers": [{
-    "name": "whatsapp",
-    "command": "npx",
-    "args": ["-y", "whatsapp-mcp"],
-    "envFromConfig": { "WACLI_PATH": "wacliPath" }
-  }],
-  "receivers": [{
-    "name": "whatsapp-wacli",
-    "mode": "long-running",
-    "source": "whatsapp",
-    "entry": "./receiver.ts"
-  }],
+  "version": "2.0.0",
+  "daemon": {
+    "entry": "./daemon.ts"
+  },
   "setup": {
-    "authCommand": "wacli auth",
-    "checkCommand": "which wacli",
-    "configFields": [
-      { "key": "wacliPath", "label": "wacli path", "type": "text", "placeholder": "/usr/local/bin/wacli" }
-    ]
+    "checkCommand": "node -e \"import('@whiskeysockets/baileys').then(() => process.exit(0)).catch(() => process.exit(1))\""
   },
   "toolPermissions": {
     "scope": "per-call",
     "safe": [
-      { "tool": "mcp__whatsapp__list_chats", "label": "List conversations" },
-      { "tool": "mcp__whatsapp__read_messages", "label": "Read messages" },
-      { "tool": "mcp__whatsapp__search", "label": "Search messages" }
+      { "tool": "whatsapp_list_chats", "label": "List conversations" },
+      { "tool": "whatsapp_read_messages", "label": "Read messages" },
+      { "tool": "whatsapp_search", "label": "Search messages" }
     ],
     "critical": [
-      { "tool": "mcp__whatsapp__send_message", "label": "Send messages" },
-      { "tool": "mcp__whatsapp__send_media", "label": "Send media files" }
+      { "tool": "whatsapp_send_message", "label": "Send messages" },
+      { "tool": "whatsapp_send_media", "label": "Send media files" }
     ]
   }
 }

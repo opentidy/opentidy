@@ -11,7 +11,7 @@ export interface ReceiverPluginMessage {
 export interface ReceiverPlugin {
   /** Unique name for this receiver (e.g., 'gmail-webhook', 'imessage') */
   name: string;
-  /** Event source type used in triage (e.g., 'gmail', 'sms') */
+  /** Event source type used in triage (e.g., 'email', 'sms') */
   source: string;
   /** One-time initialization (connect, auth, etc.) */
   init: () => Promise<void> | void;
@@ -28,15 +28,7 @@ export interface ReceiverConfig {
 }
 
 // Built-in receiver factories — keyed by type name
-const builtinFactories: Record<string, (options?: Record<string, unknown>) => ReceiverPlugin> = {
-  'gmail-webhook': () => ({
-    name: 'gmail-webhook',
-    source: 'gmail',
-    init: () => {},
-    start: () => {},
-    stop: () => {},
-  }),
-};
+const builtinFactories: Record<string, (options?: Record<string, unknown>) => ReceiverPlugin> = {};
 
 export function registerBuiltinReceiver(
   type: string,
@@ -65,12 +57,6 @@ export async function loadReceiverPlugins(
       if (receiver.type === 'imessage') {
         const mod = await import('./sms-reader.js');
         const plugin = mod.createSmsReceiverPlugin(receiver.options);
-        plugins.push(plugin);
-        continue;
-      }
-      if (receiver.type === 'apple-mail') {
-        const mod = await import('./mail-reader.js');
-        const plugin = mod.createMailReceiverPlugin(receiver.options);
         plugins.push(plugin);
         continue;
       }

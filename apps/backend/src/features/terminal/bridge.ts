@@ -26,12 +26,91 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
 
   // Kill all orphan ttyd processes from previous backend runs
   function cleanupOrphanTtyd(): void {
-    if (process.platform === 'win32') return; // pkill not available on Windows
+    if (process.platform === 'win32') return;
     try {
       execFileSync('pkill', ['-f', '^ttyd.*tmux attach-session'], { stdio: 'ignore' });
       console.log('[terminal] Cleaned up orphan ttyd processes');
     } catch {
       // No ttyd processes to kill — that's fine
+    }
+  }
+
+  // Kill dead setup sessions and their orphaned process trees.
+  // Setup sessions use remain-on-exit so the web UI can check exit status,
+  // but they accumulate if never cleaned up.
+  function cleanupOrphanSetupSessions(): void {
+    if (process.platform === 'win32') return;
+    try {
+      const output = execFileSync('tmux', ['list-sessions', '-F', '#{session_name}'], { encoding: 'utf-8' });
+      const setupSessions = output.trim().split('\n').filter(s => s.startsWith('opentidy-setup-'));
+      let cleaned = 0;
+      for (const session of setupSessions) {
+        try {
+          const status = execFileSync('tmux', ['display-message', '-t', session, '-p', '#{pane_dead}'], { encoding: 'utf-8' });
+          if (status.trim() === '1') {
+            execFileSync('tmux', ['kill-session', '-t', session], { stdio: 'ignore' });
+            cleaned++;
+          }
+        } catch {
+          // Session vanished between list and check
+        }
+      }
+      if (cleaned > 0) {
+        console.log(`[terminal] Cleaned up ${cleaned} dead setup session(s)`);
+      }
+    } catch {
+      // No tmux server or no sessions
+    }
+  }
+
+  // Kill orphaned agent process trees from previous backend runs.
+  // When tmux kill-session runs, Claude Code and its MCP children may survive
+  // the SIGHUP. These orphans keep running with no tmux session attached.
+  // We identify them by the --mcp-config flag pointing to our agent config dir.
+  function cleanupOrphanAgentProcesses(): void {
+    if (process.platform === 'win32') return;
+    try {
+      // Find claude processes using OpenTidy's mcp-config (these are ours)
+      const output = execFileSync('pgrep', ['-f', 'claude.*--mcp-config.*/opentidy/'], { encoding: 'utf-8' });
+      const pids = output.trim().split('\n').filter(Boolean).map(Number).filter(n => n > 1);
+
+      // Get active tmux pane PIDs — these are legitimate running sessions
+      let activePanePids = new Set<number>();
+      try {
+        const panes = execFileSync('tmux', ['list-panes', '-a', '-F', '#{pane_pid}'], { encoding: 'utf-8' });
+        activePanePids = new Set(panes.trim().split('\n').filter(Boolean).map(Number));
+      } catch {
+        // No tmux server
+      }
+
+      let cleaned = 0;
+      for (const pid of pids) {
+        // Check if this process or its parent is in an active tmux pane
+        let ppid: number | undefined;
+        try {
+          ppid = parseInt(execFileSync('ps', ['-p', String(pid), '-o', 'ppid='], { encoding: 'utf-8' }).trim(), 10);
+        } catch { continue; }
+
+        if (activePanePids.has(pid) || (ppid && activePanePids.has(ppid))) {
+          continue; // Still in an active session — don't touch
+        }
+
+        // Orphaned: kill the parent shell tree (zsh → claude → MCP children)
+        const treePid = ppid && ppid > 1 ? ppid : pid;
+        try {
+          // Kill children first, then parent
+          execFileSync('pkill', ['-TERM', '-P', String(treePid)], { stdio: 'ignore' });
+          process.kill(treePid, 'SIGTERM');
+          cleaned++;
+        } catch {
+          // Already dead
+        }
+      }
+      if (cleaned > 0) {
+        console.log(`[terminal] Cleaned up ${cleaned} orphaned agent process tree(s)`);
+      }
+    } catch {
+      // No matching processes — normal on fresh start
     }
   }
 
@@ -165,8 +244,27 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
     return { sessionName, port };
   }
 
-  // Clean up any orphan ttyd from previous runs on startup
+  // Clean up orphans from previous runs on startup
   cleanupOrphanTtyd();
+  cleanupOrphanSetupSessions();
+  cleanupOrphanAgentProcesses();
+
+  // Query the exit status of a command running in a tmux session (with remain-on-exit)
+  async function getSessionStatus(sessionName: string): Promise<{ running: boolean; exitCode?: number }> {
+    try {
+      const result = await execFile('tmux', [
+        'display-message', '-t', sessionName, '-p', '#{pane_dead} #{pane_dead_status}',
+      ]);
+      const parts = result.stdout.trim().split(' ');
+      if (parts[0] === '1') {
+        return { running: false, exitCode: parseInt(parts[1], 10) };
+      }
+      return { running: true };
+    } catch {
+      // Session doesn't exist or tmux error — treat as failed
+      return { running: false, exitCode: -1 };
+    }
+  }
 
   return {
     ensureReady: async (sessionName: string): Promise<number | undefined> => {
@@ -176,5 +274,6 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
     getPort: (sessionName: string) => getPort(sessionName),
     killTtyd,
     runCommand,
+    getSessionStatus,
   };
 }

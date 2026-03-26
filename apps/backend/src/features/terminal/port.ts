@@ -2,6 +2,8 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { Hono } from 'hono';
+import { existsSync } from 'fs';
+import { join } from 'path';
 import type { AppDeps } from '../../server.js';
 
 export function terminalPortRoute(deps: AppDeps) {
@@ -16,7 +18,7 @@ export function terminalPortRoute(deps: AppDeps) {
   });
 
   // POST /terminal/run — run a command in tmux+ttyd, returns port
-  // Accepts { module: "gmail" } (looks up authCommand) or { command: "..." } (direct)
+  // Accepts { module: "email" } (looks up authCommand) or { command: "..." } (direct)
   router.post('/terminal/run', async (c) => {
     if (!deps.terminal?.runCommand) {
       return c.json({ error: 'Terminal not available' }, 500);
@@ -30,7 +32,22 @@ export function terminalPortRoute(deps: AppDeps) {
       if (!manifest?.setup?.authCommand) {
         return c.json({ error: `No auth command for module "${body.module}"` }, 400);
       }
-      command = manifest.setup.authCommand;
+
+      // Resolve module directory for correct CWD
+      let moduleDir: string | undefined;
+      if (deps.modulePaths) {
+        const curatedDir = join(deps.modulePaths.curated, body.module);
+        const customDir = join(deps.modulePaths.custom, body.module);
+        if (existsSync(curatedDir)) moduleDir = curatedDir;
+        else if (existsSync(customDir)) moduleDir = customDir;
+      }
+
+      if (moduleDir) {
+        command = `cd '${moduleDir}' && ${manifest.setup.authCommand}`;
+      } else {
+        console.warn(`[terminal] Module directory not found for "${body.module}", running authCommand without CWD`);
+        command = manifest.setup.authCommand;
+      }
     } else if (body.command) {
       command = body.command;
     } else {
@@ -39,6 +56,12 @@ export function terminalPortRoute(deps: AppDeps) {
 
     console.log(`[terminal] POST /terminal/run: ${command}`);
     const result = await deps.terminal.runCommand(command);
+
+    // Track setup session so verify can check its exit status
+    if (body.module && deps.onModuleSetup) {
+      deps.onModuleSetup(body.module, result.sessionName);
+    }
+
     return c.json({ port: result.port, session: result.sessionName });
   });
 

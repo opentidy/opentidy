@@ -5,6 +5,9 @@ import { describe, it, expect, vi } from 'vitest';
 import { removeModuleRoute } from './remove.js';
 import type { OpenTidyConfig, ModuleManifest } from '@opentidy/shared';
 import type { ModuleRouteDeps } from './types.js';
+import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 
 function makeConfig(overrides: Partial<OpenTidyConfig> = {}): OpenTidyConfig {
   return {
@@ -29,6 +32,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -68,19 +72,41 @@ describe('removeModuleRoute', () => {
 
   it('returns 400 when trying to remove a curated module', async () => {
     const config = makeConfig({
-      modules: { gmail: { enabled: true, source: 'curated' } },
+      modules: { email: { enabled: true, source: 'curated' } },
     });
     const deps = makeDeps(config);
-    deps.manifests.set('gmail', {
-      name: 'gmail', label: 'Gmail', description: 'Gmail integration', version: '1.0.0',
+    deps.manifests.set('email', {
+      name: 'email', label: 'Email', description: 'Email integration', version: '1.0.0',
     });
 
     const app = removeModuleRoute(deps);
-    const res = await app.request('/modules/gmail', { method: 'DELETE' });
+    const res = await app.request('/modules/email', { method: 'DELETE' });
 
     expect(res.status).toBe(400);
     const body = await res.json() as any;
     expect(body.error).toBe('Cannot remove curated module');
+  });
+
+  it('cleans module data directory on removal', async () => {
+    const modulesDataDir = join(tmpdir(), `opentidy-test-remove-${Date.now()}`);
+    const moduleDataDir = join(modulesDataDir, 'my-plugin');
+    mkdirSync(moduleDataDir, { recursive: true });
+    writeFileSync(join(moduleDataDir, 'auth-token.json'), '{"token":"secret"}');
+
+    const config = makeConfig({
+      modules: { 'my-plugin': { enabled: false, source: 'custom' } },
+    });
+    const deps = makeDeps(config);
+    deps.paths = { customModules: '/tmp/custom', modulesData: modulesDataDir };
+    deps.manifests.set('my-plugin', {
+      name: 'my-plugin', label: 'My Plugin', description: 'Custom', version: '1.0.0',
+    });
+
+    const app = removeModuleRoute(deps);
+    const res = await app.request('/modules/my-plugin', { method: 'DELETE' });
+
+    expect(res.status).toBe(200);
+    expect(existsSync(moduleDataDir)).toBe(false);
   });
 
   it('returns 404 for unknown module', async () => {

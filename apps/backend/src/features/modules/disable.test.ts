@@ -29,6 +29,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -39,11 +40,11 @@ describe('disableModuleRoute', () => {
     const deps = makeDeps();
 
     const app = disableModuleRoute(deps);
-    const res = await app.request('/modules/gmail/disable', { method: 'POST' });
+    const res = await app.request('/modules/email/disable', { method: 'POST' });
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ success: true });
-    expect(deps.lifecycle.disable).toHaveBeenCalledWith('gmail');
+    expect(deps.lifecycle.disable).toHaveBeenCalledWith('email', false);
   });
 
   it('calls lifecycle.disable even for unknown modules (idempotent)', async () => {
@@ -53,6 +54,6 @@ describe('disableModuleRoute', () => {
     const res = await app.request('/modules/unknown/disable', { method: 'POST' });
 
     expect(res.status).toBe(200);
-    expect(deps.lifecycle.disable).toHaveBeenCalledWith('unknown');
+    expect(deps.lifecycle.disable).toHaveBeenCalledWith('unknown', false);
   });
 });

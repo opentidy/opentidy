@@ -4,7 +4,6 @@
 export { setupUserInfo } from './user-info.js';
 export { setupTelegram } from './telegram.js';
 export { setupAuth } from './auth.js';
-export { setupGmail } from './gmail.js';
 export { setupCamoufox } from './camoufox.js';
 export { setupWhatsApp } from './whatsapp.js';
 export { setupClaude, generateClaudeSettings, generateClaudeMd } from './claude.js';

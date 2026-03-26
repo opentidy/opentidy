@@ -8,10 +8,11 @@ echo "=== OpenTidy MCP Server Setup ==="
 echo "This configures MCP servers that Claude sessions use for job work."
 echo ""
 
-# Gmail MCP
-echo "1. Gmail MCP Server"
-echo "   Install: claude mcp add gmail -- npx @anthropic-ai/gmail-mcp"
-echo "   Requires: Google OAuth credentials"
+# Email (himalaya)
+echo "1. Email Module (himalaya)"
+echo "   The email module uses himalaya CLI for reading, searching, and sending emails."
+echo "   Install himalaya: brew install himalaya"
+echo "   Configure: himalaya account configure"
 echo ""
 
 # Camoufox MCP — anti-detection browser
