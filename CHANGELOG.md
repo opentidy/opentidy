@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.5](https://github.com/opentidy/opentidy/compare/v0.0.4...v0.0.5) (2026-03-26)
+
+
+### Features
+
+* add --uninstall flag to install.sh ([f80bf45](https://github.com/opentidy/opentidy/commit/f80bf4522f7c2b55486204a479aadef764263b11))
+
+
+### Bug Fixes
+
+* **backend:** detect Accessibility permission without Full Disk Access ([019e337](https://github.com/opentidy/opentidy/commit/019e337076e66fce9aaff48fc74ef378d38595c3))
+* wrap install.sh in main() to prevent stdin consumption by brew ([2d52b38](https://github.com/opentidy/opentidy/commit/2d52b383b4269c64b0522564339b710928b40e74))
+
 ## [0.0.4](https://github.com/opentidy/opentidy/compare/v0.0.3...v0.0.4) (2026-03-26)
 
 
