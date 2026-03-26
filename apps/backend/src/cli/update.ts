@@ -75,7 +75,19 @@ function gitUpdate(installDir: string): void {
     try {
       execFileSync('pkill', ['-f', 'node.*dist/cli.js.*start'], { timeout: 5_000 });
     } catch { /* process may not be running */ }
-    console.log('  Done. Run `opentidy start` to restart.\n');
+    // LaunchAgent (KeepAlive=true) will auto-restart the server
+    // Wait for health check
+    console.log('  Waiting for server...');
+    const port = process.env.OPENTIDY_PORT || '5175';
+    for (let i = 0; i < 10; i++) {
+      try {
+        execFileSync('curl', ['-sf', `http://localhost:${port}/api/health`], { timeout: 3_000, stdio: 'pipe' });
+        console.log('  ✓ Server is up\n');
+        return;
+      } catch { /* retry */ }
+      execFileSync('sleep', ['2']);
+    }
+    console.log('  Server did not come back up. Check: opentidy logs\n');
   } catch (err) {
     console.error('  Git update failed:', err instanceof Error ? err.message : err);
     process.exit(1);
