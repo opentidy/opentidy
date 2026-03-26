@@ -54,7 +54,7 @@ export function Hero() {
           className="animate-fade-in-up mx-auto mt-8 max-w-2xl text-lg leading-relaxed text-zinc-400 sm:text-xl"
           style={{ animationDelay: "0.2s" }}
         >
-          OpenTidy manages your admin tasks autonomously — emails, forms,
+          OpenTidy manages your admin tasks autonomously: emails, forms,
           invoices, follow-ups. It runs 24/7 in the background and only pings
           you when it genuinely needs your input.
         </p>
@@ -102,7 +102,7 @@ export function Hero() {
           style={{ animationDelay: "0.4s" }}
         >
           <span className="text-zinc-500">$</span>
-          <span className="text-zinc-300">brew install opentidy/opentidy/opentidy</span>
+          <span className="text-zinc-300">curl -fsSL https://opentidy.com/install.sh | bash</span>
         </div>
       </div>
 

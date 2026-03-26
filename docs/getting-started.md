@@ -11,14 +11,13 @@ This guide walks you through installing OpenTidy, running the setup wizard, and 
 
 ## Installation
 
-### Via Homebrew (recommended)
+### One-line install (recommended)
 
 ```bash
-brew tap opentidy/opentidy
-brew install opentidy
+curl -fsSL https://opentidy.com/install.sh | bash
 ```
 
-This installs the `opentidy` CLI and all dependencies.
+This handles everything: Homebrew, Node.js 22, dependencies, build, LaunchAgent, and starts the server. Safe to re-run.
 
 ### From source
 
@@ -53,7 +52,7 @@ You'll need:
 
 #### 2. API Authentication
 
-A bearer token is auto-generated for securing the API. Save it — you'll need it for the web dashboard.
+A bearer token is auto-generated for securing the API. Save it; you'll need it for the web dashboard.
 
 #### 3. Claude Code
 
@@ -110,7 +109,7 @@ Once OpenTidy is running, open the web dashboard (default: `http://localhost:517
 
 1. Click **New Task** in the dashboard
 2. Describe what you want done, e.g.: *"Check my inbox for unpaid invoices from the last 3 months and list them"*
-3. Optionally enable **Confirm mode** — Claude will ask for approval before any external action (sending emails, submitting forms)
+3. Optionally enable **Confirm mode**, which makes Claude ask for approval before any external action (sending emails, submitting forms)
 4. Submit
 
 OpenTidy creates a workspace directory, generates an initial `state.md`, and launches an autonomous Claude Code session.
@@ -119,7 +118,7 @@ OpenTidy creates a workspace directory, generates an initial `state.md`, and lau
 
 - Claude works autonomously in the background
 - The dashboard shows live progress via real-time updates
-- If Claude needs your input, it creates a **checkpoint** — you'll get a Telegram notification with a link to the dashboard
+- If Claude needs your input, it creates a **checkpoint**. You'll get a Telegram notification with a link to the dashboard
 - When done, the task status changes to **completed**
 
 ### Taking over
@@ -127,9 +126,9 @@ OpenTidy creates a workspace directory, generates an initial `state.md`, and lau
 If you want to interact directly with Claude on a task:
 
 1. Open the task in the dashboard
-2. Click **Take Over** — this switches from autonomous mode to an interactive terminal
+2. Click **Take Over**. This switches from autonomous mode to an interactive terminal
 3. Talk to Claude directly in the embedded terminal
-4. When done, click **Hand Back** — Claude resumes autonomous work
+4. When done, click **Hand Back**. Claude resumes autonomous work
 
 ## CLI commands
 
@@ -145,6 +144,6 @@ If you want to interact directly with Claude on a task:
 
 ## Next steps
 
-- [Configuration](configuration.md) — all configuration options explained
-- [Architecture](architecture.md) — how OpenTidy works under the hood
-- [Security](security.md) — security model and hooks system
+- [Configuration](configuration.md): all configuration options explained
+- [Architecture](architecture.md): how OpenTidy works under the hood
+- [Security](security.md): security model and hooks system

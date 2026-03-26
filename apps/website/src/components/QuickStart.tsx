@@ -2,14 +2,19 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 const lines = [
-  { prompt: true, text: "brew tap opentidy/opentidy" },
-  { prompt: true, text: "brew install opentidy" },
+  { prompt: true, text: "curl -fsSL https://opentidy.com/install.sh | bash" },
+  { prompt: false, text: "  ✓ Homebrew ready" },
+  { prompt: false, text: "  ✓ Node.js v22.14.0" },
+  { prompt: false, text: "  ✓ Dependencies ready" },
+  { prompt: false, text: "  ✓ Build complete" },
+  { prompt: false, text: "  ✓ Service started" },
+  { prompt: false, text: "" },
+  { prompt: false, text: "  OpenTidy is running." },
+  { prompt: false, text: "    http://localhost:5175" },
   { prompt: true, text: "opentidy setup" },
-  { prompt: false, text: "✓ Telegram configured" },
-  { prompt: false, text: "✓ Claude Code authenticated" },
-  { prompt: false, text: "✓ Webhooks connected" },
-  { prompt: true, text: "opentidy start" },
-  { prompt: false, text: "OpenTidy is running. Dashboard → http://localhost:5175" },
+  { prompt: false, text: "  ✓ Telegram configured" },
+  { prompt: false, text: "  ✓ Claude Code authenticated" },
+  { prompt: false, text: "  ✓ Modules installed" },
 ];
 
 export function QuickStart() {
