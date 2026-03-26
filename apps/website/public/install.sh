@@ -5,7 +5,10 @@
 # OpenTidy installer
 # Usage: curl -fsSL https://opentidy.com/install.sh | bash
 #
-# Installs OpenTidy via Homebrew, starts the service, opens the dashboard.
+# Wrapped in main() so the entire script is downloaded before execution.
+# Without this, `curl | bash` streams and brew can consume stdin.
+
+main() {
 set -euo pipefail
 
 # --- Color helpers ---
@@ -83,3 +86,6 @@ dim "opentidy stop    — stop the service"
 dim "opentidy update  — check for updates"
 dim "opentidy logs    — tail logs"
 printf "\n"
+}
+
+main
