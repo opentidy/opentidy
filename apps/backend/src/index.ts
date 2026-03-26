@@ -32,6 +32,7 @@ import { createSpawnAgent } from './shared/spawn-agent.js';
 import { resolveAgent } from './shared/agents/index.js';
 import { createGitHubIssueManager } from './features/ameliorations/github-issue.js';
 import { createScheduler } from './features/scheduler/scheduler.js';
+import { createUpdater } from './shared/updater.js';
 import { createMcpServer } from './features/mcp-server/server.js';
 import { createDynamicToolRegistry } from './features/mcp-server/dynamic-tools.js';
 import { resolveProvider as resolveSearchProvider } from './features/modules/search-provider.js';
@@ -417,6 +418,30 @@ const configuredScanInterval = config.preferences?.scanInterval ?? '2h';
 const checkupIntervalMs = configuredScanInterval === 'disabled' ? 0 : (SCAN_INTERVAL_MAP[configuredScanInterval] ?? 7_200_000);
 const scheduler = createScheduler({ db, launcher, checkup, locks, sse, checkupIntervalMs });
 
+// Auto-updater: checks GitHub Releases periodically
+const updater = config.update?.autoUpdate !== false
+  ? createUpdater({
+      currentVersion: getVersion(),
+      repoOwner: 'opentidy',
+      repoName: 'opentidy',
+      checkInterval: config.update?.checkInterval ?? '6h',
+      autoUpdate: true,
+      notifyBeforeUpdate: config.update?.notifyBeforeUpdate ?? true,
+      delayBeforeUpdate: config.update?.delayBeforeUpdate ?? '5m',
+      sendTelegram: (text) => notify.notifyAction('system', text),
+      updaterScriptPath: path.resolve(import.meta.dirname, '../../../opentidy-updater.sh'),
+      telegramBotToken: TELEGRAM_TOKEN,
+      telegramChatId: TELEGRAM_CHAT_ID,
+    })
+  : null;
+
+if (updater) {
+  updater.start();
+  console.log('[opentidy] Auto-updater enabled');
+} else {
+  console.log('[opentidy] Auto-updater disabled (config.update.autoUpdate = false)');
+}
+
 // MCP server: embedded in Hono, exposes schedule/suggestion/gap/module tools
 const mcpServer = createMcpServer({
   scheduler,
@@ -565,6 +590,7 @@ const periodic = startPeriodicTasks({
 // Graceful shutdown: clean up resources on SIGTERM/SIGINT
 function gracefulShutdown(signal: string): void {
   console.log(`[opentidy] ${signal} received, shutting down gracefully...`);
+  updater?.stop();
   moduleLifecycle.stopAll().catch(() => {});
   periodic.stop();
   server.close(() => {
