@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { ModuleRouteDeps } from './types.js';
-import { runCheckCommand } from './checks.js';
+import { runCheckCommand, installCliDeps } from './checks.js';
 
 export function verifyModuleRoute(deps: ModuleRouteDeps) {
   const app = new Hono();
@@ -33,9 +33,13 @@ export function verifyModuleRoute(deps: ModuleRouteDeps) {
       }
     }
 
+    // Auto-install CLI dependencies before checking
+    if (manifest.cli?.length) {
+      installCliDeps(manifest.cli);
+    }
+
     const checkCommand = manifest.setup?.checkCommand;
     if (!checkCommand) {
-      // No check command, assume ready
       return c.json({ ready: true });
     }
 

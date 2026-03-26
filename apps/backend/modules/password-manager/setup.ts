@@ -51,12 +51,19 @@ function verifyPassword(masterPassword: string): boolean {
 async function main(): Promise<void> {
   console.log('\n🔐 Password Manager Setup\n');
 
-  // Step 1: Check bw CLI
+  // Step 1: Check bw CLI, auto-install if missing
   try {
     execFileSync('bw', ['--version'], { encoding: 'utf-8' });
+    console.log('✓ Bitwarden CLI found');
   } catch {
-    console.error('❌ Bitwarden CLI (bw) not found. Install it: brew install bitwarden-cli');
-    process.exit(1);
+    console.log('→ Bitwarden CLI (bw) not found, installing via Homebrew...');
+    try {
+      execFileSync('brew', ['install', 'bitwarden-cli'], { stdio: 'inherit', timeout: 120_000 });
+      console.log('✓ Bitwarden CLI installed');
+    } catch {
+      console.error('❌ Failed to install Bitwarden CLI. Install manually: brew install bitwarden-cli');
+      process.exit(1);
+    }
   }
 
   // Step 2: Check login status
