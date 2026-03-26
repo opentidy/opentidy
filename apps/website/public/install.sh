@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2026 Loaddr Ltd
 
-# OpenTidy installer
-# Usage: curl -fsSL https://opentidy.com/install.sh | bash
+# OpenTidy installer / uninstaller
+# Install:    curl -fsSL https://opentidy.com/install.sh | bash
+# Uninstall:  curl -fsSL https://opentidy.com/install.sh | bash -s -- --uninstall
 #
 # Wrapped in main() so the entire script is downloaded before execution.
-# Without this, `curl | bash` streams and brew can consume stdin.
 
 main() {
 set -euo pipefail
@@ -17,10 +17,33 @@ ok()   { printf "\033[32m  ✓ %s\033[0m\n" "$*"; }
 dim()  { printf "\033[90m    %s\033[0m\n" "$*"; }
 warn() { printf "\033[33m  ! %s\033[0m\n" "$*"; }
 
-printf "\n\033[1m  OpenTidy\033[0m\n\n"
-
 # --- PATH setup ---
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$PATH"
+
+# --- Uninstall ---
+if [ "${1:-}" = "--uninstall" ]; then
+  printf "\n\033[1m  OpenTidy — Uninstall\033[0m\n\n"
+
+  log "Stopping service..."
+  brew services stop opentidy 2>/dev/null || true
+  ok "Service stopped"
+
+  log "Uninstalling..."
+  brew uninstall --force opentidy 2>/dev/null || true
+  brew untap opentidy/opentidy 2>/dev/null || true
+  rm -rf /opt/homebrew/Cellar/opentidy ~/Library/Caches/Homebrew/opentidy* 2>/dev/null || true
+  ok "Homebrew package removed"
+
+  log "Removing config..."
+  rm -rf ~/.config/opentidy 2>/dev/null || true
+  ok "Config removed"
+
+  printf "\n\033[1m  OpenTidy uninstalled.\033[0m\n\n"
+  return 0
+fi
+
+# --- Install ---
+printf "\n\033[1m  OpenTidy\033[0m\n\n"
 
 # --- Homebrew ---
 log "Checking Homebrew..."
@@ -88,4 +111,4 @@ dim "opentidy logs    — tail logs"
 printf "\n"
 }
 
-main
+main "$@"
