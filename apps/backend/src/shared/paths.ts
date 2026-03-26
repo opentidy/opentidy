@@ -12,10 +12,10 @@ export interface OpenTidyPaths {
   cache: string;    // ~/.cache/opentidy (Linux) or ~/Library/Caches/opentidy (macOS)
   temp: string;           // $TMPDIR/opentidy or /tmp/opentidy (Unix) or %TEMP%\opentidy (Windows)
   lockDir: string;        // temp/locks
-  customModules: string;  // config/modules — user-created modules
+  customModules: string;  // config/modules (user-created modules)
 }
 
-// env-paths is computed at module load — env overrides are read per-call in getOpenTidyPaths()
+// env-paths is computed at module load. Env overrides are read per-call in getOpenTidyPaths()
 const defaults = envPaths('opentidy', { suffix: '' });
 
 // Override config path: always use ~/.config/opentidy/ (XDG standard)

@@ -4,7 +4,7 @@
 
 **Goal:** Replace `--dangerously-skip-permissions` and mini-Claude hooks with a deterministic, human-controlled permission system where each module declares its tool risk levels and the user chooses how to handle them.
 
-**Architecture:** Each module manifest declares `safe` vs `critical` tools with a scope (`per-call`/`per-task`). The user sets a permission level per module (`allow`/`confirm`/`ask`). At session launch, the backend builds `--allowedTools` dynamically and generates a single PreToolUse hook that calls `POST /api/permissions/check`. For `confirm`-level tools, the hook blocks until the user approves via notification. No AI in the decision loop — AI only summarizes actions for human-readable notifications.
+**Architecture:** Each module manifest declares `safe` vs `critical` tools with a scope (`per-call`/`per-task`). The user sets a permission level per module (`allow`/`confirm`/`ask`). At session launch, the backend builds `--allowedTools` dynamically and generates a single PreToolUse hook that calls `POST /api/permissions/check`. For `confirm`-level tools, the hook blocks until the user approves via notification. No AI in the decision loop. AI only summarizes actions for human-readable notifications.
 
 **Tech Stack:** TypeScript, Hono, Zod, React 19, Tailwind CSS v4, Vitest
 
@@ -156,7 +156,7 @@ git commit -m "feat(shared): add permission types and schemas for unified permis
 }
 ```
 
-- [ ] **Step 5: iMessage has no MCP tools (receiver only) — skip**
+- [ ] **Step 5: iMessage has no MCP tools (receiver only), skip**
 
 iMessage module has no mcpServers, only a receiver. No toolPermissions needed.
 
@@ -214,7 +214,7 @@ describe('PermissionState', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- src/features/permissions/state.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement permission state**
 
@@ -354,7 +354,7 @@ describe('PermissionResolver', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- src/features/permissions/resolver.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement permission resolver**
 
@@ -415,7 +415,7 @@ export function createPermissionResolver(
       }
     }
 
-    // Completely unknown tool — fail-safe: confirm per-call
+    // Completely unknown tool, fail-safe: confirm per-call
     return { level: config.defaultLevel, scope: 'per-call', moduleName: null };
   }
 
@@ -592,7 +592,7 @@ describe('PermissionChecker', () => {
 - [ ] **Step 3: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- src/features/permissions/check.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 4: Implement permission checker**
 
@@ -626,12 +626,12 @@ export function createPermissionChecker(deps: PermissionCheckDeps) {
     // Ask level should never reach this endpoint (tool not in allowedTools → agent CLI prompts)
     // Defensive: deny if it somehow does
     if (level === 'ask') {
-      console.warn(`[permissions] ask-level tool ${toolName} reached check endpoint — denying`);
+      console.warn(`[permissions] ask-level tool ${toolName} reached check endpoint, denying`);
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'ask-denied' });
       return 'deny';
     }
 
-    // Confirm level — check per-task grant first
+    // Confirm level, check per-task grant first
     if (scope === 'per-task' && moduleName && deps.state.isGranted(taskId, moduleName)) {
       console.log(`[permissions] ${toolName} → already granted for task ${taskId}`);
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'task-granted' });
@@ -869,7 +869,7 @@ describe('ApprovalManager', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- src/features/permissions/approval.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement approval manager**
 
@@ -1001,12 +1001,12 @@ interface RespondDeps {
 export function permissionRespondRoute(deps: RespondDeps) {
   const router = new Hono();
 
-  // GET /permissions/pending — list pending approvals (for web UI)
+  // GET /permissions/pending, list pending approvals (for web UI)
   router.get('/permissions/pending', (c) => {
     return c.json({ pending: deps.approvalManager.listPending() });
   });
 
-  // POST /permissions/:id/approve — approve a pending request
+  // POST /permissions/:id/approve, approve a pending request
   router.post('/permissions/:id/approve', (c) => {
     const id = c.req.param('id');
     const found = deps.approvalManager.respond(id, true);
@@ -1015,7 +1015,7 @@ export function permissionRespondRoute(deps: RespondDeps) {
     return c.json({ ok: true });
   });
 
-  // POST /permissions/:id/deny — deny a pending request
+  // POST /permissions/:id/deny, deny a pending request
   router.post('/permissions/:id/deny', (c) => {
     const id = c.req.param('id');
     const found = deps.approvalManager.respond(id, false);
@@ -1052,7 +1052,7 @@ git commit -m "feat(backend): add approval response routes for web and Telegram"
 - Modify: `apps/backend/src/shared/agents/claude.test.ts`
 - Modify: `packages/shared/src/types.ts` (SpawnOpts, SetupOpts)
 
-- [ ] **Step 1: Update SpawnOpts — remove skipPermissions**
+- [ ] **Step 1: Update SpawnOpts, remove skipPermissions**
 
 In `packages/shared/src/types.ts`, remove `skipPermissions` from `SpawnOpts`:
 
@@ -1066,11 +1066,11 @@ export interface SpawnOpts {
   allowedTools?: string[];
   outputFormat?: 'text' | 'json' | 'stream-json';
   pluginDir?: string;
-  // skipPermissions removed — replaced by allowedTools
+  // skipPermissions removed, replaced by allowedTools
 }
 ```
 
-- [ ] **Step 2: Update SetupOpts — replace guardrails with permissions**
+- [ ] **Step 2: Update SetupOpts, replace guardrails with permissions**
 
 ```typescript
 export interface SetupOpts {
@@ -1111,7 +1111,7 @@ writeConfig(opts: SetupOpts): void {
       hooks: [{
         type: 'command',
         command: `curl -s -X POST http://localhost:${opts.serverPort}/api/permissions/check -H 'Content-Type: application/json' -d @-`,
-        timeout: 3_600_000, // 1h — zombie guard, not a perf constraint (matches agent timeout convention)
+        timeout: 3_600_000, // 1h; zombie guard, not a perf constraint (matches agent timeout convention)
       }],
     }];
   }
@@ -1235,9 +1235,9 @@ git commit -m "refactor(backend): use allowedTools instead of skipPermissions in
 ### Task 11: Remove old guardrails system
 
 **Files:**
-- Modify: `plugins/opentidy-hooks/guardrails.json` — replace content with deprecation notice
-- Modify: `packages/shared/src/types.ts` — mark GuardrailRule as deprecated
-- Modify: `apps/backend/src/features/hooks/handler.ts` — update PreToolUse handler
+- Modify: `plugins/opentidy-hooks/guardrails.json`, replace content with deprecation notice
+- Modify: `packages/shared/src/types.ts`, mark GuardrailRule as deprecated
+- Modify: `apps/backend/src/features/hooks/handler.ts`, update PreToolUse handler
 
 - [ ] **Step 1: Deprecate GuardrailRule type**
 
@@ -1319,7 +1319,7 @@ interface ConfigRouteDeps {
 export function permissionConfigRoute(deps: ConfigRouteDeps) {
   const router = new Hono();
 
-  // GET /permissions/config — current config + available modules with their tool info
+  // GET /permissions/config, current config + available modules with their tool info
   router.get('/permissions/config', (c) => {
     const config = deps.loadConfig();
     const modules = Array.from(deps.manifests.values())
@@ -1333,7 +1333,7 @@ export function permissionConfigRoute(deps: ConfigRouteDeps) {
     return c.json({ permissions: config.permissions, modules });
   });
 
-  // PUT /permissions/config — update config (preset or per-module overrides)
+  // PUT /permissions/config, update config (preset or per-module overrides)
   router.put('/permissions/config', async (c) => {
     const body = await c.req.json();
     const parsed = PermissionConfigSchema.safeParse(body);
@@ -1346,7 +1346,7 @@ export function permissionConfigRoute(deps: ConfigRouteDeps) {
     return c.json({ ok: true });
   });
 
-  // POST /permissions/preset — apply a preset (resets all modules to preset default)
+  // POST /permissions/preset, apply a preset (resets all modules to preset default)
   router.post('/permissions/preset', async (c) => {
     const { preset } = await c.req.json() as { preset: PermissionPreset };
     const defaultLevel = PRESET_DEFAULTS[preset];
@@ -1386,7 +1386,7 @@ git commit -m "feat(backend): add permission config API routes (GET/PUT config, 
 
 ---
 
-### Task 13: Setup wizard — permissions mode step
+### Task 13: Setup wizard: permissions mode step
 
 **Files:**
 - Create: `apps/web/src/features/setup/PermissionsModeStep.tsx`
@@ -1511,7 +1511,7 @@ git commit -m "feat(web): add permissions mode step to setup wizard"
 
 ---
 
-### Task 14: Settings UI — permissions panel
+### Task 14: Settings UI: permissions panel
 
 **Files:**
 - Create: `apps/web/src/features/settings/PermissionsPanel.tsx`
@@ -1723,7 +1723,7 @@ const permissionChecker = createPermissionChecker({
 
 Add `permissionChecker`, `approvalManager`, and permission resolver to the deps object passed to the server.
 
-- [ ] **Step 3: Clean up session end — revoke per-task grants + cancel pending approvals**
+- [ ] **Step 3: Clean up session end; revoke per-task grants + cancel pending approvals**
 
 In the session end handler, add:
 
@@ -1749,9 +1749,9 @@ git commit -m "feat(backend): wire permission system in boot and server"
 ### Task 16: Update docs
 
 **Files:**
-- Modify: `docs/security.md` — already updated earlier in this conversation
-- Modify: `docs/specification.md` — already updated earlier in this conversation
-- Modify: `CLAUDE.md` — update permission model description
+- Modify: `docs/security.md`; already updated earlier in this conversation
+- Modify: `docs/specification.md`; already updated earlier in this conversation
+- Modify: `CLAUDE.md`, update permission model description
 
 - [ ] **Step 1: Update CLAUDE.md guardrails section**
 
@@ -1770,19 +1770,19 @@ git commit -m "docs: update security and spec docs for unified permission system
 
 | Task | Description | New files | Modified files |
 |------|-------------|-----------|---------------|
-| 1 | Shared types & schemas | — | 2 |
-| 2 | Module manifest toolPermissions | — | 5 |
-| 3 | Permission state (per-task grants) | 2 | — |
-| 4 | Permission resolver (manifest lookup) | 2 | — |
-| 5 | Permission check endpoint | 3 | — |
+| 1 | Shared types & schemas |, | 2 |
+| 2 | Module manifest toolPermissions |, | 5 |
+| 3 | Permission state (per-task grants) | 2 |, |
+| 4 | Permission resolver (manifest lookup) | 2 |, |
+| 5 | Permission check endpoint | 3 |, |
 | 6 | Permission check HTTP route | 1 | 1 |
-| 7 | Approval manager | 2 | — |
+| 7 | Approval manager | 2 |, |
 | 8 | Approval response routes | 1 | 1 |
-| 9 | Update Claude adapter | — | 3 |
-| 10 | Update session launch | — | 2 |
-| 11 | Remove old guardrails | — | 3 |
+| 9 | Update Claude adapter |, | 3 |
+| 10 | Update session launch |, | 2 |
+| 11 | Remove old guardrails |, | 3 |
 | 12 | Permission config API | 1 | 1 |
 | 13 | Setup wizard step | 1 | 3 |
 | 14 | Settings UI panel | 1 | 3 |
-| 15 | Wire in bootstrap | — | 2 |
-| 16 | Update docs | — | 3 |
+| 15 | Wire in bootstrap |, | 2 |
+| 16 | Update docs |, | 3 |

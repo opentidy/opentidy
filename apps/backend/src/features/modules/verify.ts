@@ -8,7 +8,7 @@ import { runCheckCommand } from './checks.js';
 export function verifyModuleRoute(deps: ModuleRouteDeps) {
   const app = new Hono();
 
-  // POST /modules/:name/verify — run checkCommand to verify module is installed
+  // POST /modules/:name/verify: run checkCommand to verify module is installed
   app.post('/modules/:name/verify', async (c) => {
     const name = c.req.param('name');
     console.log(`[modules] POST /modules/${name}/verify`);
@@ -35,7 +35,7 @@ export function verifyModuleRoute(deps: ModuleRouteDeps) {
 
     const checkCommand = manifest.setup?.checkCommand;
     if (!checkCommand) {
-      // No check command — assume ready
+      // No check command, assume ready
       return c.json({ ready: true });
     }
 

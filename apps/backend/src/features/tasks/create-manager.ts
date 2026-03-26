@@ -14,7 +14,7 @@ export function createTaskManager(workspaceDir: string) {
     const displayTitle = title || id;
     const stateMd = `# ${displayTitle}\n\nSTATUS : IN_PROGRESS\n\n## Objective\n${instruction}\n\n## Log\n- ${now} : Created\n`;
     fs.writeFileSync(path.join(dir, 'state.md'), stateMd);
-    console.log(`[workspace] task created: ${id} — "${displayTitle}"`);
+    console.log(`[workspace] task created: ${id}, "${displayTitle}"`);
   }
 
   function createTaskFromSuggestion(slug: string, instruction?: string): void {

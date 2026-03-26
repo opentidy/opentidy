@@ -12,7 +12,7 @@ test.describe('E2E-APP-06: Tasks page shows list with filters', () => {
     // Page title
     await expect(page.getByRole('heading', { name: 'Tasks' })).toBeVisible();
 
-    // Filter buttons with counts — EN COURS = 2, TERMINE = 1, BLOQUE = 1
+    // Filter buttons with counts: EN COURS = 2, TERMINE = 1, BLOQUE = 1
     // Note: status uses TERMINE (no accent) in mock data
     await expect(page.getByRole('button', { name: /Actifs \(2\)/ })).toBeVisible();
     await expect(page.getByRole('button', { name: /Bloques \(1\)/ })).toBeVisible();

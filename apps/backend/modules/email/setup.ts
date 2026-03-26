@@ -96,7 +96,7 @@ const PROVIDERS: Record<string, ProviderConfig> = {
   },
 };
 
-// Single shared readline interface — creating multiple causes stdin issues in tmux/ttyd
+// Single shared readline interface (creating multiple causes stdin issues in tmux/ttyd)
 const rl = createInterface({ input: process.stdin, output: process.stderr });
 
 function prompt(question: string): Promise<string> {
@@ -161,7 +161,7 @@ async function main(): Promise<void> {
   console.log('\n📧 Email Setup\n');
 
   // Step 1: Check himalaya
-  // tmux sessions may not have Homebrew in PATH — check common locations
+  // tmux sessions may not have Homebrew in PATH; check common locations
   const brewPaths = ['/opt/homebrew/bin', '/usr/local/bin'];
   const envPath = [process.env.PATH, ...brewPaths].filter(Boolean).join(':');
   const execOpts = { encoding: 'utf-8' as const, env: { ...process.env, PATH: envPath } };
@@ -236,7 +236,7 @@ async function main(): Promise<void> {
     console.error('❌ No password entered');
     process.exit(1);
   }
-  // Gmail app passwords are displayed with spaces (e.g. "dfwj vokc jarq mcuv") — strip them
+  // Gmail app passwords are displayed with spaces (e.g. "dfwj vokc jarq mcuv"), strip them
   const appPassword = rawPassword.replace(/\s+/g, '');
 
   // Step 5: Store password in macOS Keychain

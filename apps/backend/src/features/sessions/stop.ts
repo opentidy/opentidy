@@ -8,7 +8,7 @@ import type { AppDeps } from '../../server.js';
 export function stopSessionRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /session/:id/stop — force stop a session
+  // POST /session/:id/stop: force stop a session
   router.post('/session/:id/stop', async (c) => {
     const id = c.req.param('id');
     await deps.launcher.archiveSession(id);

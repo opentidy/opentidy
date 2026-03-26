@@ -2,18 +2,18 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `opentidy setup` configure all MCP servers (Gmail, Camoufox, WhatsApp), user identity, and generate the agent's Claude config dynamically — so agents have full capabilities out of the box.
+**Goal:** Make `opentidy setup` configure all MCP servers (Gmail, Camoufox, WhatsApp), user identity, and generate the agent's Claude config dynamically; so agents have full capabilities out of the box.
 
 **Architecture:** Each MCP service gets its own setup module (install check, auth flow, config storage). The existing `setupClaude` module is refactored to **generate** `settings.json` dynamically from config rather than copying a static template. User info (name, email, company, language) is collected early and injected into the CLAUDE.md template at generation time.
 
-**Tech Stack:** TypeScript, Node.js child_process (execFileSync only — no exec), readline, Vitest
+**Tech Stack:** TypeScript, Node.js child_process (execFileSync only, no exec), readline, Vitest
 
 ---
 
 ## Context
 
 ### Current state
-- `apps/backend/config/claude/settings.json` — static template with permissions only, NO `mcpServers`
+- `apps/backend/config/claude/settings.json`: static template with permissions only, NO `mcpServers`
 - Agents inherit MCP servers from user's personal `~/.claude/settings.json` (works on dev machine, breaks for anyone else)
 - `setupClaude` copies template files verbatim to `~/.config/opentidy/claude-config/`
 - CLAUDE.md template has placeholder comments like `(configured during setup)` for user info
@@ -27,7 +27,7 @@
 
 ### How Claude sessions use config
 - `CLAUDE_CONFIG_DIR` env var set at spawn time in `spawn-claude.ts`
-- `--strict-mcp-config --mcp-config '{}'` blocks cloud MCP from claude.ai account. `settings.json` in `CLAUDE_CONFIG_DIR` provides the actual MCP servers (additive — `--mcp-config` overrides, `settings.json` is the base).
+- `--strict-mcp-config --mcp-config '{}'` blocks cloud MCP from claude.ai account. `settings.json` in `CLAUDE_CONFIG_DIR` provides the actual MCP servers (additive: `--mcp-config` overrides, `settings.json` is the base).
 - `--plugin-dir plugins/opentidy-hooks` hooks loaded via plugin flag
 
 ### MCP servers needed
@@ -39,9 +39,9 @@
 | WhatsApp | `wacli` CLI or `uv run server.py` (mcp-wacli) | QR code | P2 (optional) |
 
 ### Test conventions
-- Mock `ask()` with `vi.mocked(ask).mockResolvedValueOnce(...)` — one call per expected prompt, in order
+- Mock `ask()` with `vi.mocked(ask).mockResolvedValueOnce(...)`, one call per expected prompt, in order
 - Mock `run()` with `vi.mocked(run).mockReturnValue(...)` for shell commands
-- Mock `execFileSync` for subprocess calls (never use `exec` — command injection risk)
+- Mock `execFileSync` for subprocess calls (never use `exec`, command injection risk)
 - Always clean up `process.env.OPENTIDY_CONFIG_PATH` in `afterEach`
 - Use `os.homedir()` instead of `process.env.HOME || '~'` (tilde not expanded by Node.js)
 
@@ -50,27 +50,27 @@
 ## File Structure
 
 ### New files
-- `apps/backend/src/cli/setup/user-info.ts` — collect name, email, company, language
-- `apps/backend/src/cli/setup/gmail.ts` — Gmail MCP setup (npx + OAuth)
-- `apps/backend/src/cli/setup/whatsapp.ts` — WhatsApp setup (wacli check + auth)
-- `apps/backend/src/cli/setup/camoufox.ts` — Camoufox MCP setup (npx check + wrapper)
+- `apps/backend/src/cli/setup/user-info.ts`: collect name, email, company, language
+- `apps/backend/src/cli/setup/gmail.ts`: Gmail MCP setup (npx + OAuth)
+- `apps/backend/src/cli/setup/whatsapp.ts`: WhatsApp setup (wacli check + auth)
+- `apps/backend/src/cli/setup/camoufox.ts`: Camoufox MCP setup (npx check + wrapper)
 - `apps/backend/tests/cli/setup/user-info.test.ts`
 - `apps/backend/tests/cli/setup/gmail.test.ts`
 - `apps/backend/tests/cli/setup/whatsapp.test.ts`
 - `apps/backend/tests/cli/setup/camoufox.test.ts`
-- `apps/backend/tests/cli/setup/claude.test.ts` — tests for generateClaudeSettings + generateClaudeMd
+- `apps/backend/tests/cli/setup/claude.test.ts`: tests for generateClaudeSettings + generateClaudeMd
 
 ### Modified files
-- `packages/shared/src/types.ts` — add `userInfo` and `mcp` to `OpenTidyConfig`
-- `apps/backend/src/config.ts` — update `DEFAULT_CONFIG` with new sections
-- `apps/backend/src/cli/setup/claude.ts` — refactor to generate settings.json dynamically
-- `apps/backend/src/cli/setup/index.ts` — export new modules, remove `copyClaudeConfigTemplate` re-export
-- `apps/backend/src/cli/setup.ts` — add modules to menu + order, remove `copyClaudeConfigTemplate` re-export
-- `apps/backend/src/cli/setup/status.ts` — add status checks for new modules, reorder to match MODULE_ORDER
+- `packages/shared/src/types.ts`: add `userInfo` and `mcp` to `OpenTidyConfig`
+- `apps/backend/src/config.ts`: update `DEFAULT_CONFIG` with new sections
+- `apps/backend/src/cli/setup/claude.ts`: refactor to generate settings.json dynamically
+- `apps/backend/src/cli/setup/index.ts`: export new modules, remove `copyClaudeConfigTemplate` re-export
+- `apps/backend/src/cli/setup.ts`: add modules to menu + order, remove `copyClaudeConfigTemplate` re-export
+- `apps/backend/src/cli/setup/status.ts`: add status checks for new modules, reorder to match MODULE_ORDER
 
 ### Unchanged
-- `apps/backend/config/claude/settings.json` — kept as fallback/reference, no longer primary source
-- `apps/backend/config/claude/CLAUDE.md` — kept as template, personalized at generation time
+- `apps/backend/config/claude/settings.json`: kept as fallback/reference, no longer primary source
+- `apps/backend/config/claude/CLAUDE.md`: kept as template, personalized at generation time
 
 ---
 
@@ -116,7 +116,7 @@ describe('OpenTidyConfig shape', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run tests/cli/setup/config-shape.test.ts`
-Expected: FAIL — `userInfo` and `mcp` don't exist on config type
+Expected: FAIL (`userInfo` and `mcp` don't exist on config type)
 
 - [ ] **Step 3: Add types to shared package**
 
@@ -270,7 +270,7 @@ describe('setupUserInfo', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run tests/cli/setup/user-info.test.ts`
-Expected: FAIL — module doesn't exist
+Expected: FAIL (module doesn't exist)
 
 - [ ] **Step 3: Implement setupUserInfo**
 
@@ -416,7 +416,7 @@ describe('setupGmail', () => {
     const { setupGmail } = await import('../../../src/cli/setup/gmail.js');
     await setupGmail();
 
-    // Gmail is marked configured regardless — user can re-run if it failed
+    // Gmail is marked configured regardless, user can re-run if it failed
     const config = loadConfig(configPath);
     expect(config.mcp.gmail.configured).toBe(true);
   });
@@ -426,7 +426,7 @@ describe('setupGmail', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run tests/cli/setup/gmail.test.ts`
-Expected: FAIL — module doesn't exist
+Expected: FAIL (module doesn't exist)
 
 - [ ] **Step 3: Implement setupGmail**
 
@@ -456,7 +456,7 @@ export async function setupGmail(): Promise<void> {
   console.log('  └─────────────────────────────────────┘');
   console.log('');
   info('Gmail lets OpenTidy read emails, search, and create drafts.');
-  info('Uses OAuth — no API keys needed.');
+  info('Uses OAuth, no API keys needed.');
   console.log('');
 
   if (config.mcp.gmail.configured) {
@@ -626,7 +626,7 @@ import { loadConfig, saveConfig, getConfigPath } from '../../config.js';
 import { run, info, success, warn } from './utils.js';
 
 const WRAPPER_SCRIPT = `#!/usr/bin/env bash
-# Wrapper for camofox MCP — unique CAMOFOX_USER per Claude Code session
+# Wrapper for camofox MCP: unique CAMOFOX_USER per Claude Code session
 # so multiple agents get isolated BrowserContexts (separate tabs, cookies in memory)
 # while sharing saved sessions on disk (~/.camofox/sessions/).
 set -euo pipefail
@@ -854,13 +854,13 @@ export async function setupWhatsApp(): Promise<void> {
     const status = JSON.parse(doctorOutput);
     authenticated = !!status.authenticated;
   } catch {
-    // doctor failed — need auth
+    // doctor failed, need auth
   }
 
   if (!authenticated) {
     console.log('');
     info('WhatsApp needs to be authenticated via QR code.');
-    info('This will display a QR code — scan it with your phone.');
+    info('This will display a QR code, scan it with your phone.');
     info('Open WhatsApp > Settings > Linked Devices > Link a Device');
     console.log('');
     await ask('  Press Enter to start QR code auth...');
@@ -1037,7 +1037,7 @@ describe('generateClaudeMd', () => {
     mkdirSync(templateDir, { recursive: true });
     templatePath = join(templateDir, 'CLAUDE.md');
     writeFileSync(templatePath, [
-      '# OpenTidy — Personal Assistant',
+      '# OpenTidy. Personal Assistant',
       '## User Info',
       '- Email: (configured during setup)',
       '- Full name: (configured during setup)',
@@ -1080,7 +1080,7 @@ describe('generateClaudeMd', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run tests/cli/setup/claude.test.ts`
-Expected: FAIL — `generateClaudeSettings` and `generateClaudeMd` not exported
+Expected: FAIL (`generateClaudeSettings` and `generateClaudeMd` not exported)
 
 - [ ] **Step 3: Implement generateClaudeSettings, generateClaudeMd, and refactor setupClaude**
 
@@ -1097,7 +1097,7 @@ import type { OpenTidyConfig } from '@opentidy/shared';
 import { loadConfig, saveConfig, getConfigPath } from '../../config.js';
 import { ask, info, success, warn } from './utils.js';
 
-// Base permissions — always present
+// Base permissions, always present
 const BASE_PERMISSIONS = [
   'Read', 'Write', 'Edit', 'Glob', 'Grep',
   'Bash(npm:*)', 'Bash(pnpm:*)', 'Bash(git:*)',
@@ -1220,7 +1220,7 @@ export async function setupClaude(): Promise<void> {
     success('Generated personalized CLAUDE.md.');
   }
 
-  // settings.local.json — user overrides, never overwritten
+  // settings.local.json, user overrides, never overwritten
   const localSettings = join(claudeConfigDir, 'settings.local.json');
   if (!existsSync(localSettings)) {
     writeFileSync(localSettings, '{}\n');
@@ -1240,7 +1240,7 @@ export async function setupClaude(): Promise<void> {
   // Auth
   console.log('');
   info('Claude Code needs to be authenticated (OAuth).');
-  info('This opens a browser — log in with your Claude account.');
+  info('This opens a browser, log in with your Claude account.');
   console.log('');
   await ask('  Press Enter to open the browser...');
 
@@ -1481,7 +1481,7 @@ git commit -m "test: update existing tests for new config shape"
 
 ## Task 9: Manual integration test
 
-Not automatable — verify the full flow works interactively.
+Not automatable; verify the full flow works interactively.
 
 - [ ] **Step 1: Build**
 

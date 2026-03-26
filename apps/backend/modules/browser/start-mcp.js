@@ -6,7 +6,7 @@
 // Reads CapSolver API key from OS keychain (if configured).
 // If present: downloads + extracts the CapSolver Firefox addon, injects the API key.
 // Then launches camofox-mcp.
-// IMPORTANT: Only use console.error for logging — stdout is the MCP protocol channel.
+// IMPORTANT: Only use console.error for logging. Stdout is the MCP protocol channel.
 
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -43,7 +43,7 @@ function setupCapsolverAddon(apiKey) {
       console.error('[browser] CapSolver extension extracted');
     } catch (err) {
       console.error('[browser] Failed to download CapSolver extension:', err.message);
-      return; // Non-fatal — continue without addon
+      return; // Non-fatal, continue without addon
     }
   }
 

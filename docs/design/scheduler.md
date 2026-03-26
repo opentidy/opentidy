@@ -1,4 +1,4 @@
-# Scheduler — Agenda de l'agent
+# Scheduler : Agenda de l'agent
 
 **Date** : 2026-03-19
 **Statut** : Validé (design)
@@ -6,8 +6,8 @@
 ## Problème
 
 Le checkup horaire est le seul mécanisme de relance automatique. Deux trous :
-1. **Pas de précision temporelle** — un dossier qui doit agir à 18:29 attend le prochain checkup (±1h)
-2. **Pas d'intervalle custom** — impossible de faire tourner un dossier toutes les 30min
+1. **Pas de précision temporelle**, un dossier qui doit agir à 18:29 attend le prochain checkup (±1h)
+2. **Pas d'intervalle custom**, impossible de faire tourner un dossier toutes les 30min
 
 Au-delà du timing, l'utilisateur n'a aucune visibilité sur ce que l'agent prévoit de faire et quand.
 
@@ -15,10 +15,10 @@ Au-delà du timing, l'utilisateur n'a aucune visibilité sur ce que l'agent pré
 
 ### Principes de design
 
-1. **Un seul système** — le scheduler remplace le rôle timing du checkup. Le checkup lui-même devient un schedule récurrent dans la table. Pas deux systèmes à maintenir.
-2. **Le scheduler est bête** — c'est un timer qui appelle des fonctions existantes (`launcher.launchSession()`, `checkup.runCheckup()`). Zéro intelligence, zéro business logic.
-3. **MCP pour les actions** — Claude communique avec le backend via des MCP tools (structurés, validés, feedback immédiat) au lieu d'écrire dans des fichiers.
-4. **Calendrier pour la visibilité** — l'utilisateur voit l'agenda complet de l'agent dans un vrai calendrier (FullCalendar).
+1. **Un seul système**. le scheduler remplace le rôle timing du checkup. Le checkup lui-même devient un schedule récurrent dans la table. Pas deux systèmes à maintenir.
+2. **Le scheduler est bête**. c'est un timer qui appelle des fonctions existantes (`launcher.launchSession()`, `checkup.runCheckup()`). Zéro intelligence, zéro business logic.
+3. **MCP pour les actions**. Claude communique avec le backend via des MCP tools (structurés, validés, feedback immédiat) au lieu d'écrire dans des fichiers.
+4. **Calendrier pour la visibilité**. l'utilisateur voit l'agenda complet de l'agent dans un vrai calendrier (FullCalendar).
 
 ---
 
@@ -43,7 +43,7 @@ CREATE TABLE schedules (
 CREATE INDEX idx_schedules_dossier ON schedules(dossier_id);
 ```
 
-Table créée dans `shared/database.ts` (pattern existant — toute la DDL centralisée).
+Table créée dans `shared/database.ts` (pattern existant, toute la DDL centralisée).
 Schemas Zod correspondants dans `packages/shared/src/schemas.ts` (SSOT).
 
 **Contraintes :**
@@ -64,7 +64,7 @@ Schemas Zod correspondants dans `packages/shared/src/schemas.ts` (SSOT).
 
 ## 2. Moteur du scheduler
 
-### Polling simple — `setInterval` toutes les 10 secondes
+### Polling simple : `setInterval` toutes les 10 secondes
 
 ```
 setInterval(checkSchedules, 10_000)
@@ -87,7 +87,7 @@ fire(schedule):
 - Aucun drift (compare à l'horloge système à chaque check)
 - Auto-healing (si un check rate, le suivant rattrape 10s plus tard)
 - Zéro logique de recompute (pas de clearTimeout / reschedule sur chaque insert/delete)
-- Précision ±10s — largement suffisant (principe #1 : speed is not a criterion)
+- Précision ±10s: largement suffisant (principe #1 : speed is not a criterion)
 - Coût : un SELECT indexé toutes les 10s → <0.1ms par query
 
 ### Startup
@@ -101,7 +101,7 @@ scheduler.start():
 
 ---
 
-## 3. MCP OpenTidy — embarqué dans le backend Hono
+## 3. MCP OpenTidy : embarqué dans le backend Hono
 
 Le MCP server vit sur une route `/mcp` du backend existant. Même process, même port (5175), accès direct à toutes les deps.
 
@@ -112,8 +112,8 @@ Le MCP server vit sur une route `/mcp` du backend existant. Même process, même
 | Tool | Description | Remplace |
 |------|-------------|----------|
 | `schedule_create` | Créer un schedule (once ou recurring) | `NEXT ACTION` dans state.md |
-| `schedule_list` | Lister les schedules (param optionnel `dossier_id`, déduit du cwd si absent) | — |
-| `schedule_delete` | Supprimer un schedule | — |
+| `schedule_list` | Lister les schedules (param optionnel `dossier_id`, déduit du cwd si absent) | (none) |
+| `schedule_delete` | Supprimer un schedule | (none) |
 | `suggestion_create` | Proposer un nouveau dossier | Écriture dans `_suggestions/*.md` |
 | `gap_report` | Signaler une limitation | Écriture dans `_gaps/gaps.md` |
 
@@ -125,9 +125,9 @@ Le MCP OpenTidy est un **curated MCP** (comme Gmail, Camoufox, WhatsApp), mais a
 
 **`config.mcp.curated.opentidy`** :
 - `enabled: true` par défaut (c'est le MCP natif du projet)
-- `configured: true` (aucun setup nécessaire — il tourne avec le backend)
+- `configured: true` (aucun setup nécessaire: il tourne avec le backend)
 
-**`generateClaudeSettings()`** dans `shared/agent-config.ts` — quand opentidy est enabled, ajoute :
+**`generateClaudeSettings()`** dans `shared/agent-config.ts`, quand opentidy est enabled, ajoute :
 ```json
 {
   "mcpServers": {
@@ -146,7 +146,7 @@ Le MCP OpenTidy est un **curated MCP** (comme Gmail, Camoufox, WhatsApp), mais a
 
 Les guardrails (PreToolUse hooks) peuvent intercepter ces appels via un matcher `mcp__opentidy__` dans `guardrails.json`.
 
-**Auth :** pas de bearer token sur `/mcp` — l'agent tourne en local sur la même machine. L'endpoint `/mcp` n'est pas exposé via le tunnel Cloudflare (seul `/api/*` l'est).
+**Auth :** pas de bearer token sur `/mcp`. l'agent tourne en local sur la même machine. L'endpoint `/mcp` n'est pas exposé via le tunnel Cloudflare (seul `/api/*` l'est).
 
 ### Sources de création des schedules
 
@@ -161,13 +161,13 @@ Les guardrails (PreToolUse hooks) peuvent intercepter ces appels via un matcher 
 ## 4. API REST (pour le frontend)
 
 ```
-POST   /api/schedules          — créer un schedule
-GET    /api/schedules          — lister tous les schedules (avec next_run calculé)
-PATCH  /api/schedules/:id      — modifier (label, run_at, interval_ms, instruction). Schedules system non modifiables.
-DELETE /api/schedules/:id      — supprimer (schedules system non supprimables)
+POST   /api/schedules          : créer un schedule
+GET    /api/schedules          : lister tous les schedules (avec next_run calculé)
+PATCH  /api/schedules/:id      : modifier (label, run_at, interval_ms, instruction). Schedules system non modifiables.
+DELETE /api/schedules/:id      : supprimer (schedules system non supprimables)
 ```
 
-Validation Zod dans `packages/shared` — schémas réutilisés frontend/backend/MCP.
+Validation Zod dans `packages/shared`, schémas réutilisés frontend/backend/MCP.
 
 ### SSE events
 
@@ -181,13 +181,13 @@ Types ajoutés dans `packages/shared/src/types.ts` (`SSEEventType` union).
 
 ---
 
-## 5. Frontend — Calendrier FullCalendar
+## 5. Frontend : Calendrier FullCalendar
 
 ### Page `/schedule`
 
 Vue calendrier montrant tout ce que l'agent prévoit de faire.
 
-- **Vue par défaut : semaine** — la plus utile au quotidien
+- **Vue par défaut : semaine**: la plus utile au quotidien
 - **Vues disponibles** : semaine, mois, jour
 - **Code couleur** : par dossier (même couleur que la card dossier), gris pour les tâches système
 - **Interactions** : clic sur un créneau → créer, clic sur un événement → détail/modifier/supprimer, drag & drop pour déplacer
@@ -231,9 +231,9 @@ const scheduler = createScheduler({ db, launcher, checkup, locks, sse });
 
 ### `sweep.ts`
 
-- **Retire** : le guard `NEXT ACTION` (lignes 119-126 actuelles) — le scheduler via MCP gère le timing
-- **Retire** : le `sendMessage()` dans les sessions actives — fragile, imprévisible
-- **Retire** : la logique `getStatus()` en mémoire — le statut se lit depuis la table `schedules`
+- **Retire** : le guard `NEXT ACTION` (lignes 119-126 actuelles), le scheduler via MCP gère le timing
+- **Retire** : le `sendMessage()` dans les sessions actives, fragile, imprévisible
+- **Retire** : la logique `getStatus()` en mémoire, le statut se lit depuis la table `schedules`
 - **Garde** : l'analyse des dossiers stuck sans schedule, la création de suggestions, la détection de gaps
 - Le checkup peut encore déclencher des lancements immédiats pour les dossiers qu'il trouve en difficulté
 
@@ -266,24 +266,24 @@ Cascade delete des schedules associés.
 
 ```
 apps/backend/src/features/scheduler/
-  scheduler.ts           — createScheduler(), moteur (polling, fire, dispatch)
-  routes.ts              — 4 routes Hono (CRUD)
-  scheduler.test.ts      — tests
+  scheduler.ts           : createScheduler(), moteur (polling, fire, dispatch)
+  routes.ts              : 4 routes Hono (CRUD)
+  scheduler.test.ts      : tests
 
 apps/backend/src/features/mcp/
-  server.ts              — createMcpServer(), enregistre les tools
-  server.test.ts         — tests
+  server.ts              : createMcpServer(), enregistre les tools
+  server.test.ts         : tests
   tools/
-    schedule.ts          — schedule_create, schedule_list, schedule_delete
-    schedule.test.ts     — tests
-    suggestion.ts        — suggestion_create
-    suggestion.test.ts   — tests
-    gap.ts               — gap_report
-    gap.test.ts          — tests
+    schedule.ts          : schedule_create, schedule_list, schedule_delete
+    schedule.test.ts     : tests
+    suggestion.ts        : suggestion_create
+    suggestion.test.ts   : tests
+    gap.ts               : gap_report
+    gap.test.ts          : tests
 
 apps/web/src/features/schedule/
-  SchedulePage.tsx        — page avec FullCalendar
-  ScheduleEventModal.tsx  — modal créer/éditer/supprimer
+  SchedulePage.tsx        : page avec FullCalendar
+  ScheduleEventModal.tsx  : modal créer/éditer/supprimer
 ```
 
 ---

@@ -12,7 +12,7 @@ For each IN_PROGRESS task:
 - If a task has a "## Pending" section, do NOT relaunch it unless a date is mentioned there and has passed
 - If a task has a "NEXT ACTION:" or "PROCHAINE ACTION:" field with a past date/time → add it to "launch"
 
-For suggestions — be VERY selective. A suggestion is a REAL actionable task the user should launch:
+For suggestions, be VERY selective. A suggestion is a REAL actionable task the user should launch:
 - YES: "Email received from client requesting March timesheets" (concrete action triggered by an external event)
 - YES: "VAT declaration deadline is in 3 days" (urgent action with deadline)
 - NO: "Archive completed tasks" (internal housekeeping, not a task)
@@ -23,7 +23,7 @@ If you detect a technical issue or system improvement → write it in _gaps/gaps
 
 Each suggestion MUST have enough detail for the user to understand the situation without opening any email or file:
 - "summary": a one-liner factual description of the situation (what happened, who sent it, what's affected)
-- "why": specific reasons — mention concrete details (dates, amounts, names, consequences). Never be vague like "3 problems". List them.
+- "why": specific reasons, mention concrete details (dates, amounts, names, consequences). Never be vague like "3 problems". List them.
 - "whatIWouldDo": the concrete steps you would take to resolve this
 
 Respond ONLY in JSON:
@@ -95,7 +95,7 @@ export function createCheckup(deps: {
       suggestions: Array<{ title: string; urgency: string; why: string; summary?: string; whatIWouldDo?: string }>;
     };
 
-    // Launch sessions — skip active sessions (scheduler handles precise timing)
+    // Launch sessions (skip active sessions (scheduler handles precise timing)
     const activeTaskIds = new Set(deps.launcher.listActiveSessions().map(s => s.taskId));
     const validLaunches: string[] = [];
     for (const taskId of result.launch) {
@@ -141,7 +141,7 @@ export function createCheckup(deps: {
       parts.push(`${checkupResult.suggestions} suggestion${checkupResult.suggestions > 1 ? 's' : ''} created`);
     }
     const summary = parts.length > 0 ? parts.join(', ') : 'nothing to report';
-    deps.notificationStore?.record({ message: `Checkup completed — ${summary}`, link: '/' });
+    deps.notificationStore?.record({ message: `Checkup completed: ${summary}`, link: '/' });
     deps.sse?.emit({ type: 'notification:sent', data: { source: 'checkup' }, timestamp: new Date(now).toISOString() });
 
     return checkupResult;

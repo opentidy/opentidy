@@ -42,9 +42,9 @@ opentidy/
 ```
 
 This is a **pnpm monorepo** with three workspaces:
-- `@opentidy/shared` — shared types and Zod schemas
-- `@opentidy/backend` — the main backend server
-- `@opentidy/web` — the web dashboard
+- `@opentidy/shared`: shared types and Zod schemas
+- `@opentidy/backend`: the main backend server
+- `@opentidy/web`: the web dashboard
 
 ### Running in development
 
@@ -107,7 +107,7 @@ Tests are colocated with source files (`create.ts` + `create.test.ts` in the sam
 pnpm test:e2e
 ```
 
-E2E tests run against a mock API — no real backend needed. See `apps/web/tests/e2e/fixtures/mock-api.ts` for the mock data setup.
+E2E tests run against a mock API, so no real backend is needed. See `apps/web/tests/e2e/fixtures/mock-api.ts` for the mock data setup.
 
 ### Writing tests
 
@@ -120,7 +120,7 @@ E2E tests run against a mock API — no real backend needed. See `apps/web/tests
 
 ### Adding a new feature (VSA pattern)
 
-OpenTidy uses **Vertical Slice Architecture** — each feature is self-contained. To add a new feature:
+OpenTidy uses **Vertical Slice Architecture**, where each feature is self-contained. To add a new feature:
 
 1. **Define types and schemas** in `packages/shared/src/` (types in `types.ts`, Zod schemas in `schemas.ts`)
 2. **Create the feature directory** under `apps/backend/src/features/<name>/`
@@ -180,7 +180,7 @@ The daemon receives a `ModuleContext` and runs until shutdown:
 import type { ModuleContext } from '@opentidy/shared';
 
 export async function start(ctx: ModuleContext): Promise<void> {
-  // Register tools — agent sees them as mcp__opentidy__<name>
+  // Register tools (agent sees them as mcp__opentidy__<name>)
   ctx.registerTool('my_module_read', {
     description: 'Read data from the service',
     inputSchema: { type: 'object', properties: { query: { type: 'string' } } },
@@ -211,9 +211,9 @@ Tools declared in `toolPermissions` use short names (`my_module_read`). When the
 ### TypeScript
 
 - **Strict mode** everywhere
-- **Zod** for validation — schemas live in `packages/shared`
-- **Factory functions** — no classes. Each module exports `createX()` returning an interface. This makes mocking easy in tests.
-- **Single Source of Truth** — never duplicate types, constants, or state
+- **Zod** for validation; schemas live in `packages/shared`
+- **Factory functions**, not classes. Each module exports `createX()` returning an interface. This makes mocking easy in tests.
+- **Single Source of Truth**: never duplicate types, constants, or state
 
 ### Logging
 
@@ -225,14 +225,14 @@ console.warn('[receiver] Dedup collision', { hash });
 console.log('[triage] Event routed to task', { taskId });
 ```
 
-- `console.error` / `console.warn` — always, with enough context to diagnose
-- `console.log` — at key boundaries (API route entry, Claude spawn, hook handler)
+- `console.error` / `console.warn`: always, with enough context to diagnose
+- `console.log`: at key boundaries (API route entry, Claude spawn, hook handler)
 - Prefix: `[service-name]` (e.g., `[launcher]`, `[receiver]`, `[triage]`)
 - No logging inside tight loops or large payloads
 
 ### Frontend (React 19)
 
-- **Never** use `useMemo`, `useCallback`, or `React.memo` — React Compiler handles memoization
+- **Never** use `useMemo`, `useCallback`, or `React.memo`. React Compiler handles memoization
 - Tailwind CSS v4 (CSS-first configuration)
 - Zustand for state management
 - SSE via native EventSource
@@ -263,7 +263,7 @@ docs: update architecture guide
 
 - `main` is the default branch
 - Create feature branches from `main`: `feat/my-feature`, `fix/my-bug`
-- Keep branches focused — one feature or fix per branch
+- Keep branches focused: one feature or fix per branch
 
 ### Pull requests
 
@@ -285,19 +285,19 @@ See [Architecture](architecture.md) and [Security](security.md) for full context
 ## Troubleshooting
 
 **Build fails with `Cannot find module @opentidy/shared`?**
-Run `pnpm --filter @opentidy/shared build` — the shared package must be built before backend/web can use it.
+Run `pnpm --filter @opentidy/shared build`. The shared package must be built before backend/web can use it.
 
 **`pnpm lint` fails?**
-Make sure you ran `pnpm install` at the root — ESLint is installed as a root dependency.
+Make sure you ran `pnpm install` at the root. ESLint is installed as a root dependency.
 
 **E2E tests fail with browser errors?**
 Run `pnpm exec playwright install` to install browser binaries.
 
 ## Getting help
 
-- **Issues** — bug reports and feature requests on GitHub
-- **Discussions** — questions and ideas on GitHub Discussions
+- **Issues**: bug reports and feature requests on GitHub
+- **Discussions**: questions and ideas on GitHub Discussions
 
 ## License
 
-OpenTidy is licensed under [AGPL-3.0](../LICENSE). By contributing, you agree to the [Contributor License Agreement](../CLA.md) — the CLA Assistant bot will guide you through signing on your first PR.
+OpenTidy is licensed under [AGPL-3.0](../LICENSE). By contributing, you agree to the [Contributor License Agreement](../CLA.md). The CLA Assistant bot will guide you through signing on your first PR.

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-// types.ts — SSOT for all OpenTidy types
+// types.ts: SSOT for all OpenTidy types
 
 // === Task (workspace/) ===
 export type TaskStatus = 'IN_PROGRESS' | 'COMPLETED';
@@ -124,7 +124,7 @@ export interface Schedule {
 }
 
 // === Hook (centralized) ===
-// HookPayload is defined via Zod in schemas.ts (SSOT) — do not duplicate here.
+// HookPayload is defined via Zod in schemas.ts (SSOT). Do not duplicate here.
 // Use: import { HookPayload } from './schemas.js';
 export type HookEventType = 'PreToolUse' | 'PostToolUse' | 'Notification' | 'SessionEnd' | 'Stop';
 
@@ -410,7 +410,7 @@ export interface ModuleInfo {
   cli?: string[];
   source: 'curated' | 'custom';
   enabled: boolean;
-  /** true if checkCommand passes — module deps are present on disk */
+  /** true if checkCommand passes, i.e. module deps are present on disk */
   ready?: boolean;
   platform?: string;
   health?: 'ok' | 'error' | 'unknown';

@@ -15,7 +15,7 @@ export interface ModuleRouteDeps {
   };
   saveConfig: (config: OpenTidyConfig) => void;
   paths?: { customModules: string; modulesData?: string };
-  /** Tracks active module setup sessions — verify checks this before returning ready */
+  /** Tracks active module setup sessions. Verify checks this before returning ready. */
   setupTracker?: {
     getStatus(moduleName: string): Promise<{ running: boolean; exitCode?: number } | null>;
   };

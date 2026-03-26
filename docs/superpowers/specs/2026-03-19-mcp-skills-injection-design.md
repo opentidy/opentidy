@@ -13,9 +13,9 @@ OpenTidy spawns isolated Claude Code sessions with `CLAUDE_CONFIG_DIR` pointing 
 1. **MCP servers** configured in the user's personal `~/.claude/settings.json`
 2. **Skills** installed in the user's personal `~/.claude/skills/` or `~/.claude/plugins/`
 
-Currently, the `settings.json` in the agent config dir contains only permissions — no `mcpServers` section. The `generateClaudeSettings()` function in `setup/claude.ts` is designed to populate MCP servers based on `config.json`, but the `mcp` section in `config.json` is never populated by the individual setup modules.
+Currently, the `settings.json` in the agent config dir contains only permissions; no `mcpServers` section. The `generateClaudeSettings()` function in `setup/claude.ts` is designed to populate MCP servers based on `config.json`, but the `mcp` section in `config.json` is never populated by the individual setup modules.
 
-Additionally, one-shot calls (triage, sweep, memory) correctly use `--strict-mcp-config '{"mcpServers":{}}'` to run with no MCP servers. This is correct and unchanged by this design — one-shots intentionally exclude MCPs for speed, isolation, and reduced attack surface.
+Additionally, one-shot calls (triage, sweep, memory) correctly use `--strict-mcp-config '{"mcpServers":{}}'` to run with no MCP servers. This is correct and unchanged by this design; one-shots intentionally exclude MCPs for speed, isolation, and reduced attack surface.
 
 ---
 
@@ -59,7 +59,7 @@ The `mcp` and `skills` sections in `config.json` become the single source of tru
 
 #### Secret storage for marketplace MCPs
 
-Marketplace MCP servers often require API keys. These are **not stored in `config.json`** — instead, each marketplace MCP has an `envFile` field pointing to a separate file in `~/.config/opentidy/mcp/<name>.env`:
+Marketplace MCP servers often require API keys. These are **not stored in `config.json`**; instead, each marketplace MCP has an `envFile` field pointing to a separate file in `~/.config/opentidy/mcp/<name>.env`:
 
 ```
 # ~/.config/opentidy/mcp/notion.env
@@ -122,17 +122,17 @@ Known MCP servers with dedicated setup wizards, guardrail rules, and wrapper scr
 | `camoufox` | `camofox-mcp` (via wrapper script) | None | PreToolUse: click/fill/eval_js verification |
 | `whatsapp` | Custom Python server or `wacli` CLI | QR code | None (planned) |
 
-Curated servers have hardcoded build logic in `generateClaudeSettings()` — the config only stores `enabled` and `configured` flags. The command, args, env, and wrapper paths are computed by the backend.
+Curated servers have hardcoded build logic in `generateClaudeSettings()`; the config only stores `enabled` and `configured` flags. The command, args, env, and wrapper paths are computed by the backend.
 
 #### Marketplace MCP servers
 
 Community MCP servers discovered from the official MCP Registry (`registry.modelcontextprotocol.io`). Stored with their full definition:
 
-- `label` — display name
-- `command`, `args` — stdio server definition
-- `envFile` — optional reference to a `.env` file in `~/.config/opentidy/mcp/` (secrets stored separately)
-- `permissions` — auto-generated permission patterns (e.g., `mcp__notion__*`)
-- `source` — `registry.modelcontextprotocol.io` for registry servers, `custom` for user-defined
+- `label`: display name
+- `command`, `args`, stdio server definition
+- `envFile`: optional reference to a `.env` file in `~/.config/opentidy/mcp/` (secrets stored separately)
+- `permissions`: auto-generated permission patterns (e.g., `mcp__notion__*`)
+- `source`: `registry.modelcontextprotocol.io` for registry servers, `custom` for user-defined
 
 Custom MCP servers (added via "+ Add custom") use the same `marketplace` section with `source: "custom"`.
 
@@ -153,7 +153,7 @@ Skills from the user's personal `~/.claude/skills/` or arbitrary paths. Stored a
 
 ### 2. Settings Generation Flow
 
-**Location:** `generateClaudeSettings()` and `syncSkills()` move from `cli/setup/claude.ts` to `shared/agent-config.ts`. Both the CLI setup and API routes import from there — this avoids features importing from the CLI layer (VSA violation).
+**Location:** `generateClaudeSettings()` and `syncSkills()` move from `cli/setup/claude.ts` to `shared/agent-config.ts`. Both the CLI setup and API routes import from there, this avoids features importing from the CLI layer (VSA violation).
 
 `generateClaudeSettings(config)` produces a complete `settings.json`:
 
@@ -222,7 +222,7 @@ Skills are synced to `$CLAUDE_CONFIG_DIR/skills/` based on config:
 Sync runs at:
 - `opentidy setup` time
 - Any config mutation (toggle, add, remove) via API
-- Server startup (ensure consistency — validates symlink targets, warns/disables if broken)
+- Server startup (ensure consistency; validates symlink targets, warns/disables if broken)
 
 **Startup validation:** at boot, the sync checks every user skill symlink. If the target path no longer exists, the skill is disabled in `config.json` and a warning is logged with `[agent-config] Skill "comptable" disabled: source path not found`.
 
@@ -230,11 +230,11 @@ Sync runs at:
 
 | Session mode | MCP servers | Skills | Hooks |
 |-------------|-------------|--------|-------|
-| **One-shot** (triage, sweep, memory, title) | `--strict-mcp-config '{"mcpServers":{}}'` — none | None (not needed) | None |
+| **One-shot** (triage, sweep, memory, title) | `--strict-mcp-config '{"mcpServers":{}}'`, none | None (not needed) | None |
 | **Autonomous** (dossier work) | From `$CLAUDE_CONFIG_DIR/settings.json` | From `$CLAUDE_CONFIG_DIR/skills/` | `--plugin-dir` (guardrails) |
 | **Interactive** (Take Over) | From `$CLAUDE_CONFIG_DIR/settings.json` | From `$CLAUDE_CONFIG_DIR/skills/` | `--plugin-dir` (guardrails) |
 
-No changes to the Claude adapter's `buildArgs()` — the existing mechanism (CLAUDE_CONFIG_DIR env + settings.json) already handles autonomous/interactive. The fix is ensuring `settings.json` actually contains the MCP servers.
+No changes to the Claude adapter's `buildArgs()`, the existing mechanism (CLAUDE_CONFIG_DIR env + settings.json) already handles autonomous/interactive. The fix is ensuring `settings.json` actually contains the MCP servers.
 
 ### 5. API Routes
 
@@ -265,9 +265,9 @@ Every mutation endpoint:
 The official MCP Registry API (`registry.modelcontextprotocol.io/v0.1/servers`) is used for marketplace discovery:
 
 - **No auth required** for reads
-- **Search**: `GET /v0.1/servers?search=notion` — substring search, paginated (cursor-based)
-- **Server details**: `GET /v0.1/servers/{serverName}/versions/latest` — package info (npm/PyPI)
-- **Cached locally**: in-memory cache with 1-hour TTL. If the registry is unreachable, serve stale cache (if available) or return an error (no stale data). Cache is not persisted to disk — rebuilds on server restart.
+- **Search**: `GET /v0.1/servers?search=notion`; substring search, paginated (cursor-based)
+- **Server details**: `GET /v0.1/servers/{serverName}/versions/latest`, package info (npm/PyPI)
+- **Cached locally**: in-memory cache with 1-hour TTL. If the registry is unreachable, serve stale cache (if available) or return an error (no stale data). Cache is not persisted to disk, rebuilds on server restart.
 
 The backend proxies registry calls (the frontend never calls external APIs directly).
 
@@ -279,7 +279,7 @@ Three trust tiers with distinct UX treatment:
 |------|-------|------------|---------|
 | **Curated** | "Verified by OpenTidy" | PreToolUse hooks (email, browser) | None |
 | **Marketplace** | Registry source shown | PostToolUse audit (all tool calls logged) | "This MCP server is community-maintained. OpenTidy does not guarantee its security. Review the source code before enabling." |
-| **Custom** | `source: "custom"` | PostToolUse audit (all tool calls logged) | "Custom MCP server — use at your own risk." |
+| **Custom** | `source: "custom"` | PostToolUse audit (all tool calls logged) | "Custom MCP server, use at your own risk." |
 
 The warning is shown:
 - At install time (before the user confirms)
@@ -341,8 +341,8 @@ The MCP/Skills management lives in a dedicated settings section of the web app:
 This design is Claude Code-specific. When Gemini CLI or Copilot CLI adapters are implemented:
 
 - Each adapter's `writeConfig()` method generates its own config format
-- The `config.json` model (mcp + skills sections) stays the same — it's agent-agnostic
-- Skills would need format translation (SKILL.md → GEMINI_SKILL.md) — handled by the adapter
+- The `config.json` model (mcp + skills sections) stays the same, it's agent-agnostic
+- Skills would need format translation (SKILL.md → GEMINI_SKILL.md), handled by the adapter
 - MCP server definitions are likely compatible across agents (stdio is universal)
 
 ### 10. Files Changed
@@ -351,7 +351,7 @@ This design is Claude Code-specific. When Gemini CLI or Copilot CLI adapters are
 |------|--------|
 | `packages/shared/src/types.ts` | Rename `McpConfig` → `McpServicesConfig` (flat, used by `SetupOpts.mcpServices` for adapter), add new `McpConfig` (nested `curated`/`marketplace`, used by `OpenTidyConfig.mcp`), add `SkillsConfig`, add `env` to `McpServerDef` |
 | `packages/shared/src/schemas.ts` | Add Zod schemas: `McpConfigSchema`, `MarketplaceMcpSchema`, `UserSkillSchema`, `SkillsConfigSchema` |
-| `apps/backend/src/shared/agent-config.ts` | **New file** — extract `generateClaudeSettings()` + new `syncSkills()` + `regenerateAgentConfig()` from CLI layer |
+| `apps/backend/src/shared/agent-config.ts` | **New file**, extract `generateClaudeSettings()` + new `syncSkills()` + `regenerateAgentConfig()` from CLI layer |
 | `apps/backend/src/shared/config.ts` | Add `migrateConfigV1ToV2()`, update `loadConfig()` to run migration |
 | `apps/backend/src/cli/setup/claude.ts` | Import from `shared/agent-config.ts` instead of local functions |
 | `apps/backend/src/cli/setup/gmail.ts` | Write `config.mcp.curated.gmail` on completion |
@@ -407,8 +407,8 @@ This is a one-time migration, transparent to the user. The `deepMerge()` in `loa
 
 ## Out of Scope
 
-- **Guardrail management UI** — adding custom PreToolUse guardrails for marketplace MCPs (PostToolUse audit is in scope)
-- **Skill marketplace/registry** — no external skill registry exists yet; user skills are path-based only
-- **Gemini/Copilot adapter skill format translation** — the `config.json` model is agent-agnostic, but translation logic is deferred until those adapters are implemented
-- **MCP server sandboxing/containerization** — defense-in-depth measure for a future iteration
-- **Per-dossier MCP/skill overrides** — all sessions get the same config. Rationale: dossiers are just markdown directories; adding per-dossier config would require a dossier metadata model that doesn't exist yet. This can be revisited if specific use cases emerge (e.g., a dossier that needs a banking MCP but not email).
+- **Guardrail management UI**: adding custom PreToolUse guardrails for marketplace MCPs (PostToolUse audit is in scope)
+- **Skill marketplace/registry**: no external skill registry exists yet; user skills are path-based only
+- **Gemini/Copilot adapter skill format translation**: the `config.json` model is agent-agnostic, but translation logic is deferred until those adapters are implemented
+- **MCP server sandboxing/containerization**: defense-in-depth measure for a future iteration
+- **Per-dossier MCP/skill overrides**: all sessions get the same config. Rationale: dossiers are just markdown directories; adding per-dossier config would require a dossier metadata model that doesn't exist yet. This can be revisited if specific use cases emerge (e.g., a dossier that needs a banking MCP but not email).

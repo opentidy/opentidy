@@ -19,7 +19,7 @@ export function createTaskRoute(deps: AppDeps) {
     const title = parsed.instruction.slice(0, 80);
     deps.workspace.taskManager.createTask(id, parsed.instruction, title);
 
-    // Launch session in background — don't block the HTTP response
+    // Launch session in background, don't block the HTTP response
     deps.launcher.launchSession(id, { source: 'app', content: parsed.instruction }).catch(err => {
       console.error(`[server] launchSession failed for ${id}:`, err);
     });

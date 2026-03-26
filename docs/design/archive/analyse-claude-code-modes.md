@@ -54,7 +54,7 @@ Le résultat sera : "Je n'ai pas pu me connecter à facture.net, MFA requise."
 Et il faudra relancer une nouvelle session, mais l'état browser est perdu (cookies,
 page ouverte, formulaire à moitié rempli).
 
-Ce n'est pas un cas rare — beaucoup de sites financiers/admin ont du MFA, des captchas,
+Ce n'est pas un cas rare, beaucoup de sites financiers/admin ont du MFA, des captchas,
 des sessions courtes. Pour les tâches admin de l'utilisateur, c'est le quotidien.
 
 ### Options pour gérer les interactions
@@ -99,7 +99,7 @@ Attacher un tmux depuis un téléphone c'est pas pratique. Peut-être :
 ## Modèle d'exécution : comment l'assistant "tourne"
 
 ### L'analogie du système nerveux
-L'agent ne "commence pas sa journée" comme un humain — il tourne 24/7.
+L'agent ne "commence pas sa journée" comme un humain, il tourne 24/7.
 Mais il ne faut pas non plus calquer le modèle humain :
 un humain arrive le matin et part le soir. L'agent, lui, est toujours là.
 
@@ -135,7 +135,7 @@ Qui décide quel dossier est prioritaire quand il y a un event ? Qui route ?
 
 **Option A : Code simple (pas de routing intelligent)**
 Chaque event est donné à un Claude avec tout le contexte nécessaire.
-Pas de routing — Claude décide lui-même ce qu'il en fait.
+Pas de routing, Claude décide lui-même ce qu'il en fait.
 - ✅ Ultra simple, pas de logique métier dans le code
 - ❌ Si l'event concerne plusieurs dossiers, comment le découper ?
 

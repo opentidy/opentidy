@@ -50,13 +50,13 @@ export async function setupWhatsApp(): Promise<void> {
     const status = JSON.parse(doctorOutput);
     authenticated = !!status.authenticated;
   } catch {
-    // doctor failed — need auth
+    // doctor failed, need auth
   }
 
   if (!authenticated) {
     console.log('');
     info('WhatsApp needs to be authenticated via QR code.');
-    info('This will display a QR code — scan it with your phone.');
+    info('This will display a QR code. Scan it with your phone.');
     info('Open WhatsApp > Settings > Linked Devices > Link a Device');
     console.log('');
     await ask('  Press Enter to start QR code auth...');

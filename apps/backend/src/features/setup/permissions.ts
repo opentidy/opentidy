@@ -97,8 +97,8 @@ export function setupPermissionsRoute(deps: PermissionsDeps) {
 
   app.get('/setup/permissions', (c) => {
     console.log('[setup] GET /setup/permissions');
-    // Check actual status — may trigger a one-time macOS popup for Accessibility
-    // which is fine since we want the user to authorize it anyway
+    // Check actual status. May trigger a one-time macOS popup for Accessibility,
+    // which is fine since we want the user to authorize it anyway.
     return c.json({ permissions: buildPermissionList(deps.checkPermission) });
   });
 

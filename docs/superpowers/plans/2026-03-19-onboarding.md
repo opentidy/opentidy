@@ -1,4 +1,4 @@
-# Onboarding Contextuel Progressif — Implementation Plan
+# Onboarding Contextuel Progressif: Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: i18n — Add all onboarding translation keys
+### Task 1: i18n: Add all onboarding translation keys
 
 **Files:**
 - Modify: `apps/web/src/shared/i18n/locales/fr.json`
@@ -152,7 +152,7 @@ git commit -m "feat(web): add onboarding i18n keys for fr and en"
 
 ---
 
-### Task 2: HelpTooltip — Reusable tooltip component
+### Task 2: HelpTooltip: Reusable tooltip component
 
 **Files:**
 - Create: `apps/web/src/shared/HelpTooltip.tsx`
@@ -195,7 +195,7 @@ describe('HelpTooltip', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/shared/HelpTooltip.test.tsx`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -244,7 +244,7 @@ git commit -m "feat(web): add reusable HelpTooltip component"
 
 ---
 
-### Task 3: WelcomeCard — First-run welcome on Home
+### Task 3: WelcomeCard: First-run welcome on Home
 
 **Files:**
 - Create: `apps/web/src/features/home/WelcomeCard.tsx`
@@ -305,7 +305,7 @@ describe('WelcomeCard', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/features/home/WelcomeCard.test.tsx`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -378,7 +378,7 @@ git commit -m "feat(web): add WelcomeCard component for first-run onboarding"
 
 ---
 
-### Task 4: ExampleChips — Clickable templates for Nouveau page
+### Task 4: ExampleChips: Clickable templates for Nouveau page
 
 **Files:**
 - Create: `apps/web/src/features/nouveau/ExampleChips.tsx`
@@ -417,7 +417,7 @@ describe('ExampleChips', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/features/nouveau/ExampleChips.test.tsx`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Write minimal implementation**
 
@@ -482,7 +482,7 @@ git commit -m "feat(web): add ExampleChips for Nouveau page templates"
 
 - [ ] **Step 1: Update existing tests + add new test cases**
 
-First, update the existing test `'renders empty state when nothing to do'` — it currently expects `/No .* dossiers/` which won't appear anymore (WelcomeCard shows instead). Replace it:
+First, update the existing test `'renders empty state when nothing to do'`; it currently expects `/No .* dossiers/` which won't appear anymore (WelcomeCard shows instead). Replace it:
 
 ```tsx
 // REPLACE the existing test:
@@ -562,7 +562,7 @@ Also add `import { fireEvent } from '@testing-library/react';` to the import lin
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `cd apps/web && pnpm vitest run src/features/home/Home.test.tsx`
-Expected: FAIL — WelcomeCard not rendered, empty state text doesn't match
+Expected: FAIL (WelcomeCard not rendered, empty state text doesn't match)
 
 - [ ] **Step 3: Modify Home.tsx**
 
@@ -611,7 +611,7 @@ function dismissOnboarding() {
 )}
 ```
 
-**3e.** Same pattern for "waiting for response" — add after the `{waitingTiers.length > 0 && (` block:
+**3e.** Same pattern for "waiting for response"; add after the `{waitingTiers.length > 0 && (` block:
 
 ```tsx
 {waitingTiers.length === 0 && !showWelcome && (
@@ -627,7 +627,7 @@ function dismissOnboarding() {
 )}
 ```
 
-**3f.** Same for suggestions — add after `{suggestions.length > 0 && (` block:
+**3f.** Same for suggestions; add after `{suggestions.length > 0 && (` block:
 
 ```tsx
 {suggestions.length === 0 && !showWelcome && (
@@ -746,7 +746,7 @@ describe('Nouveau page', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/features/nouveau/Nouveau.test.tsx`
-Expected: FAIL — no example chips rendered, confirm not checked by default
+Expected: FAIL (no example chips rendered, confirm not checked by default)
 
 - [ ] **Step 3: Modify Nouveau.tsx**
 
@@ -768,7 +768,7 @@ const [confirm, setConfirm] = useState(true);
 <ExampleChips onSelect={setInstruction} />
 ```
 
-**3d.** Replace the confirm mode label with an enriched version — replace the `<label>` block:
+**3d.** Replace the confirm mode label with an enriched version, replace the `<label>` block:
 
 ```tsx
 <div className="flex flex-col gap-1">
@@ -904,7 +904,7 @@ describe('DossierDetail post-creation banner', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/features/dossiers/DossierDetail.test.tsx`
-Expected: FAIL — no banner rendered
+Expected: FAIL (no banner rendered)
 
 - [ ] **Step 3: Modify DossierDetail.tsx**
 
@@ -950,7 +950,7 @@ if (dossiers.length === 0) {
 }
 ```
 
-This uses the dossier count (0 = first time) rather than the onboarding-seen flag, so it works regardless of how the user arrived at the page. Also add `import { useStore } from '../../shared/store';` — it's already imported via the destructuring at the top of the component, so instead use `useStore.getState()` directly (Zustand static access).
+This uses the dossier count (0 = first time) rather than the onboarding-seen flag, so it works regardless of how the user arrived at the page. Also add `import { useStore } from '../../shared/store';`, it's already imported via the destructuring at the top of the component, so instead use `useStore.getState()` directly (Zustand static access).
 
 - [ ] **Step 5: Run tests to verify they pass**
 
@@ -966,7 +966,7 @@ git commit -m "feat(web): add post-creation guidance banner on DossierDetail"
 
 ---
 
-### Task 8: Progressive navigation — grey out empty sections
+### Task 8: Progressive navigation: grey out empty sections
 
 **Files:**
 - Modify: `apps/web/src/shared/DesktopNav.tsx`
@@ -1030,7 +1030,7 @@ describe('DesktopNav progressive unlock', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd apps/web && pnpm vitest run src/shared/DesktopNav.test.tsx`
-Expected: FAIL — no opacity classes, no store import
+Expected: FAIL (no opacity classes, no store import)
 
 - [ ] **Step 3: Modify DesktopNav.tsx**
 
@@ -1145,7 +1145,7 @@ Expected: PASS (3 tests)
 
 ```bash
 git add apps/web/src/shared/DesktopNav.tsx apps/web/src/shared/MobileNav.tsx apps/web/src/shared/DesktopNav.test.tsx
-git commit -m "feat(web): progressive nav — dim empty sections until content exists"
+git commit -m "feat(web): progressive nav; dim empty sections until content exists"
 ```
 
 ---
@@ -1191,7 +1191,7 @@ git commit -m "feat(web): use i18n for sidebar session status labels"
 
 ---
 
-### Task 10: Final integration test — full run
+### Task 10: Final integration test: full run
 
 - [ ] **Step 1: Run all web unit tests**
 

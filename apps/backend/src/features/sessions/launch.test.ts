@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-// tests/launcher/session.test.ts — tmux-only launcher
+// tests/launcher/session.test.ts (tmux-only launcher)
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createLauncher } from './launch.js';
 import fs from 'fs';
@@ -461,7 +461,7 @@ describe('createLauncher (tmux-only)', () => {
       const launcher = createLauncher(deps);
       await launcher.recover();
 
-      // Pass 1 recovers it — Pass 2 should NOT try to relaunch
+      // Pass 1 recovers it; Pass 2 should NOT try to relaunch
       expect(deps.tmuxExecutor.launchTmux).not.toHaveBeenCalled();
       expect(launcher.listActiveSessions()).toHaveLength(1);
     });

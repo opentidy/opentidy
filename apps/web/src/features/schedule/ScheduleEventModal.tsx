@@ -87,7 +87,7 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
           <span className="text-[12px] text-text-tertiary/50">{schedule.createdBy}</span>
         </div>
 
-        {/* Timing — editable for non-system */}
+        {/* Timing (editable for non-system) */}
         {!isSystem && (
           <div className="flex flex-col gap-3 mb-4">
             {schedule.type === 'once' ? (
@@ -118,7 +118,7 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
           </div>
         )}
 
-        {/* System schedule — read-only info */}
+        {/* System schedule, read-only info */}
         {isSystem && schedule.intervalMs && (
           <p className="text-xs text-text-tertiary mb-4">
             {t('schedule.recurring')} · {schedule.intervalMs >= 3600000 ? `${Math.round(schedule.intervalMs / 3600000)}h` : `${Math.round(schedule.intervalMs / 60000)}m`}

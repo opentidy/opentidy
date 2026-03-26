@@ -33,7 +33,7 @@ export function registerRegisterModuleTools(server: McpServer, deps: RegisterMod
     const validation = validateModule(name, deps.paths.customModules, curatedNames);
     if (!validation.valid) {
       return {
-        content: [{ type: 'text' as const, text: `Cannot register module "${name}" — validation failed:\n${validation.errors.map((e, i) => `${i + 1}. ${e}`).join('\n')}` }],
+        content: [{ type: 'text' as const, text: `Cannot register module "${name}": validation failed.\n${validation.errors.map((e, i) => `${i + 1}. ${e}`).join('\n')}` }],
         isError: true,
       };
     }
@@ -46,7 +46,7 @@ export function registerRegisterModuleTools(server: McpServer, deps: RegisterMod
     deps.lifecycle.registerCustomModule(name, manifest);
 
     return {
-      content: [{ type: 'text' as const, text: `Module "${name}" registered successfully. It is now available in the web app — enable it to start using it.` }],
+      content: [{ type: 'text' as const, text: `Module "${name}" registered successfully. It is now available in the web app. Enable it to start using it.` }],
     };
   });
 }

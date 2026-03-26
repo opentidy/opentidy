@@ -23,7 +23,7 @@ describe('GapsManager', () => {
   it('parses gaps.md into structured entries', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Accès SFTP manquant\n\n**Problème:** Pas de credentials\n**Impact:** Bloque factures\n**Suggestion:** Demander à IT\n**Task:** invoices-acme\n\n---\n',
+      '## 2026-03-14 : Accès SFTP manquant\n\n**Problème:** Pas de credentials\n**Impact:** Bloque factures\n**Suggestion:** Demander à IT\n**Task:** invoices-acme\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list).toHaveLength(1);
@@ -34,7 +34,7 @@ describe('GapsManager', () => {
   it('marks a gap as resolved', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n\n---\n',
+      '## 2026-03-14 : Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n\n---\n',
     );
     gaps.markResolved(0);
     const list = gaps.listGaps();
@@ -44,7 +44,7 @@ describe('GapsManager', () => {
   it('detects duplicate gap', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — SFTP\n\n**Problème:** Pas accès\n**Impact:** Bloque\n**Suggestion:** Demander\n\n---\n',
+      '## 2026-03-14 : SFTP\n\n**Problème:** Pas accès\n**Impact:** Bloque\n**Suggestion:** Demander\n\n---\n',
     );
     expect(gaps.isDuplicateGap('SFTP')).toBe(true);
     expect(gaps.isDuplicateGap('Autre chose')).toBe(false);
@@ -53,7 +53,7 @@ describe('GapsManager', () => {
   it('parses fixType and sanitized fields from structured format', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Task:** insurance-report\n\n---\n',
+      '## 2026-03-14 : MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Task:** insurance-report\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list).toHaveLength(1);
@@ -66,7 +66,7 @@ describe('GapsManager', () => {
   it('parses config fixType with suggestion slug', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Manual workaround needed\n**Catégorie:** config\n**Fix type:** config\n**Suggestion slug:** fix-hook-config-abc123\n\n---\n',
+      '## 2026-03-14 : Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Manual workaround needed\n**Catégorie:** config\n**Fix type:** config\n**Suggestion slug:** fix-hook-config-abc123\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list[0].fixType).toBe('config');
@@ -77,7 +77,7 @@ describe('GapsManager', () => {
   it('handles gaps without new fields (backward compat)', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Old gap\n\n**Problème:** Something\n**Impact:** Something\n**Suggestion:** Something\n\n---\n',
+      '## 2026-03-14 : Old gap\n\n**Problème:** Something\n**Impact:** Something\n**Suggestion:** Something\n\n---\n',
     );
     const list = gaps.listGaps();
     expect(list[0].fixType).toBeUndefined();
@@ -88,7 +88,7 @@ describe('GapsManager', () => {
   it('updates gap fields by index', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n**Fix type:** code\n**Sanitized title:** Test Gap\n**Sanitized:** Test problem\n\n---\n',
+      '## 2026-03-14 : Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n**Fix type:** code\n**Sanitized title:** Test Gap\n**Sanitized:** Test problem\n\n---\n',
     );
     gaps.updateGapFields(0, { githubIssueNumber: 42 });
     const list = gaps.listGaps();
@@ -98,7 +98,7 @@ describe('GapsManager', () => {
   it('updates gap with suggestion slug', () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Config Gap\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** config\n\n---\n',
+      '## 2026-03-14 : Config Gap\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** config\n\n---\n',
     );
     gaps.updateGapFields(0, { suggestionSlug: 'fix-config-abc' });
     const list = gaps.listGaps();

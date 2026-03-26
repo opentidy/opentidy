@@ -5,9 +5,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "OpenTidy — Your personal AI assistant that actually does the work",
+  title: "OpenTidy | Your personal AI assistant that actually does the work",
   description:
-    "Open-source autonomous AI assistant that manages your admin tasks 24/7. Emails, forms, invoices, follow-ups — handled.",
+    "Open-source autonomous AI assistant that manages your admin tasks 24/7. Emails, forms, invoices, follow-ups: handled.",
 };
 
 export default function RootLayout({

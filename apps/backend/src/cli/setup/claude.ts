@@ -68,7 +68,7 @@ export async function setupClaude(): Promise<void> {
     success('Generated personalized CLAUDE.md.');
   }
 
-  // settings.local.json — user overrides, never overwritten
+  // settings.local.json: user overrides, never overwritten
   const localSettings = join(claudeConfigDir, 'settings.local.json');
   if (!existsSync(localSettings)) {
     writeFileSync(localSettings, '{}\n');
@@ -88,7 +88,7 @@ export async function setupClaude(): Promise<void> {
   // Auth
   console.log('');
   info('Claude Code needs to be authenticated (OAuth).');
-  info('This opens a browser — log in with your Claude account.');
+  info('This opens a browser. Log in with your Claude account.');
   console.log('');
   await ask('  Press Enter to open the browser...');
 

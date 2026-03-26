@@ -58,7 +58,7 @@ export function createLauncher(deps: {
     isTranscriptSubstantial(transcriptPath: string): boolean;
     runExtraction(input: { transcriptPath: string; indexContent: string; taskId: string; stateContent: string }): Promise<void>;
   };
-  /** Module manifests + config — used to generate capabilities index in task instructions */
+  /** Module manifests + config, used to generate capabilities index in task instructions */
   modules?: { manifests: Map<string, ModuleManifest>; loadConfig: () => { modules: Record<string, ModuleState> } };
   recoveryDelayMs?: number;
   sessionHistory?: SessionHistory;
@@ -137,7 +137,7 @@ export function createLauncher(deps: {
       try {
         pid = await deps.tmuxExecutor.launchTmux(sessionName, agentCmd);
       } catch (err) {
-        // Session already exists (e.g. survived a backend restart) — recover it
+        // Session already exists (e.g. survived a backend restart), recover it
         const existing = await deps.tmuxExecutor.listSessions();
         if (existing.includes(sessionName)) {
           console.log(`[launcher] ${sessionName} already exists in tmux, recovering`);
@@ -298,7 +298,7 @@ export function createLauncher(deps: {
     return `cd ${taskDir} && ${prefix}${adapter.binary} ${quotedArgs.join(' ')}`;
   }
 
-  /** Clear all in-memory session state (used by reset — does NOT kill processes). */
+  /** Clear all in-memory session state (used by reset, does NOT kill processes). */
   function clearAll(): void {
     sessions.clear();
   }

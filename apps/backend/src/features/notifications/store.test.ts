@@ -48,7 +48,7 @@ describe('notification-store', () => {
     const store1 = createNotificationStore(db);
     store1.record({ message: 'Persisted', link: '/persist' });
 
-    // Create a new store instance using the same db — data must still be there
+    // Create a new store instance using the same db; data must still be there
     const store2 = createNotificationStore(db);
     const list = store2.list();
     expect(list).toHaveLength(1);

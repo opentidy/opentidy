@@ -21,25 +21,25 @@ plusieurs jours/semaines, et ne sollicite l'utilisateur que quand c'est vraiment
 
 ## Les problèmes à résoudre
 
-### 1. TRIGGER — "Quelque chose se passe, lance Claude"
+### 1. TRIGGER : "Quelque chose se passe, lance Claude"
 Claude ne se lance pas tout seul. Il faut un backend qui :
 - Reçoit les events externes (webhook Gmail, nouveau SMS, etc.)
 - Reçoit les instructions directes de l'utilisateur (app web, Claude Code interactif)
 - Réagit aux événements schedulés (crons, deadlines)
 - Lance Claude avec le bon contexte
 
-Ne pas se limiter aux emails — penser à tout ce à quoi un assistant réagit :
+Ne pas se limiter aux emails, penser à tout ce à quoi un assistant réagit :
 events entrants, instructions de l'utilisateur, deadlines qui approchent, relances à faire,
 réponses attendues qui n'arrivent pas, triggers externes.
 
-### 2. ÉTAT — "Voici où tu en étais sur ce dossier"
+### 2. ÉTAT : "Voici où tu en étais sur ce dossier"
 Claude n'a pas de mémoire entre sessions. Il faut :
 - Persister l'état de chaque dossier/workflow en cours
 - Le rendre lisible par Claude au démarrage d'une session
 - Permettre à Claude de le mettre à jour
 - Garder l'état concis (ne pas accumuler du bruit au fil du temps)
 
-### 3. CHECKPOINT — "Claude a besoin de l'utilisateur, pause et notifie"
+### 3. CHECKPOINT : "Claude a besoin de l'utilisateur, pause et notifie"
 Certaines actions sont sensibles. Il faut :
 - Que Claude puisse se mettre en pause à des moments précis
 - Notifier l'utilisateur (Telegram push → lien vers app web pour le contexte complet)
@@ -52,7 +52,7 @@ doit y retourner plus tard, il sera peut-être ENCORE bloqué par la MFA. Certai
 tâches nécessitent des interactions multiples et imprévisibles.
 
 Question ouverte : est-ce que le mode `claude -p` (print, non-interactif) gère
-bien ça ? Probablement pas — quand Claude est bloqué en mode print, il ne peut
+bien ça ? Probablement pas, quand Claude est bloqué en mode print, il ne peut
 pas demander d'aide mid-session. Options :
 - Print + fallback (Claude s'arrête, notifie, reprend dans une nouvelle session)
   → mais on perd l'état browser (cookies, page ouverte, formulaire rempli)
@@ -61,7 +61,7 @@ pas demander d'aide mid-session. Options :
 - Hybride (print pour les tâches simples, tmux pour les tâches browser)
   → plus complexe à orchestrer
 
-### 4. REPRISE — "L'utilisateur a répondu, Claude reprend"
+### 4. REPRISE : "L'utilisateur a répondu, Claude reprend"
 Quand l'utilisateur valide ou donne une instruction, il faut :
 - Recevoir la réponse
 - Relancer Claude avec l'état du dossier + la réponse de l'utilisateur
@@ -71,15 +71,15 @@ Si on utilise tmux, la reprise est "native" (l'utilisateur intervient dans le te
 Claude continue). Si on utilise des sessions print séparées, il faut reconstruire
 le contexte dans la nouvelle session.
 
-### 5. ISOLATION — "Chaque Claude a son espace"
-Pas d'interruption — si Claude crée une facture, il finit.
+### 5. ISOLATION : "Chaque Claude a son espace"
+Pas d'interruption, si Claude crée une facture, il finit.
 Un event urgent → nouvelle session parallèle, pas interruption de l'existante.
 
 La solution : plusieurs sessions Claude en parallèle, chacune isolée avec son
 propre contexte (= son dossier). Elles ne se marchent pas sur les pieds.
 Les conflits de ressources (Chrome, etc.) sont gérés par des locks.
 
-### 6. GARDE-FOUS — "Sécuriser sans limiter"
+### 6. GARDE-FOUS : "Sécuriser sans limiter"
 L'assistant a accès à tout : emails, banque, factures, browser.
 Une erreur (facture erronée, mauvais paiement, réponse incorrecte à l'admin
 fiscale) a des conséquences réelles et potentiellement graves.
@@ -90,7 +90,7 @@ ne couvrent que les cas où Claude SAIT qu'il doit s'arrêter.
 
 **C'est le problème le plus dur et il n'est pas résolu.**
 
-### 7. AUTO-ANALYSE — "Claude détecte ses propres lacunes"
+### 7. AUTO-ANALYSE : "Claude détecte ses propres lacunes"
 Quand Claude n'arrive pas à faire quelque chose, il devrait :
 - Détecter qu'il est bloqué ou incapable
 - Reporter le gap : "Pour faire X, j'aurais besoin de pouvoir Y"
@@ -101,15 +101,15 @@ L'avantage de Claude Code c'est qu'on peut l'améliorer incrémentalement :
 si on voit qu'il ne gère pas bien un truc, on ajoute un skill ou on modifie
 un comportement. Pas besoin de tout prévoir au jour 1.
 
-### 8. INFRASTRUCTURE — "La plomberie nécessaire"
+### 8. INFRASTRUCTURE : "La plomberie nécessaire"
 Pas de l'intelligence, mais indispensable pour la fiabilité :
-- Dédup des events (webhooks dupliqués — ça arrive avec Gmail)
+- Dédup des events (webhooks dupliqués: ça arrive avec Gmail)
 - Resource locks entre sessions parallèles (Chrome, etc.)
 - Retry/backoff (rate limits Claude, APIs tierces)
-- Audit trail (quoi, quand, pourquoi — crucial pour les actions financières)
+- Audit trail (quoi, quand, pourquoi: crucial pour les actions financières)
 - Crash recovery (détecter qu'un workflow est cassé, relancer)
 
-Ce n'est pas du "cerveau autour du cerveau" — c'est de la plomberie que tout
+Ce n'est pas du "cerveau autour du cerveau", c'est de la plomberie que tout
 système robuste a besoin. La V1 avait raison de l'inclure, c'est juste mélangé
 avec de la logique métier superflue.
 

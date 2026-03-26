@@ -7,7 +7,7 @@ import { execFileSync } from 'child_process';
 let rl: ReturnType<typeof createInterface> | null = null;
 
 function ensureRl(): void {
-  // Always recreate — previous instance may be broken after raw mode
+  // Always recreate. Previous instance may be broken after raw mode.
   if (rl) { try { rl.close(); } catch { /* ignore */ } }
   rl = createInterface({ input: process.stdin, output: process.stdout });
 }

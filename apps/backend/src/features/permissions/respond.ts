@@ -16,7 +16,7 @@ interface RespondDeps {
 export function permissionRespondRoute(deps: RespondDeps) {
   const router = new Hono();
 
-  // GET /permissions/pending — list pending approvals (for web UI)
+  // GET /permissions/pending: list pending approvals (for web UI)
   router.get('/permissions/pending', (c) => {
     return c.json({ pending: deps.approvalManager.listPending() });
   });

@@ -14,16 +14,16 @@ interface Permission {
 
 const INSTRUCTIONS: Record<string, string[]> = {
   'full-disk-access': [
-    'Click "Authorize" — System Settings will open to Privacy & Security',
+    'Click "Authorize". System Settings will open to Privacy & Security',
     'Find "Full Disk Access" in the list',
     'Find the terminal app you used to install OpenTidy and toggle it ON (if unsure, it\'s probably "Terminal")',
-    'Come back here — it will update automatically',
+    'Come back here, it will update automatically',
   ],
   accessibility: [
-    'Click "Authorize" — System Settings will open to Privacy & Security',
+    'Click "Authorize". System Settings will open to Privacy & Security',
     'Find "Accessibility" in the list',
     'Click + and add the terminal app you used to install OpenTidy (if unsure, it\'s probably "Terminal")',
-    'Come back here — it will update automatically',
+    'Come back here, it will update automatically',
   ],
 };
 
@@ -58,7 +58,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
   };
 
   useEffect(() => {
-    // Initial load — don't check (returns all false), just show the UI fast
+    // Initial load: don't check (returns all false), just show the UI fast
     fetch('/api/setup/permissions')
       .then((r) => r.json())
       .then((data) => setPermissions(data.permissions ?? []))
@@ -153,7 +153,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
               )}
             </div>
 
-            {/* Step-by-step instructions — visible until granted */}
+            {/* Step-by-step instructions, visible until granted */}
             {!perm.granted && (
               <ol className="mt-3 space-y-1 border-t border-border-subtle pt-3">
                 {(INSTRUCTIONS[perm.name] ?? []).map((step, i) => (

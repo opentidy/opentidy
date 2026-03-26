@@ -41,7 +41,7 @@ test.describe('E2E-APP-20: Desktop left icon rail', () => {
     await setupMockApi(page);
     await page.goto('/');
 
-    // Desktop nav rail — visible nav with NavLink elements
+    // Desktop nav rail: visible nav with NavLink elements
     const desktopNav = page.locator('nav.hidden.md\\:flex');
     await expect(desktopNav).toBeVisible();
 

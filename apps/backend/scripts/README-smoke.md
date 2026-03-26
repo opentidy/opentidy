@@ -1,4 +1,4 @@
-# Smoke Tests — /test Commands
+# Smoke Tests: /test Commands
 
 Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to run in Claude Code with the backend and frontend started.
 
@@ -11,7 +11,7 @@ Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to r
 
 ## Tests
 
-### E2E-FULL-01 — Email → existing job → action → audit
+### E2E-FULL-01: Email → existing job → action → audit
 
 ```
 /test Simulate an incoming email event (POST /api/triage) from billing@example-client.com
@@ -23,7 +23,7 @@ Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to r
 5. The web app on / shows an active session for "invoices-acme"
 ```
 
-### E2E-FULL-02 — New email → suggestion → approval → work → completed
+### E2E-FULL-02: New email → suggestion → approval → work → completed
 
 ```
 /test Simulate an incoming email event (POST /api/triage) from tax@example-authority.gov
@@ -37,7 +37,7 @@ Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to r
 7. The web app on /jobs shows the new job
 ```
 
-### E2E-FULL-03 — User instruction → job → checkpoint
+### E2E-FULL-03: User instruction → job → checkpoint
 
 ```
 /test In the web app, go to /new. Type the instruction "Annual insurance report 2025"
@@ -49,7 +49,7 @@ and click "Launch". Verify that:
 5. A lock exists in /tmp/opentidy-locks/
 ```
 
-### E2E-FULL-04 — Sweep → deadline detection → autonomous work
+### E2E-FULL-04: Sweep → deadline detection → autonomous work
 
 ```
 /test Check the workspace: the job workspace/insurance-report/ has a state.md that
@@ -60,7 +60,7 @@ Verify that:
 3. The web app on / shows an active session for insurance-report
 ```
 
-### E2E-FULL-05 — Sweep → nothing to do → silence
+### E2E-FULL-05: Sweep → nothing to do → silence
 
 ```
 /test Verify that all jobs in workspace/ have STATUS: COMPLETED or are up to date.
@@ -70,7 +70,7 @@ Trigger a sweep via POST /api/sweep. Verify that:
 3. The web app on / shows zen mode (orb, "All good")
 ```
 
-### E2E-FULL-06 — Hook DENY → Claude adapts
+### E2E-FULL-06: Hook DENY → Claude adapts
 
 ```
 /test Verify that a job with an active session exists. In that job's workspace,
@@ -82,7 +82,7 @@ the hook returns DENY. Verify that:
 4. The "Open terminal" button is present
 ```
 
-### E2E-FULL-07 — Idle timeout → resume → continuation
+### E2E-FULL-07: Idle timeout → resume → continuation
 
 ```
 /test Verify that a job has a pending checkpoint.md and a .session-id file.
@@ -95,7 +95,7 @@ Simulate a timeout via POST /api/session/<id>/timeout. Verify that:
 6. The web app shows the session as active again
 ```
 
-### E2E-FULL-08 — 3 parallel sessions without interference
+### E2E-FULL-08: 3 parallel sessions without interference
 
 ```
 /test Create 3 jobs via the web app /new: "Test A", "Test B", "Test C".
@@ -107,7 +107,7 @@ Verify that:
 5. Each job has its own independent state.md
 ```
 
-### E2E-FULL-09 — Claude discovers a gap while working
+### E2E-FULL-09: Claude discovers a gap while working
 
 ```
 /test Verify that a job has an active session. After Claude's work,
@@ -119,7 +119,7 @@ verify that:
 5. Both are independent (resolving the checkpoint doesn't resolve the gap)
 ```
 
-### E2E-FULL-10 — Claude never creates a job on its own
+### E2E-FULL-10: Claude never creates a job on its own
 
 ```
 /test Simulate 5 different incoming email events with varied subjects (invoice, tax,
@@ -131,7 +131,7 @@ No existing job matches these emails. After processing, verify that:
 4. Each suggestion has a .md file with URGENCY, SOURCE, Summary
 ```
 
-### E2E-FULL-11 — File exchange user ↔ Claude
+### E2E-FULL-11: File exchange user ↔ Claude
 
 ```
 /test Open a job that has a checkpoint requesting photos.
@@ -143,7 +143,7 @@ In the web app /job/<id>:
 5. Verify that the state.md mentions the received files after processing
 ```
 
-### E2E-FULL-12 — First launch — empty workspace
+### E2E-FULL-12: First launch, empty workspace
 
 ```
 /test Delete the test workspace (rm -rf workspace/*).
@@ -157,7 +157,7 @@ Open the web app. Verify that:
 6. Back on / → the job appears in the active section
 ```
 
-### E2E-FULL-13 — Backend restart with active sessions
+### E2E-FULL-13: Backend restart with active sessions
 
 ```
 /test Verify that active sessions exist.

@@ -24,7 +24,7 @@ après au lieu de 30 secondes, personne ne le remarque.
 - On peut se concentrer sur la qualité des résultats plutôt que la latence
 
 **Seule exception** : quand l'utilisateur demande quelque chose directement en mode interactif
-(Claude Code terminal) — là c'est du live, mais c'est déjà géré nativement.
+(Claude Code terminal), là c'est du live, mais c'est déjà géré nativement.
 
 ## 2. Claude Code est le moteur d'exécution
 
@@ -51,7 +51,7 @@ pour économiser des tokens ou des ressources.
 
 **Contexte** : On s'inquiétait des limites Claude Max (sessions parallèles, etc.).
 L'utilisateur a confirmé que le budget n'est pas un problème. Ça libère les choix
-architecturaux — on peut lancer plusieurs sessions en parallèle sans se soucier
+architecturaux. on peut lancer plusieurs sessions en parallèle sans se soucier
 du coût.
 
 ## 4. L'intelligence est dans Claude, pas dans le code
@@ -61,7 +61,7 @@ de décision, de routing intelligent. Il fait de la plomberie : recevoir events,
 lancer Claude, persister l'état. Claude décide quoi faire, comment, dans quel ordre.
 
 **Comment on y est arrivé** : En analysant la V1, on a réalisé que ~3000 lignes de
-TypeScript réimplémentent ce que Claude fait nativement — triage IA, routing,
+TypeScript réimplémentent ce que Claude fait nativement, triage IA, routing,
 priorisation, gestion de conversations. On a "construit un cerveau autour du cerveau."
 
 L'idée des CLIs custom a renforcé ce constat : on était en train de programmer des
@@ -76,12 +76,12 @@ de l'intelligence mais de la plomberie nécessaire :
 - Retry/backoff sur rate limits
 - Audit trail
 - Crash recovery
-Ces fonctions restent dans le code — c'est de l'infrastructure, pas de la décision.
+Ces fonctions restent dans le code, c'est de l'infrastructure, pas de la décision.
 
-## 5. Pas d'interruption — parallélisme isolé
+## 5. Pas d'interruption : parallélisme isolé
 
 **Le principe** : Si Claude travaille sur une facture, il finit. Un event urgent
-ne l'interrompt pas — il lance une nouvelle session parallèle.
+ne l'interrompt pas, il lance une nouvelle session parallèle.
 
 **Raisonnement** : On avait identifié l'interruption comme un problème (challenge 1).
 L'utilisateur a clarifié : l'interruption est le mauvais modèle. Si un email urgent arrive
@@ -99,7 +99,7 @@ méthodiquement, vérifie régulièrement, avance sur les dossiers, et ne déran
 que quand c'est nécessaire.
 
 **L'analogie retenue** : le système nerveux. L'agent ne "commence pas sa journée"
-comme un humain — il tourne 24/7. Vigilant en permanence, il surveille les stimuli,
+comme un humain. il tourne 24/7. Vigilant en permanence, il surveille les stimuli,
 réagit quand il y a quelque chose, progresse sur le travail de fond quand c'est calme.
 
 **Débat non tranché** : boucle continue (polling) vs event-driven pur vs hybride.
@@ -134,5 +134,5 @@ reporter le gap : "Pour faire X, j'aurais besoin de pouvoir Y mais je n'en suis 
 capable." Ça permet à l'utilisateur d'ajouter des skills, modifier des comportements, etc.
 
 **Crainte** : ne pas tomber dans le piège de sur-engineer l'auto-analyse. Rester
-simple — un fichier de "gaps détectés" que Claude alimente et que l'utilisateur consulte
+simple, un fichier de "gaps détectés" que Claude alimente et que l'utilisateur consulte
 quand il veut améliorer l'assistant.

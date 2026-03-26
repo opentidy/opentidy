@@ -66,7 +66,7 @@ export function createPermissionResolver(
       }
     }
 
-    // Completely unknown tool — fail-safe
+    // Completely unknown tool, fail-safe
     return { level: config.defaultLevel, scope: 'per-call', moduleName: null };
   }
 

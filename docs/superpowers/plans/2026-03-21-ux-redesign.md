@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Redesign the OpenTidy web app with a "Soft Dark" design language — warm charcoal palette, spacious layout, polished components. No feature changes.
+**Goal:** Redesign the OpenTidy web app with a "Soft Dark" design language; warm charcoal palette, spacious layout, polished components. No feature changes.
 
 **Architecture:** Pure CSS/JSX changes across ~45 files. Phase 1 swaps the color palette (instant change via Tailwind @theme). Phase 2 redesigns layout/nav. Phase 3-5 restyle each page. All TypeScript logic, state management, routing, and i18n stay untouched.
 
@@ -70,7 +70,7 @@
 
 ---
 
-## Task 1: Foundation — Palette & Font
+## Task 1: Foundation: Palette & Font
 
 **Files:**
 - Modify: `apps/web/index.html`
@@ -120,7 +120,7 @@ Note: `--color-surface` and `--color-border-subtle` are **new** variables (not i
 
 Run: `pnpm --filter @opentidy/web dev`
 
-Open http://localhost:5173. The entire app should now show the new Soft Dark palette — warmer charcoal tones instead of cold blue-blacks. Verify:
+Open http://localhost:5173. The entire app should now show the new Soft Dark palette; warmer charcoal tones instead of cold blue-blacks. Verify:
 - Background is warm dark (#141416), not blue-black
 - Cards are #2c2c2e
 - Text is #f5f5f7
@@ -158,7 +158,7 @@ Update dot colors, badge backgrounds, and text colors to use the Soft Dark palet
 
 - [ ] **Step 3: Verify**
 
-Check Home page — status dots and badges on task cards should show correct colors.
+Check Home page; status dots and badges on task cards should show correct colors.
 
 - [ ] **Step 4: Commit**
 
@@ -180,7 +180,7 @@ Change the root container and main content area styling:
 - Root: `flex h-screen overflow-hidden bg-bg` (keep as-is, bg-bg now maps to #141416)
 - Main content area: ensure it uses `bg-bg` background (the slightly darker page background)
 - Mobile bottom padding: keep `pb-20 md:pb-0` for mobile tab bar clearance
-- The layout structure itself doesn't change — just verify colors pass through correctly
+- The layout structure itself doesn't change; just verify colors pass through correctly
 
 - [ ] **Step 2: Verify**
 
@@ -287,7 +287,7 @@ Plus icon in white. Links to `/nouveau`.
 
 **More tab:** Opens a state-managed bottom sheet (use existing Headless UI Dialog or a simple toggle div):
 - Sheet: `fixed bottom-0 left-0 right-0 bg-surface rounded-t-2xl p-4 z-50` with backdrop `bg-black/50`
-- Items: Terminal, Modules, Schedule, Settings, Improvements — same style as sidebar nav items
+- Items: Terminal, Modules, Schedule, Settings, Improvements, same style as sidebar nav items
 - Close on backdrop click or item click
 
 **Badge on Suggestions:** Same pattern as current but with new colors.
@@ -422,7 +422,7 @@ git commit -m "refactor(web): restyle TaskCard for Soft Dark"
 
 ---
 
-## Task 9: Task Detail — Header & Split Panels
+## Task 9: Task Detail: Header & Split Panels
 
 **Files:**
 - Modify: `apps/web/src/features/tasks/TaskDetail.tsx`
@@ -593,7 +593,7 @@ Update `ProcessOutput.tsx`, `PlainTextOutput.tsx`, `LiveProcessOutput.tsx`:
 
 SessionOutput: `bg-bg font-mono text-sm overflow-y-auto p-4`. Line styling: timestamp in tertiary, tool_use in accent.
 
-SessionCard: Update card styling to match new palette — status dots, text colors, hover states.
+SessionCard: Update card styling to match new palette; status dots, text colors, hover states.
 
 - [ ] **Step 4: Restyle TtydTerminal.tsx**
 
@@ -631,7 +631,7 @@ Buttons: "Create task" = primary button, "Ignore" = secondary button
 
 Page container: `p-5 md:p-7`
 Title + count badge: `text-xl font-bold text-text` with `text-[9px] px-2 py-0.5 rounded-full bg-accent/10 text-accent`
-Empty state: "No suggestions — your inbox is clear"
+Empty state: "No suggestions, your inbox is clear"
 
 - [ ] **Step 3: Commit**
 
@@ -769,13 +769,13 @@ Section headers: standard uppercase label pattern.
 - [ ] **Step 4: Restyle Settings.tsx and all sub-panels**
 
 Same container as ModulesPage. Then restyle each sub-panel:
-- `SecurityPanel.tsx`: Bearer token display, masked input, copy button — use `bg-card rounded-xl` grouped container
-- `ServiceControlPanel.tsx`: Start/stop controls — secondary buttons
+- `SecurityPanel.tsx`: Bearer token display, masked input, copy button; use `bg-card rounded-xl` grouped container
+- `ServiceControlPanel.tsx`: Start/stop controls, secondary buttons
 - `DangerZonePanel.tsx`: `bg-red/5 border border-red/10 rounded-xl p-4` with danger button
-- `AgentsPanel.tsx`: Agent card + connection status — use `bg-card rounded-xl p-4`
-- `ModulesPanel.tsx`: Module list wrapper — pass-through to ModuleList
-- `AddModuleDialog.tsx`: Dialog inputs and buttons — `bg-surface rounded-2xl` overlay
-- `ModuleConfigDialog.tsx`: Config form — same dialog pattern
+- `AgentsPanel.tsx`: Agent card + connection status, use `bg-card rounded-xl p-4`
+- `ModulesPanel.tsx`: Module list wrapper, pass-through to ModuleList
+- `AddModuleDialog.tsx`: Dialog inputs and buttons: `bg-surface rounded-2xl` overlay
+- `ModuleConfigDialog.tsx`: Config form, same dialog pattern
 
 - [ ] **Step 5: Restyle TerminalDrawer.tsx**
 
@@ -877,7 +877,7 @@ git commit -m "refactor(web): add focus-visible states and loading skeletons"
 ## Task 21: Final Polish Pass
 
 **Files:**
-- All previously modified files — review pass
+- All previously modified files, review pass
 
 - [ ] **Step 1: Audit remaining hardcoded colors**
 
@@ -886,7 +886,7 @@ Search for any remaining old palette references:
 grep -rn '#0f1117\|#1a1d27\|#22252f\|#2a2d37\|#3b82f6\|#22c55e\|#ef4444\|#f59e0b\|#9ca3af\|#6b7280\|#f9fafb' apps/web/src/ --include='*.tsx' --include='*.ts'
 ```
 
-Replace any remaining old palette colors with new theme variable equivalents. Some hardcoded hex values are intentional (like `#0f0f11` for terminal background) — leave those.
+Replace any remaining old palette colors with new theme variable equivalents. Some hardcoded hex values are intentional (like `#0f0f11` for terminal background), leave those.
 
 - [ ] **Step 2: Check all pages visually**
 

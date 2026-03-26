@@ -37,7 +37,7 @@ describe('Edge cases', () => {
     fs.mkdirSync(path.join(wsDir, '_gaps'), { recursive: true });
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Corrupt Camoufox profile\n\n**Problem:** The banking profile is unusable\n**Impact:** Cannot access the account\n**Suggestion:** Recreate the profile\n\n---\n',
+      '## 2026-03-14 : Corrupt Camoufox profile\n\n**Problem:** The banking profile is unusable\n**Impact:** Cannot access the account\n**Suggestion:** Recreate the profile\n\n---\n',
     );
 
     const list = createGapsManager(wsDir).listGaps();

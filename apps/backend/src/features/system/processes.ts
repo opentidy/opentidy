@@ -16,7 +16,7 @@ export function processesRoute(deps: AppDeps) {
     return c.json(processes);
   });
 
-  // GET /claude-processes/:id/output — read raw output of a Claude process
+  // GET /claude-processes/:id/output: read raw output of a Claude process
   router.get('/claude-processes/:id/output', (c) => {
     const id = parseInt(c.req.param('id'), 10);
     if (isNaN(id)) return c.json({ error: 'Invalid id' }, 400);

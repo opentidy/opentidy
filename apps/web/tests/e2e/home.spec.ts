@@ -38,7 +38,7 @@ test.describe('E2E-APP-03: Home shows active sessions in "En fond" section', () 
     // "En fond" section
     await expect(page.getByText('En fond', { exact: false })).toBeVisible();
 
-    // 3 sessions — SessionCard shows capitalized task name
+    // 3 sessions: SessionCard shows capitalized task name
     await expect(page.getByText('Invoices Acme').nth(1)).toBeVisible();
     await expect(page.getByText('Insurance Report')).toBeVisible();
     await expect(page.getByText('Test Blocked')).toBeVisible();

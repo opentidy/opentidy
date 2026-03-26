@@ -28,7 +28,7 @@ Le concept de "checkpoints dans un workflow" est bon. C'est le bon modèle menta
 ### Pourquoi on ne l'a pas retenue telle quelle
 Définir les workflows à l'avance en code est rigide. Si le workflow change
 (nouveau client, nouveau format de facture), il faut modifier le code. Or Claude
-peut adapter son approche dynamiquement — il n'a pas besoin d'un workflow codé en dur.
+peut adapter son approche dynamiquement, il n'a pas besoin d'un workflow codé en dur.
 De plus, chaque step qui spawn un subprocess Claude a un overhead d'initialisation.
 
 ---
@@ -53,7 +53,7 @@ Les règles déclaratives sont un triage bête déguisé en configuration :
 - Un email urgent d'un inconnu → ignoré
 
 On finit par maintenir des règles de plus en plus complexes. C'est le problème
-des filtres email — ça marche pour les cas simples, ça casse dès que la réalité
+des filtres email. ça marche pour les cas simples, ça casse dès que la réalité
 est nuancée. Et ça ne gère pas l'inattendu, qui est justement l'intérêt d'avoir
 une IA.
 
@@ -69,7 +69,7 @@ quoi faire.
 ### Ce qu'on a aimé
 - Claude décide lui-même quoi faire, dans quel ordre, quand relancer
 - Maximum d'intelligence, minimum de code
-- Les fichiers markdown sont le "cerveau" — lisibles par l'humain ET par Claude
+- Les fichiers markdown sont le "cerveau", lisibles par l'humain ET par Claude
 
 ### Pourquoi on ne l'a pas retenue
 - UN seul agent = UN seul contexte = goulot d'étranglement
@@ -114,7 +114,7 @@ skill (/compta, /admin, /triage). Un micro-trigger (50 lignes) lance Claude avec
 le bon skill.
 
 ### Intérêt
-Simplicité maximale — des prompts markdown, pas de code.
+Simplicité maximale, des prompts markdown, pas de code.
 
 ### Pourquoi on l'a nuancée
 On a quand même besoin d'un backend pour la plomberie : recevoir les webhooks,
@@ -183,10 +183,10 @@ L'utilisateur a souligné que ça revenait à "programmer ce que Claude est déj
 | Approche | Concept retenu | Concept écarté |
 |---|---|---|
 | A (Workflows) | Checkpoints dans un flux | Workflows codés en dur |
-| B (Règles) | — | Routing par règles statiques |
+| B (Règles) | (none) | Routing par règles statiques |
 | C (Agent unique) | Bureau virtuel en fichiers | Agent unique (contexte limité) |
 | D (Multi-agent) | Parallélisme isolé | Spécialisation par domaine |
 | E (Skills only) | Intelligence dans les prompts/skills | Backend de 50 lignes (irréaliste) |
 | F (Stateless) | Sessions fraîches = robuste | Tout stateless (perte état browser) |
-| G (Hybride) | Éphémère par défaut, long si besoin | — (reste candidat) |
-| H (CLI) | — | Réécrire les MCP en CLI |
+| G (Hybride) | Éphémère par défaut, long si besoin |: (reste candidat) |
+| H (CLI) | (none) | Réécrire les MCP en CLI |

@@ -103,7 +103,7 @@ export const updatePreferences = (data: Partial<Preferences>) =>
 
 export const resetEverything = async () => {
   await json('/reset', { method: 'POST' });
-  // Backend exits after responding — wait for it to come back up
+  // Backend exits after responding. Wait for it to come back up
   const maxWait = 15_000;
   const start = Date.now();
   while (Date.now() - start < maxWait) {

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reset OpenTidy dev environment — wipe all data, kill all processes, restart clean
+# Reset OpenTidy dev environment: wipe all data, kill all processes, restart clean
 # Usage: ./scripts/reset-dev.sh
 
 set -e

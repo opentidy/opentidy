@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-// watchdog.ts — fs.watch workspace monitor
+// watchdog.ts: fs.watch workspace monitor
 // Emits task:updated SSE events when state.md / artifacts change.
 // Session lifecycle (start/end) is handled by process exit in launcher/session.ts.
 
@@ -32,7 +32,7 @@ export function createWorkspaceWatcher(deps: {
         // Skip internal dirs and bare files at workspace root
         if (taskId === '.' || taskId.startsWith('_')) return;
 
-        // Debounce per task — files can be written multiple times rapidly
+        // Debounce per task, files can be written multiple times rapidly
         if (debounceTimers.has(taskId)) {
           clearTimeout(debounceTimers.get(taskId)!);
         }

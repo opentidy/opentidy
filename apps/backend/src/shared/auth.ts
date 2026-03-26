@@ -15,7 +15,7 @@ export function createAuthMiddleware(bearerToken: string): MiddlewareHandler {
 
     // Skip auth for same-origin requests (SPA served by this server or via dev proxy)
     // In production, Cloudflare Access protects at the network level
-    // In dev mode, Vite proxy forwards from :5173 to :5175 — same localhost, different ports
+    // In dev mode, Vite proxy forwards from :5173 to :5175 (same localhost, different ports)
     const origin = c.req.header('Origin') || '';
     const referer = c.req.header('Referer') || '';
     const host = c.req.header('Host') || '';

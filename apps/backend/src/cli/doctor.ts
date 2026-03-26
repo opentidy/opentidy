@@ -27,7 +27,7 @@ export function checkNodeVersion(): CheckResult {
         ok: true,
         warn: true,
         name: 'node',
-        detail: `${version} — expected ${REQUIRED_NODE_MAJOR}.x, native addons may not work`,
+        detail: `${version}, expected ${REQUIRED_NODE_MAJOR}.x, native addons may not work`,
       };
     }
     return { ok: true, name: 'node', detail: version };
@@ -52,19 +52,19 @@ export function checkDependency(bin: string): CheckResult {
 
 export function checkConfig(configPath: string): CheckResult {
   if (!existsSync(configPath)) {
-    return { ok: false, name: 'config', detail: `${configPath} not found — run opentidy setup` };
+    return { ok: false, name: 'config', detail: `${configPath} not found, run opentidy setup` };
   }
   const config = loadConfig(configPath);
   const telegramToken = (config.modules?.telegram?.config?.botToken as string) || '';
   if (!telegramToken) {
-    return { ok: false, name: 'config', detail: 'telegram.botToken is empty — configure Telegram module' };
+    return { ok: false, name: 'config', detail: 'telegram.botToken is empty, configure Telegram module' };
   }
   return { ok: true, name: 'config', detail: configPath };
 }
 
 export function checkClaudeConfig(claudeConfigDir: string | undefined): CheckResult {
   if (!claudeConfigDir || !existsSync(claudeConfigDir)) {
-    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run opentidy setup` };
+    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found, run opentidy setup` };
   }
   if (!existsSync(`${claudeConfigDir}/settings.json`)) {
     return { ok: false, name: 'claude-config', detail: 'settings.json missing' };
@@ -76,7 +76,7 @@ export async function runDoctor(): Promise<void> {
   console.log(`\n  OpenTidy Doctor (v${getVersion()})\n`);
   const results: CheckResult[] = [];
 
-  // Node version check (special — validates major version)
+  // Node version check (special, validates major version)
   results.push(checkNodeVersion());
 
   // Other dependencies
@@ -105,7 +105,7 @@ export async function runDoctor(): Promise<void> {
   let hasErrors = false;
   for (const r of results) {
     const icon = r.warn ? '  ⚠ ' : r.ok ? '  OK' : '  !!';
-    console.log(`${icon}  ${r.name} — ${r.detail || ''}`);
+    console.log(`${icon}  ${r.name}: ${r.detail || ''}`);
     if (!r.ok) hasErrors = true;
   }
 

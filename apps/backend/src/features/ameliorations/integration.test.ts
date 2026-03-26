@@ -8,7 +8,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-describe('Actionable Gaps — Integration', () => {
+describe('Actionable Gaps: Integration', () => {
   let wsDir: string;
 
   beforeEach(() => {
@@ -24,7 +24,7 @@ describe('Actionable Gaps — Integration', () => {
   it('full flow: code gap → GitHub issue → gap updated with issue number', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — TOTP support missing\n\n**Problème:** Cannot handle MFA TOTP\n**Impact:** Blocks portal automation\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP authentication\n**Source:** post-session\n\n---\n',
+      '## 2026-03-14 : TOTP support missing\n\n**Problème:** Cannot handle MFA TOTP\n**Impact:** Blocks portal automation\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP authentication\n**Source:** post-session\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);
@@ -62,7 +62,7 @@ describe('Actionable Gaps — Integration', () => {
   it('full flow: config gap → suggestion file created → gap updated with slug', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Hook too strict\n\n**Problème:** PreToolUse hook blocks legitimate Bash commands\n**Impact:** Must manually intervene\n**Suggestion:** Whitelist common commands\n**Catégorie:** config\n**Fix type:** config\n**Source:** post-session\n\n---\n',
+      '## 2026-03-14 : Hook too strict\n\n**Problème:** PreToolUse hook blocks legitimate Bash commands\n**Impact:** Must manually intervene\n**Suggestion:** Whitelist common commands\n**Catégorie:** config\n**Fix type:** config\n**Source:** post-session\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);
@@ -99,7 +99,7 @@ describe('Actionable Gaps — Integration', () => {
   it('graceful degradation: gaps without fixType are ignored by router', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Old style gap\n\n**Problème:** Something\n**Impact:** Something\n\n---\n',
+      '## 2026-03-14 : Old style gap\n\n**Problème:** Something\n**Impact:** Something\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);
@@ -128,7 +128,7 @@ describe('Actionable Gaps — Integration', () => {
   it('dedup: existing issue gets comment, not duplicate creation', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-19 — TOTP support missing\n\n**Problème:** Still cannot do MFA\n**Impact:** Same portal blocked\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Additional context: portal uses time-based codes only\n\n---\n',
+      '## 2026-03-19 : TOTP support missing\n\n**Problème:** Still cannot do MFA\n**Impact:** Same portal blocked\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Additional context: portal uses time-based codes only\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);

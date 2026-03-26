@@ -46,7 +46,7 @@ function safeDryRemove(label: string, p?: string): void {
 
 function safeRemove(p: string, label: string, toTrash = false): void {
   if (!existsSync(p)) {
-    console.log(`  ·  ${label} — not found, skipping`);
+    console.log(`  ·  ${label}: not found, skipping`);
     return;
   }
   if (isUnsafeTarget(p)) {
@@ -62,11 +62,11 @@ function safeRemove(p: string, label: string, toTrash = false): void {
     } catch {
       // Fallback to rm if trash move fails (cross-device, etc.)
       rmSync(p, { recursive: true, force: true });
-      console.log(`  ✓  ${label} — removed`);
+      console.log(`  ✓  ${label}: removed`);
     }
   } else {
     rmSync(p, { recursive: true, force: true });
-    console.log(`  ✓  ${label} — removed`);
+    console.log(`  ✓  ${label}: removed`);
   }
 }
 
@@ -199,7 +199,7 @@ function resolveCleanupItems(): CleanupItem[] {
         execFileSync('cloudflared', ['service', 'uninstall'], { timeout: 10_000, stdio: 'pipe' });
         console.log('  ✓  Cloudflare Tunnel service uninstalled');
       } catch {
-        console.log('  ·  Cloudflare Tunnel service — not installed or already removed');
+        console.log('  ·  Cloudflare Tunnel service: not installed or already removed');
       }
     },
   });
@@ -355,7 +355,7 @@ export async function runUninstall(args: string[]): Promise<void> {
       try {
         item.action();
       } catch (err) {
-        console.log(`  ⚠  ${item.label} — failed: ${err instanceof Error ? err.message : err}`);
+        console.log(`  ⚠  ${item.label}: failed: ${err instanceof Error ? err.message : err}`);
       }
     }
   }

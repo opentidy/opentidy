@@ -7,7 +7,7 @@ import { loadConfig, saveConfig, getConfigPath } from '../../shared/config.js';
 import { run, info, success, warn } from './utils.js';
 
 const WRAPPER_SCRIPT = `#!/usr/bin/env bash
-# Wrapper for camofox MCP — unique CAMOFOX_USER per Claude Code session
+# Wrapper for camofox MCP, unique CAMOFOX_USER per Claude Code session
 # so multiple agents get isolated BrowserContexts (separate tabs, cookies in memory)
 # while sharing saved sessions on disk (~/.camofox/sessions/).
 set -euo pipefail

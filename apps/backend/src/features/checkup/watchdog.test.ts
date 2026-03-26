@@ -36,7 +36,7 @@ describe('createWorkspaceWatcher', () => {
     );
   });
 
-  it('start is idempotent — does not open two watchers', () => {
+  it('start is idempotent, does not open two watchers', () => {
     const closeMock = vi.fn();
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     vi.spyOn(require('fs'), 'watch').mockReturnValue({
@@ -74,7 +74,7 @@ describe('createWorkspaceWatcher', () => {
     watcher.start();
 
     watchCallback!('change', 'factures/state.md');
-    expect(deps.sse.emit).not.toHaveBeenCalled(); // not yet — debounce
+    expect(deps.sse.emit).not.toHaveBeenCalled(); // not yet (debounce)
 
     await vi.advanceTimersByTimeAsync(3_000);
     expect(deps.sse.emit).toHaveBeenCalledOnce();

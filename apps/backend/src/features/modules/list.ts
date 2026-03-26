@@ -75,7 +75,7 @@ export function listModulesRoute(deps: ModuleRouteDeps) {
     // Custom modules from config that are not in manifests
     for (const [name, state] of Object.entries(config.modules)) {
       if (!deps.manifests.has(name) && state.source === 'custom') {
-        // Custom module without a manifest — build minimal info
+        // Custom module without a manifest: build minimal info
         result.push({
           name,
           label: name,

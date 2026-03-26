@@ -109,7 +109,7 @@ it('does not resolve non-./ args', () => {
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- src/shared/agent-config.test.ts
 ```
 
-Expected: FAIL — `generateSettingsFromModules` doesn't accept 3rd parameter yet.
+Expected: FAIL because `generateSettingsFromModules` doesn't accept 3rd parameter yet.
 
 - [ ] **Step 3: Implement path resolution**
 
@@ -182,7 +182,7 @@ git commit -m "feat(backend): resolve ./ relative args in MCP server definitions
 - Modify: `apps/backend/src/shared/agent-config.ts` (function `regenerateAgentConfig`)
 - Modify: `apps/backend/src/index.ts`
 
-No changes to `lifecycle.ts` — the closure in `index.ts` captures `modulesDir` from its lexical scope and passes it to `regenerateAgentConfig`. The lifecycle interface stays unchanged.
+No changes to `lifecycle.ts`. The closure in `index.ts` captures `modulesDir` from its lexical scope and passes it to `regenerateAgentConfig`. The lifecycle interface stays unchanged.
 
 - [ ] **Step 1: Update `regenerateAgentConfig` signature**
 
@@ -219,7 +219,7 @@ regenerateAgentConfig: (modules, mans) => {
 },
 ```
 
-Note: `modulesDir` is already in scope (defined as `path.resolve(import.meta.dirname, '../modules')`). The lifecycle calls `regenerateAgentConfig(config.modules, manifests)` — the closure captures `modulesDir` and forwards it. No lifecycle interface change needed.
+Note: `modulesDir` is already in scope (defined as `path.resolve(import.meta.dirname, '../modules')`). The lifecycle calls `regenerateAgentConfig(config.modules, manifests)`, and the closure captures `modulesDir` and forwards it. No lifecycle interface change needed.
 
 - [ ] **Step 3: Run affected tests**
 
@@ -274,7 +274,7 @@ Create `apps/backend/modules/password-manager/module.json`:
   }],
   "skills": [{
     "name": "password-manager-skill",
-    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Always use search_vault first to find the right entry, then get_item to retrieve credentials. Never ask the user for passwords — look them up in the vault."
+    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Always use search_vault first to find the right entry, then get_item to retrieve credentials. Never ask the user for passwords; look them up in the vault."
   }],
   "setup": {
     "authCommand": "npx tsx ./setup.ts",
@@ -334,7 +334,7 @@ Create `apps/backend/modules/password-manager/start-mcp.js`:
 
 // Wrapper script for Bitwarden MCP server.
 // Reads master password from OS keychain → bw unlock → spawns MCP server with fresh BW_SESSION.
-// IMPORTANT: Only use console.error for logging — stdout is the MCP protocol channel.
+// IMPORTANT: Only use console.error for logging. stdout is the MCP protocol channel.
 
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -401,7 +401,7 @@ git commit -m "feat(modules): add password-manager MCP wrapper script"
 
 ---
 
-### Task 6: Integration test — verify wrapper resolves correctly
+### Task 6: Integration test, verify wrapper resolves correctly
 
 **Files:**
 - Test: `apps/backend/src/shared/agent-config.test.ts`
@@ -466,7 +466,7 @@ console.log('Entry class:', typeof mod.Entry);
 " --input-type=module
 ```
 
-Expected: `Entry class: function` — confirms the relative import path works.
+Expected: `Entry class: function` (confirms the relative import path works).
 
 If this fails, the `start-mcp.js` import path needs adjustment. The script must resolve `@napi-rs/keyring` from `apps/backend/node_modules/` (or the hoisted root `node_modules/`). Check where pnpm actually installed it and adjust the path.
 
@@ -580,12 +580,12 @@ async function main(): Promise<void> {
 
     // Verify by unlocking
     if (!verifyPassword(masterPassword)) {
-      console.error('❌ Failed to unlock vault — wrong master password?');
+      console.error('❌ Failed to unlock vault, wrong master password?');
       if (attempt === MAX_RETRIES) process.exit(1);
       continue;
     }
 
-    console.log('✓ Password verified — vault unlocked successfully\n');
+    console.log('✓ Password verified, vault unlocked successfully\n');
 
     // Store in keychain
     try {
@@ -622,7 +622,7 @@ git commit -m "feat(modules): add password-manager setup script"
 
 ### Task 8: Full test suite run and verify
 
-**Files:** (no changes — verification only)
+**Files:** (no changes, verification only)
 
 - [ ] **Step 1: Run full backend test suite**
 
@@ -669,4 +669,4 @@ Expected: Log line `[modules] Loaded: password-manager` appears among loaded mod
 | 5 | MCP wrapper script | `modules/password-manager/start-mcp.js` |
 | 6 | Integration test + module resolution verify | `agent-config.test.ts` |
 | 7 | Setup script (with retry) | `modules/password-manager/setup.ts` |
-| 8 | Full verification | (no files — test/build/run) |
+| 8 | Full verification | (no files, test/build/run) |

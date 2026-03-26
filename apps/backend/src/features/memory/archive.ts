@@ -7,7 +7,7 @@ import type { AppDeps } from '../../server.js';
 export function archiveMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /memory/:filename/archive — archive memory file
+  // POST /memory/:filename/archive (archive memory file)
   router.post('/memory/:filename/archive', (c) => {
     if (!deps.memoryManager) return c.json({ error: 'memory not available' }, 503);
     const { filename } = c.req.param();

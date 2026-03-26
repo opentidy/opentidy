@@ -12,7 +12,7 @@ export default tseslint.config(
   },
   {
     rules: {
-      // Downgrade to warn — existing codebase has many instances, will be cleaned up gradually
+      // Downgrade to warn. Existing codebase has many instances, will be cleaned up gradually
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-non-null-assertion': 'warn',
       'no-empty': ['error', { allowEmptyCatch: true }],

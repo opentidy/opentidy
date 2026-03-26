@@ -7,7 +7,7 @@ import type { AppDeps } from '../../server.js';
 export function readMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // GET /memory/:filename — read one memory file
+  // GET /memory/:filename (read one memory file)
   router.get('/memory/:filename', (c) => {
     if (!deps.memoryManager) return c.json({ error: 'memory not available' }, 503);
     const { filename } = c.req.param();

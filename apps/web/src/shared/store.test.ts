@@ -142,7 +142,7 @@ describe('Zustand store', () => {
         close: vi.fn(),
       };
       originalEventSource = globalThis.EventSource;
-      // @ts-expect-error — mock constructor
+      // @ts-expect-error mock constructor
       globalThis.EventSource = vi.fn(() => mockEventSource);
     });
 

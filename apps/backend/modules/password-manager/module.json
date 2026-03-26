@@ -16,7 +16,7 @@
   }],
   "skills": [{
     "name": "password-manager-skill",
-    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Use the `list` tool with a search query to find entries, then `get` with object='password' or object='item' to retrieve credentials. Use `get` with object='totp' for 2FA codes. Never ask the user for passwords — look them up in the vault."
+    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Use the `list` tool with a search query to find entries, then `get` with object='password' or object='item' to retrieve credentials. Use `get` with object='totp' for 2FA codes. Never ask the user for passwords. Look them up in the vault."
   }],
   "setup": {
     "authCommand": "npx tsx ./setup.ts",

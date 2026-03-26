@@ -66,7 +66,7 @@ function withError(set: (s: Partial<Store>) => void, fn: () => Promise<void>): P
   });
 }
 
-// Mutable output stores — outside Zustand to avoid render storms
+// Mutable output stores, outside Zustand to avoid render storms
 // Components subscribe via useSyncExternalStore hooks below
 const _sessionOutputs = new Map<string, SessionOutputLine[]>();
 const _processOutputs = new Map<number, string>();
@@ -192,7 +192,7 @@ export const useStore = create<Store>((set, get) => ({
     try {
       await api.resetEverything();
     } catch {
-      // Backend may not restart in dev mode — redirect anyway since config is already reset
+      // Backend may not restart in dev mode. Redirect anyway since config is already reset
     }
     window.location.href = '/setup';
   },
@@ -217,7 +217,7 @@ const SSE_FETCH_MAP: Partial<Record<SSEEventType, FetchFn[]>> = {
   'system:reset': ['fetchTasks', 'fetchSessions', 'fetchSuggestions', 'fetchAmeliorations', 'fetchClaudeProcesses'],
 };
 
-// Debounced SSE refetch — batches rapid events into a single fetch round
+// Debounced SSE refetch: batches rapid events into a single fetch round
 const _pendingFetches = new Set<FetchFn>();
 let _sseDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -246,7 +246,7 @@ export function connectSSE(): () => void {
     });
   }
 
-  // Session output — mutable store, debounced notify
+  // Session output: mutable store, debounced notify
   let sessionOutputFlushTimer: ReturnType<typeof setTimeout> | null = null;
   es.addEventListener('session:output', (e: MessageEvent) => {
     try {
@@ -275,7 +275,7 @@ export function connectSSE(): () => void {
     }
   });
 
-  // Process output — mutable store, debounced notify
+  // Process output: mutable store, debounced notify
   let processOutputFlushTimer: ReturnType<typeof setTimeout> | null = null;
   es.addEventListener('process:output', (e: MessageEvent) => {
     try {
@@ -304,7 +304,7 @@ export function connectSSE(): () => void {
       console.log('[sse] reconnected, refetching all data');
     }
     wasConnected = true;
-    // Always refetch on connect/reconnect — fetch functions handle errors internally
+    // Always refetch on connect/reconnect. Fetch functions handle errors internally
     const store = useStore.getState();
     store.fetchTasks();
     store.fetchSessions();

@@ -5,7 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import type { TaskStatus, Task, JournalEntry } from '@opentidy/shared';
 
-// Normalize status strings — accepts both old French and new English values
+// Normalize status strings: accepts both old French and new English values
 function normalizeStatus(raw: string): TaskStatus {
   const upper = raw.toUpperCase().trim();
   // English values
@@ -91,7 +91,7 @@ export function setWaitingType(taskDir: string, type: 'user' | 'tiers'): void {
       content = content.replace(/## (?:En attente|Waiting)\n/, (match) => `${match}${tag}\n`);
     }
   } else {
-    // No waiting section — create one with English header
+    // No waiting section. Create one with English header.
     content = content.trimEnd() + `\n\n## Waiting\n${tag}\n`;
   }
   fs.writeFileSync(filePath, content);

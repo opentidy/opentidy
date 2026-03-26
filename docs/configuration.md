@@ -48,7 +48,7 @@ Override the config path with the `OPENTIDY_CONFIG_PATH` environment variable.
 | `chatId` | string | Chat ID where notifications are sent |
 | `userId` | string | (Optional) Your Telegram user ID for filtering |
 
-OpenTidy uses Telegram for push notifications — checkpoint alerts, task completions, error reports. Each notification includes a link to the web dashboard.
+OpenTidy uses Telegram for push notifications: checkpoint alerts, task completions, error reports. Each notification includes a link to the web dashboard.
 
 **Setting up a bot:**
 1. Open Telegram, search for @BotFather
@@ -158,6 +158,6 @@ workspace/
 
 ## Next steps
 
-- [Getting Started](getting-started.md) — installation and first task
-- [Architecture](architecture.md) — how the components work together
-- [Security](security.md) — hooks and audit system
+- [Getting Started](getting-started.md): installation and first task
+- [Architecture](architecture.md): how the components work together
+- [Security](security.md): hooks and audit system

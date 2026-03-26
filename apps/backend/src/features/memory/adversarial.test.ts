@@ -52,7 +52,7 @@ describe('Adversarial: Memory Manager', () => {
       fs.writeFileSync(indexPath, content)
       const entries = manager.readIndex()
       // The regex requires exactly 4 captured groups ending with |$
-      // Extra column means the line has more pipes — the regex may or may not match
+      // Extra column means the line has more pipes, so the regex may or may not match
       // At minimum the normal entry should parse
       expect(entries.some(e => e.filename === 'ok.md')).toBe(true)
     })
@@ -82,7 +82,7 @@ describe('Adversarial: Memory Manager', () => {
 
     // BUG FOUND: The regex /^---\n([\s\S]*?)\n---\n([\s\S]*)$/ requires \n---\n
     // If the closing --- is missing, the regex won't match, so it falls back to
-    // {meta: {}, body: raw} — which includes the opening --- in the body.
+    // {meta: {}, body: raw}, which includes the opening --- in the body.
     // This is actually graceful degradation, not a crash. But the body will contain "---".
     it('memory file with incomplete frontmatter (missing --- closing) → should not crash', () => {
       fs.writeFileSync(path.join(memDir, 'broken.md'), '---\ncategory: test\nSome content without closing')
@@ -159,7 +159,7 @@ describe('Adversarial: Memory Manager', () => {
     })
 
     // BUG FOUND: A filename of just ".md" is technically valid on the filesystem
-    // but is a terrible edge case — it's a hidden file, and readAllFiles
+    // but is a terrible edge case: it's a hidden file, and readAllFiles
     // would pick it up since it passes the .endsWith('.md') filter.
     it('filename that is just ".md" → edge case', () => {
       // Should not crash at minimum
@@ -227,10 +227,10 @@ describe('Adversarial: Memory Manager', () => {
       expect(entry.category).toBe('test')
     })
 
-    // BUG FOUND: YAML values with colons — the frontmatter parser regex
+    // BUG FOUND: YAML values with colons. The frontmatter parser regex
     // /^(\w+):\s*(.+)$/ captures everything after the first colon.
-    // So `description: value: with colon` gives description = "value: with colon" — actually correct!
-    // But what about quoted YAML? `description: "value: with colon"` — quotes are included in value.
+    // So `description: value: with colon` gives description = "value: with colon" (actually correct!)
+    // But what about quoted YAML? `description: "value: with colon"` (quotes are included in value).
     it('frontmatter values with colons are preserved', () => {
       manager.writeFile({
         filename: 'colons.md',
@@ -336,12 +336,12 @@ describe('Adversarial: Memory Manager', () => {
       // Delete b.md from disk but leave INDEX.md untouched
       fs.unlinkSync(path.join(memDir, 'b.md'))
 
-      // readAllFiles uses readdirSync, so it only tries to read existing files — should work
+      // readAllFiles uses readdirSync, so it only tries to read existing files (should work)
       const all = manager.readAllFiles()
       expect(all).toHaveLength(1)
       expect(all[0].filename).toBe('a.md')
 
-      // But readIndex still shows b.md — inconsistency
+      // But readIndex still shows b.md (inconsistency)
       const index = manager.readIndex()
       expect(index).toHaveLength(2) // stale entry for b.md
     })
@@ -371,7 +371,7 @@ describe('Adversarial: Memory Manager', () => {
     // BUG FOUND: reconstructIndex reads ALL .md files except INDEX.md.
     // But _archived is a subdirectory, and readdirSync on memDir won't list files
     // inside _archived (it's not recursive). However, _archived itself shows up
-    // in readdirSync as a directory entry — and it doesn't end with .md so it's filtered.
+    // in readdirSync as a directory entry, and it doesn't end with .md so it's filtered.
     // So this should actually be fine. Let's verify.
     it('reconstructIndex should not include archived files', () => {
       manager.writeFile({ filename: 'keep.md', category: 'c', description: 'd', content: 'K' })
@@ -404,7 +404,7 @@ describe('Adversarial: Memory Manager', () => {
       // The archived file now has Version 2, Version 1 is LOST
       const archived = fs.readFileSync(path.join(memDir, '_archived', 'dup.md'), 'utf-8')
       expect(archived).toContain('Version 2')
-      // Version 1 is gone — silent data loss. Not necessarily a bug the test should fail on,
+      // Version 1 is gone (silent data loss). Not necessarily a bug the test should fail on,
       // but worth noting.
     })
 
@@ -446,7 +446,7 @@ describe('Adversarial: Memory Manager', () => {
   // ==========================================================================
   describe('parseFrontmatter edge cases', () => {
     it('frontmatter with non-word-char keys (e.g. hyphenated) are ignored', () => {
-      // The regex /^(\w+):\s*(.+)$/ — \w+ means [a-zA-Z0-9_]
+      // The regex /^(\w+):\s*(.+)$/ uses \w+ which means [a-zA-Z0-9_]
       // So "last-updated: 2026-01-01" won't match because of the hyphen
       fs.writeFileSync(path.join(memDir, 'hyphen.md'), '---\nlast-updated: 2026-01-01\ncategory: test\n---\n\nBody')
       const entry = manager.readFile('hyphen.md')
@@ -529,7 +529,7 @@ describe('Adversarial: Lock Manager', () => {
   it('acquire, simulate crash (don\'t release), acquire again → times out', async () => {
     const lock1 = createMemoryLock(tmpDir)
     await lock1.acquire()
-    // "crash" — don't release
+    // "crash" (don't release)
 
     const lock2 = createMemoryLock(tmpDir)
     // lock2 should timeout because lock1 is still held
@@ -646,7 +646,7 @@ describe('Adversarial: writeFile', () => {
   })
 
   it('writeFile with empty filename → should either work or throw meaningfully', () => {
-    // An empty filename means path.join(memDir, '') === memDir — writing to a directory
+    // An empty filename means path.join(memDir, '') === memDir, writing to a directory
     expect(() =>
       manager.writeFile({
         filename: '',
@@ -654,10 +654,10 @@ describe('Adversarial: writeFile', () => {
         description: 'empty name',
         content: 'body',
       })
-    ).toThrow() // EISDIR — trying to write to a directory path
+    ).toThrow() // EISDIR: trying to write to a directory path
   })
 
-  // FIX: INDEX.md is now a reserved filename — writeFile throws.
+  // FIX: INDEX.md is now a reserved filename. writeFile throws.
   it('writeFile with filename "INDEX.md" → throws reserved filename error', () => {
     manager.writeFile({ filename: 'a.md', category: 'c', description: 'd', content: 'A' })
     expect(manager.readIndex()).toHaveLength(1) // a.md is indexed

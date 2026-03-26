@@ -1,4 +1,4 @@
-# Alfred — Guide de Design UI
+# Alfred : Guide de Design UI
 
 Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier sont la source de verite pour le design.
 
@@ -7,7 +7,7 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 
 ## Theme global
 
-- **Dark mode** uniquement — fond `#0f1117` (quasi-noir bleu), cartes `#1a1d27` (gris fonce)
+- **Dark mode** uniquement: fond `#0f1117` (quasi-noir bleu), cartes `#1a1d27` (gris fonce)
 - **Accent primaire** : bleu `#3b82f6` (logo, icon rail actif, liens)
 - **Accent secondaire** : vert `#22c55e` (boutons "Creer le dossier", "Lancer", statut actif)
 - **Danger/urgent** : rouge `#ef4444` (badges "Urgent", "Intervention", points d'etat rouge)
@@ -20,13 +20,13 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 
 ## Navigation
 
-### Desktop — Icon rail a gauche
+### Desktop : Icon rail a gauche
 - Rail vertical etroit (~60px), icones SVG, fond meme que la barre de titre
 - Icones : Home, Dossiers, Terminal, Ameliorations (+ avatar utilisateur en bas)
 - Page active = icone en bleu avec fond subtil
 - Barre de titre macOS en haut (traffic lights)
 
-### Mobile — Tab bar en bas
+### Mobile : Tab bar en bas
 - 5 onglets : Home, Dossiers, Nouveau (+), Terminal, Plus (...)
 - Icones + labels en dessous
 - Onglet actif = texte et icone en bleu
@@ -36,19 +36,19 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 - Statut sweep a droite ("Sweep 5 min - OK" en texte gris)
 - Bouton "+ Nouveau dossier" vert a droite
 
-## Page 1 : Home — Actions en attente
+## Page 1 : Home : Actions en attente
 
 **Screenshot** : `alfred-mockup-home-actions.png`
 
 **Structure (3 sections empilees)** :
 
 ### Section "Pour toi" (point rouge)
-- Separateur avec point rouge + "Pour toi — N actions"
+- Separateur avec point rouge + "Pour toi, N actions"
 - **Cartes checkpoint** : bordure gauche orange, titre + badge "Checkpoint" (orange), timestamp a droite, description en gris, bouton "Ouvrir le terminal" (outline gris)
 - **Cartes intervention** : bordure gauche rouge, badge "Intervention" (rouge), bouton "Ouvrir le terminal"
 
 ### Section "Suggestions" (losange bleu)
-- Separateur avec losange bleu + "Suggestions — N nouvelles"
+- Separateur avec losange bleu + "Suggestions, N nouvelles"
 - **Cartes suggestion** : bordure gauche coloree selon urgence (rouge=urgent, bleu=normal)
 - Badge urgence a cote du titre
 - Source + timestamp a droite ("Sweep - il y a 1h")
@@ -56,7 +56,7 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 - 2 boutons : "Creer le dossier" (vert, large) + "Ignorer" (gris, outline)
 
 ### Section "En fond"
-- Separateur texte gris "En fond — l'assistant travaille"
+- Separateur texte gris "En fond: l'assistant travaille"
 - **Cartes session** : plus compactes, juste titre + statut a droite ("Verification documents - 4 min")
 - Point vert (actif) ou bleu (idle) ou gris (termine)
 
@@ -64,7 +64,7 @@ Reference visuelle pour l'implementation frontend. Les mockups dans ce dossier s
 - Titre + lien "Voir les logs complets" (bleu, fleche)
 - Lignes simples : heure a gauche (gris), point colore, description
 
-## Page 2 : Home — Tout roule (etat zen)
+## Page 2 : Home : Tout roule (etat zen)
 
 Quand il n'y a aucune action requise :
 - Grand losange bleu centre
@@ -80,7 +80,7 @@ Quand il n'y a aucune action requise :
 
 - **Filtres en haut** : 3 boutons pill ("Actifs (4)", "Termines (8)", "Bloques (1)")
 - **Barre de recherche** + bouton "+ Nouveau"
-- **Liste de cartes** — meme style que partout :
+- **Liste de cartes**: meme style que partout :
   - Point de statut colore (vert=actif, orange=bloque, gris=termine)
   - Titre + badge statut
   - Info session/temps a droite
@@ -98,7 +98,7 @@ Quand il n'y a aucune action requise :
 ### Layout desktop (2 colonnes)
 **Colonne principale (gauche)** :
 - **Breadcrumb** : "Dossiers / Factures Sopra 2025" + badge "En cours" + indicateur "Session active"
-- **Banniere checkpoint** (si present) : fond sombre, bordure rouge, titre "Checkpoint — ...", bouton "Ouvrir le terminal"
+- **Banniere checkpoint** (si present) : fond sombre, bordure rouge, titre "Checkpoint : ...", bouton "Ouvrir le terminal"
 - **Rendu du state.md** : sections "Objectif", "Fait" (items verts avec check), "Reste a faire" (items orange/rouges avec cercle)
 
 **Colonne laterale (droite, ~250px)** :
@@ -160,9 +160,9 @@ Quand il n'y a aucune action requise :
 
 ## Principes de design
 
-1. **Memes cartes partout** — checkpoint, suggestion, session, dossier, amelioration utilisent toutes le meme pattern de carte avec bordure gauche coloree
-2. **Couleur = statut** — vert=actif/succes, orange=attente/warning, rouge=urgent/intervention, bleu=normal/info, gris=termine
+1. **Memes cartes partout**. checkpoint, suggestion, session, dossier, amelioration utilisent toutes le meme pattern de carte avec bordure gauche coloree
+2. **Couleur = statut**: vert=actif/succes, orange=attente/warning, rouge=urgent/intervention, bleu=normal/info, gris=termine
 3. **Desktop = information riche**, Mobile = essentiel uniquement
-4. **Pas de table** — tout est en cartes empilees
-5. **Actions toujours visibles** — les boutons d'action sont dans la carte, pas dans un menu
-6. **Hierarchy par separateurs** — sections delimitees par une ligne avec icone + texte
+4. **Pas de table**, tout est en cartes empilees
+5. **Actions toujours visibles**, les boutons d'action sont dans la carte, pas dans un menu
+6. **Hierarchy par separateurs**, sections delimitees par une ligne avec icone + texte

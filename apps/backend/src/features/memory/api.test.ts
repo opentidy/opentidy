@@ -259,13 +259,13 @@ describe('Memory API routes', () => {
       expect(res.status).toBe(503)
     })
 
-    it('validates input — rejects empty text', async () => {
+    it('validates input: rejects empty text', async () => {
       const res = await r.post('/api/memory/prompt', { text: '' })
       // Zod min(1) fails → 400
       expect(res.status).toBe(400)
     })
 
-    it('validates input — rejects missing text field', async () => {
+    it('validates input: rejects missing text field', async () => {
       const res = await r.post('/api/memory/prompt', {})
       expect(res.status).toBe(400)
     })

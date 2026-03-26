@@ -23,7 +23,7 @@ export function validateModule(
 
   // 1. Name format
   if (!MODULE_NAME_REGEX.test(name)) {
-    errors.push(`Module name "${name}" is invalid — must match /^[a-z0-9-]+$/ (lowercase letters, numbers, hyphens only)`);
+    errors.push(`Module name "${name}" is invalid. Must match /^[a-z0-9-]+$/ (lowercase letters, numbers, hyphens only)`);
     return { valid: false, errors };
   }
 
@@ -57,7 +57,7 @@ export function validateModule(
 
   // 5. Curated name collision
   if (curatedNames.has(manifest.name)) {
-    errors.push(`Module name "${manifest.name}" collides with a curated module — choose a different name`);
+    errors.push(`Module name "${manifest.name}" collides with a curated module. Choose a different name`);
   }
 
   // 6. Referenced files exist

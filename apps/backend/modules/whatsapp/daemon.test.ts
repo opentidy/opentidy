@@ -133,7 +133,7 @@ describe('WhatsApp daemon', () => {
     expect(ctx.emitCalls[0].metadata.from).toBe('1234@s.whatsapp.net');
   });
 
-  it('does NOT emit on messages.upsert (type: append — history sync)', async () => {
+  it('does NOT emit on messages.upsert (type: append, history sync)', async () => {
     const ctx = createMockContext(tmpDir);
     await start(ctx);
 

@@ -1,19 +1,19 @@
-# Password Manager Module — Design Spec
+# Password Manager Module: Design Spec
 
 **Date:** 2026-03-21
 **Goal:** Add a `password-manager` module that gives the agent access to the user's Bitwarden/Vaultwarden vault via the official Bitwarden MCP Server, with secure master password storage using the OS keychain.
 
 ## Problem
 
-OpenTidy agents need credentials to perform tasks (e.g., log into a website via Camoufox). Today there's no way for an agent to retrieve passwords — the user must manually provide them or the task fails.
+OpenTidy agents need credentials to perform tasks (e.g., log into a website via Camoufox). Today there's no way for an agent to retrieve passwords; the user must manually provide them or the task fails.
 
 ## Constraints
 
-- **OS-agnostic** — must work on macOS + Linux (Homebrew distribution)
-- **Safe** — master password never on disk, never in env vars globally
-- **No re-auth** — user does setup once, never re-enters credentials
-- **No core hardcoding** — self-contained module, standard manifest
-- **Open-source safe** — no secrets in repo
+- **OS-agnostic**: must work on macOS + Linux (Homebrew distribution)
+- **Safe**: master password never on disk, never in env vars globally
+- **No re-auth**: user does setup once, never re-enters credentials
+- **No core hardcoding**: self-contained module, standard manifest
+- **Open-source safe**: no secrets in repo
 
 ## Chosen Approach
 
@@ -23,7 +23,7 @@ OpenTidy agents need credentials to perform tasks (e.g., log into a website via 
 
 | Alternative | Why rejected |
 |---|---|
-| `bw serve` (REST API) | No authentication on HTTP endpoint — any local process reads the whole vault |
+| `bw serve` (REST API) | No authentication on HTTP endpoint, so any local process reads the whole vault |
 | `rbw` (Rust CLI) | Unofficial, single maintainer, no MCP server |
 | Vaultwarden API direct | Vault is E2E encrypted, would need to reimplement Bitwarden crypto stack |
 | Static `BW_SESSION` in config | Token expires, user must re-unlock weekly |
@@ -69,7 +69,7 @@ apps/backend/modules/password-manager/
   }],
   "skills": [{
     "name": "password-manager-skill",
-    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Always use search_vault first to find the right entry, then get_item to retrieve credentials. Never ask the user for passwords — look them up in the vault."
+    "content": "When you need credentials to log into a service, use the Bitwarden MCP tools to search the vault and retrieve passwords. Always use search_vault first to find the right entry, then get_item to retrieve credentials. Never ask the user for passwords; look them up in the vault."
   }],
   "setup": {
     "checkCommand": "command -v bw >/dev/null 2>&1",
@@ -121,9 +121,9 @@ Today `agent-config.ts` passes `mcpDef.command` and `mcpDef.args` verbatim to `s
 
 **Enhancement needed:**
 
-1. **`loader.ts`** — pass `modulesBaseDir` through so directory paths are available at config generation time.
+1. **`loader.ts`**: pass `modulesBaseDir` through so directory paths are available at config generation time.
 
-2. **`generateSettingsFromModules()`** — accept `modulesBaseDir` parameter and resolve `./` prefixed args:
+2. **`generateSettingsFromModules()`**: accept `modulesBaseDir` parameter and resolve `./` prefixed args:
 
 ```typescript
 export function generateSettingsFromModules(
@@ -147,16 +147,16 @@ This benefits any future module that ships its own scripts.
 
 ### During `opentidy setup`
 
-1. **Check `bw` CLI installed** — `checkCommand: "command -v bw"`
+1. **Check `bw` CLI installed**: `checkCommand: "command -v bw"`
    - If missing: prompt user to install (`brew install bitwarden-cli`)
-2. **Configure Vaultwarden URLs** (optional) — `configFields` in UI
-3. **Auth step** — runs `setup.ts` via `authCommand`:
+2. **Configure Vaultwarden URLs** (optional): `configFields` in UI
+3. **Auth step**: runs `setup.ts` via `authCommand`:
    - `bw config server <apiUrl>` (if self-hosted, read from module config)
-   - `bw login` (interactive — email + master password + 2FA in terminal)
+   - `bw login` (interactive: email + master password + 2FA in terminal)
    - Script prompts user for master password separately (secure terminal input, no echo)
    - Store master password in OS keychain via `@napi-rs/keyring`
    - Verify: `bw unlock --passwordenv OPENTIDY_BW_MASTER --raw` succeeds
-4. **Done** — user never enters credentials again
+4. **Done**: user never enters credentials again
 
 ### Master password capture flow
 
@@ -171,7 +171,7 @@ The setup script (`setup.ts`) handles this explicitly:
 5. If verify fails → delete keychain entry, show error, ask to retry
 ```
 
-The master password is prompted by the setup script itself — not intercepted from `bw login`. This is a clean two-step approach: `bw login` handles auth/2FA interactively, then the script captures the password separately for keychain storage.
+The master password is prompted by the setup script itself, not intercepted from `bw login`. This is a clean two-step approach: `bw login` handles auth/2FA interactively, then the script captures the password separately for keychain storage.
 
 ### Setup manifest integration
 
@@ -247,27 +247,27 @@ Only `@napi-rs/keyring` is added to `package.json`. The Bitwarden MCP server is 
 ## Files Changed
 
 ### New files
-- `apps/backend/modules/password-manager/module.json` — module manifest
-- `apps/backend/modules/password-manager/start-mcp.ts` — wrapper script source (compiled to `.js` by build)
-- `apps/backend/modules/password-manager/setup.ts` — setup script (keychain storage + bw login)
+- `apps/backend/modules/password-manager/module.json`: module manifest
+- `apps/backend/modules/password-manager/start-mcp.ts`: wrapper script source (compiled to `.js` by build)
+- `apps/backend/modules/password-manager/setup.ts`: setup script (keychain storage + bw login)
 
 ### Modified files
-- `apps/backend/src/shared/agent-config.ts` — accept `modulesBaseDir`, resolve `./` paths in MCP args (~10 lines)
-- `apps/backend/src/features/modules/lifecycle.ts` — pass `modulesBaseDir` to `generateSettingsFromModules()`
-- `apps/backend/src/index.ts` — pass `modulesBaseDir` to `regenerateAgentConfig()`
-- `apps/backend/package.json` — add `@napi-rs/keyring` dependency
+- `apps/backend/src/shared/agent-config.ts`: accept `modulesBaseDir`, resolve `./` paths in MCP args (~10 lines)
+- `apps/backend/src/features/modules/lifecycle.ts`: pass `modulesBaseDir` to `generateSettingsFromModules()`
+- `apps/backend/src/index.ts`: pass `modulesBaseDir` to `regenerateAgentConfig()`
+- `apps/backend/package.json`: add `@napi-rs/keyring` dependency
 
 ### No changes to
-- Module loader (`loader.ts`) — already has access to `modulesBaseDir`
+- Module loader (`loader.ts`): already has access to `modulesBaseDir`
 - Permission system (resolver, checker, approval)
 - Shared types/schemas (`ModuleManifest` unchanged)
-- Frontend (ModuleList, ModuleCard — already generic)
+- Frontend (ModuleList, ModuleCard, already generic)
 - spawn-agent.ts
 
 ## Out of Scope
 
-- Encrypted file fallback for headless Linux (YAGNI — add if users request)
+- Encrypted file fallback for headless Linux (YAGNI, add if users request)
 - 1Password support (different module, different MCP server)
-- Vault write operations (create/edit items) — read-only for now
+- Vault write operations (create/edit items): read-only for now
 - `rbw` support
 - Custom `envFromCommand` module system feature (wrapper script is sufficient)

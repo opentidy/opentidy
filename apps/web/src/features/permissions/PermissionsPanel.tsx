@@ -12,7 +12,7 @@ import type {
   ToolDef,
 } from '@opentidy/shared';
 
-// Built-in capability keys — matches BUILTIN_CAPABILITY_PERMISSIONS in agent-config.ts
+// Built-in capability keys, matches BUILTIN_CAPABILITY_PERMISSIONS in agent-config.ts
 const BUILTIN_KEYS = ['readFiles', 'writeFiles', 'runCommands', 'webAccess', 'subAgents'] as const;
 
 // Default level per preset for each capability

@@ -92,7 +92,7 @@ export function createNotifier(deps: NotifierDeps): Notifier {
 
   return {
     async notifyStarted(taskId) {
-      // No Telegram message for session start — just record in store for Activity Feed
+      // No Telegram message for session start, just record in store for Activity Feed
       recordAndEmit(`Session started`, taskLink(taskId), taskId);
     },
 

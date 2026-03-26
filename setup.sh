@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2026 Loaddr Ltd
 
-# setup.sh — OpenTidy installation script for Mac Mini
+# setup.sh: OpenTidy installation script for Mac Mini
 # Usage: curl -fsSL <url>/setup.sh | bash  (or just ./setup.sh)
 set -euo pipefail
 
@@ -36,7 +36,7 @@ confirm() {
 
 echo ""
 echo "=========================================="
-echo "  OpenTidy — Setup Mac Mini"
+echo "  OpenTidy Setup (Mac Mini)"
 echo "=========================================="
 echo ""
 
@@ -84,7 +84,7 @@ info "Checking Claude authentication..."
 if claude auth status &>/dev/null 2>&1; then
   ok "Claude already authenticated"
 else
-  warn "Claude not authenticated — launching OAuth login..."
+  warn "Claude not authenticated, launching OAuth login..."
   claude auth login
   ok "Claude authenticated"
 fi
@@ -162,7 +162,7 @@ echo ""
 
 echo ""
 echo "=========================================="
-echo "  Part 1 complete — automated setup done"
+echo "  Part 1 complete: automated setup done"
 echo "=========================================="
 echo ""
 
@@ -203,7 +203,7 @@ grant_permission() {
   open "$panel"
   echo ""
   read -rp "$(echo -e "${YELLOW}  Add ${TERM_APP}.app to $name, then press Enter to continue...${NC} ")"
-  ok "$name — done"
+  ok "$name: done"
 }
 
 # ── 1. Full Disk Access (files, databases, Mail, Safari data, Time Machine) ──
@@ -237,7 +237,7 @@ echo "  Tip: if an app isn't listed yet, it will appear after first use."
 echo "       Come back here after your first /navigate or /sms to enable it."
 echo ""
 read -rp "$(echo -e "${YELLOW}  Enable all Automation permissions for ${TERM_APP}, then press Enter...${NC} ")"
-ok "Automation — done"
+ok "Automation: done"
 
 # ── 4. Screen Recording (screenshots, screen capture, Playwright) ──
 grant_permission "Screen Recording" \
@@ -264,11 +264,11 @@ echo "    ls ~/Desktop ~/Documents ~/Downloads"
 echo "  Click 'Allow' on each popup."
 echo ""
 read -rp "$(echo -e "${YELLOW}  Press Enter to continue...${NC} ")"
-ok "Files & Folders — done"
+ok "Files & Folders: done"
 
 # ── 9. Disable Gatekeeper (Mac dédié, pas besoin de vérification apps) ──
 echo ""
-info "Disabling Gatekeeper (dedicated machine — skip app verification)"
+info "Disabling Gatekeeper (dedicated machine, skip app verification)"
 if sudo spctl --master-disable 2>/dev/null; then
   ok "Gatekeeper disabled"
 else
@@ -281,13 +281,13 @@ info "Triggering first-use permissions for common apps..."
 echo "  (Click 'Allow' on any popup that appears)"
 echo ""
 
-# Chrome — triggers Automation permission request
+# Chrome: triggers Automation permission request
 osascript -e 'tell application "Google Chrome" to get name of window 1' 2>/dev/null && ok "  Chrome: authorized" || warn "  Chrome: grant permission when prompted"
 
-# Messages — triggers Automation permission request
+# Messages: triggers Automation permission request
 osascript -e 'tell application "Messages" to get name' 2>/dev/null && ok "  Messages: authorized" || warn "  Messages: grant permission when prompted"
 
-# System Events — triggers Automation permission request
+# System Events: triggers Automation permission request
 osascript -e 'tell application "System Events" to get name' 2>/dev/null && ok "  System Events: authorized" || warn "  System Events: grant permission when prompted"
 
 # Finder

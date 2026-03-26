@@ -1,4 +1,4 @@
-# Alfred Memory System — Design Spec
+# Alfred Memory System : Design Spec
 
 **Date:** 2026-03-16
 **Status:** Draft
@@ -55,13 +55,13 @@ description: Statut Acme, pas de fermeture
 
 Acme Corp est active. Aucune fermeture prévue.
 
-- [2026-03-14] Des tests d'envoi d'emails de fermeture sont en cours — ces emails ne sont PAS réels
+- [2026-03-14] Des tests d'envoi d'emails de fermeture sont en cours (ces emails ne sont PAS réels)
 - [2026-03-16] Confirmé : tous les emails mentionnant "fermeture Acme" sont des tests jusqu'à nouvel ordre
 ```
 
 **Règles :**
 - Entrées datées, les plus récentes en bas
-- Si une info contredit une précédente, la plus récente fait foi — annoter explicitement (⚠️)
+- Si une info contredit une précédente, la plus récente fait foi, annoter explicitement (⚠️)
 - Append-only : pas de suppression d'entrées, archivage du fichier entier si obsolète
 
 ## Flux
@@ -70,7 +70,7 @@ Acme Corp est active. Aucune fermeture prévue.
 
 Le triage et le sweep sont des `claude -p` one-shot. Ils reçoivent **INDEX.md + les fichiers mémoire les plus critiques** dans leur `--system-prompt` ou en contexte. Cela permet au triage de savoir, avant même de router, que "les emails de fermeture Acme sont des tests".
 
-Concrètement : le backend lit INDEX.md, et inclut un résumé mémoire condensé dans le prompt du triage/sweep. Pas besoin d'un agent d'injection dédié pour ça — c'est du texte injecté par le code backend directement.
+Concrètement : le backend lit INDEX.md, et inclut un résumé mémoire condensé dans le prompt du triage/sweep. Pas besoin d'un agent d'injection dédié pour ça. c'est du texte injecté par le code backend directement.
 
 ### 1. Injection (lecture → session)
 
@@ -97,15 +97,15 @@ Session Claude Code se lance (lit CLAUDE.md automatiquement)
 Le bloc appendé dans le CLAUDE.md du dossier :
 
 ```markdown
-## Contexte mémoire (injecté automatiquement — ne pas modifier)
+## Contexte mémoire (injecté automatiquement, ne pas modifier)
 Dernière injection : 2026-03-16 14:30
 
 - Acme Corp est active, aucune fermeture prévue
-- Les emails mentionnant "fermeture Acme" sont des tests — NE PAS agir dessus
+- Les emails mentionnant "fermeture Acme" sont des tests, NE PAS agir dessus
 - Sopra Steria est le client principal, contact : Marie D.
 ```
 
-L'agent d'injection **synthétise** — il ne copie pas les fichiers en entier. Un dossier sur une facture Sopra reçoit les infos Sopra. Un dossier sur un email de fermeture reçoit l'avertissement "c'est un test".
+L'agent d'injection **synthétise**. il ne copie pas les fichiers en entier. Un dossier sur une facture Sopra reçoit les infos Sopra. Un dossier sur un email de fermeture reçoit l'avertissement "c'est un test".
 
 **Budget d'injection :** le bloc injecté ne doit pas dépasser ~30 lignes. L'agent d'injection a cette contrainte dans son system prompt. Cela garantit que le CLAUDE.md reste lisible et ne gonfle pas.
 
@@ -118,7 +118,7 @@ Session Claude Code se termine (process exit)
         ↓
 handleAutonomousExit() dans session.ts
         ↓
-Backend : pré-check — le transcript est-il substantiel ?
+Backend : pré-check, le transcript est-il substantiel ?
   ├── Récupère le claudeSessionId (session object ou .session-id file)
   ├── Localise le transcript via findTranscriptPath(sessionId)
   ├── Si transcript < seuil (isTranscriptSubstantial) → skip
@@ -166,7 +166,7 @@ Un `claude -p` one-shot :
 **Édition directe :**
 Vue liste des mémoires (reprend INDEX.md). Clic sur une entrée → éditeur markdown. Création, modification, archivage.
 
-**Pas de suppression** — archivage vers `_archived/`. L'agent d'injection ignore les fichiers archivés mais ils restent consultables dans l'UI.
+**Pas de suppression**. archivage vers `_archived/`. L'agent d'injection ignore les fichiers archivés mais ils restent consultables dans l'UI.
 
 ## Temporalité et conflits
 
@@ -180,7 +180,7 @@ Vue liste des mémoires (reprend INDEX.md). Clic sur une entrée → éditeur ma
 
 Les écritures dans `_memory/` sont protégées par un lock fichier dédié (`_memory/.lock`), distinct des PID locks par dossier (qui vivent dans `/tmp/opentidy-locks/`).
 
-Mécanisme : acquire/release explicite (créer le fichier `.lock` au début de l'écriture, le supprimer à la fin). Ce n'est pas un PID lock classique car les agents `claude -p` sont des processus éphémères — le PID n'est plus valide après la fin de l'agent. Un simple lockfile avec retry/timeout (ex: attendre 5s max, retry toutes les 500ms) suffit.
+Mécanisme : acquire/release explicite (créer le fichier `.lock` au début de l'écriture, le supprimer à la fin). Ce n'est pas un PID lock classique car les agents `claude -p` sont des processus éphémères. le PID n'est plus valide après la fin de l'agent. Un simple lockfile avec retry/timeout (ex: attendre 5s max, retry toutes les 500ms) suffit.
 
 Utilisé par : l'agent mémoire (SessionEnd), l'agent prompt (UI), les endpoints d'édition directe (PUT).
 
@@ -193,12 +193,12 @@ Si la mémoire dépasse un jour les limites pratiques, migration possible vers u
 ## Composants à implémenter
 
 ### Backend
-- Endpoint `POST /api/memory/prompt` — reçoit le texte libre, lance le claude -p de reformatage
-- Endpoint `GET /api/memory` — lit INDEX.md et retourne la liste
-- Endpoint `GET /api/memory/:filename` — lit un fichier mémoire
-- Endpoint `PUT /api/memory/:filename` — met à jour un fichier mémoire + INDEX.md
-- Endpoint `POST /api/memory` — crée un nouveau fichier mémoire + MAJ INDEX.md
-- Endpoint `POST /api/memory/:filename/archive` — déplace vers _archived/
+- Endpoint `POST /api/memory/prompt`: reçoit le texte libre, lance le claude -p de reformatage
+- Endpoint `GET /api/memory`: lit INDEX.md et retourne la liste
+- Endpoint `GET /api/memory/:filename`: lit un fichier mémoire
+- Endpoint `PUT /api/memory/:filename`: met à jour un fichier mémoire + INDEX.md
+- Endpoint `POST /api/memory`: crée un nouveau fichier mémoire + MAJ INDEX.md
+- Endpoint `POST /api/memory/:filename/archive`: déplace vers _archived/
 
 ### Post-session agent (handleAutonomousExit)
 - Lancement de l'agent mémoire dans `handleAutonomousExit()` du launcher (session.ts)
@@ -228,7 +228,7 @@ Si la mémoire dépasse un jour les limites pratiques, migration possible vers u
 ## Robustesse
 
 ### INDEX.md reconstructible
-INDEX.md est un index dérivé — il peut être reconstruit à tout moment en scannant les fichiers `_memory/*.md` et en lisant leur frontmatter. Si INDEX.md est corrompu ou désynchronisé, un script ou commande backend peut le régénérer.
+INDEX.md est un index dérivé. il peut être reconstruit à tout moment en scannant les fichiers `_memory/*.md` et en lisant leur frontmatter. Si INDEX.md est corrompu ou désynchronisé, un script ou commande backend peut le régénérer.
 
 ### Mauvaise écriture par l'agent mémoire
 Si l'agent écrit une info incorrecte, elle se propage à toutes les sessions futures via l'injection. Mitigation :

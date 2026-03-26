@@ -25,7 +25,7 @@ export interface ModuleLifecycleDeps {
   triageHandler?: (event: AppEvent) => Promise<void>;
   dedup?: { isDuplicate(content: string): boolean; record(content: string): void };
   sse?: { emit(event: SSEEvent): void };
-  /** Base directory for curated modules — used to resolve receiver entry paths */
+  /** Base directory for curated modules, used to resolve receiver entry paths */
   modulesBaseDir?: string;
   dynamicToolRegistry?: DynamicToolRegistry;
   modulesDataBaseDir?: string;
@@ -145,7 +145,7 @@ export function createModuleLifecycle(deps: ModuleLifecycleDeps) {
 
     for (const receiverDef of manifest.receivers) {
       if (receiverDef.mode === 'webhook') {
-        // Webhook receivers are handled by the HTTP endpoint — no process to start
+        // Webhook receivers are handled by the HTTP endpoint, no process to start
         console.log(`[modules] Receiver ${name}:${receiverDef.name} is webhook-mode, skipping start`);
         continue;
       }

@@ -1,4 +1,4 @@
-# Hooks Claude Code — Référence technique
+# Hooks Claude Code : Référence technique
 
 Détails techniques des hooks Claude Code pour le système de garde-fous.
 
@@ -64,7 +64,7 @@ Points importants :
 Le script reçoit le JSON sur stdin, retourne sa décision.
 Peut lancer n'importe quel processus (curl, claude -p, psql, etc.).
 
-### type: "prompt" (évaluation LLM) ← LA CLÉ
+### type: "prompt" (évaluation LLM, la clé)
 ```json
 {
   "type": "prompt",

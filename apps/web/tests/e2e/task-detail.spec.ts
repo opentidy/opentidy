@@ -12,10 +12,10 @@ test.describe('E2E-APP-08: Task detail shows rendered state', () => {
     // Title
     await expect(page.getByRole('heading', { name: 'Invoices Acme' })).toBeVisible();
 
-    // Status badge — "En cours"
+    // Status badge: "En cours"
     await expect(page.getByText('En cours')).toBeVisible();
 
-    // StateRenderer shows "Objectif" heading — visible in whichever viewport is active
+    // StateRenderer shows "Objectif" heading, visible in whichever viewport is active
     await expect(page.locator('h3:visible', { hasText: 'Objectif' })).toBeVisible();
 
     // Breadcrumb link
@@ -37,10 +37,10 @@ test.describe('E2E-APP-10: Desktop sidebar shows session status and files', () =
     // Session section in sidebar
     await expect(page.getByText('Session', { exact: true })).toBeVisible();
 
-    // Session status label in sidebar — "Active - Xm" format
+    // Session status label in sidebar, "Active - Xm" format
     await expect(page.getByText(/^Active - /)).toBeVisible();
 
-    // Artifacts section — "Fichiers" heading in sidebar and artifact file
+    // Artifacts section: "Fichiers" heading in sidebar and artifact file
     await expect(page.getByText('Fichiers', { exact: true }).first()).toBeVisible();
     await expect(page.getByText('invoice-2025-04.pdf').first()).toBeVisible();
   });

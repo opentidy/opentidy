@@ -1,8 +1,8 @@
-# Actionable Gaps — Design Spec
+# Actionable Gaps: Design Spec
 
 **Date:** 2026-03-19
 **Status:** Approved
-**Scope:** Enrich the gap detection system so gaps become actionable — either as GitHub Issues (code problems) or as config-fix suggestions (config/prompt problems).
+**Scope:** Enrich the gap detection system so gaps become actionable; either as GitHub Issues (code problems) or as config-fix suggestions (config/prompt problems).
 
 ## Problem
 
@@ -18,7 +18,7 @@ The post-session agent classifies each gap into one of three fix types:
 |----------|---------|--------|
 | `code` | Problem in OpenTidy's source code | Create/update GitHub Issue |
 | `config` | Problem in Claude's config/prompts | Create suggestion → user approves → dossier |
-| `external` | External limitation (third-party access, etc.) | No action — passive gap |
+| `external` | External limitation (third-party access, etc.) | No action, passive gap |
 
 ### Sanitization
 
@@ -81,7 +81,7 @@ interface OpenTidyConfig {
 
 Location: `features/memory/agents.ts` (`buildExtractionPrompt` / `runExtraction`)
 
-The current architecture: the post-session agent (memory extraction) uses `claude -p` with tools (`Read`, `Write`, `Glob`, `Grep`). Claude writes gaps **directly to `_gaps/gaps.md`** as markdown — it does NOT return structured JSON. This design preserves that pattern.
+The current architecture: the post-session agent (memory extraction) uses `claude -p` with tools (`Read`, `Write`, `Glob`, `Grep`). Claude writes gaps **directly to `_gaps/gaps.md`** as markdown; it does NOT return structured JSON. This design preserves that pattern.
 
 **Changes to the extraction prompt** (`buildExtractionPrompt`):
 
@@ -89,14 +89,14 @@ The Mission 2 (gaps analysis) section is extended. Claude is instructed to write
 
 ```markdown
 **Fix type:** code|config|external
-**Sanitized:** <PII-free one-line technical summary — ONLY if fixType is code>
+**Sanitized:** <PII-free one-line technical summary. ONLY if fixType is code>
 ```
 
 Rules injected into the prompt:
 - `code`: the problem is in OpenTidy's source code (a bug, missing feature, architectural limitation)
 - `config`: the problem is in Claude's configuration, prompts, or workspace setup
 - `external`: the problem is an external limitation (third-party access, API restrictions, physical constraints)
-- `Sanitized` field must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, dossier-specific context. Only the generic technical problem.
+- `Sanitized` field must contain ZERO PII; no names, emails, phone numbers, account IDs, company names, dossier-specific context. Only the generic technical problem.
 - If a gap cannot be described without PII → set `fixType: external`, omit `Sanitized`
 
 **Post-write routing** (in `runExtraction`, after Claude finishes):
@@ -108,7 +108,7 @@ Rules injected into the prompt:
    - `fixType === 'external'` → no action
 3. On success, write back `githubIssueNumber` or `suggestionSlug` to the gap entry
 
-No new `ClaudeProcessType` needed — this runs within the existing `memory-extraction` process.
+No new `ClaudeProcessType` needed; this runs within the existing `memory-extraction` process.
 
 ### GitHub Issue Module
 
@@ -146,29 +146,29 @@ Body:
 *Source: post-session | Date: 2026-03-14*
 ```
 
-No `[auto-gap]` prefix in title — the `auto-gap` label is sufficient for filtering.
+No `[auto-gap]` prefix in title; the `auto-gap` label is sufficient for filtering.
 
 **Auth:** GitHub token stored in `~/.config/opentidy/config.json` under `github.token`. Configured during `opentidy setup` (optional step). `owner` and `repo` are configurable with defaults (`opentidy`/`opentidy`).
 
-**No `gh` CLI dependency** — all calls via `fetch` to `https://api.github.com`.
+**No `gh` CLI dependency**; all calls via `fetch` to `https://api.github.com`.
 
 **Graceful degradation:** No token configured → gap written to `gaps.md` normally, no issue created. Log: `[ameliorations] No GitHub token configured, skipping issue creation`.
 
 **Error handling:** The gap is ALWAYS written to `gaps.md` first, before any GitHub API call. Issue creation is best-effort:
 - Network error, 401, 403, 422 → logged with `[ameliorations]` prefix, gap remains without `githubIssueNumber`
-- No retry on failure — the gap is recorded locally regardless
+- No retry on failure, the gap is recorded locally regardless
 - PII check failure → logged as error, issue NOT created
 
 ### Config Fix → Suggestion (Existing Flow)
 
 When `fixType === 'config'`:
 
-1. Check `suggestionsManager.isDuplicateSuggestion(title)` (exact case-insensitive match — acceptable for MVP)
+1. Check `suggestionsManager.isDuplicateSuggestion(title)` (exact case-insensitive match, acceptable for MVP)
 2. If no duplicate → write `.md` file to `_suggestions/` with `source: "post-session"`
 3. Update gap in `gaps.md` with `suggestionSlug`
 4. User approves from web UI → dossier created → Claude fixes its config
 
-No new code needed for this path — reuses existing suggestion infrastructure.
+No new code needed for this path; reuses existing suggestion infrastructure.
 
 ### Gap Write-Back
 
@@ -177,7 +177,7 @@ After GitHub issue creation or suggestion creation, the backend writes back to `
 - `githubIssueNumber` → `**GitHub Issue:** #42`
 - `suggestionSlug` → `**Suggestion:** slug-name`
 
-This requires a new method in `gaps.ts`: `updateGapFields(index, fields)` — finds the gap by index in the structured format and appends/updates the field lines.
+This requires a new method in `gaps.ts`: `updateGapFields(index, fields)`; finds the gap by index in the structured format and appends/updates the field lines.
 
 ## What Changes
 
@@ -187,18 +187,18 @@ This requires a new method in `gaps.ts`: `updateGapFields(index, fields)` — fi
 | `packages/shared/src/schemas.ts` | `AmeliorationFixTypeSchema` |
 | `features/ameliorations/gaps.ts` | Parse/write new fields + `updateGapFields()` method |
 | `features/memory/agents.ts` | Extended extraction prompt (Mission 2) + post-write routing |
-| `features/ameliorations/github-issue.ts` | **New file** — GitHub API integration + PII check |
+| `features/ameliorations/github-issue.ts` | **New file**, GitHub API integration + PII check |
 | `shared/config.ts` | Read `github.token`/`owner`/`repo` from config |
 | `cli/setup.ts` | Optional GitHub token setup step |
 
 ## What Does NOT Change
 
-- `gaps.md` format (additive — new fields, backward compatible)
+- `gaps.md` format (additive, new fields, backward compatible)
 - Suggestion flow (reused as-is)
 - Checkup sweep (not involved)
 - Frontend (no UI changes in MVP)
 - Legacy bullet format support (still parsed, just won't have new fields)
-- `features/sessions/post-session.ts` (session cleanup only — not the extraction agent)
+- `features/sessions/post-session.ts` (session cleanup only, not the extraction agent)
 
 ## Testing Strategy
 
@@ -212,8 +212,8 @@ This requires a new method in `gaps.ts`: `updateGapFields(index, fields)` — fi
 ## Security Considerations
 
 - GitHub token stored in `~/.config/opentidy/config.json` (gitignored), never in repo
-- Sanitization is critical — the extraction prompt must be explicit about PII removal
+- Sanitization is critical; the extraction prompt must be explicit about PII removal
 - Defense-in-depth: `containsPII()` regex check before any GitHub API call
-- `owner`/`repo` configurable with safe defaults — prevents accidental issue creation on wrong repo
-- Rate limiting: GitHub API has 5000 req/h for authenticated users — not a concern for gap frequency
+- `owner`/`repo` configurable with safe defaults; prevents accidental issue creation on wrong repo
+- Rate limiting: GitHub API has 5000 req/h for authenticated users, not a concern for gap frequency
 - Error handling: all failures are logged, never silently swallowed, never block gap writing

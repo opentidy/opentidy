@@ -129,7 +129,7 @@ export default function Terminal() {
   const queuedCount = claudeProcesses.filter(p => p.status === 'queued').length;
   const runningCount = claudeProcesses.filter(p => p.status === 'running').length;
 
-  // Empty state — no processes at all
+  // Empty state: no processes at all
   if (!loading && claudeProcesses.length === 0) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -148,7 +148,7 @@ export default function Terminal() {
 
   return (
     <div className="flex h-full">
-      {/* Left panel — process list */}
+      {/* Left panel: process list */}
       <div className={`${selected ? 'w-80 shrink-0' : 'w-full max-w-2xl mx-auto'} border-r border-border flex flex-col h-full transition-all`}>
         {/* Header */}
         <div className="px-3 pt-3 pb-2 border-b border-border">
@@ -226,7 +226,7 @@ export default function Terminal() {
         </div>
       </div>
 
-      {/* Right panel — detail */}
+      {/* Right panel: detail */}
       {selected && (
         <div className="flex-1 flex flex-col min-w-0">
           {/* Metadata header */}

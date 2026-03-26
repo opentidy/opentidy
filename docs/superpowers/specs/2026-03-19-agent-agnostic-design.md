@@ -10,17 +10,17 @@ Make OpenTidy agent-agnostic so users can choose their AI coding agent based on 
 
 ## Decisions
 
-1. **User choice** — the user picks one agent at setup time, used globally for everything (sessions, triage, checkup, memory)
-2. **Strict parity** — an agent is only supported if it covers 100% of required features: headless mode, structured output, session resume, system prompt injection, pre-tool hooks, MCP support
-3. **Unified guardrails** — single `guardrails.json` source of truth, adapters translate to native hook format. **Fail-closed**: if a guardrail cannot be translated for an agent, the action is denied by default.
-4. **Unified instructions** — single `INSTRUCTIONS.md` per workspace/dossier, adapters write the native file (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
-5. **Unified MCP config** — single OpenTidy MCP definition, adapters generate native config
-6. **Isolated config** — each agent gets its own config directory under `~/.config/opentidy/agents/<name>/`, fully isolated from the user's personal agent config. If an agent does not support config directory isolation via env var, it is disqualified.
-7. **Multi-agent everywhere** — abstraction covers both autonomous (headless `-p`) and interactive (tmux) modes
-8. **Global selection** — one agent for all tasks, no per-dossier override
-9. **Dev override** — `OPENTIDY_AGENT=gemini` env var or `--agent gemini` CLI flag for development/testing
-10. **Stability tiers** — Claude + macOS = stable; all other agents and OS = experimental
-11. **Implement Claude first** — only the Claude adapter is implemented at launch. Other adapters are future work, gated on verified upstream feature availability.
+1. **User choice**: the user picks one agent at setup time, used globally for everything (sessions, triage, checkup, memory)
+2. **Strict parity**: an agent is only supported if it covers 100% of required features: headless mode, structured output, session resume, system prompt injection, pre-tool hooks, MCP support
+3. **Unified guardrails**: single `guardrails.json` source of truth, adapters translate to native hook format. **Fail-closed**: if a guardrail cannot be translated for an agent, the action is denied by default.
+4. **Unified instructions**: single `INSTRUCTIONS.md` per workspace/dossier, adapters write the native file (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`)
+5. **Unified MCP config**: single OpenTidy MCP definition, adapters generate native config
+6. **Isolated config**: each agent gets its own config directory under `~/.config/opentidy/agents/<name>/`, fully isolated from the user's personal agent config. If an agent does not support config directory isolation via env var, it is disqualified.
+7. **Multi-agent everywhere**: abstraction covers both autonomous (headless `-p`) and interactive (tmux) modes
+8. **Global selection**: one agent for all tasks, no per-dossier override
+9. **Dev override**: `OPENTIDY_AGENT=gemini` env var or `--agent gemini` CLI flag for development/testing
+10. **Stability tiers**: Claude + macOS = stable; all other agents and OS = experimental
+11. **Implement Claude first**: only the Claude adapter is implemented at launch. Other adapters are future work, gated on verified upstream feature availability.
 
 ## Agent Requirements (Strict Parity Checklist)
 
@@ -32,7 +32,7 @@ An agent CLI must support ALL of the following to qualify:
 | 2 | Structured output (JSON/NDJSON) | Output parsing for triage, checkup |
 | 3 | Session resume by ID | Multi-turn dossier sessions |
 | 4 | System prompt injection (flag or file) | Triage, checkup, memory, title prompts |
-| 5 | Pre-tool execution hooks (block/allow) | Security guardrails — non-negotiable |
+| 5 | Pre-tool execution hooks (block/allow) | Security guardrails, non-negotiable |
 | 6 | MCP server support | Gmail, Camoufox, WhatsApp integration |
 | 7 | Config directory isolation via env var | User's personal config must never be touched |
 | 8 | Permission bypass flag | OpenTidy uses hooks for security, not built-in permissions |
@@ -45,19 +45,19 @@ An agent CLI must support ALL of the following to qualify:
 |---|---|---|---|
 | **Claude Code** | `claude` | **Stable** | All 8 requirements met. `CLAUDE_CONFIG_DIR` for isolation. PreToolUse/PostToolUse hooks. `--system-prompt`, `--resume`, `--output-format stream-json`, `--dangerously-skip-permissions`. |
 
-### Candidates (not yet implemented — requires upstream verification)
+### Candidates (not yet implemented: requires upstream verification)
 
 | Agent | Binary | Status | Gaps to verify |
 |---|---|---|---|
 | **Gemini CLI** | `gemini` | **Candidate** | Verify: headless `-p` flag, `--resume` semantics, BeforeTool/AfterTool hook format, config isolation env var, structured output format, permission bypass equivalent |
 | **Copilot CLI** | `copilot` | **Candidate** | Verify: headless `-p` flag, `--resume` semantics, preToolUse/postToolUse hook format, config isolation mechanism, structured output format, permission bypass equivalent |
-| **Codex CLI** | `codex` | **Future** | Missing: `--system-prompt` flag, pre-tool hooks (only SessionStart/Stop). Active development — may qualify later. |
+| **Codex CLI** | `codex` | **Future** | Missing: `--system-prompt` flag, pre-tool hooks (only SessionStart/Stop). Active development, may qualify later. |
 
 ### Disqualified
 
 | Agent | Reason |
 |---|---|
-| Cursor | Proprietary ToS prohibits derivative works — incompatible with AGPL |
+| Cursor | Proprietary ToS prohibits derivative works, incompatible with AGPL |
 | Devin | Cloud VM, not a local subprocess |
 | Windsurf | No CLI |
 | Amazon Q | Headless mode not production-ready, no structured output |
@@ -111,7 +111,7 @@ interface AgentAdapter {
 }
 ```
 
-Each adapter is a factory function (`createClaudeAdapter()`) returning this interface — consistent with OpenTidy's existing pattern.
+Each adapter is a factory function (`createClaudeAdapter()`) returning this interface; consistent with OpenTidy's existing pattern.
 
 ### File Structure (VSA-compliant)
 
@@ -121,9 +121,9 @@ Agent abstraction is shared infrastructure, not a feature slice:
 src/shared/agents/
 ├── types.ts              # AgentAdapter, SpawnOpts, SetupOpts, AgentName
 ├── registry.ts           # resolveAgent(): env → flag → config.json → fallback 'claude'
-├── claude.ts             # createClaudeAdapter() — IMPLEMENTED
-├── gemini.ts             # createGeminiAdapter() — STUB (throws "experimental, not yet implemented")
-└── copilot.ts            # createCopilotAdapter() — STUB (throws "experimental, not yet implemented")
+├── claude.ts             # createClaudeAdapter(). IMPLEMENTED
+├── gemini.ts             # createGeminiAdapter(), STUB (throws "experimental, not yet implemented")
+└── copilot.ts            # createCopilotAdapter(), STUB (throws "experimental, not yet implemented")
 
 src/shared/
 ├── spawn-agent.ts        # replaces spawn-claude.ts, uses resolveAgent()
@@ -156,7 +156,7 @@ OPENTIDY_AGENT env var → --agent CLI flag → config.json.agent → fallback '
         └── ...
 ```
 
-Each agent's config is generated by `adapter.writeConfig()` during `opentidy setup`. The user's personal agent config is never touched. The exact env var for Gemini and Copilot config isolation will be determined when those adapters are implemented — if the agent does not support config isolation, it cannot be supported.
+Each agent's config is generated by `adapter.writeConfig()` during `opentidy setup`. The user's personal agent config is never touched. The exact env var for Gemini and Copilot config isolation will be determined when those adapters are implemented; if the agent does not support config isolation, it cannot be supported.
 
 ### Unified Guardrails
 
@@ -201,10 +201,10 @@ Format:
 
 Each adapter must translate every rule in `guardrails.json` to its native format. The contract:
 
-1. **`type: "prompt"` rules** — Claude spawns a mini-Claude verifier. Other agents must provide an equivalent independent verification mechanism (mini-agent, script-based check, or native equivalent). If the agent has no equivalent, the rule must be translated to a `type: "command"` that calls the OpenTidy backend for verification.
-2. **Tool name matching** — `match` patterns use MCP tool naming (`mcp__<server>__<tool>`). Adapters must map to the agent's native tool naming if it differs.
-3. **`type: "command"` rules** — these call the OpenTidy backend via HTTP. The adapter must translate the hook payload to the format expected by `POST /api/hooks` (fields: `hook_event_name`, `tool_name`, `tool_input`, `session_id`, `cwd`).
-4. **Untranslatable rules** — if a guardrail rule cannot be translated for an agent, the adapter must **fail-closed**: deny the action by default. Silent fail-open is never acceptable.
+1. **`type: "prompt"` rules**: Claude spawns a mini-Claude verifier. Other agents must provide an equivalent independent verification mechanism (mini-agent, script-based check, or native equivalent). If the agent has no equivalent, the rule must be translated to a `type: "command"` that calls the OpenTidy backend for verification.
+2. **Tool name matching**: `match` patterns use MCP tool naming (`mcp__<server>__<tool>`). Adapters must map to the agent's native tool naming if it differs.
+3. **`type: "command"` rules**: these call the OpenTidy backend via HTTP. The adapter must translate the hook payload to the format expected by `POST /api/hooks` (fields: `hook_event_name`, `tool_name`, `tool_input`, `session_id`, `cwd`).
+4. **Untranslatable rules**: if a guardrail rule cannot be translated for an agent, the adapter must **fail-closed**: deny the action by default. Silent fail-open is never acceptable.
 
 Translation happens at **setup time** (`opentidy setup` calls `adapter.writeConfig()`). The generated native config is written to the agent's isolated config directory. Re-running setup regenerates it.
 
@@ -212,7 +212,7 @@ Translation happens at **setup time** (`opentidy setup` calls `adapter.writeConf
 
 Single `INSTRUCTIONS.md` is the source of truth for agent context:
 
-- **Level 1 (workspace):** `workspace/INSTRUCTIONS.md` — identity, style, security rules
+- **Level 1 (workspace):** `workspace/INSTRUCTIONS.md`, identity, style, security rules
 - **Level 2 (dossier):** generated before each session launch into `workspace/<dossier>/INSTRUCTIONS.md`
 
 At spawn time (within the per-dossier lock), the adapter copies `INSTRUCTIONS.md` to the native filename:
@@ -220,7 +220,7 @@ At spawn time (within the per-dossier lock), the adapter copies `INSTRUCTIONS.md
 - Gemini: `GEMINI.md`
 - Copilot: `AGENTS.md`
 
-The source `INSTRUCTIONS.md` is the only file maintained. The native copy is generated and may be overwritten at any spawn. Only the native file exists in each directory (no coexistence — the adapter removes stale files from other agents if present).
+The source `INSTRUCTIONS.md` is the only file maintained. The native copy is generated and may be overwritten at any spawn. Only the native file exists in each directory (no coexistence, the adapter removes stale files from other agents if present).
 
 ### Config Type Changes
 
@@ -274,4 +274,4 @@ Enforced in code: `resolveAgent()` logs a warning at startup for experimental ag
 - Automatic fallback between agents
 - Multi-agent in a single session (different agents for different tasks)
 - BYOK/self-hosted model support
-- Output format normalization layer (callers parse prompt output directly — the prompt contract produces the same JSON/text regardless of agent)
+- Output format normalization layer (callers parse prompt output directly; the prompt contract produces the same JSON/text regardless of agent)

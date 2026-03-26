@@ -1,6 +1,6 @@
-# Architecture V2 — Vue complète
+# Architecture V2 : Vue complète
 
-**Statut** : Brouillon en cours de réflexion — pas une spec technique, pas du code.
+**Statut** : Brouillon en cours de réflexion; pas une spec technique, pas du code.
 C'est une vision de ce que le système doit être, basée sur toute notre réflexion.
 
 ---
@@ -149,7 +149,7 @@ si on voit que trop de sessions inutiles sont lancées.
 ### Principe
 Chaque dossier en cours a un répertoire dans `workspace/` avec des fichiers
 markdown que Claude lit et met à jour. Pas de base de données pour l'état
-des dossiers — des fichiers lisibles par l'humain ET par Claude.
+des dossiers, des fichiers lisibles par l'humain ET par Claude.
 
 ### Structure
 
@@ -205,7 +205,7 @@ Dernière action: 2026-03-13
 
 ## Ce qui reste à faire
 - Avr 2025: timesheet trouvé (152h), facture à créer
-- Mai 2025: timesheet MANQUANT — email envoyé à Sopra le 12/03
+- Mai 2025: timesheet MANQUANT, email envoyé à Sopra le 12/03
 
 ## En attente
 - Réponse de Sopra pour le timesheet de mai (relancer si pas de réponse avant le 16/03)
@@ -233,7 +233,7 @@ Un cron de "nettoyage" ? Une règle de taille max ?
 Quand Claude a besoin de l'utilisateur, il écrit un checkpoint :
 
 ```markdown
-# Checkpoint — Attente validation
+# Checkpoint : Attente validation
 
 ## Ce que j'ai fait
 Créé 2 factures pour avril et mai 2025.
@@ -300,7 +300,7 @@ Plusieurs sessions Claude en même temps, chacune sur un dossier différent.
 Les conflits de ressources (Chrome, etc.) sont gérés par les locks du système.
 
 Si un Claude veut Chrome et qu'un autre l'utilise, il attend ou il fait
-autre chose en attendant — c'est géré par les locks et le retry.
+autre chose en attendant, c'est géré par les locks et le retry.
 
 ### Contexte chargé dans chaque session
 Pour chaque session, Claude reçoit :
@@ -326,7 +326,7 @@ Le cas le plus dangereux : Claude est CONFIANT mais a TORT.
 
 **Couche 1 : Hard stops (techniques, incontournables)**
 Certaines actions sont TOUJOURS bloquées sans approbation explicite de l'utilisateur.
-Pas de jugement de Claude — c'est un mur technique.
+Pas de jugement de Claude, c'est un mur technique.
 
 Exemples :
 - Tout paiement / virement
@@ -463,7 +463,7 @@ Question ouverte : comment techniquement ? Options :
 
 ### Mobile
 L'app doit être utilisable sur téléphone pour les validations rapides.
-Pas besoin d'être une app native — une PWA responsive suffit.
+Pas besoin d'être une app native, une PWA responsive suffit.
 
 ---
 
@@ -480,7 +480,7 @@ vers l'utilisateur avec un lien vers l'app web.
 - "🚨 Email urgent des impôts chypriotes → [Voir]"
 
 ### Pourquoi garder Telegram
-Les push notifications sont essentielles — l'utilisateur ne va pas checker l'app web
+Les push notifications sont essentielles, l'utilisateur ne va pas checker l'app web
 en permanence. Telegram est déjà configuré, fiable, fonctionne sur mobile.
 Alternative future : notifications push de la PWA.
 
@@ -494,14 +494,14 @@ Quand Claude n'arrive pas à faire quelque chose, il l'écrit dans
 
 ### Format
 ```markdown
-## 2026-03-14 — Connexion exali.com
+## 2026-03-14, Connexion exali.com
 Problème: Le site demande un MFA par app mobile (authenticator).
 Je n'ai pas accès à l'app authenticator de l'utilisateur.
 Impact: Je ne peux pas remplir le rapport annuel.
 Suggestion: Ajouter un skill pour lire les codes TOTP, ou configurer
   un accès alternatif.
 
-## 2026-03-15 — Format de facture Sopra
+## 2026-03-15, Format de facture Sopra
 Problème: Sopra a changé leur template de facturation (nouveau champ
   "numéro de commande" obligatoire). J'ai vu le nouveau format dans
   leur dernier email mais /comptable ne le gère pas encore.
@@ -585,7 +585,7 @@ backlog naturel d'améliorations, généré par l'usage réel.
 2. Va sur exali.com → page de login → entre les credentials (Bitwarden)
 3. Le site demande un code MFA
 4. Claude prend un screenshot, écrit checkpoint.md :
-   "Bloqué sur exali.com — MFA requis. Voir screenshot."
+   "Bloqué sur exali.com, MFA requis. Voir screenshot."
 5. NOTIFICATION → "⚠️ Bloqué sur exali.com (MFA) → [Intervenir]"
 6. L'utilisateur ouvre l'app web → voit le screenshot → entre le code MFA
 7. Le code est transmis à Claude (comment exactement ? question ouverte)

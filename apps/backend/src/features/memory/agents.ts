@@ -49,7 +49,7 @@ ${input.stateContent}
 2. Synthesize the relevant information into a concise block
 3. Return ONLY the block to inject, in the following format:
 
-## Memory context (injected automatically — do not modify)
+## Memory context (injected automatically, do not modify)
 Last injection: ${new Date().toISOString().split('T')[0]}
 
 - Relevant point 1
@@ -81,10 +81,10 @@ ${input.indexContent}
 
 ## YOUR 3 MISSIONS (all mandatory)
 
-### Mission 1 — Memory
+### Mission 1: Memory
 Extract new information to retain in global memory.
 
-**CRITICAL SCOPE: OpenTidy only.** This memory belongs to the OpenTidy project. Only extract information that is directly relevant to OpenTidy (its features, modules, configuration, users, tasks, sessions, architecture, deployment). If the transcript contains discussions about other projects, tools, or topics unrelated to OpenTidy, **ignore them entirely** — they do not belong in this memory.
+**CRITICAL SCOPE: OpenTidy only.** This memory belongs to the OpenTidy project. Only extract information that is directly relevant to OpenTidy (its features, modules, configuration, users, tasks, sessions, architecture, deployment). If the transcript contains discussions about other projects, tools, or topics unrelated to OpenTidy, **ignore them entirely**. They do not belong in this memory.
 
 **To extract:**
 - OpenTidy-related business facts (decisions, contacts, feature direction)
@@ -116,7 +116,7 @@ description: One-line description
 Free-form content with dated entries.
 \`\`\`
 
-### Mission 2 — Self-analyses (gaps)
+### Mission 2: Self-analyses (gaps)
 Identify obstacles encountered during the session and generate ACTIONABLE analyses.
 
 **Key criterion: only create a gap IF the user can act on it.** Examples:
@@ -133,14 +133,14 @@ Format for each gap:
 \`\`\`
 ---
 
-## ${today} — <Short clear title>
+## ${today} : <Short clear title>
 
 **Problem:** <What concretely happened>
 **Impact:** <Business or operational consequence>
 **Category:** <capability|access|config|process|data>
 **Fix type:** <code|config|external>
-**Sanitized title:** <PII-free short title — ONLY if fixType is code>
-**Sanitized:** <PII-free one-line technical summary — ONLY if fixType is code>
+**Sanitized title:** <PII-free short title, ONLY if fixType is code>
+**Sanitized:** <PII-free one-line technical summary, ONLY if fixType is code>
 **Recommended actions:**
 - <Concrete action 1 the user can take>
 - <Concrete action 2 (optional)>
@@ -153,11 +153,11 @@ Format for each gap:
 - \`code\`: the problem is in OpenTidy's source code (bug, missing feature, architectural limitation in the opentidy codebase itself)
 - \`config\`: the problem is in Claude's configuration, prompts, hooks, or workspace setup
 - \`external\`: the problem is an external limitation (third-party API, physical access, credentials the user must provide)
-- The **Sanitized title** and **Sanitized** fields must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, task context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized fields.
+- The **Sanitized title** and **Sanitized** fields must contain ZERO PII: no names, emails, phone numbers, account IDs, company names, task context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized fields.
 
 **If nothing actionable → write nothing.** It's OK to find no gaps.
 
-### Mission 3 — Log
+### Mission 3: Log
 Verify that the log in state.md reflects the work done in the transcript.
 If the log is empty or incomplete compared to the transcript (actions performed but not noted):
 - Update state.md by adding the missing entries in the \`## Log\` section
@@ -167,7 +167,7 @@ If the log is empty or incomplete compared to the transcript (actions performed 
 ---
 
 ## How to work
-1. Read the transcript at ${input.transcriptPath} (use Read — it's a .jsonl file, each line is a JSON)
+1. Read the transcript at ${input.transcriptPath} (use Read, it's a .jsonl file, each line is a JSON)
 2. Read existing memory files if needed
 3. Perform all 3 missions
 4. If nothing to do for a mission, move on to the next`

@@ -48,7 +48,7 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
     fetchAgents();
   }, []);
 
-  // Poll auth status while terminal is open — auto-close on success
+  // Poll auth status while terminal is open, auto-close on success
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {

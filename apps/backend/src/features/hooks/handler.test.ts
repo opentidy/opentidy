@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createHooksHandler } from './handler.js';
 import type { HookPayload } from '@opentidy/shared';
 
-describe('HooksHandler — centralized /api/hooks endpoint', () => {
+describe('HooksHandler: centralized /api/hooks endpoint', () => {
   let mockLauncher: any;
   let mockAudit: any;
   let mockNotify: any;
@@ -54,7 +54,7 @@ describe('HooksHandler — centralized /api/hooks endpoint', () => {
     });
   });
 
-  // PostToolUse audit only — no launcher call
+  // PostToolUse audit only, no launcher call
   it('PostToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {
       session_id: 'opentidy-invoices-acme',
@@ -70,7 +70,7 @@ describe('HooksHandler — centralized /api/hooks endpoint', () => {
     expect(mockLauncher.markWaiting).not.toHaveBeenCalled();
   });
 
-  // === PreToolUse — audit only ===
+  // === PreToolUse: audit only ===
 
   it('PreToolUse → audit log only, no launcher call', () => {
     const payload: HookPayload = {

@@ -161,6 +161,6 @@ fi
 # --- Done ---
 printf "\n\033[1m  OpenTidy is running.\033[0m\n"
 dim "http://localhost:$PORT"
-dim "opentidy doctor   — verify setup"
-dim "opentidy logs     — tail logs"
+dim "opentidy doctor   verify setup"
+dim "opentidy logs     tail logs"
 printf "\n"

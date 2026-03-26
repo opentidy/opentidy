@@ -4,7 +4,7 @@
 
 **Goal:** Replace the fragmented MCP/Skills/Receivers systems with a unified Module system where everything (Gmail, Telegram, Browser, Cloudflare...) is a module with a manifest declaring its MCPs, skills, and receivers.
 
-**Architecture:** Three phases — (A) Core module system: types, loader, config migration, agent config generation. (B) Backend: API routes, curated module manifests, webhook endpoint, boot sequence. (C) Frontend: Settings page with ModuleCard, wizard Step 4, navigation.
+**Architecture:** Three phases, (A) Core module system: types, loader, config migration, agent config generation. (B) Backend: API routes, curated module manifests, webhook endpoint, boot sequence. (C) Frontend: Settings page with ModuleCard, wizard Step 4, navigation.
 
 **Tech Stack:** TypeScript, Hono, React 19, Zod, Vitest, Playwright
 
@@ -52,7 +52,7 @@ Add `modules: Record<string, ModuleState>` to `OpenTidyConfig`.
 
 Remove `mcp: McpConfigV2`, `skills: SkillsConfig`, `receivers: ReceiverConfigEntry[]` from `OpenTidyConfig`.
 
-Remove `telegram: { botToken, chatId }` top-level — Telegram config moves to `modules.telegram.config`.
+Remove `telegram: { botToken, chatId }` top-level. Telegram config moves to `modules.telegram.config`.
 
 Add new SSE event types: `'module:enabled'`, `'module:disabled'`, `'module:error'`, `'module:configured'`.
 
@@ -60,7 +60,7 @@ Add new SSE event types: `'module:enabled'`, `'module:disabled'`, `'module:error
 
 Create schemas for `ModuleManifestSchema`, `ModuleStateSchema`, `McpServerDefSchema`, `SkillDefSchema`, `ReceiverDefSchema`, `ConfigFieldSchema`, `ReceiverEventSchema`.
 
-- [ ] **Step 5: Update config.ts — DEFAULT_CONFIG and migration**
+- [ ] **Step 5: Update config.ts: DEFAULT_CONFIG and migration**
 
 In `apps/backend/src/shared/config.ts`:
 - Update `DEFAULT_CONFIG`: remove `mcp`, `skills`, `receivers`, `telegram`. Add `modules: {}`. Set `version: 3`.
@@ -70,17 +70,17 @@ In `apps/backend/src/shared/config.ts`:
 
 - [ ] **Step 6: Fix all TypeScript compilation errors from removed types**
 
-The removal of `McpConfigV2`, `SkillsConfig`, `ReceiverConfigEntry`, and `telegram` top-level will break many files. Fix imports and references across the codebase. This is expected — the spec says "big bang".
+The removal of `McpConfigV2`, `SkillsConfig`, `ReceiverConfigEntry`, and `telegram` top-level will break many files. Fix imports and references across the codebase. This is expected, the spec says "big bang".
 
 Key files that will break:
-- `apps/backend/src/server.ts` — `AppDeps` references to mcpConfig, skillsConfig
-- `apps/backend/src/index.ts` — telegram config, mcp config, skills config, receivers
-- `apps/backend/src/shared/agent-config.ts` — reads mcp/skills
-- `apps/backend/src/features/mcp/` — all files (will be deleted in Task 8)
-- `apps/backend/src/features/skills/` — all files (will be deleted in Task 8)
+- `apps/backend/src/server.ts`: `AppDeps` references to mcpConfig, skillsConfig
+- `apps/backend/src/index.ts`: telegram config, mcp config, skills config, receivers
+- `apps/backend/src/shared/agent-config.ts`: reads mcp/skills
+- `apps/backend/src/features/mcp/`: all files (will be deleted in Task 8)
+- `apps/backend/src/features/skills/`: all files (will be deleted in Task 8)
 - Test files referencing old types
 
-For now, **stub the broken references** with `// TODO: module system` comments where the old code was. Don't try to fully implement the module system in this task — just make the types compile.
+For now, **stub the broken references** with `// TODO: module system` comments where the old code was. Don't try to fully implement the module system in this task, just make the types compile.
 
 - [ ] **Step 7: Run tests**
 
@@ -177,9 +177,9 @@ git commit -m "feat(backend): regenerate agent config from modules instead of le
 - [ ] **Step 1: Write tests**
 
 Test cases:
-- `enableModule(name)` — sets `config.modules[name].enabled = true`, calls `regenerateAgentConfig()`, starts receivers
-- `disableModule(name)` — sets enabled to false, stops receivers, regenerates config
-- `configureModule(name, configValues)` — saves config values, regenerates if module is enabled
+- `enableModule(name)`: sets `config.modules[name].enabled = true`, calls `regenerateAgentConfig()`, starts receivers
+- `disableModule(name)`: sets enabled to false, stops receivers, regenerates config
+- `configureModule(name, configValues)`: saves config values, regenerates if module is enabled
 - Starting a receiver calls `receiver.start(emit)`
 - Stopping a receiver calls `receiver.stop()`
 
@@ -201,7 +201,7 @@ Factory function `createModuleLifecycle(deps)` returning:
 
 Deps: `loadConfig`, `saveConfig`, `manifests` (Map), `regenerateAgentConfig`, `triageHandler` (to pipe receiver events into triage), `dedup`, `sse`.
 
-Receiver instantiation: for `polling` and `long-running` modes, dynamically import the `entry` file which should export `createReceiver(config)`. For `webhook` mode, no process to start — the webhook endpoint handles it.
+Receiver instantiation: for `polling` and `long-running` modes, dynamically import the `entry` file which should export `createReceiver(config)`. For `webhook` mode, no process to start; the webhook endpoint handles it.
 
 - [ ] **Step 4: Run tests, verify pass**
 
@@ -255,7 +255,7 @@ git commit -m "feat(backend): add module lifecycle manager (enable/disable/confi
 
 - [ ] **Step 7: Create cloudflare module**
 
-`module.json` — infrastructure module, no MCPs/skills/receivers. Just `authCommand` + `configFields` (tunnelName, hostname).
+`module.json`; infrastructure module, no MCPs/skills/receivers. Just `authCommand` + `configFields` (tunnelName, hostname).
 
 - [ ] **Step 8: Commit**
 
@@ -280,31 +280,31 @@ Follow TDD for each. All routes follow the existing Hono factory function patter
 
 - [ ] **Step 1: Implement + test list.ts**
 
-`GET /modules` — loads all curated manifests + custom modules from config. Returns `ModulesResponse` with `ModuleInfo[]`. Merges manifest data with `config.modules` state.
+`GET /modules`; loads all curated manifests + custom modules from config. Returns `ModulesResponse` with `ModuleInfo[]`. Merges manifest data with `config.modules` state.
 
 - [ ] **Step 2: Implement + test enable.ts**
 
-`POST /modules/:name/enable` — calls `lifecycle.enable(name)`. Returns `{ success: true }`. Emits SSE `module:enabled`.
+`POST /modules/:name/enable`; calls `lifecycle.enable(name)`. Returns `{ success: true }`. Emits SSE `module:enabled`.
 
 - [ ] **Step 3: Implement + test disable.ts**
 
-`POST /modules/:name/disable` — calls `lifecycle.disable(name)`. Returns `{ success: true }`. Emits SSE `module:disabled`.
+`POST /modules/:name/disable`; calls `lifecycle.disable(name)`. Returns `{ success: true }`. Emits SSE `module:disabled`.
 
 - [ ] **Step 4: Implement + test configure.ts**
 
-`POST /modules/:name/configure` — validates config against manifest's `configFields` (check required). Calls `lifecycle.configure(name, config)`. Emits SSE `module:configured`.
+`POST /modules/:name/configure`; validates config against manifest's `configFields` (check required). Calls `lifecycle.configure(name, config)`. Emits SSE `module:configured`.
 
 - [ ] **Step 5: Implement + test add.ts**
 
-`POST /modules/add` — accepts `{ name, manifest }` or `{ npmPackage }`. For npm, resolves package and loads manifest. Saves to `config.modules`. Returns the new module info.
+`POST /modules/add`; accepts `{ name, manifest }` or `{ npmPackage }`. For npm, resolves package and loads manifest. Saves to `config.modules`. Returns the new module info.
 
 - [ ] **Step 6: Implement + test remove.ts**
 
-`DELETE /modules/:name` — only custom modules (returns 400 for curated). Calls `lifecycle.disable()` first, then removes from config.
+`DELETE /modules/:name`; only custom modules (returns 400 for curated). Calls `lifecycle.disable()` first, then removes from config.
 
 - [ ] **Step 7: Implement + test health.ts**
 
-`GET /modules/:name/health` — for each receiver in the module, calls `receiver.health()` if implemented. Returns aggregated health.
+`GET /modules/:name/health`; for each receiver in the module, calls `receiver.health()` if implemented. Returns aggregated health.
 
 - [ ] **Step 8: Run all module tests**
 
@@ -391,7 +391,7 @@ Add `moduleDeps` to `AppDeps` interface. Mount all module routes under `/api` an
 3. For each enabled module in config: start receivers
 4. Pass module deps to `createApp()`
 5. Remove old mcp/skills/receivers initialization code
-6. Remove `config.telegram` references — notification system reads from `config.modules.telegram.config.botToken`
+6. Remove `config.telegram` references; notification system reads from `config.modules.telegram.config.botToken`
 
 - [ ] **Step 4: Build and fix remaining compilation errors**
 
@@ -507,8 +507,8 @@ git commit -m "feat(web): restructure Settings page with Modules panel, remove l
 - [ ] **Step 1: Create AddModuleDialog.tsx**
 
 Two tabs/modes:
-- **Registry** — search input that queries the existing MCP registry search endpoint. Results shown as cards. Clicking "Add" creates a module wrapper and calls `POST /api/modules/add`.
-- **Custom** — form with npm package name or local path. Calls `POST /api/modules/add`.
+- **Registry**: search input that queries the existing MCP registry search endpoint. Results shown as cards. Clicking "Add" creates a module wrapper and calls `POST /api/modules/add`.
+- **Custom**: form with npm package name or local path. Calls `POST /api/modules/add`.
 
 Reuse the registry search pattern from the deleted `MarketplacePanel.tsx`.
 
@@ -520,7 +520,7 @@ git commit -m "feat(web): add AddModuleDialog for custom and registry modules"
 
 ---
 
-### Task 12: Setup Wizard Step 4 — Modules
+### Task 12: Setup Wizard Step 4: Modules
 
 **Files:**
 - Create: `apps/web/src/features/setup/ModulesStep.tsx`

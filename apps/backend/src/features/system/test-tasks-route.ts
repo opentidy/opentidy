@@ -8,15 +8,15 @@ import type { AppDeps } from '../../server.js';
 export function testTasksRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // GET /test-tasks/count — how many test tasks are defined
+  // GET /test-tasks/count: how many test tasks are defined
   router.get('/test-tasks/count', async (c) => {
     const { TEST_TASKS } = await import('./test-tasks.js');
     return c.json({ count: TEST_TASKS.length });
   });
 
-  // POST /test-tasks — launch all test tasks
+  // POST /test-tasks: launch all test tasks
   // Creates all tasks first (sync, fast), then launches sessions in background.
-  // Title generation is skipped for test tasks — the task description is used instead.
+  // Title generation is skipped for test tasks. The task description is used instead.
   router.post('/test-tasks', async (c) => {
     const { TEST_TASKS } = await import('./test-tasks.js');
     console.log(`[opentidy] Launching ${TEST_TASKS.length} test tasks`);

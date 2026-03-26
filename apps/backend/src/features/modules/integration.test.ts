@@ -149,7 +149,7 @@ describe('daemon module integration', () => {
       modulesDataBaseDir: dataDir,
     });
 
-    // Enable — should start daemon
+    // Enable: should start daemon
     await lifecycle.enable('test-daemon');
 
     // Verify: tool registered in dynamic registry
@@ -162,7 +162,7 @@ describe('daemon module integration', () => {
     // Verify: SSE events emitted (module:enabled at least)
     expect(emitted.some(e => e.type === 'module:enabled')).toBe(true);
 
-    // Disable — should stop daemon and unregister tools
+    // Disable: should stop daemon and unregister tools
     await lifecycle.disable('test-daemon');
     expect(dynamicToolRegistry.has('test_list')).toBe(false);
   });

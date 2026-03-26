@@ -1,4 +1,4 @@
-# Recherche externe — État de l'art (mars 2026)
+# Recherche externe : État de l'art (mars 2026)
 
 Résumé des recherches web sur les agents autonomes, la sécurité, et les architectures.
 
@@ -10,13 +10,13 @@ Résumé des recherches web sur les agents autonomes, la sécurité, et les arch
 
 | Framework | Type | Pertinence pour nous |
 |---|---|---|
-| **IronCurtain** | Constitution en langage naturel → policies déterministes | ⭐⭐⭐ Très pertinent — intercepte chaque action via hooks |
+| **IronCurtain** | Constitution en langage naturel → policies déterministes | ⭐⭐⭐ Très pertinent: intercepte chaque action via hooks |
 | **NVIDIA NeMo Guardrails** | Machine à états, contrôle topics/PII/jailbreak | ⭐⭐ Intéressant mais orienté chatbot, pas agent autonome |
 | **Cleanlab TLM** | Trust score temps réel sur chaque réponse | ⭐⭐ Intéressant pour le "confident but wrong" |
 | **Galileo Agent Control** | Contrôle centralisé, détection hallucinations | ⭐⭐ Bon pour monitoring |
 | **Guardrails AI** | Validation input/output | ⭐ Trop basique pour notre use case |
 
-### Claude Code / Agent SDK — mécanismes natifs
+### Claude Code / Agent SDK : mécanismes natifs
 
 **Hooks Claude Code** (le plus pertinent pour nous) :
 - **PreToolUse** : code qui s'exécute AVANT chaque appel d'outil → peut bloquer
@@ -84,7 +84,7 @@ mais cron nécessaire pour le travail de fond proactif. L'hybride est le standar
 | Compaction > Summarization | Enlever le redondant d'abord (réversible), résumer ensuite (lossy) | Google ADK |
 | Observations séparées | Notes datées compressées vs messages bruts | VentureBeat |
 
-La dégradation du contexte n'est PAS linéaire — elle accélère après 75% d'utilisation.
+La dégradation du contexte n'est PAS linéaire, elle accélère après 75% d'utilisation.
 Claude Sonnet : 200k annoncés, qualité qui se dégrade vers 147-152k tokens.
 Google ADK rapporte 60-80% de réduction de tokens avec la compaction automatique.
 
@@ -92,9 +92,9 @@ Google ADK rapporte 60-80% de réduction de tokens avec la compaction automatiqu
 
 Inspiré de la mémoire virtuelle d'un OS :
 - **Core memory** (en contexte) : ce dont Claude a besoin maintenant pour le dossier
-  en cours. Comme la RAM — rapide, limité.
-- **Archival memory** (hors contexte) : tout le reste — historique, dossiers fermés,
-  faits accumulés. Comme le disque — illimité, mais il faut chercher.
+  en cours. Comme la RAM, rapide, limité.
+- **Archival memory** (hors contexte) : tout le reste, historique, dossiers fermés,
+  faits accumulés. Comme le disque, illimité, mais il faut chercher.
 
 L'agent utilise des outils (`memory_search`, `memory_insert`, `memory_replace`)
 pour gérer ce qui est dans sa fenêtre de contexte. Il peut "pager" de l'info
@@ -144,7 +144,7 @@ depuis l'archival quand il en a besoin.
 | **OwnPilot** | N/A | Soul agents, heartbeat lifecycle | ⭐⭐ Architecture intéressante |
 | **Leon** | N/A | Assistant personnel open source | ⭐ En transition |
 
-### Insight clé (PAI — Daniel Miessler)
+### Insight clé (PAI : Daniel Miessler)
 
 > "The infrastructure around the model matters more than the model's raw intelligence."
 > "Haiku can outperform Opus when the scaffolding is good."
@@ -154,20 +154,20 @@ depuis l'archival quand il en a besoin.
 le travail de Claude. Plus le scaffolding est bon, plus Claude est efficace ET safe.
 
 Pour nous : le modèle c'est Claude (déjà excellent), notre boulot c'est le
-scaffolding — et c'est exactement ce qu'on conçoit avec cette V2.
+scaffolding, et c'est exactement ce qu'on conçoit avec cette V2.
 
 ---
 
 ## Sources principales
 
-- [IronCurtain](https://github.com/provos/ironcurtain) — Sécurité agents
-- [Letta/MemGPT](https://github.com/letta-ai/letta) — Mémoire agents
-- [Claude Code Headless](https://code.claude.com/docs/en/headless) — Mode automatisation
-- [Claude Code Agent Teams](https://code.claude.com/docs/en/agent-teams) — Multi-agent natif
-- [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/hooks) — Hooks et permissions
-- [PAI](https://github.com/danielmiessler/Personal_AI_Infrastructure) — Personal AI
-- [OpenClaw](https://github.com/openclaw/openclaw) — Assistant personnel
-- [Google ADK Compaction](https://google.github.io/adk-docs/context/compaction/) — Gestion contexte
+- [IronCurtain](https://github.com/provos/ironcurtain): Sécurité agents
+- [Letta/MemGPT](https://github.com/letta-ai/letta): Mémoire agents
+- [Claude Code Headless](https://code.claude.com/docs/en/headless): Mode automatisation
+- [Claude Code Agent Teams](https://code.claude.com/docs/en/agent-teams): Multi-agent natif
+- [Claude Agent SDK](https://platform.claude.com/docs/en/agent-sdk/hooks): Hooks et permissions
+- [PAI](https://github.com/danielmiessler/Personal_AI_Infrastructure): Personal AI
+- [OpenClaw](https://github.com/openclaw/openclaw): Assistant personnel
+- [Google ADK Compaction](https://google.github.io/adk-docs/context/compaction/): Gestion contexte
 - [Context Rot in Claude Code](https://vincentvandeth.nl/blog/context-rot-claude-code-automatic-rotation)
 - [CMU: AI Chatbots Remain Confident When Wrong](https://www.cmu.edu/news/stories/archives/2025/july)
 - [IBM STRATUS Undo Agent](https://research.ibm.com/blog/undo-agent-for-cloud)

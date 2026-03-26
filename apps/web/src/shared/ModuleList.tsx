@@ -90,7 +90,7 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
     refetch();
   }
 
-  // Poll verify endpoint while terminal is open — auto-close on success
+  // Poll verify endpoint while terminal is open , auto-close on success
   const verifyIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {

@@ -73,7 +73,7 @@ async function connect(ctx: ModuleContext): Promise<void> {
   });
 
   // Baileys v7 uses a buffered event system. sock.ev.process() is the
-  // correct API — it listens to the 'event' meta-event and processes
+  // correct API: it listens to the 'event' meta-event and processes
   // buffered events after the initial sync flushes.
   sock.ev.process(async (events: Record<string, any>) => {
     if (events['connection.update']) {
@@ -161,7 +161,7 @@ async function connect(ctx: ModuleContext): Promise<void> {
 function handleConnectionUpdate(update: any, ctx: ModuleContext): void {
   const { connection, lastDisconnect, qr } = update;
   if (qr) {
-    ctx.logger.log('QR code generated — waiting for scan');
+    ctx.logger.log('QR code generated, waiting for scan');
     ctx.emitSSE({
       type: 'module:auth-required',
       data: { name: 'whatsapp', qr },
@@ -180,7 +180,7 @@ function handleConnectionUpdate(update: any, ctx: ModuleContext): void {
   if (connection === 'close') {
     const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
     if (statusCode === DisconnectReason.loggedOut) {
-      ctx.logger.error('WhatsApp logged out — re-auth required');
+      ctx.logger.error('WhatsApp logged out, re-auth required');
       return;
     }
     if (reconnectAttempts < MAX_RECONNECT) {

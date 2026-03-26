@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-// Email receiver — polls himalaya for new unseen emails and emits events.
+// Email receiver: polls himalaya for new unseen emails and emits events.
 // Agent-agnostic: just feeds the triage pipeline, doesn't use any agent.
 
 import { execFileSync, type ExecFileSyncOptions } from 'child_process';

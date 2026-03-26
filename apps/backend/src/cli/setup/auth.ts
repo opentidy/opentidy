@@ -21,7 +21,7 @@ export async function setupAuth(): Promise<void> {
     return;
   }
 
-  // Auto-generate — no questions asked
+  // Auto-generate, no questions asked
   const bearerToken = randomBytes(32).toString('hex');
   config.auth.bearerToken = bearerToken;
   config.server.port = config.server.port || 5175;
@@ -33,6 +33,6 @@ export async function setupAuth(): Promise<void> {
   console.log(`  │  ${bearerToken}  │`);
   console.log(`  └──────────────────────────────────────────────────────────────────┘`);
   console.log('');
-  info('Save this token — you need it for the web app.');
+  info('Save this token, you need it for the web app.');
   info(`Port: ${config.server.port}`);
 }

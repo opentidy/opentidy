@@ -1,18 +1,18 @@
-# UX/Design Redesign — Specification
+# UX/Design Redesign: Specification
 
 **Date:** 2026-03-21
 **Status:** Draft
-**Scope:** Full visual redesign of the OpenTidy web app — palette, typography, components, all pages
+**Scope:** Full visual redesign of the OpenTidy web app; palette, typography, components, all pages
 
 ## Summary
 
-Redesign the OpenTidy web app with a cohesive "Soft Dark" design language. No feature changes — purely visual/UX. The app should feel professional, modern, and polished. When people land on it, the reaction should be "this is serious software."
+Redesign the OpenTidy web app with a cohesive "Soft Dark" design language. No feature changes; purely visual/UX. The app should feel professional, modern, and polished. When people land on it, the reaction should be "this is serious software."
 
 ## Design Decisions (Validated)
 
-- **Palette:** Soft Dark — warm charcoal (#1c1c1e), not cold blue-black. Inspired by Things 3 dark mode / Apple's dark UI.
-- **Home layout:** Spacious — labeled sidebar, rounded cards, generous whitespace
-- **Task Detail layout:** Split Panels — state.md left, terminal right, resize handle
+- **Palette:** Soft Dark; warm charcoal (#1c1c1e), not cold blue-black. Inspired by Things 3 dark mode / Apple's dark UI.
+- **Home layout:** Spacious; labeled sidebar, rounded cards, generous whitespace
+- **Task Detail layout:** Split Panels; state.md left, terminal right, resize handle
 - **Typography:** Inter (add via Google Fonts `<link>` in `index.html`)
 - **Responsive:** Desktop + mobile equally important
 
@@ -27,37 +27,37 @@ Replace the current `@theme` block in `apps/web/src/index.css`:
 ```css
 @theme {
   /* Surfaces */
-  --color-bg:              #141416;   /* page background — slightly off-black */
+  --color-bg:              #141416;   /* page background, slightly off-black */
   --color-surface:         #1c1c1e;   /* main surface (sidebar, panels) */
   --color-card:            #2c2c2e;   /* cards, inputs, containers */
   --color-card-hover:      #3a3a3c;   /* card hover state */
-  --color-border:          #38383a;   /* default borders — visible against card bg */
+  --color-border:          #38383a;   /* default borders, visible against card bg */
   --color-border-subtle:   #2c2c2e;   /* subtle separators inside cards */
 
   /* Accent colors (iOS-inspired) */
-  --color-accent:          #0a84ff;   /* primary blue — links, active nav, primary buttons */
+  --color-accent:          #0a84ff;   /* primary blue; links, active nav, primary buttons */
   --color-green:           #30d158;   /* active, success, running */
   --color-red:             #ff453a;   /* danger, deny, stop */
   --color-orange:          #ff9f0a;   /* warning, waiting for user, blocked */
   --color-purple:          #bf5af2;   /* memory, secondary accent */
 
   /* Text hierarchy */
-  --color-text:            #f5f5f7;   /* primary text — titles, important content */
-  --color-text-secondary:  #86868b;   /* secondary — descriptions, metadata */
-  --color-text-tertiary:   #636366;   /* tertiary — placeholders, disabled */
+  --color-text:            #f5f5f7;   /* primary text, titles, important content */
+  --color-text-secondary:  #86868b;   /* secondary, descriptions, metadata */
+  --color-text-tertiary:   #636366;   /* tertiary, placeholders, disabled */
 }
 ```
 
 **Additional arbitrary colors** (used inline, not in @theme):
-- `#48484a` — dim text (timestamps, section labels)
-- `#3a3a3c` — ghost text (barely visible hints)
-- `#161618` — darker panel background (state panel in task detail)
-- `#0f0f11` — terminal background
-- `#222224` — subtle row separators in lists
+- `#48484a`: dim text (timestamps, section labels)
+- `#3a3a3c`: ghost text (barely visible hints)
+- `#161618`: darker panel background (state panel in task detail)
+- `#0f0f11`: terminal background
+- `#222224`: subtle row separators in lists
 
 ### 1.2 Typography
 
-- **Font:** `'Inter', system-ui, -apple-system, sans-serif` — add `<link>` to `index.html`
+- **Font:** `'Inter', system-ui, -apple-system, sans-serif`, add `<link>` to `index.html`
 - **Monospace:** `'SF Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace` (terminal)
 - **Scale:**
   - Page titles: `text-xl font-bold` (20px, 700)
@@ -127,7 +127,7 @@ focus:outline-none focus:ring-1 focus:ring-accent
 
 ### 1.5 Common States
 
-**Loading:** Skeleton cards — `bg-card rounded-xl p-3.5 animate-pulse` with inner `bg-[#3a3a3c] rounded h-3 w-*` placeholder bars.
+**Loading:** Skeleton cards, `bg-card rounded-xl p-3.5 animate-pulse` with inner `bg-[#3a3a3c] rounded h-3 w-*` placeholder bars.
 
 **Empty states:** Centered in content area:
 - Icon: 48x48, `text-[#3a3a3c]`
@@ -181,11 +181,11 @@ focus:outline-none focus:ring-1 focus:ring-accent
   - Section 1 (Primary): Home, Suggestions, Schedule
   - Section 2 (System): Terminal, Memory, Modules, Improvements
   - Bottom (pinned): Settings
-- **Footer:** Search bar `bg-card rounded-lg px-2.5 py-1.5 text-[11px] text-[#48484a]` with `⌘K` hint right-aligned. Search opens a command palette overlay (future feature — just the hint for now).
+- **Footer:** Search bar `bg-card rounded-lg px-2.5 py-1.5 text-[11px] text-[#48484a]` with `⌘K` hint right-aligned. Search opens a command palette overlay (future feature, just the hint for now).
 
 ### 2.2 Mobile Layout
 
-- **No sidebar** — bottom tab bar instead
+- **No sidebar**: bottom tab bar instead
 - **Tab bar** (`bg-surface border-t border-border`):
   - 5 slots: Home, Suggestions, [+ FAB], Memory, More
   - FAB: `w-9 h-9 bg-accent rounded-full shadow-[0_4px_12px_rgba(10,132,255,0.25)]`, raised `mt-[-16px]`, `+` icon centered
@@ -282,7 +282,7 @@ All icons: 16x16, `stroke="currentColor"`, `stroke-width="1.5"`, `fill="none"`.
     - Action button: "Start a session" or "Reopen task" (if completed)
 
 **Mobile:**
-- No split — stacked vertically
+- No split, stacked vertically
 - State section on top (collapsible with chevron toggle)
 - Terminal below (takes remaining viewport)
 
@@ -338,7 +338,7 @@ All icons: 16x16, `stroke="currentColor"`, `stroke-width="1.5"`, `fill="none"`.
   - Title + urgency badge + source badge
   - Description, expandable original context
   - Actions: "Create task" primary + "Ignore" secondary
-- Empty state: "No suggestions — your inbox is clear"
+- Empty state: "No suggestions, your inbox is clear"
 
 ### 3.7 Modules
 
@@ -378,10 +378,10 @@ All icons: 16x16, `stroke="currentColor"`, `stroke-width="1.5"`, `fill="none"`.
 **URL:** `/settings`
 
 Grouped sections in `bg-card rounded-xl overflow-hidden`:
-1. **Security**: Bearer token (masked + copy) — single row
+1. **Security**: Bearer token (masked + copy), single row
 2. **Service**: Start/stop status + restart button
 3. **Agent**: Current agent + connection status
-4. **Danger Zone**: `bg-red/5 border border-red/10 rounded-xl p-4` — Reset with confirmation
+4. **Danger Zone**: `bg-red/5 border border-red/10 rounded-xl p-4`. Reset with confirmation
 
 ### 3.11 Setup Wizard
 
@@ -395,7 +395,7 @@ Grouped sections in `bg-card rounded-xl overflow-hidden`:
 
 ## 4. Animations & Transitions
 
-Keep minimal — snappy, not bouncy.
+Keep minimal, snappy, not bouncy.
 
 - **Page transitions:** none (instant)
 - **Card hover:** `transition-colors duration-150`
@@ -410,8 +410,8 @@ Keep minimal — snappy, not bouncy.
 
 ## 5. Responsive Breakpoints
 
-- **Mobile:** `< md` (< 768px) — bottom tab bar, stacked layouts, no sidebar, no split panels
-- **Desktop:** `>= md` (>= 768px) — sidebar + main content, split panels in task detail
+- **Mobile:** `< md` (< 768px), bottom tab bar, stacked layouts, no sidebar, no split panels
+- **Desktop:** `>= md` (>= 768px), sidebar + main content, split panels in task detail
 
 Key responsive changes:
 - Home: sidebar → bottom tabs, search hidden, checkup button hidden
@@ -424,20 +424,20 @@ Key responsive changes:
 ## 6. Implementation Notes
 
 ### Files that change
-- `apps/web/index.html` — add Inter font `<link>`
-- `apps/web/src/index.css` — new `@theme` block (palette)
-- `apps/web/src/shared/Layout.tsx` — sidebar + mobile nav structure
-- `apps/web/src/shared/DesktopNav.tsx` — full redesign (labeled sidebar with icons)
-- `apps/web/src/shared/MobileNav.tsx` — redesign with FAB button + bottom sheet
-- `apps/web/src/shared/NavIcon.tsx` — update SVG icons
-- `apps/web/src/shared/ErrorBanner.tsx` — restyle
-- `apps/web/src/shared/InstructionBar.tsx` — restyle
-- `apps/web/src/shared/SuggestionCard.tsx` — restyle
-- `apps/web/src/features/home/Home.tsx` — restyle all sections
-- `apps/web/src/features/home/WelcomeCard.tsx` — restyle
-- `apps/web/src/features/tasks/TaskDetail.tsx` — restyle header, panels, instruction bar
-- `apps/web/src/features/tasks/TaskCard.tsx` — restyle card
-- `apps/web/src/features/tasks/StateRenderer.tsx` — restyle markdown rendering
+- `apps/web/index.html`: add Inter font `<link>`
+- `apps/web/src/index.css`: new `@theme` block (palette)
+- `apps/web/src/shared/Layout.tsx`: sidebar + mobile nav structure
+- `apps/web/src/shared/DesktopNav.tsx`: full redesign (labeled sidebar with icons)
+- `apps/web/src/shared/MobileNav.tsx`: redesign with FAB button + bottom sheet
+- `apps/web/src/shared/NavIcon.tsx`: update SVG icons
+- `apps/web/src/shared/ErrorBanner.tsx`: restyle
+- `apps/web/src/shared/InstructionBar.tsx`: restyle
+- `apps/web/src/shared/SuggestionCard.tsx`: restyle
+- `apps/web/src/features/home/Home.tsx`: restyle all sections
+- `apps/web/src/features/home/WelcomeCard.tsx`: restyle
+- `apps/web/src/features/tasks/TaskDetail.tsx`: restyle header, panels, instruction bar
+- `apps/web/src/features/tasks/TaskCard.tsx`: restyle card
+- `apps/web/src/features/tasks/StateRenderer.tsx`: restyle markdown rendering
 - All other feature page components: restyle with new palette/components
 
 ### What doesn't change

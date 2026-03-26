@@ -1,7 +1,7 @@
 {
   "name": "opentidy",
   "label": "OpenTidy",
-  "description": "Core tools — schedule tasks, manage suggestions, track improvements",
+  "description": "Core tools: schedule tasks, manage suggestions, track improvements",
   "icon": "🧹",
   "version": "1.0.0",
   "core": true,

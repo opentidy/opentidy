@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 # Copyright (c) 2026 Loaddr Ltd
 
-# opentidy-updater.sh — Spawned by OpenTidy backend as detached process
+# opentidy-updater.sh: Spawned by OpenTidy backend as detached process
 # Env vars: BOT_TOKEN, CHAT_ID, NEW_VERSION, PREV_VERSION
 set -euo pipefail
 

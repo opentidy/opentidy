@@ -1,10 +1,10 @@
-# Install & Setup Wizard — Implementation Plan
+# Install & Setup Wizard: Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Deliver a zero-friction install-to-wizard flow: one terminal line installs deps + starts service + opens browser. UI wizard collects user info, connects an agent via embedded terminal, and grants macOS permissions.
 
-**Architecture:** 3 layers — (1) shared types for `setupComplete` and `SetupStatus`, (2) backend setup API + WebSocket PTY endpoint, (3) frontend TerminalDrawer component + full-screen SetupWizard. The install script is simplified to be silent and auto-start.
+**Architecture:** 3 layers, (1) shared types for `setupComplete` and `SetupStatus`, (2) backend setup API + WebSocket PTY endpoint, (3) frontend TerminalDrawer component + full-screen SetupWizard. The install script is simplified to be silent and auto-start.
 
 **Tech Stack:** TypeScript, Hono (backend), React 19 + React Router v7 (frontend), xterm.js + @xterm/addon-fit (terminal), node-pty (backend PTY), Zod (validation), Vitest (tests), Playwright (E2E)
 
@@ -20,19 +20,19 @@
 
 ```
 packages/shared/src/
-  types.ts                          # MODIFY — add setupComplete, SetupStatus
+  types.ts                          # MODIFY; add setupComplete, SetupStatus
 
 apps/backend/src/
   features/setup/
-    status.ts                       # GET /api/setup/status — aggregated setup status
+    status.ts                       # GET /api/setup/status, aggregated setup status
     status.test.ts                  # tests
     user-info.ts                    # POST /api/setup/user-info
     user-info.test.ts               # tests
-    agents.ts                       # GET/POST /api/setup/agents — install + auth
+    agents.ts                       # GET/POST /api/setup/agents, install + auth
     agents.test.ts                  # tests
     permissions.ts                  # GET/POST /api/setup/permissions
     permissions.test.ts             # tests
-    complete.ts                     # POST /api/setup/complete — mark setupComplete
+    complete.ts                     # POST /api/setup/complete, mark setupComplete
     complete.test.ts                # tests
   terminal/
     pty.ts                          # WebSocket PTY endpoint
@@ -45,10 +45,10 @@ apps/web/src/
   features/setup/
     SetupWizard.tsx                 # Full-screen 4-step wizard
     SetupWizard.test.tsx            # tests
-    UserInfoStep.tsx                # Step 1 — name + language
-    AgentStep.tsx                   # Step 2 — agent cards + terminal drawer
-    PermissionsStep.tsx             # Step 3 — permission cards
-    DoneStep.tsx                    # Step 4 — success + CTAs
+    UserInfoStep.tsx                # Step 1: name + language
+    AgentStep.tsx                   # Step 2: agent cards + terminal drawer
+    PermissionsStep.tsx             # Step 3: permission cards
+    DoneStep.tsx                    # Step 4: success + CTAs
 ```
 
 ### Modified files
@@ -105,7 +105,7 @@ describe('SetupUserInfoSchema', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/shared test -- --run`
-Expected: FAIL — `SetupUserInfoSchema` not found
+Expected: FAIL (`SetupUserInfoSchema` not found)
 
 - [ ] **Step 3: Add types to `packages/shared/src/types.ts`**
 
@@ -245,7 +245,7 @@ describe('GET /setup/status', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- --run apps/backend/src/features/setup/status.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement `status.ts`**
 
@@ -285,7 +285,7 @@ export function setupStatusRoute(deps: SetupDeps) {
         active: config.agentConfig?.name ?? null,
       },
       permissions: {
-        done: true, // Permissions are all optional — never blocks setup
+        done: true, // Permissions are all optional, never blocks setup
         granted: [],
         missing: [],
       },
@@ -471,11 +471,11 @@ Minimal: load config, set `setupComplete = true`, save, return `{ success: true 
 
 - [ ] **Step 4: Write tests for permissions.ts**
 
-Test `GET /setup/permissions` returns permission list. Test `POST /setup/permissions/grant` calls grant function. Use `execFileSync` (not `exec`) for `osascript` calls — see `apps/backend/src/cli/setup/permissions.ts` for the existing pattern.
+Test `GET /setup/permissions` returns permission list. Test `POST /setup/permissions/grant` calls grant function. Use `execFileSync` (not `exec`) for `osascript` calls; see `apps/backend/src/cli/setup/permissions.ts` for the existing pattern.
 
 - [ ] **Step 5: Implement permissions.ts**
 
-List of macOS permissions (Messages, Mail, Calendar, Contacts, Finder, System Events). Each has a check via `osascript` and a grant trigger. Use `execFileSync('osascript', ['-e', ...])` — never `exec()`.
+List of macOS permissions (Messages, Mail, Calendar, Contacts, Finder, System Events). Each has a check via `osascript` and a grant trigger. Use `execFileSync('osascript', ['-e', ...])`, never `exec()`.
 
 - [ ] **Step 6: Run tests, verify pass**
 
@@ -485,7 +485,7 @@ Test `GET /setup/agents` returns list with install/auth status per agent. Test `
 
 - [ ] **Step 8: Implement agents.ts**
 
-Define agent metadata (label, badge, install command, auth command) for claude/gemini/copilot. The install-command endpoint returns the command string — the frontend runs it in the TerminalDrawer.
+Define agent metadata (label, badge, install command, auth command) for claude/gemini/copilot. The install-command endpoint returns the command string; the frontend runs it in the TerminalDrawer.
 
 - [ ] **Step 9: Run all tests, verify pass**
 
@@ -553,7 +553,7 @@ describe('PTY Manager', () => {
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- --run apps/backend/src/features/terminal/pty.test.ts`
 Expected: FAIL
 
-- [ ] **Step 4: Implement pty.ts — PTY manager**
+- [ ] **Step 4: Implement pty.ts: PTY manager**
 
 `apps/backend/src/features/terminal/pty.ts`:
 
@@ -778,13 +778,13 @@ Expected: FAIL
 
 - [ ] **Step 4: Implement TerminalDrawer**
 
-`apps/web/src/shared/TerminalDrawer.tsx` — A bottom drawer (40vh) with:
+`apps/web/src/shared/TerminalDrawer.tsx`. A bottom drawer (40vh) with:
 - Header: title + status indicator (Connecting/Running/Completed/Error) + Retry button (on error) + Close button
 - Body: `<div ref>` where xterm.js attaches
 - On mount (when `open=true`): dynamically import xterm, create Terminal + FitAddon + WebLinksAddon, connect WebSocket to `/api/terminal/pty?command=<base64>`, pipe data both ways
 - On PTY exit message `{"exit": N}`: set status to completed (exit 0) or error (exit non-0), call `onComplete`/`onError`
 - On close: dispose terminal, close WebSocket
-- Drawer stays open until user clicks Close — **no auto-close**
+- Drawer stays open until user clicks Close: **no auto-close**
 
 See spec for the full `TerminalDrawerProps` interface.
 
@@ -833,7 +833,7 @@ Fetches `GET /api/setup/agents` on mount. Shows agent cards (Claude/Gemini/Copil
 
 - [ ] **Step 4: Create PermissionsStep.tsx**
 
-Fetches `GET /api/setup/permissions` on mount. Shows permission cards with name, required/optional badge, granted status. "Authorize" button calls `POST /api/setup/permissions/grant`. All permissions are optional — user can always continue.
+Fetches `GET /api/setup/permissions` on mount. Shows permission cards with name, required/optional badge, granted status. "Authorize" button calls `POST /api/setup/permissions/grant`. All permissions are optional, user can always continue.
 
 - [ ] **Step 5: Create DoneStep.tsx**
 
@@ -849,7 +849,7 @@ Create `SetupGuard` component that fetches `GET /api/setup/status` on mount. If 
 
 - [ ] **Step 8: Write wizard test**
 
-`apps/web/src/features/setup/SetupWizard.test.tsx` — test that the wizard renders step 1 (welcome text, name input). Mock fetch for API calls.
+`apps/web/src/features/setup/SetupWizard.test.tsx`; test that the wizard renders step 1 (welcome text, name input). Mock fetch for API calls.
 
 - [ ] **Step 9: Run tests**
 
@@ -882,7 +882,7 @@ Review the existing script to understand what to keep vs remove.
 - [ ] **Step 2: Rewrite install.sh**
 
 New script behavior:
-1. Silent — no interactive prompts
+1. Silent, no interactive prompts
 2. Install only: Homebrew, node@22, pnpm, tmux, ttyd
 3. Do NOT install: Claude CLI, Camoufox, python3, pipx, cloudflared
 4. Clone/pull repo, `pnpm install && pnpm build`
@@ -893,7 +893,7 @@ New script behavior:
 9. Open `http://localhost:$PORT` in browser
 10. Print minimal success message
 
-The script must be idempotent — safe to re-run.
+The script must be idempotent, safe to re-run.
 
 - [ ] **Step 3: Test locally**
 
@@ -903,7 +903,7 @@ Run: `chmod +x install.sh && bash -n install.sh` (syntax check)
 
 ```bash
 git add install.sh
-git commit -m "feat(cli): simplify install.sh — silent install, auto-start, open browser"
+git commit -m "feat(cli): simplify install.sh; silent install, auto-start, open browser"
 ```
 
 ---
@@ -919,7 +919,7 @@ git commit -m "feat(cli): simplify install.sh — silent install, auto-start, op
 
 At the start of `runSetup()`, check if the server is running by calling health endpoint using `execFileSync('curl', ['-sf', url])`. If running, open the browser at the setup/settings URL and return early. Fall through to the existing CLI menu if server is not running.
 
-Use `execFileSync` — never `exec()`.
+Use `execFileSync`, never `exec()`.
 
 - [ ] **Step 3: Commit**
 

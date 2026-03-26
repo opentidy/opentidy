@@ -74,7 +74,7 @@ Rename in `packages/shared/src/types.ts`:
 - `ClaudeProcess` → `AgentProcess`
 - In `Session` interface: `claudeSessionId` → `agentSessionId`
 
-Keep the same values — the type names change, not the content.
+Keep the same values; the type names change, not the content.
 
 - [ ] **Step 3: Update OpenTidyConfig to use agentConfig**
 
@@ -140,7 +140,7 @@ Create `apps/backend/src/shared/agents/claude.test.ts` with tests for:
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run src/shared/agents/claude.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Create the adapter types re-export**
 
@@ -197,7 +197,7 @@ Create `apps/backend/src/shared/agents/registry.test.ts` with tests for:
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run src/shared/agents/registry.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement registry**
 
@@ -245,7 +245,7 @@ Mock `child_process.spawn` to return a controllable event emitter.
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend exec vitest run src/shared/spawn-agent.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement spawn-agent.ts**
 
@@ -267,7 +267,7 @@ Expected: All PASS
 - [ ] **Step 5: Commit**
 
 ```
-feat(backend): add spawn-agent.ts — agent-agnostic process spawner
+feat(backend): add spawn-agent.ts; agent-agnostic process spawner
 ```
 
 ---
@@ -357,10 +357,10 @@ feat(backend): add agent-agnostic instruction file generator (replaces claude-md
 - Modify: `apps/backend/src/features/dossiers/title.ts`
 - Modify: `apps/backend/src/memory/agents.ts`
 - Modify: `apps/backend/src/features/sessions/launch.ts`
-- Modify: `apps/backend/src/index.ts` (or boot/ — wherever deps are wired)
+- Modify: `apps/backend/src/index.ts` (or boot/, wherever deps are wired)
 - Modify: corresponding test files for mock updates
 
-This task does NOT change any behavior — it replaces `spawnClaude` with `spawnAgent` and uses `adapter.buildArgs()` instead of hardcoded CLI flags.
+This task does NOT change any behavior; it replaces `spawnClaude` with `spawnAgent` and uses `adapter.buildArgs()` instead of hardcoded CLI flags.
 
 - [ ] **Step 1: Update classify.ts**
 
@@ -487,7 +487,7 @@ feat(backend): add agent selection to config and setup wizard
 
 Add a check that:
 1. Resolves the active agent from config
-2. Verifies the binary exists (use `execFile` from `child_process` — NOT `exec`)
+2. Verifies the binary exists (use `execFile` from `child_process`, NOT `exec`)
 3. Warns if experimental
 4. Checks that the agent config directory exists and has hooks generated
 

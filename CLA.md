@@ -7,7 +7,7 @@ Thank you for your interest in contributing to OpenTidy. To clarify the intellec
 By signing this CLA, you confirm that:
 
 1. **You retain your copyright.** You still own the rights to your contribution.
-2. **You grant Loaddr Ltd a license.** You give Loaddr Ltd a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, distribute, and sublicense your contribution under any license — including the AGPL-3.0 (the project's open-source license) and any commercial license Loaddr Ltd may offer.
+2. **You grant Loaddr Ltd a license.** You give Loaddr Ltd a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, distribute, and sublicense your contribution under any license, including the AGPL-3.0 (the project's open-source license) and any commercial license Loaddr Ltd may offer.
 3. **You can still use your contribution.** You are free to use your contribution for any other purpose.
 4. **Your contribution is your original work.** You have the right to grant this license. If your employer has rights to your work, you have received permission, or your employer has signed a Corporate CLA.
 
@@ -17,7 +17,7 @@ Loaddr Ltd commits to always maintaining OpenTidy under the AGPL-3.0 as a free a
 
 ## How to sign
 
-When you open your first pull request, the CLA Assistant bot will ask you to sign. It's a one-click process — you only need to sign once.
+When you open your first pull request, the CLA Assistant bot will ask you to sign. It's a one-click process; you only need to sign once.
 
 ## Full text
 

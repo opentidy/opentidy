@@ -15,7 +15,7 @@ echo "   Install himalaya: brew install himalaya"
 echo "   Configure: himalaya account configure"
 echo ""
 
-# Camoufox MCP — anti-detection browser
+# Camoufox MCP, anti-detection browser
 echo "2. Camoufox MCP Server"
 echo "   Install: claude mcp add camoufox -- python -m camoufox.mcp"
 echo "   Requires: pip install camoufox[mcp]"

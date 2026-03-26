@@ -33,7 +33,7 @@ Last action: 2026-03-13
 
 ## Remaining
 - Apr 2025: timesheet found (152h), invoice to create
-- May 2025: timesheet MISSING — email sent to client on 03/12
+- May 2025: timesheet MISSING (email sent to client on 03/12)
 
 ## Waiting For
 - Response from Acme Corp for May timesheet (follow up if no response by 03/16)
@@ -46,8 +46,8 @@ Last action: 2026-03-13
 - Invoice format: use accounting template
 
 ## Journal
-- 2026-03-13 — Follow-up sent to billing@example-client.com for May timesheet
-- 2026-03-10 — March invoice sent, confirmation received
+- 2026-03-13: Follow-up sent to billing@example-client.com for May timesheet
+- 2026-03-10: March invoice sent, confirmation received
 STATE
 
 # .gitkeep for artifacts
@@ -82,13 +82,13 @@ DEADLINE: $DEADLINE
 - Insurance support: support@example-insurance.com
 
 ## Journal
-- 2026-03-12 — Form downloaded, started filling
-- 2026-03-10 — First login, portal navigation
+- 2026-03-12: Form downloaded, started filling
+- 2026-03-10: First login, portal navigation
 STATE
 
 # --- _suggestions/tax-filing-followup.md ---
 cat > "$FIXTURE_DIR/_suggestions/tax-filing-followup.md" << 'SUGGESTION'
-# Suggestion — Tax Filing Follow-up
+# Suggestion: Tax Filing Follow-up
 
 URGENCY: urgent
 SOURCE: Email received from tax@example-authority.gov on 03/12
@@ -109,21 +109,21 @@ SUGGESTION
 
 # --- _gaps/gaps.md ---
 cat > "$FIXTURE_DIR/_gaps/gaps.md" << 'GAPS'
-## 2026-03-14 — MFA TOTP on insurance portal
+## 2026-03-14: MFA TOTP on insurance portal
 Problem: The insurance portal requires MFA via a mobile authenticator app.
 Impact: Cannot log in automatically to fill the annual report.
 Suggestion: Add a skill to read TOTP codes from the authenticator app.
 
 ---
 
-## 2026-03-12 — Email provider rate limit
+## 2026-03-12: Email provider rate limit
 Problem: Email provider returns 429 after ~50 requests in 1 minute.
 Impact: Batch email processing is slowed, some emails may be missed.
 Suggestion: Implement exponential backoff and a cache for already-read emails.
 
 ---
 
-## ~~2026-03-08 — Expired SSL certificate on example.com~~ RESOLVED
+## ~~2026-03-08: Expired SSL certificate on example.com~~ RESOLVED
 Problem: The SSL certificate on example.com had expired.
 Impact: HTTPS requests were failing.
 Resolved: Certificate renewed via Let's Encrypt on 2026-03-09.

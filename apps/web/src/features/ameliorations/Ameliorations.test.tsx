@@ -102,7 +102,7 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    // "Resolved" appears in both filter tab and card action buttons — use getAllByText
+    // "Resolved" appears in both filter tab and card action buttons . Use getAllByText
     const resolvedButtons = screen.getAllByText('Resolved');
     // Click the filter tab (first occurrence, in the filter bar)
     fireEvent.click(resolvedButtons[0]);
@@ -210,7 +210,7 @@ describe('Ameliorations page', () => {
       </MemoryRouter>,
     );
 
-    // "Resolved" appears in filter tab and card action — click the filter tab
+    // "Resolved" appears in filter tab and card action . Click the filter tab
     const resolvedButtons = screen.getAllByText('Resolved');
     fireEvent.click(resolvedButtons[0]);
 

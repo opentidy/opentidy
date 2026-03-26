@@ -1,6 +1,6 @@
 # Security Policy
 
-OpenTidy manages sensitive data — emails, documents, browser sessions, and credentials. We take security seriously.
+OpenTidy manages sensitive data: emails, documents, browser sessions, and credentials. We take security seriously.
 
 ## Reporting a Vulnerability
 
@@ -18,10 +18,10 @@ Instead, use [GitHub Security Advisories](https://github.com/opentidy/opentidy/s
 
 ### Response timeline
 
-- **Acknowledge** — within 48 hours
-- **Initial assessment** — within 7 days
-- **Fix for critical issues** — within 30 days
-- **Fix for non-critical issues** — within 90 days
+- **Acknowledge**: within 48 hours
+- **Initial assessment**: within 7 days
+- **Fix for critical issues**: within 30 days
+- **Fix for non-critical issues**: within 90 days
 
 ### What to expect
 
@@ -34,9 +34,9 @@ Instead, use [GitHub Security Advisories](https://github.com/opentidy/opentidy/s
 
 OpenTidy's security model is documented in detail in [docs/security.md](docs/security.md). Key points:
 
-- **PreToolUse hooks** intercept every sensitive tool call before execution — Claude cannot bypass them
+- **PreToolUse hooks** intercept every sensitive tool call before execution; Claude cannot bypass them
 - **Audit trail** logs every external action for traceability
-- **Isolated Claude config** — sessions use a separate configuration directory
+- **Isolated Claude config**: sessions use a separate configuration directory
 - **Bearer token authentication** on all API endpoints
 
 ## Supported versions

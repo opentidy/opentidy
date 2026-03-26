@@ -179,11 +179,11 @@ test.describe('Setup Wizard', () => {
     await page.getByPlaceholder('Alice').fill('Test User');
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    // Step 2: agent step — claude is already connected, Continue is enabled
+    // Step 2: agent step: claude is already connected, Continue is enabled
     await expect(page.getByText('Claude Code')).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
 
-    // Step 3: permissions step — all granted, Continue available
+    // Step 3: permissions step: all granted, Continue available
     await expect(page.getByText('Accessibility')).toBeVisible();
     await page.getByRole('button', { name: 'Continue' }).click();
 

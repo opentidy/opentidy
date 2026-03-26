@@ -5,16 +5,16 @@ import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, sym
 import { join, resolve } from 'path';
 import type { OpenTidyConfig, SkillsConfig, ModuleManifest, ModuleState, SkillDef, PermissionPreset } from '@opentidy/shared';
 
-// Read-only tools — always safe regardless of preset.
+// Read-only tools, always safe regardless of preset.
 const READ_ONLY_PERMISSIONS = ['Read', 'Glob', 'Grep'];
 
 // Built-in Claude Code permissions per preset.
 // OpenTidy's PreToolUse hook provides fine-grained control for module tools,
 // so we don't want Claude Code's native prompts blocking the agent unnecessarily.
 //
-// supervised  — read-only tools + safe bash only. Agent asks for everything else.
-// assisted    — adds Write/Edit + broader bash. Good balance.
-// autonomous  — all tools auto-allowed. Agent runs uninterrupted.
+// supervised:  read-only tools + safe bash only. Agent asks for everything else.
+// assisted:    adds Write/Edit + broader bash. Good balance.
+// autonomous:  all tools auto-allowed. Agent runs uninterrupted.
 const PRESET_PERMISSIONS: Record<PermissionPreset, string[]> = {
   supervised: [
     ...READ_ONLY_PERMISSIONS,
@@ -133,17 +133,17 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
   const preset = config.permissions?.preset ?? 'supervised';
   const allow = [...(PRESET_PERMISSIONS[preset] ?? PRESET_PERMISSIONS.supervised)];
   const mcpServers: Record<string, McpServerEntry> = {};
-  // Cast to any — this function only runs for legacy configs that still have mcp field
+  // Cast to any. This function only runs for legacy configs that still have mcp field
   const mcp = (config as any).mcp;
 
   if (!mcp) {
-    // v3 config — no legacy mcp field, return minimal settings
+    // v3 config, no legacy mcp field. Return minimal settings.
     allow.push('mcp__opentidy__*');
     mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
     return { permissions: { allow, deny: [] }, mcpServers, _regeneratedAt: new Date().toISOString() };
   }
 
-  // Legacy: Gmail (pre-v3 configs — replaced by email module in v3)
+  // Legacy: Gmail (pre-v3 configs, replaced by email module in v3)
   if (mcp.curated?.gmail?.enabled) {
     allow.push('mcp__gmail__*');
     mcpServers.gmail = { type: 'stdio', command: 'npx', args: ['@gongrzhe/server-gmail-autoauth-mcp'] };
@@ -167,7 +167,7 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
     }
   }
 
-  // OpenTidy MCP — always injected
+  // OpenTidy MCP, always injected
   allow.push('mcp__opentidy__*');
   mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
 
@@ -268,7 +268,7 @@ export function syncModuleSkills(skills: SkillDef[], configDir: string): void {
       }
     }
   } catch {
-    // skills dir doesn't exist yet — nothing to clean
+    // skills dir doesn't exist yet, nothing to clean
   }
 
   // Write fresh module skills
@@ -351,7 +351,7 @@ export function regenerateAgentConfig(
     // Collect permissions from module manifests.
     // If an MCP server has explicit permissions, use those.
     // Otherwise, auto-generate mcp__<name>__* so Claude Code doesn't prompt its
-    // own native confirmation — OpenTidy's PreToolUse hook handles fine-grained control.
+    // own native confirmation. OpenTidy's PreToolUse hook handles fine-grained control.
     const modulePermissions: string[] = [];
     for (const [, manifest] of manifests) {
       for (const mcp of manifest.mcpServers ?? []) {
@@ -414,7 +414,7 @@ export function regenerateAgentConfig(
     JSON.stringify({ mcpServers: settings.mcpServers }, null, 2) + '\n',
   );
 
-  // Sync skills (legacy path only — module skills handled by syncModuleSkills above)
+  // Sync skills (legacy path only, module skills handled by syncModuleSkills above)
   if (!modules) {
     const curatedSkillsDir = resolve(import.meta.dirname, '../../config/claude/skills');
     const legacySkills = (config as any).skills;

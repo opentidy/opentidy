@@ -4,7 +4,7 @@
 
 **Goal:** Enable OpenTidy agent sessions to use MCP servers and skills by injecting them into the isolated `CLAUDE_CONFIG_DIR/settings.json`, with a config model, API routes, and UI for management.
 
-**Architecture:** Config-driven approach — `config.json` is the SSOT for enabled MCP servers (curated + marketplace) and skills (curated + user). A `regenerateAgentConfig()` function writes `settings.json` and syncs skills to `$CLAUDE_CONFIG_DIR/`. API routes enable CRUD via the web app. Registry proxy provides marketplace discovery.
+**Architecture:** Config-driven approach, `config.json` is the SSOT for enabled MCP servers (curated + marketplace) and skills (curated + user). A `regenerateAgentConfig()` function writes `settings.json` and syncs skills to `$CLAUDE_CONFIG_DIR/`. API routes enable CRUD via the web app. Registry proxy provides marketplace discovery.
 
 **Tech Stack:** TypeScript, Zod, Hono, Vitest, React 19, Tailwind CSS v4
 
@@ -21,7 +21,7 @@
 | `types.ts` | Rename existing `McpConfig` → `McpServicesConfig` (used by `SetupOpts.mcpServices`), add `McpConfigV2` (used by `OpenTidyConfig.mcp`), add `SkillsConfig`, `MarketplaceMcp`, `UserSkill` |
 | `schemas.ts` | Zod schemas for all new types |
 
-### Backend — shared (`apps/backend/src/shared/`)
+### Backend: shared (`apps/backend/src/shared/`)
 
 | File | Responsibility |
 |------|---------------|
@@ -30,23 +30,23 @@
 | `config.ts` | Add `migrateConfigV1ToV2()`, update `loadConfig()`, update `DEFAULT_CONFIG` |
 | `config.test.ts` | Add migration tests |
 
-### Backend — features (`apps/backend/src/features/`)
+### Backend: features (`apps/backend/src/features/`)
 
 | File | Responsibility |
 |------|---------------|
-| `mcp/list.ts` (new) | `GET /api/mcp` — list curated + marketplace MCPs |
-| `mcp/toggle.ts` (new) | `POST /api/mcp/curated/:name/toggle` — enable/disable curated |
-| `mcp/add.ts` (new) | `POST /api/mcp/marketplace` — add marketplace/custom MCP |
-| `mcp/remove.ts` (new) | `DELETE /api/mcp/marketplace/:name` — remove marketplace MCP |
-| `mcp/registry.ts` (new) | `GET /api/mcp/registry/search` — proxy to official MCP registry |
+| `mcp/list.ts` (new) | `GET /api/mcp`, list curated + marketplace MCPs |
+| `mcp/toggle.ts` (new) | `POST /api/mcp/curated/:name/toggle`, enable/disable curated |
+| `mcp/add.ts` (new) | `POST /api/mcp/marketplace`, add marketplace/custom MCP |
+| `mcp/remove.ts` (new) | `DELETE /api/mcp/marketplace/:name`, remove marketplace MCP |
+| `mcp/registry.ts` (new) | `GET /api/mcp/registry/search`, proxy to official MCP registry |
 | `mcp/mcp.test.ts` (new) | Tests for all MCP routes |
-| `skills/list.ts` (new) | `GET /api/skills` — list curated + user skills |
-| `skills/toggle.ts` (new) | `POST /api/skills/curated/:name/toggle` — enable/disable curated |
-| `skills/add.ts` (new) | `POST /api/skills/user` — add user skill |
-| `skills/remove.ts` (new) | `DELETE /api/skills/user/:name` — remove user skill |
+| `skills/list.ts` (new) | `GET /api/skills`, list curated + user skills |
+| `skills/toggle.ts` (new) | `POST /api/skills/curated/:name/toggle`, enable/disable curated |
+| `skills/add.ts` (new) | `POST /api/skills/user`, add user skill |
+| `skills/remove.ts` (new) | `DELETE /api/skills/user/:name`, remove user skill |
 | `skills/skills.test.ts` (new) | Tests for all skills routes |
 
-### Backend — CLI (`apps/backend/src/cli/setup/`)
+### Backend: CLI (`apps/backend/src/cli/setup/`)
 
 | File | Responsibility |
 |------|---------------|
@@ -55,7 +55,7 @@
 | `camoufox.ts` | Write to `config.mcp.curated.camoufox` on completion |
 | `whatsapp.ts` | Write to `config.mcp.curated.whatsapp` on completion |
 
-### Backend — config templates
+### Backend: config templates
 
 | File | Responsibility |
 |------|---------------|
@@ -66,7 +66,7 @@
 
 | File | Responsibility |
 |------|---------------|
-| `Settings.tsx` (new) | Settings page — MCP + Skills management |
+| `Settings.tsx` (new) | Settings page, MCP + Skills management |
 | `McpSection.tsx` (new) | MCP servers section (curated + marketplace + search) |
 | `SkillsSection.tsx` (new) | Skills section (curated + user) |
 | `AddMcpDialog.tsx` (new) | Add custom MCP dialog |
@@ -84,7 +84,7 @@
 - [ ] **Step 1: Write failing test for new schemas**
 
 ```typescript
-// packages/shared/tests/schemas.test.ts — add at end
+// packages/shared/tests/schemas.test.ts, add at end
 import { MarketplaceMcpSchema, UserSkillSchema, McpConfigV2Schema, SkillsConfigSchema } from '../src/schemas.js';
 
 describe('MarketplaceMcpSchema', () => {
@@ -154,7 +154,7 @@ describe('UserSkillSchema', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/shared test -- --run`
-Expected: FAIL — `MarketplaceMcpSchema` not exported
+Expected: FAIL (`MarketplaceMcpSchema` not exported)
 
 - [ ] **Step 3: Add types to `types.ts`**
 
@@ -344,7 +344,7 @@ describe('config v1 → v2 migration', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- --run config.test`
-Expected: FAIL — `config.mcp.curated` is undefined
+Expected: FAIL (`config.mcp.curated` is undefined)
 
 - [ ] **Step 3: Implement migration in `config.ts`**
 
@@ -431,7 +431,7 @@ Expected: PASS
 - [ ] **Step 5: Fix existing tests that use old McpConfig shape**
 
 Search for tests that use `config.mcp.gmail` directly (flat) and update to `config.mcp.curated.gmail`. Key files:
-- `apps/backend/src/cli/setup/claude.test.ts` — `buildTestConfig` overrides
+- `apps/backend/src/cli/setup/claude.test.ts`: `buildTestConfig` overrides
 - `apps/backend/src/cli/setup/gmail.test.ts`
 - `apps/backend/src/cli/setup/camoufox.test.ts`
 - `apps/backend/src/cli/setup/whatsapp.test.ts`
@@ -626,7 +626,7 @@ describe('syncSkills', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- --run agent-config.test`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement `agent-config.ts`**
 
@@ -786,7 +786,7 @@ export function syncSkills(
         }
       } else {
         console.warn(`[agent-config] Skill "${skill.name}" disabled: source path not found at ${sourcePath}`);
-        // Disable in config and persist — startup validation
+        // Disable in config and persist, startup validation
         skill.enabled = false;
       }
     } else {
@@ -884,7 +884,7 @@ Also update the `claudeConfig?.dir` reference (line 38) to use `agentConfig.conf
 const claudeConfigDir = config.agentConfig?.configDir || config.claudeConfig?.dir;
 ```
 
-- [ ] **Step 3: Update `whatsapp.ts`** similarly — all `config.mcp.whatsapp.*` → `config.mcp.curated.whatsapp.*`
+- [ ] **Step 3: Update `whatsapp.ts`** similarly; all `config.mcp.whatsapp.*` → `config.mcp.curated.whatsapp.*`
 
 - [ ] **Step 4: Run all setup tests**
 
@@ -1034,7 +1034,7 @@ describe('MCP routes', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- --run mcp.test`
-Expected: FAIL — modules not found
+Expected: FAIL (modules not found)
 
 - [ ] **Step 3: Implement MCP routes**
 
@@ -1133,7 +1133,7 @@ git commit -m "feat(backend): add skills management API routes (list, toggle, ad
 // Add to mcp.test.ts
 describe('MCP registry proxy', () => {
   it('GET /mcp/registry/search returns results', async () => {
-    // This test uses the real registry API — skip in CI if needed
+    // This test uses the real registry API, skip in CI if needed
     const deps = createTestDeps(configDir);
     const app = new Hono();
     app.route('/api', registrySearchRoute(deps));
@@ -1267,7 +1267,7 @@ name: browser
 description: Use Camoufox anti-detection browser for all web navigation. Never use /navigate (Chrome, reserved for user).
 ---
 
-For ALL web navigation, use this skill which launches Camoufox — an anti-detection browser.
+For ALL web navigation, use this skill which launches Camoufox, an anti-detection browser.
 
 ## Usage
 
@@ -1275,9 +1275,9 @@ Use the `mcp__camofox__*` tools for browsing. Each session gets an isolated brow
 
 ## Rules
 
-- NEVER use `/navigate` (Chrome) — that's reserved for the user
+- NEVER use `/navigate` (Chrome), that's reserved for the user
 - If Camoufox fails, fall back to Playwright MCP and document the failure in state.md
-- Anti-detection is enabled by default — sites won't flag you as a bot
+- Anti-detection is enabled by default, sites won't flag you as a bot
 ```
 
 - [ ] **Step 2: Create bitwarden skill**
@@ -1428,7 +1428,7 @@ export function buildMarketplaceGuardrails(config: OpenTidyConfig): GuardrailRul
 }
 ```
 
-Call this in `regenerateAgentConfig()` — merge static guardrails from `guardrails.json` with dynamic marketplace guardrails, then call `adapter.writeConfig()` to regenerate `hooks.json`.
+Call this in `regenerateAgentConfig()`, merge static guardrails from `guardrails.json` with dynamic marketplace guardrails, then call `adapter.writeConfig()` to regenerate `hooks.json`.
 
 - [ ] **Step 4: Write test for marketplace guardrail generation**
 
@@ -1520,9 +1520,9 @@ git commit -m "feat(backend): fix guardrails port, add marketplace audit hooks a
 
 After all tasks:
 
-- [ ] `pnpm test` — all backend tests pass
-- [ ] `pnpm build` — shared + backend + web build without errors
-- [ ] `pnpm dev` — start dev server, navigate to Settings page
+- [ ] `pnpm test`, all backend tests pass
+- [ ] `pnpm build`; shared + backend + web build without errors
+- [ ] `pnpm dev`; start dev server, navigate to Settings page
 - [ ] Manual: verify `~/.config/opentidy/claude-config/settings.json` now contains `mcpServers` after boot
 - [ ] Manual: toggle a curated MCP in the UI → verify settings.json updates
 - [ ] Manual: run a one-shot (trigger triage) → verify it still uses `--strict-mcp-config {}`

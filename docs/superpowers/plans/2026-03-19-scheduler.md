@@ -1,4 +1,4 @@
-# Scheduler — Agent Agenda Implementation Plan
+# Scheduler: Agent Agenda Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -16,61 +16,61 @@
 
 ## File Structure
 
-### Backend — new files
+### Backend: new files
 
 ```
 apps/backend/src/features/scheduler/
-  scheduler.ts            — createScheduler() factory: polling engine, fire, dispatch
-  routes.ts               — 4 Hono routes (CRUD)
-  routes.test.ts          — route tests
-  scheduler.test.ts       — unit tests
+  scheduler.ts; createScheduler() factory: polling engine, fire, dispatch
+  routes.ts, 4 Hono routes (CRUD)
+  routes.test.ts, route tests
+  scheduler.test.ts, unit tests
 
 apps/backend/src/features/mcp-server/
-  server.ts               — createMcpServer() factory: registers tools, mounts on Hono
-  server.test.ts          — integration tests
+  server.ts; createMcpServer() factory: registers tools, mounts on Hono
+  server.test.ts, integration tests
   tools/
-    schedule.ts           — schedule_create, schedule_list, schedule_delete tool handlers
-    schedule.test.ts      — tests
-    suggestion.ts         — suggestion_create tool handler
-    suggestion.test.ts    — tests
-    gap.ts                — gap_report tool handler
-    gap.test.ts           — tests
+    schedule.ts; schedule_create, schedule_list, schedule_delete tool handlers
+    schedule.test.ts, tests
+    suggestion.ts; suggestion_create tool handler
+    suggestion.test.ts, tests
+    gap.ts, gap_report tool handler
+    gap.test.ts, tests
 ```
 
-### Backend — modified files
+### Backend: modified files
 
 ```
-apps/backend/src/shared/database.ts          — add schedules table DDL
-apps/backend/src/shared/agent-config.ts      — add opentidy curated MCP to generateClaudeSettings()
-apps/backend/src/boot/periodic-tasks.ts      — remove checkup setInterval, add scheduler.start()
-apps/backend/src/features/checkup/sweep.ts   — remove NEXT ACTION guard + sendMessage()
-apps/backend/src/server.ts                   — mount scheduler routes + MCP endpoint
-apps/backend/src/index.ts                    — wire scheduler + MCP server
+apps/backend/src/shared/database.ts, add schedules table DDL
+apps/backend/src/shared/agent-config.ts; add opentidy curated MCP to generateClaudeSettings()
+apps/backend/src/boot/periodic-tasks.ts; remove checkup setInterval, add scheduler.start()
+apps/backend/src/features/checkup/sweep.ts; remove NEXT ACTION guard + sendMessage()
+apps/backend/src/server.ts; mount scheduler routes + MCP endpoint
+apps/backend/src/index.ts, wire scheduler + MCP server
 ```
 
-### Shared — modified files
+### Shared: modified files
 
 ```
-packages/shared/src/types.ts                 — Schedule type, SSE event types, McpConfigV2 curated.opentidy
-packages/shared/src/schemas.ts               — CreateScheduleSchema, UpdateScheduleSchema, CuratedMcpStateSchema for opentidy
+packages/shared/src/types.ts. Schedule type, SSE event types, McpConfigV2 curated.opentidy
+packages/shared/src/schemas.ts. CreateScheduleSchema, UpdateScheduleSchema, CuratedMcpStateSchema for opentidy
 ```
 
-### Frontend — new files
+### Frontend: new files
 
 ```
 apps/web/src/features/schedule/
-  SchedulePage.tsx         — FullCalendar week/month/day view
-  ScheduleEventModal.tsx   — create/edit/delete modal
+  SchedulePage.tsx. FullCalendar week/month/day view
+  ScheduleEventModal.tsx, create/edit/delete modal
 ```
 
-### Frontend — modified files
+### Frontend: modified files
 
 ```
-apps/web/src/App.tsx                         — add /schedule route
-apps/web/src/shared/DesktopNav.tsx           — add Schedule nav item
-apps/web/src/shared/MobileNav.tsx            — add Schedule nav item
-apps/web/src/shared/i18n/locales/en.json     — schedule labels
-apps/web/src/shared/i18n/locales/fr.json     — schedule labels
+apps/web/src/App.tsx, add /schedule route
+apps/web/src/shared/DesktopNav.tsx, add Schedule nav item
+apps/web/src/shared/MobileNav.tsx, add Schedule nav item
+apps/web/src/shared/i18n/locales/en.json, schedule labels
+apps/web/src/shared/i18n/locales/fr.json, schedule labels
 ```
 
 ---
@@ -117,7 +117,7 @@ Add to the `SSEEventType` union (~line 123):
 
 - [ ] **Step 3: Add opentidy to McpConfigV2 curated (optional until Task 7)**
 
-Update the `McpConfigV2` interface (~line 253) — `opentidy` is optional for backward compat with existing configs:
+Update the `McpConfigV2` interface (~line 253), `opentidy` is optional for backward compat with existing configs:
 
 ```typescript
 export interface McpConfigV2 {
@@ -196,7 +196,7 @@ git commit -m "feat(shared): add Schedule types, schemas, and SSE events for sch
 
 ---
 
-## Task 2: Database — schedules table
+## Task 2: Database: schedules table
 
 **Files:**
 - Modify: `apps/backend/src/shared/database.ts`
@@ -355,7 +355,7 @@ git commit -m "feat(backend): add scheduler CRUD API routes"
 
 ---
 
-## Task 5: MCP server — all tools
+## Task 5: MCP server: all tools
 
 **Files:**
 - Create: `apps/backend/src/features/mcp-server/server.ts`
@@ -392,7 +392,7 @@ Mock the scheduler dependency.
 
 File: `apps/backend/src/features/mcp-server/tools/schedule.ts`
 
-Export `registerScheduleTools(server, deps)` — registers 3 tools on the MCP server with Zod input schemas. Each tool calls the scheduler's methods and returns structured content.
+Export `registerScheduleTools(server, deps)`; registers 3 tools on the MCP server with Zod input schemas. Each tool calls the scheduler's methods and returns structured content.
 
 - [ ] **Step 4: Write suggestion tool test**
 
@@ -402,7 +402,7 @@ Test: `suggestion_create` with valid input calls `suggestionsManager.writeSugges
 
 File: `apps/backend/src/features/mcp-server/tools/suggestion.ts`
 
-`registerSuggestionTools(server, deps)` — one tool `suggestion_create` with inputs: `title`, `urgency`, `source`, `summary`, `why`, `whatIWouldDo`. Calls the existing suggestions manager to write the markdown file.
+`registerSuggestionTools(server, deps)`; one tool `suggestion_create` with inputs: `title`, `urgency`, `source`, `summary`, `why`, `whatIWouldDo`. Calls the existing suggestions manager to write the markdown file.
 
 - [ ] **Step 6: Write gap tool test**
 
@@ -412,7 +412,7 @@ Test: `gap_report` with valid input calls `gapsManager.appendGap()` and emits SS
 
 File: `apps/backend/src/features/mcp-server/tools/gap.ts`
 
-`registerGapTools(server, deps)` — one tool `gap_report` with inputs: `title`, `problem`, `impact`, `suggestion`. Calls the existing gaps manager to append to gaps.md.
+`registerGapTools(server, deps)`; one tool `gap_report` with inputs: `title`, `problem`, `impact`, `suggestion`. Calls the existing gaps manager to append to gaps.md.
 
 - [ ] **Step 8: Write MCP server integration test**
 
@@ -612,7 +612,7 @@ Expected: All pass.
 
 ```
 git add apps/backend/src/features/checkup/sweep.ts apps/backend/src/features/checkup/sweep.test.ts
-git commit -m "refactor(backend): simplify checkup — remove NEXT ACTION guard and sendMessage"
+git commit -m "refactor(backend): simplify checkup; remove NEXT ACTION guard and sendMessage"
 ```
 
 ---
@@ -642,7 +642,7 @@ git commit -m "chore(web): add FullCalendar packages for schedule view"
 
 ---
 
-## Task 10: Frontend — Schedule page
+## Task 10: Frontend: Schedule page
 
 **Files:**
 - Create: `apps/web/src/features/schedule/SchedulePage.tsx`
@@ -717,13 +717,13 @@ In the instruction file generator (`instruction-file.ts`), add a section documen
 ```markdown
 ## Available MCP Tools (OpenTidy)
 
-- `mcp__opentidy__schedule_create` — Schedule a future action
+- `mcp__opentidy__schedule_create`: Schedule a future action
   - once: { type: "once", runAt: "ISO-datetime", label: "...", dossierId: "..." }
   - recurring: { type: "recurring", intervalMs: N, label: "...", dossierId: "..." }
-- `mcp__opentidy__schedule_list` — List schedules (optional dossierId filter)
-- `mcp__opentidy__schedule_delete` — Remove a schedule by id
-- `mcp__opentidy__suggestion_create` — Suggest a new dossier
-- `mcp__opentidy__gap_report` — Report a capability gap
+- `mcp__opentidy__schedule_list`: List schedules (optional dossierId filter)
+- `mcp__opentidy__schedule_delete`: Remove a schedule by id
+- `mcp__opentidy__suggestion_create`: Suggest a new dossier
+- `mcp__opentidy__gap_report`: Report a capability gap
 
 Do NOT write NEXT ACTION in state.md. Use schedule_create instead.
 ```

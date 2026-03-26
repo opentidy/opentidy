@@ -104,7 +104,7 @@ describe('Adversarial memory API tests', () => {
       expect([201, 413, 500]).toContain(res.status)
     })
 
-    it('rejects wrong types — number instead of string for filename', async () => {
+    it('rejects wrong types, number instead of string for filename', async () => {
       const res = await r.post('/api/memory', {
         filename: 12345,
         category: 'test',
@@ -115,7 +115,7 @@ describe('Adversarial memory API tests', () => {
       expect(res.status).not.toBe(201)
     })
 
-    it('rejects wrong types — array instead of string for content', async () => {
+    it('rejects wrong types, array instead of string for content', async () => {
       const res = await r.post('/api/memory', {
         filename: 'bad-type.md',
         category: 'test',
@@ -125,7 +125,7 @@ describe('Adversarial memory API tests', () => {
       expect(res.status).not.toBe(201)
     })
 
-    it('rejects wrong types — object instead of string for category', async () => {
+    it('rejects wrong types, object instead of string for category', async () => {
       const res = await r.post('/api/memory', {
         filename: 'bad-cat.md',
         category: { nested: true },
@@ -157,7 +157,7 @@ describe('Adversarial memory API tests', () => {
 
     // BUG FOUND: PUT /api/memory/:filename allows URL-encoded path traversal.
     // The :filename param is URL-decoded by Hono, so %2e%2e%2f becomes ../
-    // The memory manager joins this with the memDir path — potential directory escape.
+    // The memory manager joins this with the memDir path. Potential directory escape.
     // Zod's MemoryUpdateSchema does NOT validate the filename (it comes from the URL param).
     it('rejects URL-encoded path traversal in PUT filename param', async () => {
       // First create a legit file so the route doesn't 404 before the traversal check
@@ -177,7 +177,7 @@ describe('Adversarial memory API tests', () => {
       expect(res.status).not.toBe(200)
     })
 
-    it('PUT with empty content string — should be allowed per schema', async () => {
+    it('PUT with empty content string, should be allowed per schema', async () => {
       memoryManager.writeFile({
         filename: 'will-empty.md',
         category: 'test',
@@ -188,7 +188,7 @@ describe('Adversarial memory API tests', () => {
       const res = await r.put('/api/memory/will-empty.md', {
         content: '',
       })
-      // MemoryUpdateSchema has content: z.string() — empty string is valid
+      // MemoryUpdateSchema has content: z.string(). Empty string is valid.
       expect(res.status).toBe(200)
       const entry = memoryManager.readFile('will-empty.md')
       expect(entry.content).toBe('')
@@ -211,7 +211,7 @@ describe('Adversarial memory API tests', () => {
         description: 'duplicate',
         content: 'second version',
       })
-      // BUG: Returns 201 instead of 409 — silently overwrites existing file
+      // BUG: Returns 201 instead of 409, silently overwrites existing file
       expect(res.status).toBe(409)
     })
 
@@ -237,7 +237,7 @@ describe('Adversarial memory API tests', () => {
         description: 'long name',
         content: 'x',
       })
-      // Regex allows it (no length limit) — but OS may reject it
+      // Regex allows it (no length limit), but OS may reject it
       // This is a potential gap: no max filename length in schema
       expect([201, 500]).toContain(res.status)
     })
@@ -356,7 +356,7 @@ describe('Adversarial memory API tests', () => {
 
     it('GET /api/memory/ with trailing slash still works', async () => {
       const res = await r.get('/api/memory/')
-      // Hono may or may not match — test actual behavior
+      // Hono may or may not match. Test actual behavior.
       expect([200, 404]).toContain(res.status)
     })
 
@@ -384,7 +384,7 @@ describe('Adversarial memory API tests', () => {
         // No Content-Type header
         body: JSON.stringify({ content: 'updated' }),
       })
-      // Hono should still try to parse JSON — may fail or succeed
+      // Hono should still try to parse JSON. May fail or succeed.
       expect([200, 400, 415, 500]).toContain(res.status)
     })
 
@@ -572,7 +572,7 @@ describe('Adversarial memory API tests', () => {
       expect(res.status).not.toBe(200)
     })
 
-    it('archive a file then archive another file — index is correct', async () => {
+    it('archive a file then archive another file, index is correct', async () => {
       memoryManager.writeFile({
         filename: 'first.md',
         category: 'test',
@@ -607,7 +607,7 @@ describe('Adversarial memory API tests', () => {
   // ════════════════════════════════════════════
 
   describe('content injection in memory files', () => {
-    it('frontmatter injection — content with --- tries to inject metadata', async () => {
+    it('frontmatter injection, content with --- tries to inject metadata', async () => {
       const res = await r.post('/api/memory', {
         filename: 'inject-meta.md',
         category: 'test',
@@ -825,7 +825,7 @@ describe('Adversarial memory API tests', () => {
       fs.writeFileSync(filePath, buf)
 
       const res = await r.get('/api/memory/binary.md')
-      // Should not crash — may return garbage content but should respond
+      // Should not crash. May return garbage content but should respond.
       expect([200, 500]).toContain(res.status)
     })
   })
@@ -872,7 +872,7 @@ describe('Adversarial memory API tests', () => {
       const indexPath = path.join(tmp.path, '_memory', 'INDEX.md')
       fs.writeFileSync(indexPath, 'CORRUPTED')
 
-      // Write a new file — should rebuild index with this entry
+      // Write a new file. Should rebuild index with this entry.
       const res = await r.post('/api/memory', {
         filename: 'fix-index.md',
         category: 'test',

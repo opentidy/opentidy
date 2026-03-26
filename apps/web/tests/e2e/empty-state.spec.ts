@@ -24,7 +24,7 @@ test.describe('E2E-APP-25: Suggestions with urgency colors', () => {
     await expect(page.getByText('normal', { exact: true })).toBeVisible();
     await expect(page.getByText('low', { exact: true })).toBeVisible();
 
-    // Verify ordering — urgent suggestions appear first
+    // Verify ordering: urgent suggestions appear first
     // The mock data already has urgent first, normal second, low third
     const suggestionTitles = await page.locator('.bg-card.rounded-xl.border-l-4').allTextContents();
     // Find the indices of each suggestion in the rendered order

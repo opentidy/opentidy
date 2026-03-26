@@ -4,7 +4,7 @@
 
 **Goal:** Apply AGPL-3.0 + Commercial dual licensing to the OpenTidy repository with CLA, SPDX headers, and updated documentation.
 
-**Architecture:** No code changes — this is purely licensing and documentation. Add LICENSE file, CLA, SPDX headers to all source files, update package.json license fields, update README and contributing docs, add CLA mention to PR template.
+**Architecture:** No code changes; this is purely licensing and documentation. Add LICENSE file, CLA, SPDX headers to all source files, update package.json license fields, update README and contributing docs, add CLA mention to PR template.
 
 **Tech Stack:** AGPL-3.0-only, Apache ICLA-based CLA, CLA Assistant (GitHub App)
 
@@ -60,7 +60,7 @@ Thank you for your interest in contributing to OpenTidy. To clarify the intellec
 By signing this CLA, you confirm that:
 
 1. **You retain your copyright.** You still own the rights to your contribution.
-2. **You grant Loaddr Ltd a license.** You give Loaddr Ltd a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, distribute, and sublicense your contribution under any license — including the AGPL-3.0 (the project's open-source license) and any commercial license Loaddr Ltd may offer.
+2. **You grant Loaddr Ltd a license.** You give Loaddr Ltd a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, distribute, and sublicense your contribution under any license; including the AGPL-3.0 (the project's open-source license) and any commercial license Loaddr Ltd may offer.
 3. **You can still use your contribution.** You are free to use your contribution for any other purpose.
 4. **Your contribution is your original work.** You have the right to grant this license. If your employer has rights to your work, you have received permission, or your employer has signed a Corporate CLA.
 
@@ -70,7 +70,7 @@ Loaddr Ltd commits to always maintaining OpenTidy under the AGPL-3.0 as a free a
 
 ## How to sign
 
-When you open your first pull request, the CLA Assistant bot will ask you to sign. It's a one-click process — you only need to sign once.
+When you open your first pull request, the CLA Assistant bot will ask you to sign. It's a one-click process, you only need to sign once.
 
 ## Full text
 
@@ -144,7 +144,7 @@ for file in eslint.config.js; do
   fi
 done
 
-# Shell scripts (preserve shebang — insert after line 1)
+# Shell scripts (preserve shebang: insert after line 1)
 for file in bin/opentidy setup.sh install.sh opentidy-updater.sh; do
   if [ -f "$file" ] && ! grep -q 'SPDX-License-Identifier' "$file"; then
     # Insert after shebang line
@@ -233,7 +233,7 @@ git commit -m "chore: add AGPL-3.0-only license to all package.json"
 
 **Files:**
 - Modify: `README.md:110-112` (replace "Coming soon" in License section)
-- Modify: `CONTRIBUTING.md` (root — add CLA mention to the redirect)
+- Modify: `CONTRIBUTING.md` (root, add CLA mention to the redirect)
 - Modify: `docs/contributing.md:165-167` (replace "Coming soon" in License section)
 - Modify: `.github/PULL_REQUEST_TEMPLATE.md` (add CLA checkbox)
 
@@ -246,7 +246,7 @@ Replace lines 110-112 with:
 
 OpenTidy is dual-licensed:
 
-- **Open Source:** [AGPL-3.0](LICENSE) — free to use, modify, and deploy. If you offer OpenTidy as a network service, you must publish your source code.
+- **Open Source:** [AGPL-3.0](LICENSE), free to use, modify, and deploy. If you offer OpenTidy as a network service, you must publish your source code.
 - **Commercial:** Contact [licensing@loaddr.com](mailto:licensing@loaddr.com) for a commercial license without AGPL obligations.
 
 See [CLA.md](CLA.md) for contributor licensing.
@@ -271,7 +271,7 @@ Replace lines 165-167 with:
 ```markdown
 ## License
 
-OpenTidy is licensed under [AGPL-3.0](../LICENSE). By contributing, you agree to the [Contributor License Agreement](../CLA.md) — the CLA Assistant bot will guide you through signing on your first PR.
+OpenTidy is licensed under [AGPL-3.0](../LICENSE). By contributing, you agree to the [Contributor License Agreement](../CLA.md); the CLA Assistant bot will guide you through signing on your first PR.
 ```
 
 - [ ] **Step 4: Add CLA checkbox to PR template**
@@ -344,4 +344,4 @@ Open and close a test PR to verify the CLA bot responds.
 
 - **Homebrew formula:** Add `license "AGPL-3.0-only"` to the formula in `opentidy/homebrew-opentidy` (separate repo).
 - **SPDX header enforcement:** Add a lint rule or pre-commit hook to ensure new files include the SPDX header.
-- **`scripts/add-spdx-headers.sh`:** One-time utility — can be removed after execution if desired.
+- **`scripts/add-spdx-headers.sh`:** One-time utility; can be removed after execution if desired.

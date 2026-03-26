@@ -5,7 +5,7 @@ const features = [
   {
     title: "Long-lived tasks, not conversations",
     description:
-      "Each task is a persistent task that lives for days or weeks. OpenTidy picks it up, works on it, puts it down, and picks it back up — just like a real assistant.",
+      "Each task is a persistent task that lives for days or weeks. OpenTidy picks it up, works on it, puts it down, and picks it back up, just like a real assistant.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -25,7 +25,7 @@ const features = [
   {
     title: "Truly autonomous",
     description:
-      "It doesn't wait for you to type. It receives events — emails, messages, schedules — triages them, routes them to the right task, and gets to work.",
+      "It doesn't wait for you to type. It receives events (emails, messages, schedules), triages them, routes them to the right task, and gets to work.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -45,7 +45,7 @@ const features = [
   {
     title: "Claude does the thinking",
     description:
-      "No fragile decision trees, no rigid workflows, no prompt chains. Claude Code is the execution engine — with full access to browser, filesystem, and tools.",
+      "No fragile decision trees, no rigid workflows, no prompt chains. Claude Code is the execution engine, with full access to browser, filesystem, and tools.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -85,7 +85,7 @@ const features = [
   {
     title: "Self-improving",
     description:
-      "When OpenTidy can't do something, it logs the gap. Over time, these gaps become your natural backlog — driven by real usage, not guesswork.",
+      "When OpenTidy can't do something, it logs the gap. Over time, these gaps become your natural backlog, driven by real usage, not guesswork.",
     icon: (
       <svg
         className="h-6 w-6"

@@ -63,7 +63,7 @@ export default function Home() {
     );
   }
 
-  // Empty state — nothing happening
+  // Empty state: nothing happening
   if (isEmpty) {
     const completedCount = tasks.filter((d) => d.status === 'COMPLETED').length;
     return (
@@ -245,7 +245,7 @@ function SuggestionRow({
 
   return (
     <div className={`bg-[rgba(167,139,250,0.04)] border border-dashed ${style.border} rounded-[10px] transition-colors`}>
-      {/* Collapsed header — click to expand */}
+      {/* Collapsed header, click to expand */}
       <button
         onClick={() => setExpanded(!expanded)}
         className="w-full text-left p-2.5 md:p-3 flex items-center gap-3"
@@ -280,7 +280,7 @@ function SuggestionRow({
       {/* Expanded details */}
       {expanded && (
         <div className="px-3 md:px-4 pb-3 md:pb-4 space-y-3">
-          {/* Summary — only if different from why */}
+          {/* Summary, only if different from why */}
           {s.summary && s.summary !== s.why && (
             <p className="text-[13px] text-text-secondary">{s.summary}</p>
           )}

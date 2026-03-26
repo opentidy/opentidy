@@ -96,7 +96,7 @@ const locks = createLockManager(LOCK_DIR);
 const cleaned = locks.cleanupStaleLocks();
 if (cleaned.length) console.log(`[opentidy] Cleaned ${cleaned.length} stale locks`);
 
-// Camoufox profile cleanup — only on macOS where Camoufox is used
+// Camoufox profile cleanup (only on macOS where Camoufox is used)
 if (process.platform === 'darwin') {
   try {
     const health = execFileSync('curl', ['-fsS', 'http://localhost:9377/health'], { encoding: 'utf-8', timeout: 5000 });
@@ -114,7 +114,7 @@ if (process.platform === 'darwin') {
       }
     }
   } catch {
-    console.log('[opentidy] Camoufox server not running or not reachable — skipping profile check');
+    console.log('[opentidy] Camoufox server not running or not reachable, skipping profile check');
   }
 }
 
@@ -123,7 +123,7 @@ const audit = createAuditLogger(`${WORKSPACE_DIR}/_audit`);
 const sse = createSSEEmitter();
 const notificationStore = createNotificationStore(db);
 
-// Agent adapter — resolves from config (claude by default)
+// Agent adapter: resolves from config (claude by default)
 const AGENT_CONFIG_DIR = config.agentConfig?.configDir || config.claudeConfig?.dir || path.join(os.homedir(), '.config', 'opentidy', 'agents', 'claude');
 // Persist the resolved configDir so regenerateAgentConfig can find it
 if (!config.agentConfig?.configDir) {
@@ -157,7 +157,7 @@ if (customModules.size > 0) {
   if (configDirty) saveConfig(getConfigPath(), config);
 }
 
-// Permission resolver — determines allowed tools from manifests + config
+// Permission resolver: determines allowed tools from manifests + config
 const permissionResolver = createPermissionResolver(manifests, config.permissions);
 
 // Ensure agent settings.json is up-to-date on startup (from modules)
@@ -179,7 +179,7 @@ adapter.writeConfig({
 });
 console.log('[opentidy] Generated hooks.json from permission config');
 
-// Centralized agent spawner — ONE semaphore shared by all callers (max 3 concurrent)
+// Centralized agent spawner: ONE semaphore shared by all callers (max 3 concurrent)
 const spawnAgentFull = createSpawnAgent({
   adapter,
   tracker,
@@ -188,12 +188,12 @@ const spawnAgentFull = createSpawnAgent({
   maxConcurrent: 3,
 });
 
-// Workspace managers (before memoryAgents — gap router needs gapsManager)
+// Workspace managers (before memoryAgents, gap router needs gapsManager)
 const taskManager = createTaskManager(WORKSPACE_DIR);
 const suggestionsManager = createSuggestionsManager(WORKSPACE_DIR);
 const gapsManager = createGapsManager(WORKSPACE_DIR);
 
-// GitHub Issue manager (optional — only if token configured)
+// GitHub Issue manager (optional, only if token configured)
 const gitHubIssueManager = config.github?.token
   ? createGitHubIssueManager({
       token: config.github.token,
@@ -231,7 +231,7 @@ const sendMessage: (chatId: string, text: string, opts?: { parse_mode?: string }
   : async () => { console.log('[notifications] No Telegram token, skipping'); };
 const notify = createNotifier({ sendMessage, appBaseUrl: APP_BASE_URL, chatId: TELEGRAM_CHAT_ID, rateLimitMs: config.preferences?.notificationRateLimit ?? 60_000, notificationStore, sse });
 
-// Permission services — state, approval flow, and per-request checker
+// Permission services: state, approval flow, and per-request checker
 const permissionState = createPermissionState();
 
 const approvalManager = createApprovalManager({
@@ -250,7 +250,7 @@ const approvalManager = createApprovalManager({
 
 // Launcher
 const tmuxExecutor = createTmuxExecutor();
-// Terminal ref — resolved after launcher is created (avoids TDZ circular ref)
+// Terminal ref, resolved after launcher is created (avoids TDZ circular ref)
 let terminalRef: { ensureReady: (name: string) => Promise<number | undefined>; killTtyd: (sessionName: string) => void } | undefined;
 const launcher = createLauncher({
   tmuxExecutor,
@@ -274,13 +274,13 @@ const launcher = createLauncher({
   sessionHistory,
 });
 
-// Terminal manager — ttyd spawner
+// Terminal manager: ttyd spawner
 const terminalManager = createTerminalManager({
   listSessions: () => launcher.listActiveSessions().map(s => s.id),
 });
 terminalRef = terminalManager;
 
-// Module setup session tracker — shared between terminal route (writes) and verify route (reads)
+// Module setup session tracker: shared between terminal route (writes) and verify route (reads)
 const setupSessions = new Map<string, string>(); // moduleName → tmux sessionName
 const setupTracker = {
   async getStatus(moduleName: string): Promise<{ running: boolean; exitCode?: number } | null> {
@@ -302,7 +302,7 @@ const hooks = createHooksHandler({
   },
 });
 
-// Receiver — triage + webhook
+// Receiver: triage + webhook
 const agentRunner = createAgentRunner(WORKSPACE_DIR, { memoryManager, spawnAgent: spawnAgentFull, adapter });
 const triager = createTriager({
   runClaude: agentRunner,
@@ -313,10 +313,10 @@ const triager = createTriager({
   listSuggestionTitles: () => suggestionsManager.listSuggestions().map(s => s.title),
 });
 
-// Shared triage result handler — deduplicates suggestion creation logic
+// Shared triage result handler: deduplicates suggestion creation logic
 const handleTriageResult = createTriageHandler({ launcher, sse, notify, writeSuggestion: suggestionsManager.writeSuggestion });
 
-// Triage batcher — accumulates events and flushes in a single agent call
+// Triage batcher: accumulates events and flushes in a single agent call
 const TRIAGE_DEBOUNCE_MS = 60_000;       // 1 min of silence → flush
 const TRIAGE_MAX_DELAY_MS = 5 * 60_000;  // 5 min max wait → force flush
 let triageBuffer: Array<{ source: string; content: string }> = [];
@@ -364,19 +364,19 @@ function queueForTriage(event: { source: string; content: string }): void {
 }
 
 
-// Shared config access — single configPath used by all subsystems
+// Shared config access: single configPath used by all subsystems
 const configPath = getConfigPath();
 const configFns = {
   loadConfig: () => loadConfig(configPath),
   saveConfig: (cfg: any) => saveConfig(configPath, cfg),
 };
 
-// Dynamic tool registry — daemon modules register tools here
+// Dynamic tool registry: daemon modules register tools here
 const dynamicToolRegistry = createDynamicToolRegistry();
 
 const keychain = createKeychainAdapter();
 
-// Module lifecycle — manages enable/disable/configure and receiver start/stop
+// Module lifecycle: manages enable/disable/configure and receiver start/stop
 const moduleLifecycle = createModuleLifecycle({
   loadConfig: configFns.loadConfig,
   saveConfig: configFns.saveConfig,
@@ -410,14 +410,14 @@ for (const [name, state] of Object.entries(config.modules)) {
 // Checkup
 const checkup = createCheckup({ launcher, workspaceDir: WORKSPACE_DIR, intervalMs: CHECKUP_INTERVAL, spawnAgent: spawnAgentFull, adapter, sse, notificationStore, memoryManager, suggestionsManager, writeSuggestion: suggestionsManager.writeSuggestion });
 
-// Scheduler — unified scheduling engine (replaces checkup setInterval)
+// Scheduler: unified scheduling engine (replaces checkup setInterval)
 // Resolve scan interval from preferences config
 const SCAN_INTERVAL_MAP: Record<string, number> = { '30m': 1_800_000, '1h': 3_600_000, '2h': 7_200_000, '6h': 21_600_000 };
 const configuredScanInterval = config.preferences?.scanInterval ?? '2h';
 const checkupIntervalMs = configuredScanInterval === 'disabled' ? 0 : (SCAN_INTERVAL_MAP[configuredScanInterval] ?? 7_200_000);
 const scheduler = createScheduler({ db, launcher, checkup, locks, sse, checkupIntervalMs });
 
-// MCP server — embedded in Hono, exposes schedule/suggestion/gap/module tools
+// MCP server: embedded in Hono, exposes schedule/suggestion/gap/module tools
 const mcpServer = createMcpServer({
   scheduler,
   suggestionsManager: suggestionsManager as any,
@@ -430,7 +430,7 @@ const mcpServer = createMcpServer({
   dynamicToolRegistry,
 });
 
-// Title generator — agent one-shot for descriptive task titles
+// Title generator: agent one-shot for descriptive task titles
 const generateTitle = createTitleGenerator(WORKSPACE_DIR, { spawnAgent: spawnAgentFull, adapter });
 
 // API
@@ -533,7 +533,7 @@ const app = createApp({
       try { execFileSync('which', [name], { encoding: 'utf-8', timeout: 5000 }); return true; } catch { return false; }
     },
     checkAuth: (name) => {
-      // Agent config dir must exist — if cleared (e.g., after reset), agent is not authed
+      // Agent config dir must exist; if cleared (e.g., after reset), agent is not authed
       if (!fs.existsSync(AGENT_CONFIG_DIR)) return false;
       try {
         const out = execFileSync(name, ['auth', 'status'], {
@@ -552,7 +552,7 @@ const app = createApp({
 
 const server = startServer(app, PORT);
 
-// Periodic tasks — recovery, checkup sweep, daily cleanup, workspace watcher
+// Periodic tasks: recovery, checkup sweep, daily cleanup, workspace watcher
 const periodic = startPeriodicTasks({
   launcher,
   scheduler,
@@ -562,7 +562,7 @@ const periodic = startPeriodicTasks({
   workspaceDir: WORKSPACE_DIR,
 });
 
-// Graceful shutdown — clean up resources on SIGTERM/SIGINT
+// Graceful shutdown: clean up resources on SIGTERM/SIGINT
 function gracefulShutdown(signal: string): void {
   console.log(`[opentidy] ${signal} received, shutting down gracefully...`);
   moduleLifecycle.stopAll().catch(() => {});

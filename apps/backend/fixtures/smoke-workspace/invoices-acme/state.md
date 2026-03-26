@@ -14,7 +14,7 @@ Last action: 2026-03-13
 
 ## Remaining
 - Apr 2025: timesheet found (152h), invoice to create
-- May 2025: timesheet MISSING — email sent to client on 03/12
+- May 2025: timesheet MISSING (email sent to client on 03/12)
 
 ## Waiting For
 - Response from Acme Corp for May timesheet (follow up if no response by 03/16)
@@ -27,5 +27,5 @@ Last action: 2026-03-13
 - Invoice format: use accounting template
 
 ## Log
-- 2026-03-13 — Follow-up sent to billing@example-client.com for May timesheet
-- 2026-03-10 — March invoice sent, confirmation received
+- 2026-03-13: Follow-up sent to billing@example-client.com for May timesheet
+- 2026-03-10: March invoice sent, confirmation received

@@ -2,7 +2,7 @@
 
 ## Context
 
-Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner will be abroad with no physical access — everything must be remotely manageable and self-updating. The project will be open source.
+Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (24/7). It needs native macOS access (osascript, Messages.app, Mail.app, Screen Sharing, Accessibility) which rules out Docker. The owner will be abroad with no physical access, so everything must be remotely manageable and self-updating. The project will be open source.
 
 ## Architecture Overview
 
@@ -45,7 +45,7 @@ Alfred is an autonomous personal AI assistant running on a dedicated Mac Mini (2
 
 ## Single Machine
 
-Everything runs on one Mac Mini — backend API, static frontend (Vite build served by Hono), Claude Code sessions, and all system integrations. No separate web server needed. The frontend build is bundled into the Homebrew package and served as static files.
+Everything runs on one Mac Mini: backend API, static frontend (Vite build served by Hono), Claude Code sessions, and all system integrations. No separate web server needed. The frontend build is bundled into the Homebrew package and served as static files.
 
 ## Distribution: Homebrew Tap
 
@@ -62,7 +62,7 @@ Everything runs on one Mac Mini — backend API, static frontend (Vite build ser
 
 Repository: `github.com/opentidy/homebrew-opentidy`
 
-The release tarball is **pre-built** by CI (compiled TypeScript, vendored `node_modules`, built frontend). The formula installs pre-built artifacts — no compilation happens on the user's machine. This avoids Homebrew's sandbox network restrictions.
+The release tarball is **pre-built** by CI (compiled TypeScript, vendored `node_modules`, built frontend). The formula installs pre-built artifacts; no compilation happens on the user's machine. This avoids Homebrew's sandbox network restrictions.
 
 ```ruby
 class Alfred < Formula
@@ -117,18 +117,18 @@ This dispatches to subcommands: `alfred start`, `alfred setup`, `alfred status`,
 ### Install Flow
 
 ```bash
-# Step 1 — Install
+# Step 1: Install
 brew tap opentidy/opentidy
 brew install alfred
 
-# Step 2 — Interactive setup (one-time)
+# Step 2: Interactive setup (one-time)
 alfred setup
 # → Telegram bot token
 # → Claude Code OAuth flow
 # → Cloudflare Tunnel token
 # → Creates workspace/, configures everything
 
-# Step 3 — Start
+# Step 3: Start
 brew services start alfred
 ```
 
@@ -153,11 +153,11 @@ brew uninstall alfred         # Clean uninstall
 
 Triggered on push of a version tag (`v*`):
 
-1. **Test** — `pnpm test` (backend vitest) + `pnpm test:e2e` (Playwright)
-2. **Build** — `pnpm build` (TypeScript compile + Vite build for frontend)
-3. **Package** — `pnpm install --prod` on macOS runner, then create tarball
-4. **Release** — Publish to GitHub Releases with the tarball
-5. **Update tap** — Auto-update the Homebrew formula in `opentidy/homebrew-opentidy` with new URL + SHA256
+1. **Test**: `pnpm test` (backend vitest) + `pnpm test:e2e` (Playwright)
+2. **Build**: `pnpm build` (TypeScript compile + Vite build for frontend)
+3. **Package**: `pnpm install --prod` on macOS runner, then create tarball
+4. **Release**: Publish to GitHub Releases with the tarball
+5. **Update tap**: Auto-update the Homebrew formula in `opentidy/homebrew-opentidy` with new URL + SHA256
 
 ### Tarball Contents
 
@@ -252,7 +252,7 @@ tasks:
 
 ### Architecture: Detached Updater Script
 
-The auto-updater **cannot run inside the Alfred process** — `brew upgrade` replaces the binary and `brew services restart` kills the running process. Instead, Alfred spawns a **detached shell script** that outlives the parent process.
+The auto-updater **cannot run inside the Alfred process** because `brew upgrade` replaces the binary and `brew services restart` kills the running process. Instead, Alfred spawns a **detached shell script** that outlives the parent process.
 
 ### Update Checker (inside Alfred backend)
 
@@ -338,8 +338,8 @@ Users can disable auto-update (`autoUpdate: false`) and update manually with `al
 
 Exposes Alfred's API + web UI on a domain (e.g. `opentidy.yourdomain.com`):
 
-- **Cloudflare Access (Zero Trust)** as first auth layer — only authenticated users reach the Mac Mini
-- **Bearer token** as second auth layer in Hono middleware — for open source users without Cloudflare
+- **Cloudflare Access (Zero Trust)** as first auth layer; only authenticated users reach the Mac Mini
+- **Bearer token** as second auth layer in Hono middleware, for open source users without Cloudflare
 - Handles: app web, API calls, SSE streams, GitHub webhook for instant deploys
 - cloudflared runs as its own launchd service, not managed by Alfred
 
@@ -347,11 +347,11 @@ Exposes Alfred's API + web UI on a domain (e.g. `opentidy.yourdomain.com`):
 
 ### Three layers
 
-1. **Network** — Cloudflare Access (Zero Trust): nothing reaches the Mac Mini without authentication.
+1. **Network**: Cloudflare Access (Zero Trust). Nothing reaches the Mac Mini without authentication.
 
-2. **Application** — Bearer token verified by Hono middleware on every API request. GitHub webhook verified via HMAC SHA-256 signature.
+2. **Application**: Bearer token verified by Hono middleware on every API request. GitHub webhook verified via HMAC SHA-256 signature.
 
-3. **Claude execution** — Hooks PreToolUse (type: "prompt") verify every sensitive action before execution. Claude cannot bypass or disable these hooks. Matchers: email send/reply, browser clicks/forms, curl POST, ssh, scp.
+3. **Claude execution**: Hooks PreToolUse (type: "prompt") verify every sensitive action before execution. Claude cannot bypass or disable these hooks. Matchers: email send/reply, browser clicks/forms, curl POST, ssh, scp.
 
 ### Secrets Management
 
@@ -366,8 +366,8 @@ Never committed to git. The `alfred doctor` command verifies secrets are properl
 
 ### Dependencies Not in Homebrew
 
-- **Claude Code CLI** — installed during `alfred setup` via the official installer (`curl -fsSL https://claude.ai/install.sh | bash`). Verified by `alfred doctor`.
-- **Cloudflare Tunnel (cloudflared)** — separate Homebrew formula (`brew install cloudflared`). Runs as its own launchd service, not managed by Alfred. Listed as a setup step, not a formula dependency (optional for users not using Cloudflare).
+- **Claude Code CLI**: installed during `alfred setup` via the official installer (`curl -fsSL https://claude.ai/install.sh | bash`). Verified by `alfred doctor`.
+- **Cloudflare Tunnel (cloudflared)**: separate Homebrew formula (`brew install cloudflared`). Runs as its own launchd service, not managed by Alfred. Listed as a setup step, not a formula dependency (optional for users not using Cloudflare).
 
 ## Claude Code Configuration
 
@@ -379,7 +379,7 @@ Alfred must NOT touch the user's personal `~/.claude/` config. All Claude Code s
 CLAUDE_CONFIG_DIR=~/.config/opentidy/claude-config claude -p ...
 ```
 
-This gives Alfred its own settings, permissions, MCP servers, and CLAUDE.md — completely separate from the user's personal Claude Code setup.
+This gives Alfred its own settings, permissions, MCP servers, and CLAUDE.md, completely separate from the user's personal Claude Code setup.
 
 ### Config Directory Structure
 
@@ -400,19 +400,19 @@ apps/backend/config/claude/
 └── CLAUDE.md                         # Template: Alfred identity prompt
 ```
 
-This template is the SSOT for what Claude Code sessions should look like. When a new MCP server is added, a permission is tweaked, or the system prompt evolves — it's a code change in the repo, versioned and reviewable.
+This template is the SSOT for what Claude Code sessions should look like. When a new MCP server is added, a permission is tweaked, or the system prompt evolves, it's a code change in the repo, versioned and reviewable.
 
 ### Config Lifecycle
 
 **Initial setup (`alfred setup`):**
 1. Copies template from `config/claude/` to `~/.config/opentidy/claude-config/`
-2. Runs Claude Code OAuth flow (`claude auth login` with `CLAUDE_CONFIG_DIR` set) — interactive, one-time
+2. Runs Claude Code OAuth flow (`claude auth login` with `CLAUDE_CONFIG_DIR` set), interactive, one-time
 3. Creates empty `settings.local.json` for user overrides
 
 **On update (brew upgrade):**
 1. Backend compares installed template version with current `settings.json`
 2. If template has new entries (new MCP server, new permission) → merges them into the live `settings.json`
-3. `settings.local.json` is **never touched** — user overrides always win
+3. `settings.local.json` is **never touched**; user overrides always win
 4. `CLAUDE.md` is replaced entirely from template (it's versioned, not user-edited)
 
 **On each session spawn:**
@@ -494,7 +494,7 @@ Keeps 5 rotated files, rotates at 1MB, compresses old logs.
 - Redirects stdout/stderr to log files
 - Runs as the user (not root)
 
-No PM2 needed — launchd is the native macOS process manager and is more reliable for a macOS daemon.
+No PM2 needed. launchd is the native macOS process manager and is more reliable for a macOS daemon.
 
 ### Health & Recovery
 
@@ -518,13 +518,13 @@ This script:
 3. Runs `alfred setup` (interactive)
 4. Runs `brew services start alfred`
 
-The script is optional — users can run the brew commands manually.
+The script is optional; users can run the brew commands manually.
 
 ## Open Source Considerations
 
 - **No vendor lock-in**: Cloudflare Access is optional (bearer token works standalone)
 - **No Apple Developer Program**: no code signing or notarization needed
-- **Standard tools**: Homebrew, launchd, Node.js — nothing exotic
+- **Standard tools**: Homebrew, launchd, Node.js (nothing exotic)
 - **Configurable**: all provider settings (Telegram, Claude, tunnel) are pluggable
 - **Documentation**: `alfred doctor` validates the entire setup and provides actionable error messages
 - **macOS permissions**: `alfred setup` guides user through required macOS permissions (Accessibility, Full Disk Access, Automation) with direct links to System Preferences panes
@@ -535,7 +535,7 @@ The script is optional — users can run the brew commands manually.
 |---|---|
 | Docker | Cannot access native macOS APIs (osascript, Messages.app, etc.) |
 | Bun binary | better-sqlite3 native addon incompatible; system deps still need separate management |
-| npm global | Claude Code abandoned this — fragile updates, permission issues, cache bugs |
+| npm global | Claude Code abandoned this approach: fragile updates, permission issues, cache bugs |
 | .pkg installer | Requires Apple Developer Program ($99/yr) for decent UX |
 | Ansible | Overkill for single machine; adds a dependency most users don't have |
-| Go/Rust wrapper | Two codebases, two languages — unjustified complexity |
+| Go/Rust wrapper | Two codebases, two languages, unjustified complexity |

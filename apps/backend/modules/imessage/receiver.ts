@@ -7,7 +7,7 @@ export function createReceiver(config: Record<string, unknown>) {
   return {
     type: 'imessage',
     async poll(): Promise<ReceiverEvent[]> {
-      console.log('[imessage] Polling Messages.app (stub — osascript integration pending)');
+      console.log('[imessage] Polling Messages.app (stub, osascript integration pending)');
       // TODO: use execFileSync('osascript', ...) to read recent messages
       return [];
     },

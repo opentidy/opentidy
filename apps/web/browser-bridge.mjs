@@ -1,4 +1,4 @@
-// Browser bridge — tiny HTTP server controlling a persistent visible Chromium
+// Browser bridge: tiny HTTP server controlling a persistent visible Chromium
 // Usage: node browser-bridge.mjs <port>
 // Each subagent starts one on a unique port (9501-9505)
 

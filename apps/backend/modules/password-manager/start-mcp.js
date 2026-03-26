@@ -4,7 +4,7 @@
 
 // Wrapper script for Bitwarden MCP server.
 // Reads master password from OS keychain → bw unlock → sets BW_SESSION → runs MCP server.
-// IMPORTANT: Only use console.error for logging — stdout is the MCP protocol channel.
+// IMPORTANT: Only use console.error for logging. Stdout is the MCP protocol channel.
 
 import { Entry } from '@napi-rs/keyring';
 import { execFileSync, spawn } from 'child_process';

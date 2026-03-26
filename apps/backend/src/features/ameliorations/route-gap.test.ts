@@ -40,7 +40,7 @@ describe('GapRouter', () => {
   it('creates GitHub issue for code fixType gap', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP\n\n**Problème:** Cannot login\n**Impact:** Blocks automation\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** Cannot authenticate with MFA TOTP\n\n---\n',
+      '## 2026-03-14 : MFA TOTP\n\n**Problème:** Cannot login\n**Impact:** Blocks automation\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** Cannot authenticate with MFA TOTP\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -55,7 +55,7 @@ describe('GapRouter', () => {
   it('comments on existing issue instead of creating duplicate', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP\n\n**Problème:** New info about MFA\n**Impact:** Blocks\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** New context about MFA TOTP limitation\n\n---\n',
+      '## 2026-03-14 : MFA TOTP\n\n**Problème:** New info about MFA\n**Impact:** Blocks\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** New context about MFA TOTP limitation\n\n---\n',
     );
     mockGitHub.findExistingIssue.mockResolvedValue({ number: 42, title: 'MFA TOTP' });
     const gapsManager = createGapsManager(wsDir);
@@ -69,7 +69,7 @@ describe('GapRouter', () => {
   it('creates suggestion for config fixType gap', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Needs manual workaround\n**Suggestion:** Adjust hook config\n**Fix type:** config\n\n---\n',
+      '## 2026-03-14 : Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Needs manual workaround\n**Suggestion:** Adjust hook config\n**Fix type:** config\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions'), isDuplicateSuggestion: mockSuggestions.isDuplicateSuggestion });
@@ -83,7 +83,7 @@ describe('GapRouter', () => {
   it('skips external fixType gaps', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Third party down\n\n**Problème:** External API unavailable\n**Impact:** Cannot process\n**Fix type:** external\n\n---\n',
+      '## 2026-03-14 : Third party down\n\n**Problème:** External API unavailable\n**Impact:** Cannot process\n**Fix type:** external\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -95,7 +95,7 @@ describe('GapRouter', () => {
   it('skips gaps that already have a githubIssueNumber', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Already tracked\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** code\n**Sanitized title:** Already tracked\n**Sanitized:** Something\n**GitHub Issue:** #42\n\n---\n',
+      '## 2026-03-14 : Already tracked\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** code\n**Sanitized title:** Already tracked\n**Sanitized:** Something\n**GitHub Issue:** #42\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -108,7 +108,7 @@ describe('GapRouter', () => {
   it('skips gaps that already have a suggestionSlug', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Already suggested\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** config\n**Suggestion slug:** fix-already-abc\n\n---\n',
+      '## 2026-03-14 : Already suggested\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** config\n**Suggestion slug:** fix-already-abc\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });

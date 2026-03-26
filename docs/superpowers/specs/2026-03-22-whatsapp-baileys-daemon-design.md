@@ -1,4 +1,4 @@
-# WhatsApp Baileys Migration + Module Daemon System — Design Spec
+# WhatsApp Baileys Migration + Module Daemon System: Design Spec
 
 **Date:** 2026-03-22
 **Extends:** `2026-03-20-module-system-design.md`
@@ -7,22 +7,22 @@
 ## Problem
 
 The WhatsApp module currently depends on two external processes:
-- `wacli` (Go binary) — long-running WhatsApp sync process
-- `whatsapp-mcp` (npm package) — MCP server that reads wacli's SQLite and calls wacli CLI for sending
+- `wacli` (Go binary): long-running WhatsApp sync process
+- `whatsapp-mcp` (npm package): MCP server that reads wacli's SQLite and calls wacli CLI for sending
 
 Issues:
-1. **Orphaned processes** — wacli runs as an unmanaged external process. If the backend crashes or restarts, the wacli process survives and holds a store lock, blocking all future use (the exact bug that triggered this work).
-2. **Three moving parts** — wacli binary + whatsapp-mcp npm + receiver stub = fragile, hard to debug.
-3. **Not module-agnostic** — a third-party developer cannot build a similar module without understanding OpenTidy internals.
+1. **Orphaned processes**: wacli runs as an unmanaged external process. If the backend crashes or restarts, the wacli process survives and holds a store lock, blocking all future use (the exact bug that triggered this work).
+2. **Three moving parts**: wacli binary + whatsapp-mcp npm + receiver stub = fragile, hard to debug.
+3. **Not module-agnostic**: a third-party developer cannot build a similar module without understanding OpenTidy internals.
 
 ## Design Decision: Daemon Modules
 
 ### Why a new concept
 
 The existing module system supports three patterns:
-1. **MCP only** (JSON manifest) — external process spawned per agent session
-2. **Receiver only** (receiver.ts) — long-running or polling, managed by lifecycle
-3. **MCP + Receiver** (both) — two separate mechanisms that don't share state
+1. **MCP only** (JSON manifest): external process spawned per agent session
+2. **Receiver only** (receiver.ts): long-running or polling, managed by lifecycle
+3. **MCP + Receiver** (both): two separate mechanisms that don't share state
 
 WhatsApp needs a **single persistent connection** (Baileys WebSocket) that serves both as a receiver (incoming messages to triage) and as an MCP tool provider (agent queries chats, sends messages). The current system cannot express this because MCP servers and receivers are independent.
 
@@ -42,7 +42,7 @@ interface ModuleManifest {
 }
 ```
 
-**New interface — ModuleContext:**
+**New interface, ModuleContext:**
 ```typescript
 interface ModuleContext {
   /** Module config values from config.modules[name].config */
@@ -75,13 +75,13 @@ interface ModuleLogger {
 
 **Daemon module contract:**
 ```typescript
-// daemon.ts — what the module developer implements
+// daemon.ts: what the module developer implements
 export function start(ctx: ModuleContext): Promise<void>;
 export function stop(): Promise<void>;
 export function health?(): { ok: boolean; error?: string };
 ```
 
-Both `start()` and `stop()` are **required** exports (async only, matching the receiver contract). `health()` is optional — if provided, the checkup system calls it periodically to report module status.
+Both `start()` and `stop()` are **required** exports (async only, matching the receiver contract). `health()` is optional; if provided, the checkup system calls it periodically to report module status.
 
 ### Lifecycle
 
@@ -179,14 +179,14 @@ function createModuleContext(
 
 ### Restart endpoint
 
-`POST /api/modules/:name/restart` — calls `stop()` then `start(ctx)` with reset retry counter. Provides a clean way to restart a daemon without cycling disable/enable. Added to the existing module API endpoints.
+`POST /api/modules/:name/restart`: calls `stop()` then `start(ctx)` with reset retry counter. Provides a clean way to restart a daemon without cycling disable/enable. Added to the existing module API endpoints.
 
 ### Tool registration on MCP server
 
-Tools registered via `ctx.registerTool()` are added to the existing MCP HTTP server (`features/mcp-server/server.ts`). The server already handles tool listing and execution — we just need a registry that daemon modules can write to.
+Tools registered via `ctx.registerTool()` are added to the existing MCP HTTP server (`features/mcp-server/server.ts`). The server already handles tool listing and execution; we just need a registry that daemon modules can write to.
 
 ```typescript
-// In mcp-server/server.ts — new:
+// In mcp-server/server.ts, new:
 const dynamicTools = new Map<string, { schema: ToolSchema; handler: ToolHandler }>();
 
 function registerDynamicTool(name: string, schema: ToolSchema, handler: ToolHandler): void {
@@ -198,7 +198,7 @@ function unregisterDynamicTool(name: string): void {
 }
 ```
 
-**Integration with per-request McpServer model:** The existing MCP server creates a fresh `McpServer` instance per HTTP request (stateless mode). Dynamic tools are stored in the shared `Map` above (module-scoped, persists across requests). In `registerAllTools()`, after registering static tools, iterate `dynamicTools` and call `server.tool()` for each. The `Map` is the source of truth — each per-request instance reads from it.
+**Integration with per-request McpServer model:** The existing MCP server creates a fresh `McpServer` instance per HTTP request (stateless mode). Dynamic tools are stored in the shared `Map` above (module-scoped, persists across requests). In `registerAllTools()`, after registering static tools, iterate `dynamicTools` and call `server.tool()` for each. The `Map` is the source of truth; each per-request instance reads from it.
 
 **ToolHandler return normalization:** `ToolHandler` returns `Promise<unknown>`. The `registerDynamicTool` wrapper normalizes the result into the MCP SDK format: if the handler returns a plain object/string, it wraps it in `{ content: [{ type: 'text', text: JSON.stringify(result) }] }`. This shields daemon developers from MCP SDK internals.
 
@@ -213,18 +213,18 @@ For agent config generation (`generateSettingsFromModules`): when a module has `
 Daemon tools use the pattern `<module>_<action>` in module.json and `ctx.registerTool()`:
 - `whatsapp_list_chats`, `whatsapp_send_message`, etc.
 
-The agent sees them as `mcp__opentidy__whatsapp_list_chats` (standard MCP tool naming). The mapping is automatic — module developers only deal with short names.
+The agent sees them as `mcp__opentidy__whatsapp_list_chats` (standard MCP tool naming). The mapping is automatic; module developers only deal with short names.
 
-## WhatsApp Module — Baileys Implementation
+## WhatsApp Module: Baileys Implementation
 
 ### Files
 
 ```
 apps/backend/modules/whatsapp/
-  module.json        — manifest with daemon entry
-  auth.js            — standalone QR auth script
-  daemon.ts          — Baileys connection + SQLite store + receiver + MCP tools
-  daemon.test.ts     — unit tests
+  module.json        # manifest with daemon entry
+  auth.js            # standalone QR auth script
+  daemon.ts          # Baileys connection + SQLite store + receiver + MCP tools
+  daemon.test.ts     # unit tests
 ```
 
 ### module.json
@@ -258,7 +258,7 @@ apps/backend/modules/whatsapp/
 }
 ```
 
-No `mcpServers`, no `receivers`, no `cli` — the daemon handles everything.
+No `mcpServers`, no `receivers`, no `cli`. The daemon handles everything.
 
 ### auth.js
 
@@ -273,7 +273,7 @@ Single file containing:
 - Reconnection with exponential backoff (2s base, 30s max, 1.8 factor, 12 max attempts)
 - `DisconnectReason.loggedOut` → no reconnect, log error, module health set to `error`
 - Browser identification: `['OpenTidy', 'Daemon', '1.0.0']`
-- **Retry interaction:** Baileys reconnection is self-contained within the daemon. If all 12 attempts fail, the daemon sets health to `error` via `ctx.logger.error()` — it does NOT throw to the daemon crash handler. The daemon-level crash recovery (5 attempts) only triggers on unexpected exceptions (import failure, SQLite corruption, etc.), not on Baileys connection issues.
+- **Retry interaction:** Baileys reconnection is self-contained within the daemon. If all 12 attempts fail, the daemon sets health to `error` via `ctx.logger.error()`. It does NOT throw to the daemon crash handler. The daemon-level crash recovery (5 attempts) only triggers on unexpected exceptions (import failure, SQLite corruption, etc.), not on Baileys connection issues.
 
 **SQLite store (`ctx.dataDir/whatsapp.db`):**
 - 3 tables: `chats`, `messages`, `contacts`
@@ -393,10 +393,10 @@ In `generateSettingsFromModules()`: when a module has `daemon.entry` and `toolPe
 
 ## Not In Scope
 
-- Pairing code auth (alternative to QR) — can be added later
-- Web UI QR code display — auth stays in terminal for now
-- Message retention policy / cleanup cron — add when needed
-- Group message handling refinements — basic support works, optimize later
-- Voice note transcription — future enhancement
-- Read receipt tracking — future enhancement
-- Media download and storage — basic buffer support, optimize later
+- Pairing code auth (alternative to QR), can be added later
+- Web UI QR code display; auth stays in terminal for now
+- Message retention policy / cleanup cron, add when needed
+- Group message handling refinements; basic support works, optimize later
+- Voice note transcription (future enhancement)
+- Read receipt tracking (future enhancement)
+- Media download and storage; basic buffer support, optimize later

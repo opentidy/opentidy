@@ -23,7 +23,7 @@ export function createAgentTracker(db: Database.Database) {
 
   function start(type: AgentProcessType, taskId?: string, pid?: number, description?: string, instruction?: string): number {
     const result = insertStmt.run(type, taskId ?? null, pid ?? null, description ?? null, instruction ?? null);
-    console.log(`[agent-tracker] QUEUED ${type}${taskId ? ` (${taskId})` : ''}${description ? ` — ${description.slice(0, 60)}` : ''} → id=${result.lastInsertRowid}`);
+    console.log(`[agent-tracker] QUEUED ${type}${taskId ? ` (${taskId})` : ''}${description ? `, ${description.slice(0, 60)}` : ''} → id=${result.lastInsertRowid}`);
     return Number(result.lastInsertRowid);
   }
 

@@ -8,7 +8,7 @@ import type { AppDeps } from '../../server.js';
 export function updateMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // PUT /memory/:filename — update memory file
+  // PUT /memory/:filename (update memory file)
   router.put('/memory/:filename', async (c) => {
     if (!deps.memoryManager) return c.json({ error: 'memory not available' }, 503);
     const { filename } = c.req.param();

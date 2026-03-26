@@ -1,4 +1,4 @@
-# Onboarding Contextuel Progressif — Design Spec
+# Onboarding Contextuel Progressif: Design Spec
 
 **Date:** 2026-03-19
 **Goal:** Drastically improve the first-run experience for beginners while keeping the zen flow.
@@ -30,7 +30,7 @@ Replace "No dossiers" with contextual explanations:
 - "Suggestions" → "L'assistant surveille tes emails et messages. Les nouvelles tâches détectées apparaîtront ici."
 - Active/Completed tabs → "Tes tâches en cours apparaîtront ici." + CTA button
 
-### 3. Nouveau Page — Examples + Explanations
+### 3. Nouveau Page: Examples + Explanations
 
 - Clickable template chips above textarea (4 examples)
 - Clicking a chip pre-fills the textarea with editable example text

@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make OpenTidy cross-platform (macOS/Linux/Windows) with a pluggable architecture — OS-specific features become optional plugins, the core runs everywhere Node.js runs.
+**Goal:** Make OpenTidy cross-platform (macOS/Linux/Windows) with a pluggable architecture. OS-specific features become optional plugins, the core runs everywhere Node.js runs.
 
 **Architecture:** Introduce a `paths.ts` module using `env-paths` for OS-aware paths, a `ReceiverPlugin` interface for pluggable event sources, a cross-platform daemon supervisor, and npm-based distribution. macOS-specific code (osascript readers, pbcopy, LaunchAgent) moves to an optional plugin loaded at runtime from config.
 
@@ -13,36 +13,36 @@
 ## File Structure
 
 ### New files
-- `apps/backend/src/paths.ts` — Cross-platform path resolution (config, data, logs, cache, temp)
-- `apps/backend/src/receiver/plugin.ts` — ReceiverPlugin interface + dynamic loader
-- `apps/backend/src/platform/clipboard.ts` — Cross-platform clipboard (pbcopy/xclip/PowerShell)
-- `apps/backend/src/platform/service-installer.ts` — Generate native service files (plist/systemd/NSSM)
-- `apps/backend/src/daemon.ts` — Node.js daemon supervisor (fork + respawn)
+- `apps/backend/src/paths.ts`: Cross-platform path resolution (config, data, logs, cache, temp)
+- `apps/backend/src/receiver/plugin.ts`: ReceiverPlugin interface + dynamic loader
+- `apps/backend/src/platform/clipboard.ts`: Cross-platform clipboard (pbcopy/xclip/PowerShell)
+- `apps/backend/src/platform/service-installer.ts`: Generate native service files (plist/systemd/NSSM)
+- `apps/backend/src/daemon.ts`: Node.js daemon supervisor (fork + respawn)
 - `apps/backend/tests/paths.test.ts`
 - `apps/backend/tests/receiver/plugin.test.ts`
 - `apps/backend/tests/platform/clipboard.test.ts`
 - `apps/backend/tests/platform/service-installer.test.ts`
 - `apps/backend/tests/daemon.test.ts`
-- `scripts/install.sh` — Cross-platform install script (macOS + Linux)
-- `scripts/install.ps1` — Windows PowerShell install script
+- `scripts/install.sh`: Cross-platform install script (macOS + Linux)
+- `scripts/install.ps1`: Windows PowerShell install script
 
 ### Modified files
-- `apps/backend/src/config.ts` — Use `paths.ts` for default config path
-- `apps/backend/src/index.ts` — Use `paths.ts` for lockDir/workspace/logs, load receivers from config, platform-guard Camoufox cleanup
-- `apps/backend/src/cli/logs.ts` — Use `paths.ts` instead of hardcoded ~/Library paths
-- `apps/backend/src/cli/uninstall.ts` — Use `paths.ts` for all path references, platform-guard LaunchAgent/launchctl
-- `apps/backend/src/infra/updater.ts` — Use `paths.ts` for cache dir
-- `apps/backend/src/terminal/bridge.ts` — Use platform/clipboard instead of pbcopy, platform-guard tmux/ttyd/pkill
-- `apps/backend/src/receiver/watchers.ts` — Extend WatcherConfig.source to accept any string
-- `packages/shared/src/types.ts` — Add ReceiverConfigEntry, extend EventSource
-- `bin/opentidy` — Keep as-is for Homebrew, add JS entry point alongside
-- `package.json` (root) — Add `bin` field for npm global install
-- `apps/backend/package.json` — Add `env-paths` dependency
-- `apps/backend/src/cli.ts` — Add `install-service` to COMMANDS array and router
+- `apps/backend/src/config.ts`: Use `paths.ts` for default config path
+- `apps/backend/src/index.ts`: Use `paths.ts` for lockDir/workspace/logs, load receivers from config, platform-guard Camoufox cleanup
+- `apps/backend/src/cli/logs.ts`: Use `paths.ts` instead of hardcoded ~/Library paths
+- `apps/backend/src/cli/uninstall.ts`: Use `paths.ts` for all path references, platform-guard LaunchAgent/launchctl
+- `apps/backend/src/infra/updater.ts`: Use `paths.ts` for cache dir
+- `apps/backend/src/terminal/bridge.ts`: Use platform/clipboard instead of pbcopy, platform-guard tmux/ttyd/pkill
+- `apps/backend/src/receiver/watchers.ts`: Extend WatcherConfig.source to accept any string
+- `packages/shared/src/types.ts`: Add ReceiverConfigEntry, extend EventSource
+- `bin/opentidy`: Keep as-is for Homebrew, add JS entry point alongside
+- `package.json` (root), Add `bin` field for npm global install
+- `apps/backend/package.json`: Add `env-paths` dependency
+- `apps/backend/src/cli.ts`: Add `install-service` to COMMANDS array and router
 
 ### Files that become optional (macOS plugin)
-- `apps/backend/src/receiver/sms-reader.ts` — Only loaded when platform = darwin
-- `apps/backend/src/receiver/mail-reader.ts` — Only loaded when platform = darwin
+- `apps/backend/src/receiver/sms-reader.ts`: Only loaded when platform = darwin
+- `apps/backend/src/receiver/mail-reader.ts`: Only loaded when platform = darwin
 
 ---
 
@@ -118,7 +118,7 @@ describe('paths', () => {
 ```bash
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/paths.test.ts
 ```
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 4: Write minimal implementation**
 
@@ -177,7 +177,7 @@ git commit -m "feat(paths): add cross-platform path resolution with env-paths"
 Replace the hardcoded `$HOME/.config/opentidy` and `/tmp/opentidy-locks`:
 
 ```typescript
-// apps/backend/src/config.ts — updated imports
+// apps/backend/src/config.ts, updated imports
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import type { OpenTidyConfig } from '@opentidy/shared';
@@ -261,7 +261,7 @@ git commit -m "refactor(index): use paths module for lock directory"
 Replace the hardcoded log paths:
 
 ```typescript
-// apps/backend/src/cli/logs.ts — full replacement
+// apps/backend/src/cli/logs.ts, full replacement
 import { spawn } from 'child_process';
 import { existsSync } from 'fs';
 import path from 'path';
@@ -384,7 +384,7 @@ describe('ReceiverPlugin', () => {
   it('loadReceiverPlugins loads built-in plugin by name', async () => {
     const { loadReceiverPlugins } = await import('../../src/receiver/plugin.js');
 
-    // gmail-webhook is a built-in — should resolve
+    // gmail-webhook is a built-in, should resolve
     const plugins = await loadReceiverPlugins({
       receivers: [{ type: 'gmail-webhook', enabled: true }],
     });
@@ -399,7 +399,7 @@ describe('ReceiverPlugin', () => {
 ```bash
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/receiver/plugin.test.ts
 ```
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 4: Write the implementation**
 
@@ -420,9 +420,9 @@ export interface ReceiverPlugin {
   source: string;
   /** One-time initialization (connect, auth, etc.) */
   init: () => Promise<void> | void;
-  /** Start receiving — call onMessage for each new message */
+  /** Start receiving; call onMessage for each new message */
   start: (onMessage: (msg: ReceiverPluginMessage) => void) => Promise<void> | void;
-  /** Stop receiving — cleanup resources */
+  /** Stop receiving, cleanup resources */
   stop: () => Promise<void> | void;
 }
 
@@ -432,7 +432,7 @@ export interface ReceiverConfig {
   options?: Record<string, unknown>;
 }
 
-// Built-in receiver factories — keyed by type name
+// Built-in receiver factories, keyed by type name
 const builtinFactories: Record<string, (options?: Record<string, unknown>) => ReceiverPlugin> = {
   'gmail-webhook': () => ({
     name: 'gmail-webhook',
@@ -501,9 +501,9 @@ git commit -m "feat(receiver): add ReceiverPlugin interface and dynamic loader"
 ### Task 6: Wrap existing receivers as plugins
 
 **Files:**
-- Modify: `apps/backend/src/receiver/sms-reader.ts` — add ReceiverPlugin wrapper
-- Modify: `apps/backend/src/receiver/mail-reader.ts` — add ReceiverPlugin wrapper
-- Modify: `apps/backend/src/receiver/plugin.ts` — register macOS receivers conditionally
+- Modify: `apps/backend/src/receiver/sms-reader.ts`, add ReceiverPlugin wrapper
+- Modify: `apps/backend/src/receiver/mail-reader.ts`, add ReceiverPlugin wrapper
+- Modify: `apps/backend/src/receiver/plugin.ts`, register macOS receivers conditionally
 - Create: `apps/backend/tests/receiver/macos-receivers.test.ts`
 
 - [ ] **Step 1: Write the failing test**
@@ -540,7 +540,7 @@ describe('macOS receiver plugins', () => {
 ```bash
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- tests/receiver/macos-receivers.test.ts
 ```
-Expected: FAIL — no `createSmsReceiverPlugin` export
+Expected: FAIL (no `createSmsReceiverPlugin` export)
 
 - [ ] **Step 3: Add ReceiverPlugin wrapper to sms-reader.ts**
 
@@ -577,7 +577,7 @@ export function createSmsReceiverPlugin(deps?: {
 
 - [ ] **Step 4: Add ReceiverPlugin wrapper to mail-reader.ts**
 
-Same pattern — add at the end of `apps/backend/src/receiver/mail-reader.ts`:
+Same pattern; add at the end of `apps/backend/src/receiver/mail-reader.ts`:
 
 ```typescript
 import type { ReceiverPlugin, ReceiverPluginMessage } from './plugin.js';
@@ -631,7 +631,7 @@ if (!factory && process.platform === 'darwin') {
 }
 ```
 
-This is inside an `async` function so `await import()` is safe — no race condition.
+This is inside an `async` function so `await import()` is safe, no race condition.
 
 - [ ] **Step 6: Run tests**
 
@@ -702,7 +702,7 @@ export function getClipboardCopyCommand(): string {
     case 'win32':
       return 'clip.exe';
     default:
-      // Linux — prefer xclip, fall back to xsel
+      // Linux, prefer xclip, fall back to xsel
       return 'xclip -selection clipboard';
   }
 }
@@ -751,7 +751,7 @@ git commit -m "feat(platform): cross-platform clipboard, replace hardcoded pbcop
 **Files:**
 - Create: `apps/backend/src/platform/service-installer.ts`
 - Create: `apps/backend/tests/platform/service-installer.test.ts`
-- Modify: `apps/backend/src/cli.ts` — add `install-service` command
+- Modify: `apps/backend/src/cli.ts`, add `install-service` command
 
 - [ ] **Step 1: Write the failing test**
 
@@ -1118,9 +1118,9 @@ git commit -m "feat(daemon): add Node.js supervisor with auto-restart"
 ### Task 10: Cross-platform CLI entry point
 
 **Files:**
-- Modify: `bin/opentidy` — keep for backward compat but simplify
-- Create: `bin/opentidy.mjs` — JS entry point for npm global install (works on Windows)
-- Modify: root `package.json` — add `bin` field
+- Modify: `bin/opentidy`, keep for backward compat but simplify
+- Create: `bin/opentidy.mjs`: JS entry point for npm global install (works on Windows)
+- Modify: root `package.json`, add `bin` field
 
 The current `bin/opentidy` is a shell script that resolves node@22 and finds dist/cli.js. This doesn't work on Windows. We need a JS entry point for npm-based distribution.
 
@@ -1128,7 +1128,7 @@ The current `bin/opentidy` is a shell script that resolves node@22 and finds dis
 
 ```javascript
 #!/usr/bin/env node
-// bin/opentidy.mjs — Cross-platform CLI entry point for npm global install.
+// bin/opentidy.mjs, Cross-platform CLI entry point for npm global install.
 // On macOS/Homebrew, bin/opentidy (shell) is used instead.
 import { existsSync } from 'fs';
 import { fileURLToPath } from 'url';
@@ -1187,7 +1187,7 @@ git commit -m "feat(cli): add cross-platform JS entry point for npm distribution
 - Modify: `apps/backend/src/index.ts:193-209`
 - Modify: `packages/shared/src/types.ts` (add receivers to config)
 
-This task makes `index.ts` load receivers dynamically based on config instead of hardcoding SMS/Mail watchers. The config determines which receivers are active — on macOS, imessage + apple-mail are enabled by default; on Linux/Windows, they're omitted.
+This task makes `index.ts` load receivers dynamically based on config instead of hardcoding SMS/Mail watchers. The config determines which receivers are active; on macOS, imessage + apple-mail are enabled by default; on Linux/Windows, they're omitted.
 
 - [ ] **Step 1: Add receivers config to OpenTidyConfig**
 
@@ -1230,7 +1230,7 @@ const DEFAULT_CONFIG: OpenTidyConfig = {
 Replace the hardcoded SMS/Mail watcher block (lines 193-209) with:
 
 ```typescript
-// Dynamic receiver loading — config-driven
+// Dynamic receiver loading, config-driven
 import { loadReceiverPlugins } from './receiver/plugin.js';
 
 const receiverPlugins = await loadReceiverPlugins({ receivers: config.receivers ?? [] });
@@ -1242,7 +1242,7 @@ for (const plugin of receiverPlugins) {
     if (dedup.isDuplicate(raw)) return;
     dedup.record(raw);
     console.log(`[receiver] ${plugin.source} message from ${msg.from}`);
-    // triageAndHandle accepts { source, content } — no metadata field
+    // triageAndHandle accepts { source, content }, no metadata field
     triageAndHandle({
       source: plugin.source,
       content: `${plugin.source} de ${msg.from}: ${msg.body}`,
@@ -1287,7 +1287,7 @@ git commit -m "feat(boot): dynamic receiver loading from config, macOS receivers
 
 ```bash
 #!/bin/bash
-# scripts/install.sh — OpenTidy installer for macOS and Linux
+# scripts/install.sh: OpenTidy installer for macOS and Linux
 set -e
 
 echo "Installing OpenTidy..."
@@ -1316,7 +1316,7 @@ echo "  opentidy setup"
 - [ ] **Step 2: Create Windows PowerShell install script**
 
 ```powershell
-# scripts/install.ps1 — OpenTidy installer for Windows
+# scripts/install.ps1: OpenTidy installer for Windows
 $ErrorActionPreference = "Stop"
 
 Write-Host "Installing OpenTidy..." -ForegroundColor Cyan
@@ -1357,7 +1357,7 @@ git commit -m "feat(dist): add cross-platform install scripts (bash + PowerShell
 **Files:**
 - Modify: `apps/backend/src/terminal/bridge.ts`
 
-The terminal bridge uses tmux, ttyd, and pkill — all Unix-only. On Windows, interactive mode is not available (no tmux). We guard the entire module so it gracefully degrades.
+The terminal bridge uses tmux, ttyd, and pkill; all Unix-only. On Windows, interactive mode is not available (no tmux). We guard the entire module so it gracefully degrades.
 
 - [ ] **Step 1: Add platform guard to createTerminalManager**
 
@@ -1371,7 +1371,7 @@ function cleanupOrphanTtyd(): void {
     execFileSync('pkill', ['-f', '^ttyd.*tmux attach-session'], { stdio: 'ignore' });
     console.log('[terminal] Cleaned up orphan ttyd processes');
   } catch {
-    // No ttyd processes to kill — that's fine
+    // No ttyd processes to kill, that's fine
   }
 }
 
@@ -1472,12 +1472,12 @@ The Camoufox profile cleanup references `~/.camofox/profiles/default` and calls 
 In `apps/backend/src/index.ts`, lines 81-98, wrap the entire block:
 
 ```typescript
-// Camoufox profile cleanup — only on macOS where Camoufox is used
+// Camoufox profile cleanup, only on macOS where Camoufox is used
 if (process.platform === 'darwin') {
   try {
     // ... existing Camoufox health check + profile cleanup
   } catch {
-    console.log('[opentidy] Camoufox server not running or not reachable — skipping profile check');
+    console.log('[opentidy] Camoufox server not running or not reachable, skipping profile check');
   }
 }
 ```
@@ -1502,7 +1502,7 @@ git commit -m "fix(boot): platform-guard Camoufox cleanup for non-macOS"
 
 | Task | What | Impact |
 |------|------|--------|
-| 1 | `paths.ts` with env-paths | Foundation — all paths OS-aware |
+| 1 | `paths.ts` with env-paths | Foundation, all paths OS-aware |
 | 2-4 | Replace hardcoded paths | config.ts, index.ts, logs.ts, updater.ts use paths module |
 | 5-6 | ReceiverPlugin interface + macOS wrappers | Pluggable architecture for event sources |
 | 7 | Cross-platform clipboard | terminal bridge works on Linux |

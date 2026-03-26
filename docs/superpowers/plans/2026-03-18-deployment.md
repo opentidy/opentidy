@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make Alfred installable via Homebrew with auto-updates, isolated Claude Code config, bearer token auth, and static frontend serving — ready for production on a remote Mac Mini.
+**Goal:** Make Alfred installable via Homebrew with auto-updates, isolated Claude Code config, bearer token auth, and static frontend serving, ready for production on a remote Mac Mini.
 
 **Architecture:** A new CLI layer (`bin/tidy` shell wrapper + `cli.ts` router) wraps the existing backend. Config moves from env vars to `~/.config/opentidy/config.json`. Claude Code sessions use `CLAUDE_CONFIG_DIR` for isolation. Static frontend served by Hono in production. Auto-updater checks GitHub Releases and spawns a detached shell script for brew upgrade + rollback. CI builds pre-compiled tarballs via `pnpm deploy`.
 
@@ -149,7 +149,7 @@ describe('config', () => {
 - [ ] **Step 3: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- tests/config.test.ts`
-Expected: FAIL — module `../src/config.js` not found
+Expected: FAIL (module `../src/config.js` not found)
 
 - [ ] **Step 4: Implement config.ts**
 
@@ -366,7 +366,7 @@ main().catch((err) => {
 });
 ```
 
-- [ ] **Step 4: Refactor index.ts — extract boot() function**
+- [ ] **Step 4: Refactor index.ts to extract boot() function**
 
 This is the most significant refactoring step. The current `index.ts` is ~283 lines of imperative top-level code. Wrap it in an exported `boot()` function.
 
@@ -911,7 +911,7 @@ export async function runSetup(): Promise<void> {
       env: { ...process.env, CLAUDE_CONFIG_DIR: claudeConfigDir },
     });
   } catch {
-    console.log('  Claude auth skipped — run manually later.');
+    console.log('  Claude auth skipped, run manually later.');
   }
 
   // macOS permissions reminder
@@ -1007,7 +1007,7 @@ export function checkDependency(bin: string): CheckResult {
 
 export function checkConfig(configPath: string): CheckResult {
   if (!existsSync(configPath)) {
-    return { ok: false, name: 'config', detail: `${configPath} not found — run alfred setup` };
+    return { ok: false, name: 'config', detail: `${configPath} not found, run alfred setup` };
   }
   const config = loadConfig(configPath);
   if (!config.telegram.botToken) {
@@ -1018,7 +1018,7 @@ export function checkConfig(configPath: string): CheckResult {
 
 export function checkClaudeConfig(claudeConfigDir: string): CheckResult {
   if (!claudeConfigDir || !existsSync(claudeConfigDir)) {
-    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found — run alfred setup` };
+    return { ok: false, name: 'claude-config', detail: `${claudeConfigDir || '(not set)'} not found, run alfred setup` };
   }
   if (!existsSync(`${claudeConfigDir}/settings.json`)) {
     return { ok: false, name: 'claude-config', detail: 'settings.json missing' };
@@ -1052,7 +1052,7 @@ export async function runDoctor(): Promise<void> {
   let hasErrors = false;
   for (const r of results) {
     const icon = r.ok ? '  OK' : '  !!';
-    console.log(`${icon}  ${r.name} — ${r.detail || ''}`);
+    console.log(`${icon}  ${r.name}: ${r.detail || ''}`);
     if (!r.ok) hasErrors = true;
   }
 

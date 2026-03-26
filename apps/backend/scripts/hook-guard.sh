@@ -1,5 +1,5 @@
 #!/bin/bash
-# Wrapper for PreToolUse guard hooks — only runs for OpenTidy sessions.
+# Wrapper for PreToolUse guard hooks. Only runs for OpenTidy sessions.
 # Dev sessions (no opentidy- prefix) get an immediate ALLOW.
 #
 # Usage: hook-guard.sh <prompt-text>

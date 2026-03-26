@@ -1,4 +1,4 @@
-# VSA Refactor — OpenTidy Backend + Frontend Reorganization
+# VSA Refactor: OpenTidy Backend + Frontend Reorganization
 
 **Date:** 2026-03-18
 **Status:** Approved
@@ -14,7 +14,7 @@ Reorganize the OpenTidy codebase to follow Vertical Slice Architecture (VSA) pri
 |----------|--------|-----------|
 | Slice granularity | Hybrid domain + use-case | Domain folders with per-use-case files. Avoids 50+ micro-slices (pure use-case) and monolithic slices (pure domain). |
 | Route placement | Colocalized in slice | Each feature file exports its Hono route. `server.ts` assembles them. Agent sees route + handler + logic in one file. |
-| Cross-cutting code | Flat `shared/` | DB, locks, SSE, spawn-claude, config — all < 100 lines each. No sub-folders needed. |
+| Cross-cutting code | Flat `shared/` | DB, locks, SSE, spawn-claude, config, all < 100 lines each. No sub-folders needed. |
 | Tests | Colocalized | `create.ts` + `create.test.ts` in same directory. Agent opens one folder, sees everything. |
 | Frontend | Feature grouping only | Components/pages grouped by domain. Store and API stay centralized (app is small, store is interconnected). |
 | Shared package | Unchanged | 275 lines total. Agent reads it in one shot. |
@@ -27,8 +27,8 @@ Features may import from `shared/` freely. Cross-feature imports follow a strict
 ```
 triage → sessions → dossiers
 checkup → sessions → dossiers
-notifications (standalone — receives deps via DI)
-hooks (standalone — receives deps via DI)
+notifications (standalone, receives deps via DI)
+hooks (standalone, receives deps via DI)
 system (standalone)
 memory (standalone)
 suggestions (standalone)
@@ -189,7 +189,7 @@ apps/backend/src/
   cli/
     cli.ts                      # CLI router (was src/cli.ts)
     setup.ts                    # setup orchestrator
-    setup/                      # (already split — unchanged)
+    setup/                      # (already split, unchanged)
     doctor.ts
     status.ts
     logs.ts
@@ -201,9 +201,9 @@ apps/backend/src/
   boot/
     periodic-tasks.ts           # intervals + watchdog + crash recovery + updater
     updater.ts                  # GitHub release checker (if kept separate)
-  server.ts                     # pure assembler — imports feature routes, mounts them
+  server.ts                     # pure assembler; imports feature routes, mounts them
   server.test.ts                # server-level tests
-  index.ts                      # boot orchestrator — deps → server → periodic → listen
+  index.ts                      # boot orchestrator; deps → server → periodic → listen
   daemon.ts                     # process supervisor
   daemon.test.ts
 ```
@@ -318,7 +318,7 @@ apps/web/src/
 | `paths.ts` | → `shared/paths.ts` |
 | `platform/clipboard.ts` | → `shared/platform/clipboard.ts` |
 | `platform/service-installer.ts` | → `shared/platform/service-installer.ts` |
-| `memory/index.ts` | Deleted — no barrel files in VSA, direct imports only |
+| `memory/index.ts` | Deleted, no barrel files in VSA, direct imports only |
 
 ### Frontend
 
@@ -413,15 +413,15 @@ All test files move from `apps/backend/tests/` to colocate with their source in 
 | `tests/pages/Ameliorations.test.tsx` | → `features/ameliorations/Ameliorations.test.tsx` |
 | `tests/pages/Home.test.tsx` | → `features/home/Home.test.tsx` |
 | `tests/store/store.test.ts` | → `shared/store.test.ts` |
-| `tests/e2e/` | Stays at `tests/e2e/` — E2E tests are cross-feature by nature, no colocation benefit |
+| `tests/e2e/` | Stays at `tests/e2e/`, E2E tests are cross-feature by nature, no colocation benefit |
 | `tests/e2e/fixtures/mock-api.ts` | Stays at `tests/e2e/fixtures/mock-api.ts` |
 
 ## Migration Order
 
 Each step must end with passing tests. Steps can be parallelized where noted.
 
-1. **Move `shared/`** — `infra/*` → `shared/`, `utils/*` → `shared/`, `middleware/auth.ts` → `shared/auth.ts`, `config.ts` → `shared/config.ts`, `paths.ts` → `shared/paths.ts`, `platform/*` → `shared/platform/`. Update all imports. No functional changes.
-2. **Move features (parallelizable)** — each feature is independent:
+1. **Move `shared/`**: `infra/*` → `shared/`, `utils/*` → `shared/`, `middleware/auth.ts` → `shared/auth.ts`, `config.ts` → `shared/config.ts`, `paths.ts` → `shared/paths.ts`, `platform/*` → `shared/platform/`. Update all imports. No functional changes.
+2. **Move features (parallelizable)**: each feature is independent:
    - `features/dossiers/` ← `workspace/state.ts`, `workspace/dossier.ts`, `workspace/title.ts` + dossier routes from `routes/dossiers.ts`
    - `features/sessions/` ← `launcher/*` + session routes from `routes/sessions.ts`
    - `features/triage/` ← `receiver/*` + `utils/triage-handler.ts` + webhook route from `routes/hooks.ts`
@@ -433,12 +433,12 @@ Each step must end with passing tests. Steps can be parallelized where noted.
    - `features/checkup/` ← `launcher/checkup.ts` + `launcher/watchdog.ts` + checkup route from `routes/system.ts`
    - `features/terminal/` ← `terminal/bridge.ts` + terminal route from `routes/system.ts`
    - `features/system/` ← remaining routes from `routes/system.ts` + `fixtures/test-tasks.ts` + `infra/audit.ts`
-3. **Rewrite `server.ts`** — import all feature routes, mount with `app.route()`
-4. **Colocate tests** — move each test file next to its source
-5. **Update vitest configs** — change include patterns
-6. **Delete old directories** — `routes/`, `launcher/`, `workspace/`, `receiver/`, `memory/`, `infra/`, `hooks/`, `notifications/`, `terminal/`, `sse/`, `middleware/`, `utils/`, `fixtures/`, `tests/` (backend), `pages/`, `components/` (web)
-7. **Frontend reorganization** — move web files into `features/` and `shared/`
-8. **Delete `memory/index.ts`** — no barrel files in VSA
+3. **Rewrite `server.ts`**: import all feature routes, mount with `app.route()`
+4. **Colocate tests**: move each test file next to its source
+5. **Update vitest configs**: change include patterns
+6. **Delete old directories**: `routes/`, `launcher/`, `workspace/`, `receiver/`, `memory/`, `infra/`, `hooks/`, `notifications/`, `terminal/`, `sse/`, `middleware/`, `utils/`, `fixtures/`, `tests/` (backend), `pages/`, `components/` (web)
+7. **Frontend reorganization**: move web files into `features/` and `shared/`
+8. **Delete `memory/index.ts`**: no barrel files in VSA
 
 ## Barrel File Policy
 
@@ -478,14 +478,14 @@ export function createApp(deps: AppDeps) {
 
 ## What Does NOT Change
 
-- `packages/shared/` — types.ts, schemas.ts, index.ts (275 lines, SSOT)
-- `cli/` — entry point structure (setup/, doctor, status, logs, update, uninstall)
-- `boot/periodic-tasks.ts` — already extracted
-- `daemon.ts` — process supervisor
-- `plugins/opentidy-hooks/` — external hooks
-- `bin/opentidy` — CLI wrapper
-- External API surface — all HTTP endpoints keep same paths and behavior
-- Factory function pattern — `createX()` stays, dependency injection stays
+- `packages/shared/`: types.ts, schemas.ts, index.ts (275 lines, SSOT)
+- `cli/`: entry point structure (setup/, doctor, status, logs, update, uninstall)
+- `boot/periodic-tasks.ts`: already extracted
+- `daemon.ts`: process supervisor
+- `plugins/opentidy-hooks/`: external hooks
+- `bin/opentidy`: CLI wrapper
+- External API surface; all HTTP endpoints keep same paths and behavior
+- Factory function pattern: `createX()` stays, dependency injection stays
 
 ## Constraints
 

@@ -28,7 +28,7 @@ export default function SetupWizard() {
         body: JSON.stringify(data),
       });
     } catch {
-      // Best-effort — advance anyway
+      // Best-effort. Advance anyway
     }
     setStep('agent');
   };

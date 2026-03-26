@@ -5,7 +5,7 @@
 L'utilisateur a commencé par demander à Claude Code d'automatiser la création de factures
 (aller sur les mails, récupérer les dépenses, les uploader dans le portail bancaire).
 C'est devenu le skill /comptable. En voyant Claude Code travailler, il a constaté
-que Claude est capable d'être quasi 100% autonome — impressionnant sur la plupart
+que Claude est capable d'être quasi 100% autonome, impressionnant sur la plupart
 des tâches, limité seulement par l'authentification (captcha, MFA, etc.).
 
 De là est née l'idée d'un assistant complet qui gérerait toutes les tâches
@@ -15,7 +15,7 @@ un event pipeline, des conversations autonomes, un dashboard, etc.
 ## Ce qui marche bien
 
 ### Skills Claude Code (le vrai moteur)
-- **/comptable** : facturation, timesheets, dépenses — fonctionne très bien en interactif
+- **/comptable** : facturation, timesheets, dépenses: fonctionne très bien en interactif
 - **/navigate** + Playwright : navigation web, formulaires, scraping
 - **/sms**, **/whatsapp** : envoyer/lire des messages
 - **/bitwarden** : gestion des mots de passe
@@ -32,7 +32,7 @@ un event pipeline, des conversations autonomes, un dashboard, etc.
 - **Factory pattern** : toute l'architecture est testable, tous les modules
   s'exportent via createX() → facile à mocker
 - **tmux sessions** : Claude tourne dans des tmux détachés, le dashboard peut
-  montrer les terminaux — genuinely clever
+  montrer les terminaux, genuinely clever
 
 ## Ce qui ne marche pas / est superflu
 
@@ -46,14 +46,14 @@ un event pipeline, des conversations autonomes, un dashboard, etc.
   pour reproduire le jugement de Claude dans du code structuré.
 
 - **Event processor** (src/events/processor.ts) : route les events triagés vers
-  les bonnes actions. Mais c'est de la logique métier encodée dans du code — si
+  les bonnes actions. Mais c'est de la logique métier encodée dans du code, si
   urgent et pas de taskId, notify Telegram; si normal et taskId, queue avec
   priorité 5; etc. Claude pourrait décider ça lui-même.
 
 - **Conversation manager** (src/events/conversations.ts) : machine à états pour
   les conversations autonomes (pending → authorized → active → inactive). Gère
   le buffering de messages, le style mimicry, les escalations. Feature amusante
-  mais pas un besoin réel — l'utilisateur n'a pas besoin que l'assistant chatte à sa place.
+  mais pas un besoin réel, l'utilisateur n'a pas besoin que l'assistant chatte à sa place.
 
 - **Knowledge base** (src/shared/knowledge.ts) : facts plats en SQLite
   (entity, category, fact, confidence). Pas de relations, pas de graph,
@@ -73,13 +73,13 @@ de l'utilisateur sont des **workflows multi-étapes** qui durent des jours/semai
 Le task system ne gère pas ça. Il gère "lance un script à 9h" ou "lance Claude
 avec ce prompt quand on trigger la tâche."
 
-### Style mimicry — surface seulement
+### Style mimicry : surface seulement
 
 Extrait 40 messages de l'historique de conversation, les donne à Claude comme
 exemples. Claude imite. Ça marche un peu, mais :
 - Très sensible aux samples (si les samples sont formels → réponse formelle)
 - Pas de vraie compréhension du style de l'utilisateur
-- Detection d'escalation par keyword ("ESCALADE:") — fragile
+- Detection d'escalation par keyword ("ESCALADE:"): fragile
 
 De toute façon, les conversations autonomes ne sont pas un besoin prioritaire.
 

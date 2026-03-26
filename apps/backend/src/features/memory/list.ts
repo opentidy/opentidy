@@ -7,7 +7,7 @@ import type { AppDeps } from '../../server.js';
 export function listMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // GET /memory — list all memory entries
+  // GET /memory: list all memory entries
   router.get('/memory', (c) => {
     const entries = deps.memoryManager?.readIndex() ?? [];
     return c.json(entries);

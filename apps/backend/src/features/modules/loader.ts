@@ -66,7 +66,7 @@ export function loadCustomModules(
       const manifest = loadModuleManifest(moduleDir);
 
       if (curatedNames?.has(manifest.name)) {
-        console.warn(`[modules] Skipping custom module "${manifest.name}" — name collides with a curated module`);
+        console.warn(`[modules] Skipping custom module "${manifest.name}", name collides with a curated module`);
         continue;
       }
 

@@ -81,7 +81,7 @@ describe('Triager', () => {
   });
 });
 
-describe('createAgentRunner — memory context', () => {
+describe('createAgentRunner (memory context)', () => {
   const memoryEntries: MemoryEntry[] = [
     {
       filename: 'contacts.md',

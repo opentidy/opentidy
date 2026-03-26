@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make gaps actionable — code-related gaps create GitHub Issues, config-related gaps create suggestions.
+**Goal:** Make gaps actionable; code-related gaps create GitHub Issues, config-related gaps create suggestions.
 
 **Architecture:** Extend the post-session extraction prompt so Claude classifies and sanitizes each gap. After Claude writes to `gaps.md`, the backend re-reads the file, parses new fields, and routes to GitHub API or the existing suggestion system. A new `github-issue.ts` module handles all GitHub API interaction via `fetch`.
 
@@ -26,7 +26,7 @@
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/shared build
 ```
 
-This is a type-only change — no runtime test needed. Verify the build succeeds after the change.
+This is a type-only change; no runtime test needed. Verify the build succeeds after the change.
 
 - [ ] **Step 2: Add `AmeliorationFixType` and new fields to `Amelioration`**
 
@@ -98,7 +98,7 @@ In `apps/backend/src/features/ameliorations/gaps.test.ts`, add:
 it('parses fixType and sanitized fields from structured format', () => {
   fs.writeFileSync(
     path.join(wsDir, '_gaps', 'gaps.md'),
-    '## 2026-03-14 — MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Dossier:** insurance-report\n\n---\n',
+    '## 2026-03-14. MFA TOTP limitation\n\n**Problème:** Cannot login with MFA\n**Impact:** Blocks automation\n**Suggestion:** Add TOTP support\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** MFA TOTP authentication not supported\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP.\n**GitHub Issue:** #42\n**Dossier:** insurance-report\n\n---\n',
   );
   const list = gaps.listGaps();
   expect(list).toHaveLength(1);
@@ -111,7 +111,7 @@ it('parses fixType and sanitized fields from structured format', () => {
 it('parses config fixType with suggestion slug', () => {
   fs.writeFileSync(
     path.join(wsDir, '_gaps', 'gaps.md'),
-    '## 2026-03-14 — Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Manual workaround needed\n**Catégorie:** config\n**Fix type:** config\n**Suggestion slug:** fix-hook-config-abc123\n\n---\n',
+    '## 2026-03-14. Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Manual workaround needed\n**Catégorie:** config\n**Fix type:** config\n**Suggestion slug:** fix-hook-config-abc123\n\n---\n',
   );
   const list = gaps.listGaps();
   expect(list[0].fixType).toBe('config');
@@ -122,7 +122,7 @@ it('parses config fixType with suggestion slug', () => {
 it('handles gaps without new fields (backward compat)', () => {
   fs.writeFileSync(
     path.join(wsDir, '_gaps', 'gaps.md'),
-    '## 2026-03-14 — Old gap\n\n**Problème:** Something\n**Impact:** Something\n**Suggestion:** Something\n\n---\n',
+    '## 2026-03-14. Old gap\n\n**Problème:** Something\n**Impact:** Something\n**Suggestion:** Something\n\n---\n',
   );
   const list = gaps.listGaps();
   expect(list[0].fixType).toBeUndefined();
@@ -134,7 +134,7 @@ it('handles gaps without new fields (backward compat)', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/ameliorations/gaps.test.ts`
-Expected: FAIL — `fixType`, `sanitizedBody`, `githubIssueNumber` are not parsed.
+Expected: FAIL (`fixType`, `sanitizedBody`, `githubIssueNumber` are not parsed.)
 
 - [ ] **Step 3: Extend `parseStructuredSections` in `gaps.ts`**
 
@@ -174,7 +174,7 @@ Add to `gaps.test.ts`:
 it('updates gap fields by index', () => {
   fs.writeFileSync(
     path.join(wsDir, '_gaps', 'gaps.md'),
-    '## 2026-03-14 — Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n**Fix type:** code\n**Sanitized title:** Test Gap\n**Sanitized:** Test problem\n\n---\n',
+    '## 2026-03-14. Test Gap\n\n**Problème:** X\n**Impact:** Y\n**Suggestion:** Z\n**Fix type:** code\n**Sanitized title:** Test Gap\n**Sanitized:** Test problem\n\n---\n',
   );
   gaps.updateGapFields(0, { githubIssueNumber: 42 });
   const list = gaps.listGaps();
@@ -184,7 +184,7 @@ it('updates gap fields by index', () => {
 it('updates gap with suggestion slug', () => {
   fs.writeFileSync(
     path.join(wsDir, '_gaps', 'gaps.md'),
-    '## 2026-03-14 — Config Gap\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** config\n\n---\n',
+    '## 2026-03-14. Config Gap\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** config\n\n---\n',
   );
   gaps.updateGapFields(0, { suggestionSlug: 'fix-config-abc' });
   const list = gaps.listGaps();
@@ -195,7 +195,7 @@ it('updates gap with suggestion slug', () => {
 - [ ] **Step 6: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/ameliorations/gaps.test.ts`
-Expected: FAIL — `updateGapFields` is not defined.
+Expected: FAIL (`updateGapFields` is not defined.)
 
 - [ ] **Step 7: Implement `updateGapFields`**
 
@@ -205,7 +205,7 @@ In `gaps.ts`, add before the `return` statement:
 function updateGapFields(index: number, fields: { githubIssueNumber?: number; suggestionSlug?: string }): void {
   if (!fs.existsSync(gapsFile)) return;
   const content = fs.readFileSync(gapsFile, 'utf-8');
-  const hasStructured = /^## \d{4}-\d{2}-\d{2} — /m.test(content);
+  const hasStructured = /^## \d{4}-\d{2}-\d{2}, /m.test(content);
   if (!hasStructured) return; // only structured format supports field updates
 
   const sections = content.split(/^---$/m).filter(s => s.trim());
@@ -391,7 +391,7 @@ describe('GitHubIssueManager', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/ameliorations/github-issue.test.ts`
-Expected: FAIL — module does not exist.
+Expected: FAIL (module does not exist.)
 
 - [ ] **Step 3: Implement `github-issue.ts`**
 
@@ -422,7 +422,7 @@ interface ExistingIssue {
   title: string;
 }
 
-// PII patterns — defense-in-depth check before creating public issues
+// PII patterns, defense-in-depth check before creating public issues
 const PII_PATTERNS = [
   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,    // email (excluding example.com checked separately)
   /(?:\+\d{1,3}\s?)?\(?\d{2,4}\)?[\s.-]\d{2,4}[\s.-]\d{2,4}/, // phone (requires separators between groups)
@@ -463,7 +463,7 @@ export function createGitHubIssueManager(config: GitHubIssueConfig) {
 
   async function createIssue(gap: SanitizedGap): Promise<number | null> {
     if (containsPII(gap.sanitizedTitle) || containsPII(gap.sanitizedBody)) {
-      throw new Error('PII detected in sanitized gap content — refusing to create public issue');
+      throw new Error('PII detected in sanitized gap content, refusing to create public issue');
     }
 
     const labels = ['auto-gap'];
@@ -578,7 +578,7 @@ describe('GapRouter', () => {
   it('creates GitHub issue for code fixType gap', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP\n\n**Problème:** Cannot login\n**Impact:** Blocks automation\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** Cannot authenticate with MFA TOTP\n\n---\n',
+      '## 2026-03-14. MFA TOTP\n\n**Problème:** Cannot login\n**Impact:** Blocks automation\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** Cannot authenticate with MFA TOTP\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -593,7 +593,7 @@ describe('GapRouter', () => {
   it('comments on existing issue instead of creating duplicate', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — MFA TOTP\n\n**Problème:** New info about MFA\n**Impact:** Blocks\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** New context about MFA TOTP limitation\n\n---\n',
+      '## 2026-03-14. MFA TOTP\n\n**Problème:** New info about MFA\n**Impact:** Blocks\n**Fix type:** code\n**Sanitized title:** MFA TOTP\n**Sanitized:** New context about MFA TOTP limitation\n\n---\n',
     );
     mockGitHub.findExistingIssue.mockResolvedValue({ number: 42, title: 'MFA TOTP' });
     const gapsManager = createGapsManager(wsDir);
@@ -607,7 +607,7 @@ describe('GapRouter', () => {
   it('creates suggestion for config fixType gap', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Needs manual workaround\n**Suggestion:** Adjust hook config\n**Fix type:** config\n\n---\n',
+      '## 2026-03-14. Hook misconfigured\n\n**Problème:** Hook blocks legit action\n**Impact:** Needs manual workaround\n**Suggestion:** Adjust hook config\n**Fix type:** config\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions'), isDuplicateSuggestion: mockSuggestions.isDuplicateSuggestion });
@@ -621,7 +621,7 @@ describe('GapRouter', () => {
   it('skips external fixType gaps', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Third party down\n\n**Problème:** External API unavailable\n**Impact:** Cannot process\n**Fix type:** external\n\n---\n',
+      '## 2026-03-14. Third party down\n\n**Problème:** External API unavailable\n**Impact:** Cannot process\n**Fix type:** external\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -633,7 +633,7 @@ describe('GapRouter', () => {
   it('skips gaps that already have a githubIssueNumber', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Already tracked\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** code\n**Sanitized title:** Already tracked\n**Sanitized:** Something\n**GitHub Issue:** #42\n\n---\n',
+      '## 2026-03-14. Already tracked\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** code\n**Sanitized title:** Already tracked\n**Sanitized:** Something\n**GitHub Issue:** #42\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -646,7 +646,7 @@ describe('GapRouter', () => {
   it('skips gaps that already have a suggestionSlug', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Already suggested\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** config\n**Suggestion slug:** fix-already-abc\n\n---\n',
+      '## 2026-03-14. Already suggested\n\n**Problème:** Something\n**Impact:** Something\n**Fix type:** config\n**Suggestion slug:** fix-already-abc\n\n---\n',
     );
     const gapsManager = createGapsManager(wsDir);
     const router = createGapRouter({ gapsManager, gitHub: mockGitHub, suggestionsDir: path.join(wsDir, '_suggestions') });
@@ -661,7 +661,7 @@ describe('GapRouter', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/ameliorations/route-gap.test.ts`
-Expected: FAIL — module does not exist.
+Expected: FAIL (module does not exist.)
 
 - [ ] **Step 3: Implement `route-gap.ts`**
 
@@ -787,7 +787,7 @@ Expected: ALL PASS
 
 ```bash
 git add apps/backend/src/features/ameliorations/route-gap.ts apps/backend/src/features/ameliorations/route-gap.test.ts
-git commit -m "feat(backend): add gap router — routes code gaps to GitHub Issues, config gaps to suggestions"
+git commit -m "feat(backend): add gap router; routes code gaps to GitHub Issues, config gaps to suggestions"
 ```
 
 ---
@@ -805,7 +805,7 @@ git commit -m "feat(backend): add gap router — routes code gaps to GitHub Issu
 In `apps/backend/src/features/memory/agents.test.ts`, add:
 
 ```typescript
-describe('buildExtractionPrompt — actionable gaps', () => {
+describe('buildExtractionPrompt, actionable gaps', () => {
   it('includes fixType and sanitization instructions in Mission 2', () => {
     const agents = createMemoryAgents(workspaceDir, { spawnClaude: mockSpawnClaude })
     const prompt = agents.buildExtractionPrompt({
@@ -826,7 +826,7 @@ describe('buildExtractionPrompt — actionable gaps', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/memory/agents.test.ts`
-Expected: FAIL — prompt does not contain the new fields.
+Expected: FAIL (prompt does not contain the new fields.)
 
 - [ ] **Step 3: Update `buildExtractionPrompt` Mission 2 section**
 
@@ -836,14 +836,14 @@ In `apps/backend/src/features/memory/agents.ts`, replace the Mission 2 gap forma
 \`\`\`
 ---
 
-## ${today} — <Short clear title>
+## ${today}: <Short clear title>
 
 **Problem:** <What concretely happened>
 **Impact:** <Business or operational consequence>
 **Category:** <capability|access|config|process|data>
 **Fix type:** <code|config|external>
-**Sanitized title:** <PII-free short title — ONLY if fixType is code>
-**Sanitized:** <PII-free one-line technical summary — ONLY if fixType is code>
+**Sanitized title:** <PII-free short title. ONLY if fixType is code>
+**Sanitized:** <PII-free one-line technical summary. ONLY if fixType is code>
 **Recommended actions:**
 - <Concrete action 1 the user can take>
 - <Concrete action 2 (optional)>
@@ -856,7 +856,7 @@ In `apps/backend/src/features/memory/agents.ts`, replace the Mission 2 gap forma
 - \`code\`: the problem is in OpenTidy's source code (bug, missing feature, architectural limitation in the opentidy codebase itself)
 - \`config\`: the problem is in Claude's configuration, prompts, hooks, or workspace setup
 - \`external\`: the problem is an external limitation (third-party API, physical access, credentials the user must provide)
-- The **Sanitized** field must contain ZERO PII — no names, emails, phone numbers, account IDs, company names, dossier context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized field.
+- The **Sanitized** field must contain ZERO PII; no names, emails, phone numbers, account IDs, company names, dossier context. Only the generic technical problem. If the gap cannot be described without PII, set fixType to \`external\` and omit the Sanitized field.
 ```
 
 - [ ] **Step 4: Run test to verify it passes**
@@ -917,7 +917,7 @@ describe('runExtraction with gap routing', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend vitest run src/features/memory/agents.test.ts`
-Expected: FAIL — `onGapsWritten` is not accepted/called.
+Expected: FAIL (`onGapsWritten` is not accepted/called.)
 
 - [ ] **Step 3: Add `onGapsWritten` callback to `createMemoryAgents`**
 
@@ -974,7 +974,7 @@ git commit -m "feat(backend): wire onGapsWritten callback into runExtraction for
 
 - [ ] **Step 1: Read `index.ts` to understand current wiring**
 
-Read `apps/backend/src/index.ts` — find where `createMemoryAgents` is called and where the config is loaded.
+Read `apps/backend/src/index.ts`; find where `createMemoryAgents` is called and where the config is loaded.
 
 - [ ] **Step 2: Add GitHub Issue manager creation**
 
@@ -984,7 +984,7 @@ After the config loading and before `createMemoryAgents`, add:
 import { createGitHubIssueManager } from './features/ameliorations/github-issue.js';
 import { createGapRouter } from './features/ameliorations/route-gap.js';
 
-// GitHub Issue manager (optional — only if token configured)
+// GitHub Issue manager (optional, only if token configured)
 const gitHubIssueManager = config.github?.token
   ? createGitHubIssueManager({
       token: config.github.token,
@@ -1021,7 +1021,7 @@ Expected: BUILD SUCCESS, no type errors.
 
 ```bash
 git add apps/backend/src/index.ts
-git commit -m "feat(backend): wire gap routing into bootstrap — GitHub Issues for code gaps"
+git commit -m "feat(backend): wire gap routing into bootstrap. GitHub Issues for code gaps"
 ```
 
 ---
@@ -1071,7 +1071,7 @@ export async function setupGitHub(): Promise<void> {
 
   const token = await ask('  GitHub Personal Access Token: ');
   if (!token.trim()) {
-    info('Skipped — no token provided.');
+    info('Skipped, no token provided.');
     return;
   }
 
@@ -1139,7 +1139,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 
-describe('Actionable Gaps — Integration', () => {
+describe('Actionable Gaps, Integration', () => {
   let wsDir: string;
 
   beforeEach(() => {
@@ -1156,7 +1156,7 @@ describe('Actionable Gaps — Integration', () => {
     // Simulate Claude writing a gap with new fields
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — TOTP support missing\n\n**Problème:** Cannot handle MFA TOTP\n**Impact:** Blocks portal automation\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP authentication\n**Source:** post-session\n\n---\n',
+      '## 2026-03-14. TOTP support missing\n\n**Problème:** Cannot handle MFA TOTP\n**Impact:** Blocks portal automation\n**Catégorie:** capability\n**Fix type:** code\n**Sanitized title:** TOTP support missing\n**Sanitized:** Cannot authenticate on portals requiring MFA TOTP authentication\n**Source:** post-session\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);
@@ -1194,7 +1194,7 @@ describe('Actionable Gaps — Integration', () => {
   it('full flow: config gap → suggestion file created → gap updated with slug', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Hook too strict\n\n**Problème:** PreToolUse hook blocks legitimate Bash commands\n**Impact:** Must manually intervene\n**Suggestion:** Whitelist common commands\n**Catégorie:** config\n**Fix type:** config\n**Source:** post-session\n\n---\n',
+      '## 2026-03-14. Hook too strict\n\n**Problème:** PreToolUse hook blocks legitimate Bash commands\n**Impact:** Must manually intervene\n**Suggestion:** Whitelist common commands\n**Catégorie:** config\n**Fix type:** config\n**Source:** post-session\n\n---\n',
     );
 
     const gapsManager = createGapsManager(wsDir);
@@ -1231,7 +1231,7 @@ describe('Actionable Gaps — Integration', () => {
   it('graceful degradation: no GitHub manager → gaps written but no issues', async () => {
     fs.writeFileSync(
       path.join(wsDir, '_gaps', 'gaps.md'),
-      '## 2026-03-14 — Something\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** code\n**Sanitized title:** Something\n**Sanitized:** Test\n\n---\n',
+      '## 2026-03-14. Something\n\n**Problème:** X\n**Impact:** Y\n**Fix type:** code\n**Sanitized title:** Something\n**Sanitized:** Test\n\n---\n',
     );
 
     // Without a router, gaps just stay in the file
@@ -1251,7 +1251,7 @@ Expected: ALL PASS
 - [ ] **Step 3: Run full test suite**
 
 Run: `pnpm test`
-Expected: ALL PASS — no regressions.
+Expected: ALL PASS, no regressions.
 
 - [ ] **Step 4: Commit**
 

@@ -4,7 +4,7 @@
 
 **Goal:** Migrate the WhatsApp module from wacli/whatsapp-mcp to Baileys (in-process) and introduce the daemon module primitive to the module system.
 
-**Architecture:** The daemon is a new module capability — a long-running in-process function that can both emit events (receiver) AND register MCP tools on the shared HTTP server. The WhatsApp module uses it to manage a single Baileys connection that handles receiving, querying, and sending.
+**Architecture:** The daemon is a new module capability: a long-running in-process function that can both emit events (receiver) AND register MCP tools on the shared HTTP server. The WhatsApp module uses it to manage a single Baileys connection that handles receiving, querying, and sending.
 
 **Tech Stack:** TypeScript, @whiskeysockets/baileys, better-sqlite3, @modelcontextprotocol/sdk, Vitest
 
@@ -48,7 +48,7 @@
 
 ---
 
-## Task 1: Shared types — daemon + ModuleContext
+## Task 1: Shared types for daemon + ModuleContext
 
 **Files:**
 - Modify: `packages/shared/src/types.ts:286-305`
@@ -101,7 +101,7 @@ describe('ModuleManifestSchema daemon', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/shared test -- --run`
-Expected: FAIL — `daemon` field not in schema
+Expected: FAIL because `daemon` field not in schema
 
 - [ ] **Step 3: Add types to `packages/shared/src/types.ts`**
 
@@ -242,7 +242,7 @@ describe('DynamicToolRegistry', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- --run dynamic-tools`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement `dynamic-tools.ts`**
 
@@ -443,7 +443,7 @@ describe('createModuleContext', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `pnpm --filter @opentidy/backend test -- --run daemon.test`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement `daemon.ts`**
 
@@ -539,7 +539,7 @@ describe('daemon lifecycle', () => {
     // Module with both daemon and receivers → startReceivers returns early
   });
 
-  it('stops daemon on disable — calls stop() and unregisters tools', async () => {
+  it('stops daemon on disable, calls stop() and unregisters tools', async () => {
     // Enable daemon module, then disable
     // Verify mod.stop() called, dynamic tools unregistered
   });
@@ -716,7 +716,7 @@ git commit -m "feat(backend): add daemon lifecycle with crash recovery and backo
 
 ---
 
-## Task 5: Agent config — daemon tool permissions
+## Task 5: Agent config for daemon tool permissions
 
 **Files:**
 - Modify: `apps/backend/src/shared/agent-config.ts:330-370`
@@ -866,7 +866,7 @@ for (const [name, state] of Object.entries(config.modules)) {
 }
 ```
 
-Note: `startDaemon` is already called inside `startReceivers` flow — add a new exported `startModule(name)` function to lifecycle.ts that calls both `startReceivers` and `startDaemon`, and use that at boot instead.
+Note: `startDaemon` is already called inside `startReceivers` flow. Add a new exported `startModule(name)` function to lifecycle.ts that calls both `startReceivers` and `startDaemon`, and use that at boot instead.
 
 - [ ] **Step 5: Run backend tests**
 
@@ -892,7 +892,7 @@ git commit -m "feat(backend): add restart route and wire daemon system at boot"
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend add @whiskeysockets/baileys`
 
-- [ ] **Step 2: Create auth.mjs (ESM — project is ESM-only)**
+- [ ] **Step 2: Create auth.mjs (ESM, project is ESM-only)**
 
 Create `apps/backend/modules/whatsapp/auth.mjs`:
 
@@ -1002,7 +1002,7 @@ Create `apps/backend/modules/whatsapp/daemon.ts` following the spec. Key section
 - **Connection:** `makeWASocket()` with `useMultiFileAuthState(ctx.dataDir + '/auth')`, reconnect with backoff (2s base, 1.8 factor, 30s max, 12 attempts). `DisconnectReason.loggedOut` → no reconnect.
 - **SQLite store:** `better-sqlite3` at `ctx.dataDir + '/whatsapp.db'`, WAL mode, 3 tables (chats, messages, contacts) + FTS5 virtual table with triggers. Batch inserts in transactions for `messaging-history.set`.
 - **Receiver:** `sock.ev.on('messages.upsert', ...)` with `type === 'notify'` filter, skip `fromMe`, call `ctx.emit()`.
-- **MCP tools:** 5 tools registered via `ctx.registerTool()` — list_chats, read_messages, search, send_message, send_media.
+- **MCP tools:** 5 tools registered via `ctx.registerTool()`: list_chats, read_messages, search, send_message, send_media.
 - **Cleanup:** `ctx.onShutdown(() => { sock.end(); db.close(); })`
 
 - [ ] **Step 4: Run tests to verify they pass**
@@ -1092,7 +1092,7 @@ git commit -m "refactor(backend)!: migrate WhatsApp module to Baileys daemon"
 In the Architecture > Modules section, add daemon as a third pattern:
 
 ```markdown
-**Level 3 — Daemon** (WhatsApp):
+**Level 3: Daemon** (WhatsApp):
 A `daemon.ts` that runs in-process, managing a persistent connection. Provides both
 event receiving (via `ctx.emit()`) and MCP tools (via `ctx.registerTool()`).
 The daemon is managed by the backend lifecycle (start/stop/restart with backoff).
@@ -1135,7 +1135,7 @@ git commit -m "docs: add daemon module system, ModuleContext API, and update Wha
 
 ---
 
-## Task 11: Integration test — full daemon lifecycle
+## Task 11: Integration test for full daemon lifecycle
 
 **Files:**
 - Create: `apps/backend/src/features/modules/integration.test.ts` (extend if exists)

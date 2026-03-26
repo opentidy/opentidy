@@ -93,7 +93,7 @@ function InfoPanel({ task }: { task: Task }) {
         <StateRenderer task={task} />
       </div>
 
-      {/* Only show artifacts/journal when stateRaw is absent — StateRenderer already renders them from the markdown */}
+      {/* Only show artifacts/journal when stateRaw is absent. StateRenderer already renders them from the markdown */}
       {!task.stateRaw && task.artifacts.length > 0 && (
         <div>
           <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')} ({task.artifacts.length})</h4>
@@ -210,7 +210,7 @@ export default function TaskDetail() {
         </div>
       </div>
 
-      {/* Content — resizable split */}
+      {/* Content: resizable split */}
       <div className="flex-1 overflow-hidden">
         {hasTerminal ? (
           <PanelGroup direction="horizontal" autoSaveId={`task-${id}`}>
@@ -228,7 +228,7 @@ export default function TaskDetail() {
             </Panel>
           </PanelGroup>
         ) : (
-          /* No terminal — info left + empty terminal panel right */
+          /* No terminal: info left + empty terminal panel right */
           <PanelGroup direction="horizontal">
             <Panel defaultSize={30} minSize={15}>
               <InfoPanel task={task} />

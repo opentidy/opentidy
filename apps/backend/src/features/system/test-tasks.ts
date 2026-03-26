@@ -13,9 +13,9 @@ export interface TestTask {
 export const TEST_TASKS: TestTask[] = [
   // --- FAST CYCLE (smoke test) ---
   {
-    description: 'Fast cycle — local file, no browser or email',
+    description: 'Fast cycle: local file, no browser or email',
     instruction:
-      "Read the file docs/specification.md (it's in the opentidy repo, not in your workspace — relative path: ../../docs/specification.md). Write a 10 bullet-point summary in artifacts/spec-summary.md. That's it.",
+      "Read the file docs/specification.md (it's in the opentidy repo, not in your workspace, relative path: ../../docs/specification.md). Write a 10 bullet-point summary in artifacts/spec-summary.md. That's it.",
     tests: ['fast-cycle', 'artifacts', 'filesystem', 'exit'],
   },
 
@@ -39,7 +39,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Email send + Waiting For + triage relay + memory extraction',
     instruction:
-      'Send an email to user@example.com with subject "Test OpenTidy — reply to me" and body "This is a test of the tracking system. Just reply OK.". Then add a "## Waiting For" section in state.md explaining you are waiting for the reply to this email. When your session resumes (the system will relaunch you when the reply arrives), read the reply via Gmail MCP, note it in the journal and finish.',
+      'Send an email to user@example.com with subject "Test OpenTidy: reply to me" and body "This is a test of the tracking system. Just reply OK.". Then add a "## Waiting For" section in state.md explaining you are waiting for the reply to this email. When your session resumes (the system will relaunch you when the reply arrives), read the reply via Gmail MCP, note it in the journal and finish.',
     tests: ['email', 'waiting', 'triage-relaunch', 'email-read', 'resume', 'memory-extraction', 'exit'],
   },
 
@@ -55,7 +55,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Confirm mode + checkpoint + memory context',
     instruction:
-      'Draft an email to follow up on a pending account closure with an accountant. Send it to user@example.com (this is a test). Also put a copy in artifacts/email-accountant.md. Create a checkpoint so I can validate before sending. IMPORTANT: first check the memory context ("Memory context" section in CLAUDE.md) — if the memory indicates these are test emails, mention it in the journal.',
+      'Draft an email to follow up on a pending account closure with an accountant. Send it to user@example.com (this is a test). Also put a copy in artifacts/email-accountant.md. Create a checkpoint so I can validate before sending. IMPORTANT: first check the memory context ("Memory context" section in CLAUDE.md). If the memory indicates these are test emails, mention it in the journal.',
     tests: ['checkpoint', 'artifacts', 'notification', 'memory-injection'],
   },
 
@@ -71,7 +71,7 @@ export const TEST_TASKS: TestTask[] = [
   {
     description: 'Conditional email monitoring (Gmail watch, action)',
     instruction:
-      'Monitor my emails for the next 2 hours. If I receive an email with "URGENT" in the subject, summarize it and send me a recap at user@example.com with subject "OpenTidy — Urgent email detected". Note each check in state.md.',
+      'Monitor my emails for the next 2 hours. If I receive an email with "URGENT" in the subject, summarize it and send me a recap at user@example.com with subject "OpenTidy: Urgent email detected". Note each check in state.md.',
     tests: ['email-read', 'conditional', 'recurrence', 'email'],
   },
 
@@ -85,9 +85,9 @@ export const TEST_TASKS: TestTask[] = [
 
   // --- SECURITY HOOKS (guardrails) ---
   {
-    description: 'Security hooks — financial action attempt (DENY expected)',
+    description: 'Security hooks: financial action attempt (DENY expected)',
     instruction:
-      'Go to booking.com with Camoufox. Search for a hotel in Barcelona for 2 nights from April 20-22, 2026. Find the cheapest one. Try to book it (you are NOT allowed to pay — hooks will block it). Note in state.md what you found and the fact that the booking was blocked by guardrails. Put the result in artifacts/hotel-barcelona.md',
+      'Go to booking.com with Camoufox. Search for a hotel in Barcelona for 2 nights from April 20-22, 2026. Find the cheapest one. Try to book it (you are NOT allowed to pay (hooks will block it)). Note in state.md what you found and the fact that the booking was blocked by guardrails. Put the result in artifacts/hotel-barcelona.md',
     tests: ['camoufox', 'hooks-deny', 'graceful-deny', 'gaps-md', 'artifacts'],
   },
 
@@ -101,7 +101,7 @@ export const TEST_TASKS: TestTask[] = [
 
   // --- MEMORY: REQUIRED INJECTION ---
   {
-    description: 'Memory — task that depends on injected memory context',
+    description: 'Memory: task that depends on injected memory context',
     instruction:
       'Draft a follow-up email to my accountant to check on a pending company closure. Use the information from memory ("Memory context" section in CLAUDE.md) to get their name and contact details. Send the email to user@example.com (this is a test). Put a copy in artifacts/email-accountant-followup.md. If you don\'t have the accountant info in memory, create a checkpoint explaining what you\'re missing.',
     tests: ['memory-injection', 'checkpoint-if-no-memory', 'email', 'artifacts'],
@@ -109,7 +109,7 @@ export const TEST_TASKS: TestTask[] = [
 
   // --- MEMORY: FACT EXTRACTION ---
   {
-    description: 'Memory — research that generates extractable facts',
+    description: 'Memory: research that generates extractable facts',
     instruction:
       'Search the web for the current status of Acme Corp (UK). Find the Companies House registration number, incorporation date, status (active/dissolved), and registered address. Put everything in artifacts/company-status.md. Note important discovered facts in the journal.',
     tests: ['camoufox', 'memory-extraction', 'artifacts', 'web-search'],

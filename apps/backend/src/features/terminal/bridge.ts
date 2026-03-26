@@ -13,7 +13,7 @@ export interface TerminalBridgeDeps {
 }
 
 export function createTerminalManager(deps: TerminalBridgeDeps) {
-  // Track ttyd instances per session — encapsulated within the factory
+  // Track ttyd instances per session, encapsulated within the factory
   const ttydInstances = new Map<string, { process: ChildProcess; port: number }>();
   let nextPort = 8200;
 
@@ -31,7 +31,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
       execFileSync('pkill', ['-f', '^ttyd.*tmux attach-session'], { stdio: 'ignore' });
       console.log('[terminal] Cleaned up orphan ttyd processes');
     } catch {
-      // No ttyd processes to kill — that's fine
+      // No ttyd processes to kill, that's fine
     }
   }
 
@@ -74,7 +74,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
       const output = execFileSync('pgrep', ['-f', 'claude.*--mcp-config.*/opentidy/'], { encoding: 'utf-8' });
       const pids = output.trim().split('\n').filter(Boolean).map(Number).filter(n => n > 1);
 
-      // Get active tmux pane PIDs — these are legitimate running sessions
+      // Get active tmux pane PIDs (these are legitimate running sessions)
       let activePanePids = new Set<number>();
       try {
         const panes = execFileSync('tmux', ['list-panes', '-a', '-F', '#{pane_pid}'], { encoding: 'utf-8' });
@@ -92,7 +92,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
         } catch { continue; }
 
         if (activePanePids.has(pid) || (ppid && activePanePids.has(ppid))) {
-          continue; // Still in an active session — don't touch
+          continue; // Still in an active session, don't touch
         }
 
         // Orphaned: kill the parent shell tree (zsh → claude → MCP children)
@@ -110,7 +110,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
         console.log(`[terminal] Cleaned up ${cleaned} orphaned agent process tree(s)`);
       }
     } catch {
-      // No matching processes — normal on fresh start
+      // No matching processes (normal on fresh start)
     }
   }
 
@@ -211,7 +211,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
     const sessionName = `opentidy-setup-${Date.now()}`;
     console.log(`[terminal] Running command in tmux session ${sessionName}: ${command}`);
 
-    // Create tmux session with the command — remain-on-exit keeps it open after the command finishes
+    // Create tmux session with the command (remain-on-exit keeps it open after the command finishes)
     await execFile('tmux', ['new-session', '-d', '-s', sessionName, '-x', '120', '-y', '30', command]);
     await execFile('tmux', ['set-option', '-t', sessionName, 'remain-on-exit', 'on']);
 
@@ -261,7 +261,7 @@ export function createTerminalManager(deps: TerminalBridgeDeps) {
       }
       return { running: true };
     } catch {
-      // Session doesn't exist or tmux error — treat as failed
+      // Session doesn't exist or tmux error; treat as failed
       return { running: false, exitCode: -1 };
     }
   }

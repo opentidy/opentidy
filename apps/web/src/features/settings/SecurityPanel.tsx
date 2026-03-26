@@ -10,7 +10,7 @@ export default function SecurityPanel() {
   const [copied, setCopied] = useState(false);
 
   function handleCopy() {
-    // Token is stored in config, not exposed via API — this is a placeholder
+    // Token is stored in config, not exposed via API. This is a placeholder
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }

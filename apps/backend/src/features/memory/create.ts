@@ -8,11 +8,11 @@ import type { AppDeps } from '../../server.js';
 export function createMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /memory — create new memory file
+  // POST /memory: create new memory file
   router.post('/memory', async (c) => {
     if (!deps.memoryManager) return c.json({ error: 'memory not available' }, 503);
     const body = MemoryCreateSchema.parse(await c.req.json());
-    // Check if file already exists — prevent silent overwrite
+    // Check if file already exists. Prevent silent overwrite.
     try {
       deps.memoryManager.readFile(body.filename);
       return c.json({ error: 'File already exists' }, 409);

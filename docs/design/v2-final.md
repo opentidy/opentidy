@@ -1,8 +1,8 @@
-# Assistant Personnel V2 — Architecture & Décisions
+# Assistant Personnel V2 : Architecture & Décisions
 
 **Document de référence consolidé.**
 Toute la réflexion V2 est condensée ici. Les autres fichiers du dossier `docs/v2-rethink/`
-sont l'historique de la réflexion — ce document est la version finale.
+sont l'historique de la réflexion, ce document est la version finale.
 
 ---
 
@@ -14,10 +14,10 @@ nécessaire, et s'améliore au fil du temps.
 
 ### Ce que V1 a prouvé
 
-L'utilisateur a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
+L'utilisateur a commencé par le skill `/comptable`, facturation, timesheets, dépenses. En
 voyant Claude Code travailler, il a constaté que Claude est quasi 100% autonome sur
 des tâches admin complexes. Le seul point de blocage : l'authentification (captcha,
-MFA). Le problème n'est pas la capacité de Claude — c'est l'orchestration autour.
+MFA). Le problème n'est pas la capacité de Claude, c'est l'orchestration autour.
 
 ### Les vrais besoins (benchmark V2)
 
@@ -52,7 +52,7 @@ et remplace tout le "cerveau" par Claude lui-même.
 
 ## 2. Principes validés
 
-### Principe 1 — La vitesse n'est pas un critère
+### Principe 1 : La vitesse n'est pas un critère
 
 L'assistant gère des dossiers administratifs, pas des conversations temps réel. Que
 Claude mette 10 secondes ou 2 minutes pour trier un email, le résultat est le même.
@@ -62,27 +62,27 @@ Personne ne remarque si une facture est envoyée 2 minutes plus tard.
 ultra-fines. On se concentre sur la qualité des résultats. Si un triage Claude
 prend 30 secondes, c'est acceptable.
 
-**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code) — là
+**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code), là
 c'est du live, mais c'est géré nativement.
 
-### Principe 2 — Claude Code est le moteur d'exécution
+### Principe 2 : Claude Code est le moteur d'exécution
 
 Tout le travail est fait par Claude Code, qui utilise Claude Max (abonnement fixe).
 
-**Pourquoi** : Claude Code a déjà tout l'écosystème — skills, MCP servers, browser
+**Pourquoi** : Claude Code a déjà tout l'écosystème, skills, MCP servers, browser
 automation, accès système macOS, session resume. Reconstruire ça avec l'API ou
 l'Agent SDK coûterait des semaines de travail pour un résultat équivalent. Le choix
 de Claude Max plutôt que l'API est aussi économique (abonnement fixe vs tokens),
 mais la vraie raison c'est l'écosystème existant.
 
-### Principe 3 — Le budget n'est pas une contrainte
+### Principe 3 : Le budget n'est pas une contrainte
 
 Pas de compromis d'architecture pour économiser des tokens ou des ressources. On
 peut lancer plusieurs sessions en parallèle. Les limites pratiques de Claude Max
 (rate limits, parallélisme) restent à évaluer empiriquement, mais le budget
 monétaire n'est pas un frein.
 
-### Principe 4 — L'intelligence est dans Claude, pas dans le code
+### Principe 4 : L'intelligence est dans Claude, pas dans le code
 
 Le code backend ne contient PAS de logique métier, de triage, de décision, de
 routing intelligent. Il fait de la plomberie : recevoir events, lancer Claude,
@@ -90,22 +90,22 @@ persister l'état. Claude décide quoi faire, comment, dans quel ordre.
 
 **Origine** : en analysant la V1, on a réalisé que ~3000 lignes de TypeScript
 réimplémentent ce que Claude fait déjà. On a proposé des CLIs custom comme
-`invoice list --missing` — l'utilisateur a fait remarquer que c'est "programmer ce que Claude
+`invoice list --missing`, l'utilisateur a fait remarquer que c'est "programmer ce que Claude
 est déjà capable de faire." Les outils sont des ponts vers les services (chercher,
 envoyer, lister), la logique métier c'est Claude.
 
-**Nuance** : certaines fonctions backend NE SONT PAS de l'intelligence — dédup
+**Nuance** : certaines fonctions backend NE SONT PAS de l'intelligence, dédup
 events, resource locks, retry/backoff, audit trail, crash recovery. C'est de
 l'infrastructure, pas de la décision. Ça reste dans le code.
 
-### Principe 5 — Pas d'interruption — parallélisme isolé
+### Principe 5 : Pas d'interruption, parallélisme isolé
 
 Si Claude travaille sur une facture, il finit. Un event urgent ne l'interrompt
-pas — il lance une nouvelle session parallèle. Chaque Claude a son propre espace
+pas. il lance une nouvelle session parallèle. Chaque Claude a son propre espace
 et ses propres ressources. Les conflits de ressources (Chrome, etc.) sont gérés
 par les locks (mécanisme V1, déjà fonctionnel).
 
-### Principe 6 — L'assistant tourne en fond, tranquillement
+### Principe 6 : L'assistant tourne en fond, tranquillement
 
 Pas de réactivité à la seconde. L'assistant travaille méthodiquement, vérifie
 régulièrement, avance sur les dossiers, et ne dérange l'utilisateur que quand c'est nécessaire.
@@ -120,14 +120,14 @@ régulièrement, avance sur les dossiers, et ne dérange l'utilisateur que quand
 Event-driven pur ne gère pas le travail de fond proactif, les relances ("ça fait
 3 jours que Sopra n'a pas répondu"), ni les deadlines qui approchent.
 
-### Principe 7 — Actions rapides/interactives = outil spécialisé
+### Principe 7 : Actions rapides/interactives = outil spécialisé
 
 Si un cas d'usage demande de la réactivité ou de l'interactivité (conversations
 temps réel, réservations en live, appels téléphoniques), c'est un outil/skill
-spécialisé que l'assistant appelle quand il en a besoin — pas le système principal.
+spécialisé que l'assistant appelle quand il en a besoin; pas le système principal.
 Ça garde le système principal simple et méthodique.
 
-### Principe 8 — Amélioration continue
+### Principe 8 : Amélioration continue
 
 L'assistant n'a pas besoin d'être parfait au jour 1. Quand Claude n'arrive pas à
 faire quelque chose, il reporte le gap dans un fichier `workspace/_gaps/gaps.md` :
@@ -141,19 +141,19 @@ généré par l'usage réel.
 
 ### Le raisonnement
 
-On a d'abord pensé en termes d'agents spécialisés (compta, admin, social) — Approche D.
+On a d'abord pensé en termes d'agents spécialisés (compta, admin, social), Approche D.
 L'utilisateur a fait remarquer que Claude est déjà généraliste et peut choisir les bons skills
 lui-même. La spécialisation par domaine n'apporte pas grand-chose.
 
-On a ensuite pensé à un agent unique qui gère un "bureau" — Approche C. Mais un seul
+On a ensuite pensé à un agent unique qui gère un "bureau", Approche C. Mais un seul
 agent = un seul contexte = goulot d'étranglement. Si Claude travaille sur les factures
 et qu'un email urgent arrive, il fait quoi ? Et le contexte grandit avec chaque dossier
 → dilution, dérive.
 
-**Le vrai problème technique n'est ni la capacité ni la vitesse — c'est que le contexte
+**Le vrai problème technique n'est ni la capacité ni la vitesse, c'est que le contexte
 de Claude est fini.** On ne peut pas lui donner l'état de tous les dossiers + tous les
 emails + tous les messages + toutes les tâches. Même si ça rentre, la qualité se dégrade
-quand le contexte est trop chargé (dégradation qui accélère après 75% d'utilisation —
+quand le contexte est trop chargé (dégradation qui accélère après 75% d'utilisation, 
 recherche Google ADK / Vincent van Deth).
 
 ### La solution : sessions focalisées par dossier
@@ -264,7 +264,7 @@ de l'utilisateur), il sauvegarde son état et se termine. Session propre à chaq
 
 ## 5. Composants en détail
 
-### 5.1 RECEIVER — réception des stimuli
+### 5.1 RECEIVER : réception des stimuli
 
 Reçoit tout ce qui peut déclencher du travail et le transforme en event uniforme.
 
@@ -285,7 +285,7 @@ Reçoit tout ce qui peut déclencher du travail et le transforme en event unifor
 
 **Triage / routing** : quand un event arrive, qui décide quel dossier il concerne ?
 
-Décision : Claude fait le triage (principe #4 — intelligence dans Claude, pas le code).
+Décision : Claude fait le triage (principe #4, intelligence dans Claude, pas le code).
 Le receiver donne l'event à un Claude qui décide :
 - **Dossier existant** → route l'event vers le dossier, le travail continue en autonomie
 - **Pas de dossier existant** → crée une **suggestion** (pas un dossier)
@@ -299,10 +299,10 @@ Pour commencer, chaque event = une session Claude (même les spams). On optimise
 après si trop de sessions inutiles sont lancées (ex: triage Claude rapide avant le
 worker complet).
 
-### 5.2 WORKSPACE — état des dossiers
+### 5.2 WORKSPACE : état des dossiers
 
 Chaque dossier en cours a un répertoire dans `workspace/` avec des fichiers markdown.
-Pas de base de données pour l'état — des fichiers lisibles par l'humain ET par Claude.
+Pas de base de données pour l'état, des fichiers lisibles par l'humain ET par Claude.
 
 ```
 workspace/
@@ -351,7 +351,7 @@ Dernière action: 2026-03-13
 
 ## Ce qui reste à faire
 - Avr 2025: timesheet trouvé (152h), facture à créer
-- Mai 2025: timesheet MANQUANT — email envoyé à Sopra le 12/03
+- Mai 2025: timesheet MANQUANT, email envoyé à Sopra le 12/03
 
 ## En attente
 - Réponse de Sopra pour le timesheet de mai (relancer si pas de réponse avant le 16/03)
@@ -364,7 +364,7 @@ Dernière action: 2026-03-13
 - Format facture: utiliser /comptable avec template Sopra
 ```
 
-**Condensation** : Claude gère lui-même la taille de state.md (principe #4 —
+**Condensation** : Claude gère lui-même la taille de state.md (principe #4, 
 intelligence dans Claude). S'il y a trop d'historique, il condense les anciennes
 entrées ("Jan-Mar 2025: toutes envoyées ✓"). Une instruction dans le prompt système
 lui demande de garder state.md concis.
@@ -375,7 +375,7 @@ Quand Claude a besoin de l'utilisateur (question, validation, info manquante), i
 un checkpoint. L'app web le présente et permet à l'utilisateur de répondre.
 
 ```markdown
-# Checkpoint — Attente validation
+# Checkpoint : Attente validation
 
 ## Ce que j'ai fait
 Créé 2 factures pour avril et mai 2025.
@@ -393,11 +393,11 @@ Valider les factures avant envoi.
 3. [Annuler] → j'annule et j'attends tes instructions
 ```
 
-### 5.3 LAUNCHER — lancement des sessions Claude
+### 5.3 LAUNCHER : lancement des sessions Claude
 
 Lance des sessions Claude Code dans des terminaux tmux avec le bon contexte.
 
-**Détection d'état — hooks centralisés** : tous les hooks `type: "command"` appellent
+**Détection d'état, hooks centralisés** : tous les hooks `type: "command"` appellent
 un endpoint unique `POST /api/hooks` sur le backend. Pas de file watching, pas de polling.
 Les hooks système firent automatiquement, la détection ne dépend pas d'une instruction à Claude.
 
@@ -439,15 +439,15 @@ sessions de travailler sur le même dossier. Le sweep ignore les dossiers locké
 
 **Browser : Camoufox** (pas Chrome/Playwright). Chaque session a sa propre instance
 Camoufox avec un profil isolé (via le skill `/browser`). Avantages :
-- Parallélisme total — plus de lock browser entre agents
+- Parallélisme total: plus de lock browser entre agents
 - Anti-détection (pas détecté comme bot par les sites)
 - Sessions persistantes par profil (cookies, login conservés entre sessions)
 - L'utilisateur garde Chrome pour lui, aucune interférence
 
-Le nombre de sessions parallèles est limité par les quotas Claude Max — à découvrir
+Le nombre de sessions parallèles est limité par les quotas Claude Max, à découvrir
 empiriquement.
 
-### 5.4 GARDE-FOUS — hooks PreToolUse (APPROCHE VALIDÉE)
+### 5.4 GARDE-FOUS : hooks PreToolUse (APPROCHE VALIDÉE)
 
 C'est le composant le plus critique. Claude a accès à tout : emails, banque,
 factures, browser. Une erreur a des conséquences réelles.
@@ -471,7 +471,7 @@ Stats clés :
 | Approche | Problème |
 |---|---|
 | Checkpoint avant chaque action | Tue l'autonomie. C'est l'utilisateur qui fait le boulot. |
-| Règles d'outils (`--allowedTools`) | Claude contourne via browser/bash. Restreindre les outils le pousse à hacker le système — il vaut mieux qu'il utilise les bons outils. |
+| Règles d'outils (`--allowedTools`) | Claude contourne via browser/bash. Restreindre les outils le pousse à hacker le système: il vaut mieux qu'il utilise les bons outils. |
 | Claude évalue le risque lui-même (prompts) | Il ne suit pas les consignes ~50% du temps. Le cas dangereux c'est quand il se trompe dans son évaluation. |
 | Checks programmatiques | Trop rigides. Si Claude doit contacter un nouveau service, il est bloqué. |
 | Double-check par 2ème Claude | Comment FORCER Claude à appeler le vérificateur ? Si c'est dans le prompt, il ne le fera pas systématiquement. |
@@ -479,7 +479,7 @@ Stats clés :
 
 #### La solution : hooks PreToolUse `type: "prompt"`
 
-Claude Code a des **hooks PreToolUse** — du code qui s'exécute automatiquement,
+Claude Code a des **hooks PreToolUse**, du code qui s'exécute automatiquement,
 côté SYSTÈME, avant chaque appel d'outil. Ce n'est PAS une instruction à Claude.
 C'est du code dans le runtime. Claude ne les appelle pas, ne peut pas les skipper,
 ne sait même pas qu'ils existent.
@@ -514,7 +514,7 @@ Juste un prompt dans la config :
 ```
 
 Ce mini-Claude a son propre contexte séparé. Ce n'est PAS la même session qui
-s'auto-vérifie — c'est une évaluation indépendante.
+s'auto-vérifie, c'est une évaluation indépendante.
 
 **Le problème du browser résolu** : pour les actions Playwright, le hook reçoit
 un champ `element` avec une DESCRIPTION textuelle de ce qui est cliqué ("Confirm
@@ -577,26 +577,26 @@ les clics safe des clics dangereux.
 | Camoufox click/fill_form | Oui (prompt) | 10s | Peut déclencher paiements/soumissions |
 | Camoufox evaluate/run_code | Oui (prompt) | 10s | Exécution JS arbitraire |
 | Bash (patterns réseau) | Oui (command) | 10s | curl POST, ssh, scp = actions externes |
-| Gmail search/read | Non | — | Lecture seule, zéro risque |
-| Camoufox navigate/snapshot | Non | — | Navigation/lecture, zéro risque |
-| Read/Grep/Glob/Write interne | Non | — | Opérations locales, zéro risque |
+| Gmail search/read | Non | (none) | Lecture seule, zéro risque |
+| Camoufox navigate/snapshot | Non | (none) | Navigation/lecture, zéro risque |
+| Read/Grep/Glob/Write interne | Non | (none) | Opérations locales, zéro risque |
 
 #### Limites honnêtes
 
-1. **Le mini-Claude peut aussi se tromper** — mais deux Claude indépendants qui se
+1. **Le mini-Claude peut aussi se tromper**, mais deux Claude indépendants qui se
    trompent de la même manière c'est moins probable qu'un seul
-2. **Le browser reste le point le plus faible** — le champ `element` aide beaucoup
+2. **Le browser reste le point le plus faible**, le champ `element` aide beaucoup
    mais "Submit" ne dit pas toujours ce qui est soumis. Compensé par la supervision
    tmux et l'audit trail.
-3. **Le ralentissement browser** — 10s par clic significatif. Acceptable vu que la
+3. **Le ralentissement browser**, 10s par clic significatif. Acceptable vu que la
    vitesse n'est pas un critère (principe #1), mais à monitorer.
-4. **Les hooks prompt utilisent du contexte Claude** — à monitorer pour l'impact
+4. **Les hooks prompt utilisent du contexte Claude**, à monitorer pour l'impact
    sur les limites Claude Max.
-5. **Les cas non anticipés** — aucun système ne couvre 100%. Le filet ultime c'est
+5. **Les cas non anticipés**; aucun système ne couvre 100%. Le filet ultime c'est
    l'audit trail + la réparabilité (concept Reversible Autonomy : accepter l'erreur,
    la rendre détectable et réparable).
 
-### 5.5 APP WEB — interface principale de l'utilisateur
+### 5.5 APP WEB : interface principale de l'utilisateur
 
 L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 
@@ -607,7 +607,7 @@ L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 | Tableau de bord | Dossiers en cours + statut, actions en attente, suggestions, sessions actives, activité récente (avec lien vers les logs complets) |
 | Dossier | État détaillé (state.md rendu), historique, checkpoint résumé, artifacts |
 | Instructions | Créer un dossier + recommandations de l'assistant en dessous |
-| Terminal | Sessions tmux brutes — c'est ici que l'utilisateur interagit avec les checkpoints |
+| Terminal | Sessions tmux brutes: c'est ici que l'utilisateur interagit avec les checkpoints |
 | Améliorations | Limites détectées par l'assistant, backlog d'évolutions |
 
 **Checkpoints** : quand Claude écrit un checkpoint.md, l'app web affiche un
@@ -616,22 +616,22 @@ le tableau de bord, avec un bouton "Ouvrir le terminal". Pas de pages checkpoint
 dédiées, pas de boutons d'action (Valider/Modifier/Annuler) dans l'UI. L'utilisateur
 ouvre le terminal, lit le détail, pose ses questions à Claude si besoin, et
 approuve ou refuse directement dans la conversation. Ce pattern est uniforme
-pour tous les types de checkpoint (validation, question, MFA, info manquante) —
+pour tous les types de checkpoint (validation, question, MFA, info manquante), 
 pas de feature custom par type.
 
 **Pourquoi** : un checkpoint peut être n'importe quoi (facture, email, question
 ouverte, MFA). Construire un preview riche par type serait du feature creep
-impossible à maintenir. Et souvent la réponse n'est pas un simple "oui/non" —
+impossible à maintenir. Et souvent la réponse n'est pas un simple "oui/non", 
 L'utilisateur veut poser des questions, demander des modifications, faire des recherches
 avant de décider. Le terminal est le bon endroit pour ça.
 
 **Mobile** : PWA responsive, pas d'app native. Le terminal tmux est accessible
 depuis le téléphone pour répondre aux checkpoints.
 
-**Réutilisation V1** : le dashboard React actuel ne convient pas — l'UI sera
+**Réutilisation V1** : le dashboard React actuel ne convient pas, l'UI sera
 repensée de zéro (maquettes/tests UI à faire avant l'implémentation).
 
-### 5.6 NOTIFICATIONS — Telegram (rôle réduit)
+### 5.6 NOTIFICATIONS : Telegram (rôle réduit)
 
 Telegram n'est plus l'interface principale. Il sert uniquement de push notification
 vers l'utilisateur avec un lien vers l'app web.
@@ -642,23 +642,23 @@ vers l'utilisateur avec un lien vers l'app web.
 - "Relance envoyée à Sopra pour timesheet mai"
 - "Email urgent des impôts chypriotes → [Voir]"
 
-**Pourquoi garder Telegram** : les push notifications sont essentielles — l'utilisateur ne
+**Pourquoi garder Telegram** : les push notifications sont essentielles, l'utilisateur ne
 checke pas l'app en permanence. Telegram est déjà configuré et fiable. PAS d'actions
-depuis Telegram — juste des notifications. Les actions nécessitent le contexte visuel
+depuis Telegram, juste des notifications. Les actions nécessitent le contexte visuel
 de l'app (voir la facture avant de valider, lire le draft).
 
-### 5.7 AMÉLIORATIONS — détection des limites
+### 5.7 AMÉLIORATIONS : détection des limites
 
 Quand Claude n'arrive pas à faire quelque chose, il écrit dans
 `workspace/_gaps/gaps.md` au lieu de rester silencieux ou d'halluciner.
 
 ```markdown
-## 2026-03-14 — Connexion exali.com
+## 2026-03-14, Connexion exali.com
 Problème: Le site demande un MFA par app mobile (authenticator).
 Impact: Je ne peux pas remplir le rapport annuel.
 Suggestion: Ajouter un skill pour lire les codes TOTP.
 
-## 2026-03-15 — Format de facture Sopra
+## 2026-03-15, Format de facture Sopra
 Problème: Sopra a changé leur template (nouveau champ "numéro de commande" obligatoire).
 Impact: Je ne peux pas créer de factures conformes.
 Suggestion: Mettre à jour le skill /comptable.
@@ -673,7 +673,7 @@ le fichier `workspace/_audit/actions.log`. Chaque dossier a aussi son historique
 dans sa sidebar. Une page Logs séparée serait du bruit dans la nav pour un usage
 rare (debug).
 
-### 5.8 SUGGESTIONS — Claude propose, l'utilisateur décide
+### 5.8 SUGGESTIONS : Claude propose, l'utilisateur décide
 
 Claude ne peut pas créer de dossiers. Quand il détecte quelque chose qui mérite
 attention mais qui ne correspond à aucun dossier existant, il crée une suggestion
@@ -687,7 +687,7 @@ dans `workspace/_suggestions/`.
 **Format d'une suggestion** (`workspace/_suggestions/<slug>.md`) :
 
 ```markdown
-# Suggestion — Relance impôts chypriotes
+# Suggestion : Relance impôts chypriotes
 
 URGENCE: urgent
 SOURCE: Email reçu de tax@cyprus.gov.cy le 12/03
@@ -714,7 +714,7 @@ la suggestion). L'urgence est indiquée visuellement par la bordure gauche
 (même système que partout).
 
 **Notifications** : les suggestions urgentes déclenchent une notification
-Telegram. Les autres sont silencieuses — visibles dans l'app uniquement.
+Telegram. Les autres sont silencieuses, visibles dans l'app uniquement.
 
 **Principe** : c'est le seul point d'entrée pour du nouveau travail autonome.
 L'utilisateur garde le contrôle de ce sur quoi l'assistant passe du temps.
@@ -781,11 +781,11 @@ L'utilisateur garde le contrôle de ce sur quoi l'assistant passe du temps.
 1. Claude travaille sur le rapport exali (session tmux)
 2. Va sur exali.com → login → Bitwarden → OK
 3. Le site demande un code MFA
-4. Claude écrit checkpoint.md : "Bloqué sur exali.com — MFA requis, intervention manuelle nécessaire"
+4. Claude écrit checkpoint.md : "Bloqué sur exali.com, MFA requis, intervention manuelle nécessaire"
 5. NOTIFICATION → Telegram : "Bloqué sur exali.com (MFA) → [Intervenir]"
 6. L'utilisateur fait tmux attach → résout le MFA → se détache
 7. Claude continue son travail
-8. (Si le MFA revient plus tard, même cycle — le tmux tourne toujours)
+8. (Si le MFA revient plus tard, même cycle, le tmux tourne toujours)
 ```
 
 ---
@@ -817,14 +817,14 @@ Ce qui suit est un résumé. L'historique complet de la réflexion est dans
 
 | Approche | Idée | Ce qu'on en garde | Pourquoi le reste a été écarté |
 |---|---|---|---|
-| A — Workflows codés | Steps prédéfinis avec checkpoints | Concept de checkpoint | Steps codés = rigide. Claude s'adapte dynamiquement. Principe #4 : intelligence dans Claude, pas le code. |
-| B — Règles YAML | Routing par pattern matching | — | Casse dès que la réalité est nuancée. Ne gère pas l'inattendu. |
-| C — Agent unique | Un Claude, un bureau virtuel | Bureau virtuel en fichiers | Un seul contexte = goulot. Pas de parallélisme. Contexte qui gonfle. |
-| D — Multi-agent domaine | Agents compta/admin/social | Parallélisme isolé | Claude est déjà généraliste. La bonne granularité c'est le dossier, pas le domaine. |
-| E — Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie (webhooks, locks, état). "50 lignes" c'est irréaliste. |
-| F — Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser entre sessions. |
-| G — Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'architecture finale (sessions tmux = stateful le temps de la tâche). |
-| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire". Les MCP font déjà ça. |
+| A: Workflows codés | Steps prédéfinis avec checkpoints | Concept de checkpoint | Steps codés = rigide. Claude s'adapte dynamiquement. Principe #4 : intelligence dans Claude, pas le code. |
+| B: Règles YAML | Routing par pattern matching | (none) | Casse dès que la réalité est nuancée. Ne gère pas l'inattendu. |
+| C: Agent unique | Un Claude, un bureau virtuel | Bureau virtuel en fichiers | Un seul contexte = goulot. Pas de parallélisme. Contexte qui gonfle. |
+| D: Multi-agent domaine | Agents compta/admin/social | Parallélisme isolé | Claude est déjà généraliste. La bonne granularité c'est le dossier, pas le domaine. |
+| E: Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie (webhooks, locks, état). "50 lignes" c'est irréaliste. |
+| F: Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser entre sessions. |
+| G: Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'architecture finale (sessions tmux = stateful le temps de la tâche). |
+| H: CLIs custom | Remplacer MCP par des CLIs | (none) | "Programmer ce que Claude sait déjà faire". Les MCP font déjà ça. |
 
 **Autres décisions écartées** :
 - **Claude API / Agent SDK** : trop cher (payant au token), pas d'écosystème existant.
@@ -836,7 +836,7 @@ Ce qui suit est un résumé. L'historique complet de la réflexion est dans
 
 ## 9. Questions qui restent ouvertes
 
-Ce qui est listé ici est VRAIMENT ouvert — les questions qui nécessitent des tests
+Ce qui est listé ici est VRAIMENT ouvert, les questions qui nécessitent des tests
 concrets ou des décisions d'implémentation, pas de la réflexion architecturale.
 
 ### 9.1 Intervention humaine et lifecycle des sessions (VALIDÉ)
@@ -867,7 +867,7 @@ dans `workspace/<dossier>/.session-id`). Claude reprend avec son historique comp
 - `claude --resume` → reprise avec historique compacté
 - `tmux send-keys` → communication backend → Claude pour le timeout
 
-### 9.2 Cron de fond — approche validée
+### 9.2 Cron de fond : approche validée
 
 **Décision validée.** Un `setInterval` dans le backend (toutes les heures par défaut,
 calibrable via env var) qui lance un `claude -p` "sweep" léger.
@@ -883,20 +883,20 @@ Le sweep Claude :
 4. Retourne la liste des dossiers à lancer
 
 Le backend parse la réponse et lance des sessions tmux focalisées pour chaque dossier.
-Le sweep ne fait pas le travail — il scanne et dispatche. Le vrai travail respecte
+Le sweep ne fait pas le travail, il scanne et dispatche. Le vrai travail respecte
 le principe sessions-par-dossier. Les deadlines et relances sont dans les state.md.
 Claude les lit et décide quoi prioriser (principe #4).
 
-### 9.2 Events multi-dossiers — résolu
+### 9.2 Events multi-dossiers : résolu
 
 **Pas un problème d'architecture.** Quand un event concerne plusieurs dossiers, Claude
-le voit et agit en conséquence — il met à jour les state.md concernés, traite ce qu'il
+le voit et agit en conséquence: il met à jour les state.md concernés, traite ce qu'il
 peut, note le reste. C'est exactement ce qu'un humain ferait. Pas besoin de mécanisme
 de routing ou de duplication (principe #4).
 
 ---
 
-## 10. Recherche externe — concepts clés retenus
+## 10. Recherche externe : concepts clés retenus
 
 | Concept | Source | Ce qu'on en retient |
 |---|---|---|
@@ -911,7 +911,7 @@ de routing ou de duplication (principe #4).
 
 ---
 
-## 11. Référence technique — hooks
+## 11. Référence technique : hooks
 
 Voir `hooks-techniques.md` pour les détails complets. Résumé :
 
@@ -940,7 +940,7 @@ changements), hooks parallèles si multiple sur même matcher, pas de récursion
 ## 12. Capabilities futures (hors scope V2)
 
 Tout futur capability = un skill que Claude appelle. L'architecture V2 ne doit PAS
-être conçue spécifiquement pour ces features — elle doit juste être assez flexible
+être conçue spécifiquement pour ces features, elle doit juste être assez flexible
 pour les brancher.
 
 - Appels téléphoniques
@@ -949,7 +949,7 @@ pour les brancher.
 - Gestion de voyage
 - Veille informationnelle
 - Conversations autonomes avancées (si le besoin émerge)
-- **OMI** (device open source d'enregistrement continu) — à explorer
+- **OMI** (device open source d'enregistrement continu), à explorer
   ce qu'on peut en tirer (transcription, contexte, instructions vocales, etc.)
-- **iPhone 11** (écran cassé) — dédié à l'assistant pour interactions téléphone
-- **Mac Mini dédié** — machine isolée pour l'assistant (24/7, pas de conflit avec l'utilisateur)
+- **iPhone 11** (écran cassé): dédié à l'assistant pour interactions téléphone
+- **Mac Mini dédié**: machine isolée pour l'assistant (24/7, pas de conflit avec l'utilisateur)

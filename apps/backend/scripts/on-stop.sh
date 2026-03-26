@@ -1,5 +1,5 @@
 #!/bin/bash
-# Hook "Stop" — fires every time Claude finishes responding.
+# Hook "Stop": fires every time Claude finishes responding.
 # Always signals the backend so it can mark the session as idle.
 
 set -euo pipefail
@@ -39,7 +39,7 @@ fi
 
 log "$JOB_ID → $STATE, signaling backend"
 
-# Always signal the backend — it handles marking idle, notifications, etc.
+# Always signal the backend. It handles marking idle, notifications, etc.
 curl -sf -X POST "http://localhost:$BACKEND_PORT/api/hooks" \
   -H "Content-Type: application/json" \
   -d "{\"session_id\":\"$SESSION_ID\",\"hook_event_name\":\"Stop\",\"cwd\":\"$CWD\",\"tool_name\":\"state:$STATE\"}" \

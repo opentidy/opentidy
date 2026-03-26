@@ -142,7 +142,7 @@ export async function runSetup(moduleArg?: string): Promise<void> {
   const port = config.server?.port || 5175;
   try {
     execFileSync('curl', ['-sf', `http://localhost:${port}/api/health`], { timeout: 3000 });
-    // Server is running — redirect to browser
+    // Server is running, redirect to browser
     const section = moduleArg ? `?section=${moduleArg}` : '';
     const url = `http://localhost:${port}/setup${section}`;
     console.log(`Opening setup in browser: ${url}`);
@@ -153,7 +153,7 @@ export async function runSetup(moduleArg?: string): Promise<void> {
     }
     return;
   } catch {
-    // Server not running — fall through to CLI setup
+    // Server not running, fall through to CLI setup
   }
 
   // Ensure base config file exists

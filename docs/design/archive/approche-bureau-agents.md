@@ -1,4 +1,4 @@
-# Approche D : Bureau d'agents — Multi-agent avec dispatch intelligent
+# Approche D : Bureau d'agents : Multi-agent avec dispatch intelligent
 
 ## Idée centrale
 
@@ -40,7 +40,7 @@ Vraiment minimal :
 5. Si urgent → notifier Telegram en parallèle
 
 Le dispatcher route avec intelligence (Claude triage) au lieu de règles statiques YAML.
-Il ne fait aucun traitement — il route.
+Il ne fait aucun traitement, il route.
 
 ## Les agents
 
@@ -101,8 +101,8 @@ workspace/
 
 ## Risques identifiés
 
-1. **Coordination inter-agents** — Un event qui concerne 2 domaines : le dispatcher doit choisir ou dupliquer
-2. **Limites Claude Max** — Plusieurs sessions parallèles = plus de consommation
-3. **Conflits ressources** — 2 agents veulent Chrome → résolu par locks existants
-4. **Dérive d'état** — Crash mid-update → fichier incohérent (mitigé : updates atomiques)
-5. **Cold start** — Agent relit tout son workspace au lancement → consomme du contexte
+1. **Coordination inter-agents**. Un event qui concerne 2 domaines : le dispatcher doit choisir ou dupliquer
+2. **Limites Claude Max**, Plusieurs sessions parallèles = plus de consommation
+3. **Conflits ressources**, 2 agents veulent Chrome → résolu par locks existants
+4. **Dérive d'état**. Crash mid-update → fichier incohérent (mitigé : updates atomiques)
+5. **Cold start**. Agent relit tout son workspace au lancement → consomme du contexte

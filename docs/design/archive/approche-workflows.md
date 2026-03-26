@@ -2,7 +2,7 @@
 
 ## Idée centrale
 
-L'assistant n'exécute pas des "tâches" — il exécute des **workflows** : des suites
+L'assistant n'exécute pas des "tâches", il exécute des **workflows** : des suites
 d'étapes autonomes avec des checkpoints humains aux moments critiques.
 
 ## Principe
@@ -44,7 +44,7 @@ WORKFLOW ENGINE
   ├── Scheduler (cron ou trigger event)
   └── Notification (Telegram/Dashboard pour checkpoints)
        ↓ utilise
-  Claude Code (subprocess) — skills, MCP, browser
+  Claude Code (subprocess) : skills, MCP, browser
 ```
 
 ## Forces

@@ -1,6 +1,6 @@
-# Garde-fous — Réflexion complète
+# Garde-fous : Réflexion complète
 
-**Statut : APPROCHE VALIDÉE** — Hooks PreToolUse `type: "prompt"` comme mécanisme central.
+**Statut : APPROCHE VALIDÉE**, Hooks PreToolUse `type: "prompt"` comme mécanisme central.
 
 ## Le problème fondamental
 
@@ -10,10 +10,10 @@ a des conséquences réelles et potentiellement graves.
 
 ### Pourquoi c'est si dur
 
-1. **On ne peut pas anticiper toutes les actions dangereuses** — Claude va décider
+1. **On ne peut pas anticiper toutes les actions dangereuses**, Claude va décider
    lui-même quoi faire. On ne peut pas coder une règle pour chaque cas possible.
 
-2. **Les restrictions d'outils ne suffisent pas** — Si on bloque le MCP Gmail,
+2. **Les restrictions d'outils ne suffisent pas**, Si on bloque le MCP Gmail,
    Claude peut aller sur gmail.com via le browser. Si on bloque le browser, il
    utilise curl via Bash. Le browser et Bash sont des "escape hatches" qui
    contournent toute restriction d'outils spécifiques. Et on ne peut pas les
@@ -23,17 +23,17 @@ a des conséquences réelles et potentiellement graves.
    (MCP Gmail) plutôt que de le forcer à contourner (browser vers gmail.com).
    Restreindre les outils pousse Claude à hacker le système, ce qui est pire.
 
-3. **Les prompts ne sont pas fiables à 100%** — Claude respecte les instructions
+3. **Les prompts ne sont pas fiables à 100%**, Claude respecte les instructions
    la plupart du temps, mais pas toujours. D'après l'expérience avec les
    skills : "une fois sur deux, il ne fait pas ce qu'on lui demande de faire
    systématiquement." On ne peut pas sécuriser un système financier avec juste
    une instruction en langage naturel.
 
-4. **Le cas "confiant mais tort"** — Le cas le plus dangereux c'est quand Claude
+4. **Le cas "confiant mais tort"**, Le cas le plus dangereux c'est quand Claude
    est convaincu de faire la bonne chose mais se trompe. Il ne va pas déclencher
    ses propres garde-fous parce qu'il pense que tout va bien.
 
-5. **Le browser est le point faible** — Claude fait ~10 commandes browser par
+5. **Le browser est le point faible**, Claude fait ~10 commandes browser par
    minute. Vérifier chacune individuellement noierait le système. Mais ne PAS
    les vérifier laisse un trou : certains clics sont irréversibles (confirmer
    un paiement, soumettre un formulaire officiel).
@@ -77,7 +77,7 @@ a des conséquences réelles et potentiellement graves.
 
 ### Délai systématique
 - "Pourquoi Claude serait meilleur en attendant 5 minutes ?"
-- Ce n'est pas Claude — c'est l'utilisateur qui a une fenêtre pour annuler
+- Ce n'est pas Claude: c'est l'utilisateur qui a une fenêtre pour annuler
 - ❌ Si l'utilisateur ne voit pas la notif, l'action part quand même. C'est un tampon.
 
 ---
@@ -86,7 +86,7 @@ a des conséquences réelles et potentiellement graves.
 
 ### Le mécanisme fondamental
 
-Claude Code a des **hooks PreToolUse** — du code qui s'exécute automatiquement,
+Claude Code a des **hooks PreToolUse**, du code qui s'exécute automatiquement,
 côté SYSTÈME, avant chaque appel d'outil.
 
 **Ce n'est PAS une instruction à Claude.** C'est du code qui se déclenche
@@ -166,7 +166,7 @@ On peut cibler exactement quels outils déclenchent le hook :
 "matcher": "Bash"  // toutes les commandes bash
 ```
 
-**Timeout jusqu'à 10 minutes** — largement assez pour une vérification.
+**Timeout jusqu'à 10 minutes**, largement assez pour une vérification.
 
 ---
 
@@ -260,11 +260,11 @@ Claude travaille sur le dossier "factures-2025"
     ↓
     ━━━ HOOK PreToolUse se déclenche ━━━
     Mini-Claude prompt : "Vérifie cet envoi d'email..."
-    → "ALLOW — montant cohérent avec le timesheet, destinataire connu"
+    → "ALLOW, montant cohérent avec le timesheet, destinataire connu"
     OU
-    → "DENY — le montant (128,000€) semble anormalement élevé"
+    → "DENY, le montant (128,000€) semble anormalement élevé"
     OU
-    → "ASK — première facture à ce destinataire, demander confirmation"
+    → "ASK, première facture à ce destinataire, demander confirmation"
     ━━━ FIN DU HOOK ━━━
     ↓
     Si ALLOW → email envoyé, PostToolUse log l'action
@@ -274,27 +274,27 @@ Claude travaille sur le dossier "factures-2025"
 
 ### Limites honnêtes
 
-1. **Le mini-Claude vérificateur peut aussi se tromper** — Mais deux Claude
+1. **Le mini-Claude vérificateur peut aussi se tromper**, Mais deux Claude
    indépendants qui se trompent de la même manière c'est moins probable qu'un seul
 
-2. **Le browser reste le point le plus faible** — Le champ `element` aide beaucoup
+2. **Le browser reste le point le plus faible**, Le champ `element` aide beaucoup
    mais n'est pas parfait. "Submit" ne dit pas toujours ce qui est soumis.
    Compensé par la supervision tmux et l'audit trail.
 
-3. **Le ralentissement browser** — 10s par clic significatif. Acceptable vu que
+3. **Le ralentissement browser**, 10s par clic significatif. Acceptable vu que
    la vitesse n'est pas un critère, mais à monitorer.
 
-4. **Les hooks prompt utilisent du contexte Claude** — À monitorer pour s'assurer
+4. **Les hooks prompt utilisent du contexte Claude**, À monitorer pour s'assurer
    que ça n'impacte pas les limites Claude Max.
 
-5. **Les cas non anticipés** — Aucun système ne couvre 100% des cas. Le filet
+5. **Les cas non anticipés**; Aucun système ne couvre 100% des cas. Le filet
    de sécurité ultime c'est l'audit trail + la réparabilité.
 
 ---
 
 ## Concepts inspirants (recherche externe)
 
-### IronCurtain — "constitution" en langage naturel
+### IronCurtain : "constitution" en langage naturel
 Projet open source qui intercepte chaque action via hooks, évalue contre des
 règles écrites en anglais, bloque ou escalade. Le concept de "constitution"
 (règles simples → comportements émergents) est similaire à nos 4 règles ADN.

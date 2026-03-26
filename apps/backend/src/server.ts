@@ -176,12 +176,12 @@ export interface AppDeps {
 export function createApp(deps?: AppDeps) {
   const app = new Hono();
 
-  // Auth middleware — skip if no token configured
+  // Auth middleware (skip if no token configured)
   if (deps?.bearerToken) {
     app.use('/api/*', createAuthMiddleware(deps.bearerToken));
   }
 
-  // Global error handler — returns structured JSON errors for debuggability
+  // Global error handler: returns structured JSON errors for debuggability
   app.onError((err, c) => {
     if (err instanceof ZodError) {
       console.warn(`[server] ${c.req.method} ${c.req.path} validation failed:`, err.issues);
@@ -195,7 +195,7 @@ export function createApp(deps?: AppDeps) {
     return c.json({ error: err.message, path: c.req.path }, 500);
   });
 
-  // MCP endpoint (no auth — localhost only, not exposed via tunnel)
+  // MCP endpoint (no auth, localhost only, not exposed via tunnel)
   if (deps?.mcpServer) {
     const mcpHandler = deps.mcpServer;
     app.all('/mcp', async (c) => {
@@ -302,10 +302,10 @@ export function createApp(deps?: AppDeps) {
     }
   }
 
-  // 404 handler for unknown API routes — must be after all route mounting
+  // 404 handler for unknown API routes. Must be after all route mounting.
   app.all('/api/*', (c) => c.json({ error: 'Not found', path: c.req.path }, 404));
 
-  // Static file serving — production only (when web-dist/ exists)
+  // Static file serving, production only (when web-dist/ exists)
   const webDistPath = resolve(import.meta.dirname, '../web-dist');
   if (existsSync(webDistPath)) {
     // Block path traversal attempts before serving static files
@@ -317,7 +317,7 @@ export function createApp(deps?: AppDeps) {
       await next();
     });
     app.use('/*', serveStatic({ root: webDistPath }));
-    // SPA fallback — serve index.html for non-API routes
+    // SPA fallback: serve index.html for non-API routes
     app.get('*', serveStatic({ root: webDistPath, path: 'index.html' }));
     console.log('[server] Serving static files from', webDistPath);
   }

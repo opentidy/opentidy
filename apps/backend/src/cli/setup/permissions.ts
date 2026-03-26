@@ -12,11 +12,11 @@ export async function setupPermissions(): Promise<void> {
     return;
   }
 
-  // Detect headless/SSH — AppleScript requires a GUI session
+  // Detect headless/SSH. AppleScript requires a GUI session.
   const isSSH = !!process.env.SSH_CLIENT || !!process.env.SSH_TTY;
   if (isSSH) {
     console.log('');
-    warn('SSH session detected — macOS permission prompts require a local GUI session.');
+    warn('SSH session detected. macOS permission prompts require a local GUI session.');
     info('Run "opentidy setup permissions" locally on the Mac to grant permissions.');
     console.log('');
     return;
@@ -32,7 +32,7 @@ export async function setupPermissions(): Promise<void> {
   info('the first time each app is accessed.');
   console.log('');
   info('We will trigger each permission now. For each one,');
-  info('a macOS popup will appear — click "OK" or "Allow".');
+  info('a macOS popup will appear. Click "OK" or "Allow".');
   console.log('');
   await ask('  Press Enter to start...');
 
@@ -54,19 +54,19 @@ export async function setupPermissions(): Promise<void> {
         timeout: 30_000,
         stdio: 'pipe',
       });
-      success(`${test.name} — authorized`);
+      success(`${test.name}: authorized`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : '';
       if (msg.includes('not allowed') || msg.includes('denied') || msg.includes('-1743')) {
-        warn(`${test.name} — denied. Enable it in:`);
+        warn(`${test.name}: denied. Enable it in:`);
         info('  System Settings > Privacy & Security > Automation');
       } else {
-        success(`${test.name} — done`);
+        success(`${test.name}: done`);
       }
     }
   }
 
-  // Full Disk Access — can't trigger via osascript
+  // Full Disk Access, can't trigger via osascript
   console.log('');
   console.log('  ── Full Disk Access ──');
   info('This one can\'t be triggered automatically.');

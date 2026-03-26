@@ -15,13 +15,13 @@ export function createPermissionChecker(deps: PermissionCheckDeps) {
     const resolver = createPermissionResolver(deps.manifests, config);
     const { level, scope, moduleName } = resolver.resolve(toolName);
 
-    // 1. Allow — always pass (safe tools land here too)
+    // 1. Allow: always pass (safe tools land here too)
     if (level === 'allow') {
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'ALLOW' });
       return 'allow';
     }
 
-    // 2. Block — deny defensively (should never reach endpoint in normal flow)
+    // 2. Block: deny defensively (should never reach endpoint in normal flow)
     if (level === 'block') {
       deps.audit.log({ sessionId, toolName, toolInput, decision: 'BLOCK' });
       return 'deny';
@@ -43,7 +43,7 @@ export function createPermissionChecker(deps: PermissionCheckDeps) {
       return 'deny';
     }
 
-    // 5. Approved — persist per-task grant if applicable
+    // 5. Approved: persist per-task grant if applicable
     if (scope === 'per-task' && moduleName) {
       deps.state.grant(taskId, moduleName);
     }

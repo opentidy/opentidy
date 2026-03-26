@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {
-      // SSE endpoint needs special handling — Vite's default proxy buffers streaming responses
+      // SSE endpoint needs special handling. Vite's default proxy buffers streaming responses
       '/api/events': {
         target: 'http://localhost:5175',
         // Disable response buffering so SSE chunks flow through immediately

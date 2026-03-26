@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>V2 App — Concept Final v2 (Cohérent)</title>
+<title>V2 App ,  Concept Final v2 (Cohérent)</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { background: #1a1a2e; color: #d4d4d4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
@@ -58,13 +58,13 @@
   /* One card, one list, one button, everywhere   */
   /* ============================================ */
 
-  /* Topbar — identical on every screen */
+  /* Topbar, identical on every screen */
   .topbar {
     height: 44px; background: #161b22; border-bottom: 1px solid #21262d;
     display: flex; align-items: center; padding: 0 16px; gap: 12px;
   }
 
-  /* Icon rail — identical on every desktop screen */
+  /* Icon rail, identical on every desktop screen */
   .rail {
     width: 52px; background: #0d1117; border-right: 1px solid #21262d;
     display: flex; flex-direction: column; align-items: center; padding-top: 12px; gap: 8px;
@@ -84,7 +84,7 @@
   .rb .notif { position: absolute; top: 4px; right: 4px; width: 7px; height: 7px; border-radius: 50%; background: #ff6b6b; }
   .rb svg { width: 18px; height: 18px; }
 
-  /* Mobile tab bar — 5 tabs, identical everywhere */
+  /* Mobile tab bar, 5 tabs, identical everywhere */
   .tabs {
     height: 52px; background: #161b22; border-top: 1px solid #21262d;
     display: flex; position: absolute; bottom: 16px; left: 0; right: 0;
@@ -96,7 +96,7 @@
   .tabs .t.on { color: #58a6ff; }
   .tabs .t svg { width: 18px; height: 18px; }
 
-  /* THE card — used for everything: dossiers, actions, gaps, log entries */
+  /* THE card, used for everything: dossiers, actions, gaps, log entries */
   .item {
     background: #161b22; border: 1px solid #21262d; border-radius: 10px;
     padding: 14px 16px; margin-bottom: 8px; cursor: pointer;
@@ -114,7 +114,7 @@
   .item .meta { font-size: 11px; color: #484f58; }
   .item .actions { display: flex; gap: 8px; margin-top: 12px; }
 
-  /* Badges — small, consistent */
+  /* Badges, small, consistent */
   .badge { padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; display: inline-block; }
   .badge.red { background: #4a1010; color: #ff6b6b; }
   .badge.green { background: #1b4332; color: #40c057; }
@@ -128,13 +128,13 @@
   .dot.red { background: #ff6b6b; } .dot.blue { background: #58a6ff; }
   .dot.gray { background: #484f58; }
 
-  /* Buttons — only 3 types */
+  /* Buttons, only 3 types */
   .btn { padding: 8px 16px; border-radius: 8px; font-size: 13px; border: none; cursor: pointer; font-weight: 500; }
   .btn.pri { background: #238636; color: white; }
   .btn.sec { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; }
   .btn.danger { background: #da3633; color: white; }
 
-  /* Section header — consistent everywhere */
+  /* Section header, consistent everywhere */
   .section {
     font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
     color: #484f58; margin-bottom: 10px; font-weight: 600;
@@ -200,12 +200,12 @@
 </svg>
 
 <!-- ================================================================== -->
-<!-- SCREEN 1: HOME — actions en attente                                -->
+<!-- SCREEN 1: HOME, actions en attente                                 -->
 <!-- ================================================================== -->
 <div class="screen active" id="s0">
   <div class="screen-header">
-    <h2>Home — Actions en attente</h2>
-    <p>Checkpoints, suggestions, sessions en fond. Les suggestions sont des dossiers proposes par Claude — rien ne demarre sans ton feu vert.</p>
+    <h2>Home ,  Actions en attente</h2>
+    <p>Checkpoints, suggestions, sessions en fond. Les suggestions sont des dossiers proposes par Claude ,  rien ne demarre sans ton feu vert.</p>
   </div>
   <div class="pair">
     <div class="desktop">
@@ -233,20 +233,20 @@
           </div>
           <div style="flex:1;overflow-y:auto;padding:20px 24px;">
             <!-- Actions -->
-            <div class="section"><span style="color:#ff6b6b;">●</span> Pour toi — 2 actions</div>
+            <div class="section"><span style="color:#ff6b6b;">●</span> Pour toi ,  2 actions</div>
             <div class="item urgent">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
                 <div class="row"><span class="dot red"></span><span class="title">2 factures Sopra</span><span class="badge red" style="margin-left:6px;">Checkpoint</span></div>
                 <span class="meta">il y a 4 min</span>
               </div>
-              <div class="desc">Avril: 12 160€ HT · Mai: 12 800€ HT — validation avant envoi</div>
+              <div class="desc">Avril: 12 160€ HT · Mai: 12 800€ HT ,  validation avant envoi</div>
               <div class="actions">
                 <button class="btn sec" style="flex:1;">Ouvrir le terminal</button>
               </div>
             </div>
             <div class="item warn">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
-                <div class="row"><span class="dot orange"></span><span class="title">MFA — exali.com</span><span class="badge orange" style="margin-left:6px;">Intervention</span></div>
+                <div class="row"><span class="dot orange"></span><span class="title">MFA ,  exali.com</span><span class="badge orange" style="margin-left:6px;">Intervention</span></div>
                 <span class="meta">il y a 20 min</span>
               </div>
               <div class="desc">Code authenticator TOTP necessaire. Rapport annuel bloque.</div>
@@ -256,7 +256,7 @@
             </div>
 
             <!-- Suggestions -->
-            <div class="section" style="margin-top:24px;"><span style="color:#58a6ff;">◆</span> Suggestions — 2 nouvelles</div>
+            <div class="section" style="margin-top:24px;"><span style="color:#58a6ff;">◆</span> Suggestions ,  2 nouvelles</div>
             <div class="item urgent">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
                 <div class="row"><span class="dot red"></span><span class="title">Relance impots chypriotes</span><span class="badge red" style="margin-left:6px;">Urgent</span></div>
@@ -281,7 +281,7 @@
             </div>
 
             <!-- En fond -->
-            <div class="section" style="margin-top:24px;">En fond — l'assistant travaille</div>
+            <div class="section" style="margin-top:24px;">En fond ,  l'assistant travaille</div>
             <div class="item active-border">
               <div class="row" style="justify-content:space-between;">
                 <div class="row"><span class="dot green"></span><span class="title">Expatriation Chypre</span></div>
@@ -304,13 +304,13 @@
             <!-- Activite -->
             <div class="section" style="margin-top:24px;">Activite recente <span style="margin-left:auto;font-size:10px;color:#58a6ff;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:500;">Voir les logs complets ↗</span></div>
             <div class="item" style="padding:10px 16px;cursor:default;">
-              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">15:38</span><span class="dot green" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Sopra — 2 factures creees, checkpoint ouvert</span></div>
+              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">15:38</span><span class="dot green" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Sopra ,  2 factures creees, checkpoint ouvert</span></div>
             </div>
             <div class="item" style="padding:10px 16px;cursor:default;">
-              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">15:22</span><span class="dot orange" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Exali — bloque sur MFA authenticator</span></div>
+              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">15:22</span><span class="dot orange" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Exali ,  bloque sur MFA authenticator</span></div>
             </div>
             <div class="item" style="padding:10px 16px;cursor:default;">
-              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">14:50</span><span class="dot green" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Sopra — relance timesheet mai envoyee</span></div>
+              <div class="row" style="gap:8px;"><span class="meta" style="width:36px;">14:50</span><span class="dot green" style="width:5px;height:5px;"></span><span class="desc" style="margin:0;">Sopra ,  relance timesheet mai envoyee</span></div>
             </div>
           </div>
         </div>
@@ -334,12 +334,12 @@
               <span class="title" style="font-size:13px;">2 factures Sopra</span>
               <span class="meta">4 min</span>
             </div>
-            <div class="desc">12 160€ + 12 800€ — validation</div>
+            <div class="desc">12 160€ + 12 800€ ,  validation</div>
             <div class="actions"><button class="btn sec" style="width:100%;">Terminal</button></div>
           </div>
           <div class="item warn">
             <div class="row" style="justify-content:space-between;margin-bottom:4px;">
-              <span class="title" style="font-size:13px;">MFA — exali.com</span>
+              <span class="title" style="font-size:13px;">MFA ,  exali.com</span>
               <span class="meta">20 min</span>
             </div>
             <div class="desc">Code TOTP</div>
@@ -384,11 +384,11 @@
 </div>
 
 <!-- ================================================================== -->
-<!-- SCREEN 2: HOME — zen                                               -->
+<!-- SCREEN 2: HOME, zen                                                -->
 <!-- ================================================================== -->
 <div class="screen" id="s1">
   <div class="screen-header">
-    <h2>Home — Tout roule</h2>
+    <h2>Home ,  Tout roule</h2>
     <p>Rien a faire. Memes cartes pour les sessions actives, juste plus calme.</p>
   </div>
   <div class="pair">
@@ -579,7 +579,7 @@
 <!-- ================================================================== -->
 <div class="screen" id="s3">
   <div class="screen-header">
-    <h2>Dossier — Vue detail</h2>
+    <h2>Dossier ,  Vue detail</h2>
     <p>Le state.md rendu proprement. Les checkpoints sont affiches en resume avec un bouton "Ouvrir le terminal".</p>
   </div>
   <div class="pair">
@@ -608,13 +608,13 @@
           </div>
           <div style="display:flex;flex:1;overflow:hidden;">
             <div style="flex:1;overflow-y:auto;padding:20px 28px;">
-              <!-- Checkpoint alert — summary + open terminal -->
+              <!-- Checkpoint alert: summary + open terminal -->
               <div class="item urgent" style="cursor:pointer;">
                 <div class="row" style="justify-content:space-between;">
-                  <div class="row"><span class="dot red"></span><span class="title">Checkpoint — 2 factures a valider</span></div>
+                  <div class="row"><span class="dot red"></span><span class="title">Checkpoint : 2 factures a valider</span></div>
                   <button class="btn sec" style="font-size:12px;">Ouvrir le terminal</button>
                 </div>
-                <div class="desc">Avril 12 160€ · Mai 12 800€ — le terminal attend ta reponse</div>
+                <div class="desc">Avril 12 160€ · Mai 12 800€ ,  le terminal attend ta reponse</div>
               </div>
               <!-- State.md rendered -->
               <div style="font-size:13px;color:#c9d1d9;line-height:1.8;margin-top:20px;">
@@ -622,15 +622,15 @@
                 <p style="color:#8b949e;margin-bottom:16px;">Verifier que toutes les factures mensuelles Sopra ont ete envoyees. Une facture par mois, basee sur les timesheets. Taux: 80€/h HT.</p>
                 <div style="font-size:15px;color:#e6edf3;font-weight:500;margin-bottom:6px;">Fait</div>
                 <div style="margin-bottom:16px;color:#8b949e;">
-                  <div><span style="color:#40c057;">✓</span> Jan 2025 — facture #2025-001 envoyee le 05/02</div>
-                  <div><span style="color:#40c057;">✓</span> Fev 2025 — facture #2025-002 envoyee le 03/03</div>
-                  <div><span style="color:#40c057;">✓</span> Mar 2025 — facture #2025-003 envoyee le 02/04</div>
+                  <div><span style="color:#40c057;">✓</span> Jan 2025 ,  facture #2025-001 envoyee le 05/02</div>
+                  <div><span style="color:#40c057;">✓</span> Fev 2025 ,  facture #2025-002 envoyee le 03/03</div>
+                  <div><span style="color:#40c057;">✓</span> Mar 2025 ,  facture #2025-003 envoyee le 02/04</div>
                 </div>
                 <div style="font-size:15px;color:#e6edf3;font-weight:500;margin-bottom:6px;">Reste a faire</div>
                 <div style="margin-bottom:16px;">
-                  <div style="color:#f59f00;">◉ Avr 2025 — facture creee, en attente de validation</div>
-                  <div style="color:#f59f00;">◉ Mai 2025 — facture creee, en attente de validation</div>
-                  <div style="color:#ff6b6b;">◉ Mai 2025 — timesheet MANQUANT — relance envoyee</div>
+                  <div style="color:#f59f00;">◉ Avr 2025 ,  facture creee, en attente de validation</div>
+                  <div style="color:#f59f00;">◉ Mai 2025 ,  facture creee, en attente de validation</div>
+                  <div style="color:#ff6b6b;">◉ Mai 2025 ,  timesheet MANQUANT ,  relance envoyee</div>
                 </div>
               </div>
             </div>
@@ -670,7 +670,7 @@
           <div class="row" style="gap:4px;"><span class="badge green" style="font-size:9px;">En cours</span><span class="dot green" style="width:5px;height:5px;"></span></div>
         </div>
         <div class="item urgent" style="margin:8px 10px;border-radius:8px;">
-          <div class="title" style="font-size:12px;margin-bottom:4px;">Checkpoint — 2 factures</div>
+          <div class="title" style="font-size:12px;margin-bottom:4px;">Checkpoint : 2 factures</div>
           <button class="btn sec" style="width:100%;padding:8px;font-size:12px;margin-top:4px;">Ouvrir le terminal</button>
         </div>
         <div style="display:flex;border-bottom:1px solid #21262d;padding:0 10px;">
@@ -705,7 +705,7 @@
 <!-- ================================================================== -->
 <div class="screen" id="s4">
   <div class="screen-header">
-    <h2>Terminal — Raw</h2>
+    <h2>Terminal ,  Raw</h2>
     <p>Le terminal tmux brut. Onglets de sessions, barre de statut. Pas de fioritures.</p>
   </div>
   <div class="pair">
@@ -787,7 +787,7 @@
 <div class="screen" id="s5">
   <div class="screen-header">
     <h2>Nouveau dossier</h2>
-    <p>Instruction libre en haut, recommandations de l'assistant en dessous — les memes cartes que sur la Home.</p>
+    <p>Instruction libre en haut, recommandations de l'assistant en dessous ,  les memes cartes que sur la Home.</p>
   </div>
   <div class="pair">
     <div class="desktop">
@@ -925,7 +925,7 @@
           <div style="flex:1;overflow-y:auto;padding:20px 24px;">
             <div class="item warn">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
-                <span class="title">Connexion exali.com — MFA bloquant</span>
+                <span class="title">Connexion exali.com ,  MFA bloquant</span>
                 <span class="meta">14 mars 2026</span>
               </div>
               <div class="desc" style="margin-bottom:8px;">Le site demande un MFA par app mobile. Je ne peux pas lire les codes TOTP.</div>
@@ -944,14 +944,14 @@
             </div>
             <div class="item info">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
-                <span class="title">Format facture Sopra — nouveau champ</span>
+                <span class="title">Format facture Sopra ,  nouveau champ</span>
                 <span class="meta">13 mars 2026</span>
               </div>
               <div class="desc">Nouveau champ "numero de commande" obligatoire. Mettre a jour /comptable.</div>
             </div>
             <div class="item info">
               <div class="row" style="justify-content:space-between;margin-bottom:6px;">
-                <span class="title">Portail bancaire — captcha recurrent</span>
+                <span class="title">Portail bancaire ,  captcha recurrent</span>
                 <span class="meta">12 mars 2026</span>
               </div>
               <div class="desc">Captcha a chaque connexion. Anti-detection aide mais reste frequent.</div>

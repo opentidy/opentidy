@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Let users create complete OpenTidy modules via an agent session — with MCP tools for validation/registration, a search provider for MCP package discovery, and a web app button to launch creation sessions.
+**Goal:** Let users create complete OpenTidy modules via an agent session; with MCP tools for validation/registration, a search provider for MCP package discovery, and a web app button to launch creation sessions.
 
-**Architecture:** Three layers — MCP tools (`search_mcp_packages`, `validate_module`, `register_module`) in the existing OpenTidy MCP server, a `create-module` skill in the opentidy module manifest, and a "Create Module" button in the web app that spawns an interactive agent session. Custom modules are stored in `~/.config/opentidy/modules/` with the same structure as curated modules.
+**Architecture:** Three layers. MCP tools (`search_mcp_packages`, `validate_module`, `register_module`) in the existing OpenTidy MCP server, a `create-module` skill in the opentidy module manifest, and a "Create Module" button in the web app that spawns an interactive agent session. Custom modules are stored in `~/.config/opentidy/modules/` with the same structure as curated modules.
 
 **Tech Stack:** Hono (backend), MCP SDK (`@modelcontextprotocol/sdk`), Zod (validation), React 19 (frontend), Vitest (testing)
 
@@ -97,7 +97,7 @@ Remove the schema definitions, their type exports (`MarketplaceMcpInput`), and t
 
 - [ ] **Step 3: Add `permissions` field to `ModuleManifestSchema`**
 
-The `ModuleManifestSchema` currently lacks a `permissions` field for macOS permissions — it's silently stripped on parse. Add:
+The `ModuleManifestSchema` currently lacks a `permissions` field for macOS permissions; it's silently stripped on parse. Add:
 
 ```typescript
 permissions: z.array(z.string()).optional(),
@@ -204,12 +204,12 @@ describe('loadCustomModules', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- loader.test`
-Expected: FAIL — `loadCustomModules` is not defined.
+Expected: FAIL (`loadCustomModules` is not defined.)
 
 - [ ] **Step 3: Implement `loadCustomModules`**
 
 Read `apps/backend/src/features/modules/loader.ts`. Add `loadCustomModules(customModulesDir: string, curatedNames?: Set<string>): Map<string, ModuleManifest>`:
-- If directory doesn't exist, return empty Map (no error — first-time user has no custom modules)
+- If directory doesn't exist, return empty Map (no error, first-time user has no custom modules)
 - Same scan logic as `loadCuratedModules` (read subdirs, load `module.json`, validate with Zod)
 - Skip modules whose name is in `curatedNames` (log warning)
 - Return `Map<string, ModuleManifest>`
@@ -265,7 +265,7 @@ for (const [name] of customModules) {
 if (configDirty) saveConfig(config);
 ```
 
-This handles the case where a custom module directory exists on disk (manually created, restored from backup) but has no config entry — without this, the module wouldn't appear in the web app.
+This handles the case where a custom module directory exists on disk (manually created, restored from backup) but has no config entry; without this, the module wouldn't appear in the web app.
 
 - [ ] **Step 4: Build to verify**
 
@@ -358,7 +358,7 @@ describe('resolveProvider', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- search-provider.test`
-Expected: FAIL — module not found.
+Expected: FAIL (module not found.)
 
 - [ ] **Step 3: Implement SearchProvider**
 
@@ -508,7 +508,7 @@ describe('search_mcp_packages tool', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- search-packages.test`
-Expected: FAIL — module not found.
+Expected: FAIL (module not found.)
 
 - [ ] **Step 3: Implement the tool**
 
@@ -641,15 +641,15 @@ describe('validateModule', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- validate-module.test`
-Expected: FAIL — module not found.
+Expected: FAIL (module not found.)
 
 - [ ] **Step 3: Implement `validateModule` function and MCP tool**
 
 Create `apps/backend/src/features/mcp-server/tools/validate-module.ts`:
 
 The file exports:
-1. `validateModule(name: string, customModulesDir: string, curatedNames: Set<string>): { valid: boolean; errors: string[] }` — pure validation function (testable without MCP)
-2. `registerValidateModuleTools(server, deps)` — registers the MCP tool that calls `validateModule`
+1. `validateModule(name: string, customModulesDir: string, curatedNames: Set<string>): { valid: boolean; errors: string[] }`, pure validation function (testable without MCP)
+2. `registerValidateModuleTools(server, deps)`; registers the MCP tool that calls `validateModule`
 
 Validation checks (as a pipeline of check functions):
 1. Name matches `MODULE_NAME_REGEX` (imported from `@opentidy/shared`)
@@ -751,7 +751,7 @@ describe('register_module tool', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- register-module.test`
-Expected: FAIL — module not found.
+Expected: FAIL (module not found.)
 
 - [ ] **Step 3: Implement the tool**
 
@@ -770,7 +770,7 @@ export function registerRegisterModuleTools(server: McpServer, deps: RegisterMod
     description: 'Validate and register a custom module from ~/.config/opentidy/modules/<name>/. The module must have a valid module.json. After registration, the module appears in the web app ready to be enabled.',
     inputSchema: { name: z.string().regex(/^[a-z0-9-]+$/) },
   }, async ({ name }) => {
-    // 1. Call validateModule — return errors if invalid
+    // 1. Call validateModule, return errors if invalid
     // 2. Load manifest from disk
     // 3. Call lifecycle.registerCustomModule(name, manifest)
     // 4. Return success message
@@ -860,7 +860,7 @@ Add a `skills` field to the manifest:
   "skills": [
     {
       "name": "create-module",
-      "content": "You are creating an OpenTidy module. A module is a directory containing a `module.json` manifest and optional associated files.\n\n## Module Directory\n\nYou are working in the module directory provided in your instructions. All files you create go there.\n\n## module.json Format\n\n```json\n{\n  \"name\": \"my-module\",        // kebab-case, unique\n  \"label\": \"My Module\",       // display name\n  \"description\": \"What it does\",\n  \"icon\": \"🔧\",               // emoji\n  \"version\": \"1.0.0\",\n  // Optional components — include only what's needed:\n  \"mcpServers\": [{ \"name\": \"server-name\", \"command\": \"npx\", \"args\": [\"-y\", \"package-name\"] }],\n  \"skills\": [{ \"name\": \"skill-name\", \"content\": \"Skill prompt text\" }],\n  \"receivers\": [{ \"name\": \"receiver-name\", \"mode\": \"webhook\", \"source\": \"service\", \"transform\": \"./transform.ts\" }],\n  \"toolPermissions\": {\n    \"scope\": \"per-call\",\n    \"safe\": [{ \"tool\": \"mcp__server__tool\", \"label\": \"Description\" }],\n    \"critical\": [{ \"tool\": \"mcp__server__send\", \"label\": \"Description\" }]\n  },\n  \"setup\": {\n    \"authCommand\": \"command to run for auth\",\n    \"checkCommand\": \"command to verify setup\",\n    \"configFields\": [{ \"key\": \"apiKey\", \"label\": \"API Key\", \"type\": \"password\", \"required\": true }]\n  },\n  \"platform\": \"all\"\n}\n```\n\n## Component Guide\n\n- **mcpServers**: Process-based (`command`/`args`) or HTTP (`url`). Use `envFromConfig` to inject config values as env vars.\n- **skills**: Agent prompts. `name` + `content` (the prompt text injected into agent config).\n- **receivers**: Event sources. `webhook` (needs `transform` function), `polling` (needs `entry` + `pollInterval`), `long-running` (needs `entry`).\n- **toolPermissions**: `safe` = read-only/no side effects. `critical` = actions requiring approval. `scope`: `per-call` (ask every time) or `per-task` (ask once per task).\n- **setup**: `authCommand` run interactively for first-time auth. `checkCommand` verifies setup is complete. `configFields` shown in UI.\n\n## Workflow\n\n1. Ask what the user wants the module to do\n2. If an MCP server is needed, use `search_mcp_packages` to find the right package\n3. Create the `module.json` and any associated files (transform.ts, receiver.ts, setup scripts)\n4. Use `validate_module` to check everything is correct\n5. Fix any errors\n6. Use `register_module` to register the module\n7. Tell the user to enable and test the module in the web app\n\n## Examples\n\n### Skill-only module\n```json\n{ \"name\": \"code-review\", \"label\": \"Code Review\", \"description\": \"Code review guidelines\", \"icon\": \"🔍\", \"version\": \"1.0.0\", \"skills\": [{ \"name\": \"review\", \"content\": \"When reviewing code, check for...\" }] }\n```\n\n### MCP module (like Telegram)\n```json\n{ \"name\": \"telegram\", \"label\": \"Telegram\", \"description\": \"Send and receive Telegram messages\", \"icon\": \"📱\", \"version\": \"1.0.0\", \"mcpServers\": [{ \"name\": \"telegram\", \"command\": \"npx\", \"args\": [\"-y\", \"telegram-mcp\"], \"envFromConfig\": { \"TELEGRAM_BOT_TOKEN\": \"botToken\" } }], \"setup\": { \"configFields\": [{ \"key\": \"botToken\", \"label\": \"Bot Token\", \"type\": \"password\", \"required\": true }, { \"key\": \"chatId\", \"label\": \"Chat ID\", \"type\": \"text\", \"required\": true }] }, \"toolPermissions\": { \"scope\": \"per-call\", \"safe\": [{ \"tool\": \"mcp__telegram__get_updates\", \"label\": \"Get updates\" }], \"critical\": [{ \"tool\": \"mcp__telegram__send_message\", \"label\": \"Send message\" }] } }\n```\n\n### Full module (MCP + receiver + toolPermissions)\n```json\n{ \"name\": \"gmail\", \"label\": \"Gmail\", \"description\": \"Read, search, and draft emails\", \"icon\": \"📧\", \"version\": \"1.0.0\", \"mcpServers\": [{ \"name\": \"gmail\", \"command\": \"npx\", \"args\": [\"-y\", \"@gongrzhe/server-gmail-autoauth-mcp\"] }], \"receivers\": [{ \"name\": \"gmail-webhook\", \"mode\": \"webhook\", \"source\": \"gmail\", \"transform\": \"./transform.ts\" }], \"setup\": { \"authCommand\": \"npx -y @gongrzhe/server-gmail-autoauth-mcp auth\", \"checkCommand\": \"test -f ~/.gmail-mcp/credentials.json\" }, \"toolPermissions\": { \"scope\": \"per-call\", \"safe\": [{ \"tool\": \"mcp__gmail__search\", \"label\": \"Search inbox\" }], \"critical\": [{ \"tool\": \"mcp__gmail__send\", \"label\": \"Send emails\" }] } }\n```"
+      "content": "You are creating an OpenTidy module. A module is a directory containing a `module.json` manifest and optional associated files.\n\n## Module Directory\n\nYou are working in the module directory provided in your instructions. All files you create go there.\n\n## module.json Format\n\n```json\n{\n  \"name\": \"my-module\",        // kebab-case, unique\n  \"label\": \"My Module\",       // display name\n  \"description\": \"What it does\",\n  \"icon\": \"🔧\",               // emoji\n  \"version\": \"1.0.0\",\n  // Optional components; include only what's needed:\n  \"mcpServers\": [{ \"name\": \"server-name\", \"command\": \"npx\", \"args\": [\"-y\", \"package-name\"] }],\n  \"skills\": [{ \"name\": \"skill-name\", \"content\": \"Skill prompt text\" }],\n  \"receivers\": [{ \"name\": \"receiver-name\", \"mode\": \"webhook\", \"source\": \"service\", \"transform\": \"./transform.ts\" }],\n  \"toolPermissions\": {\n    \"scope\": \"per-call\",\n    \"safe\": [{ \"tool\": \"mcp__server__tool\", \"label\": \"Description\" }],\n    \"critical\": [{ \"tool\": \"mcp__server__send\", \"label\": \"Description\" }]\n  },\n  \"setup\": {\n    \"authCommand\": \"command to run for auth\",\n    \"checkCommand\": \"command to verify setup\",\n    \"configFields\": [{ \"key\": \"apiKey\", \"label\": \"API Key\", \"type\": \"password\", \"required\": true }]\n  },\n  \"platform\": \"all\"\n}\n```\n\n## Component Guide\n\n- **mcpServers**: Process-based (`command`/`args`) or HTTP (`url`). Use `envFromConfig` to inject config values as env vars.\n- **skills**: Agent prompts. `name` + `content` (the prompt text injected into agent config).\n- **receivers**: Event sources. `webhook` (needs `transform` function), `polling` (needs `entry` + `pollInterval`), `long-running` (needs `entry`).\n- **toolPermissions**: `safe` = read-only/no side effects. `critical` = actions requiring approval. `scope`: `per-call` (ask every time) or `per-task` (ask once per task).\n- **setup**: `authCommand` run interactively for first-time auth. `checkCommand` verifies setup is complete. `configFields` shown in UI.\n\n## Workflow\n\n1. Ask what the user wants the module to do\n2. If an MCP server is needed, use `search_mcp_packages` to find the right package\n3. Create the `module.json` and any associated files (transform.ts, receiver.ts, setup scripts)\n4. Use `validate_module` to check everything is correct\n5. Fix any errors\n6. Use `register_module` to register the module\n7. Tell the user to enable and test the module in the web app\n\n## Examples\n\n### Skill-only module\n```json\n{ \"name\": \"code-review\", \"label\": \"Code Review\", \"description\": \"Code review guidelines\", \"icon\": \"🔍\", \"version\": \"1.0.0\", \"skills\": [{ \"name\": \"review\", \"content\": \"When reviewing code, check for...\" }] }\n```\n\n### MCP module (like Telegram)\n```json\n{ \"name\": \"telegram\", \"label\": \"Telegram\", \"description\": \"Send and receive Telegram messages\", \"icon\": \"📱\", \"version\": \"1.0.0\", \"mcpServers\": [{ \"name\": \"telegram\", \"command\": \"npx\", \"args\": [\"-y\", \"telegram-mcp\"], \"envFromConfig\": { \"TELEGRAM_BOT_TOKEN\": \"botToken\" } }], \"setup\": { \"configFields\": [{ \"key\": \"botToken\", \"label\": \"Bot Token\", \"type\": \"password\", \"required\": true }, { \"key\": \"chatId\", \"label\": \"Chat ID\", \"type\": \"text\", \"required\": true }] }, \"toolPermissions\": { \"scope\": \"per-call\", \"safe\": [{ \"tool\": \"mcp__telegram__get_updates\", \"label\": \"Get updates\" }], \"critical\": [{ \"tool\": \"mcp__telegram__send_message\", \"label\": \"Send message\" }] } }\n```\n\n### Full module (MCP + receiver + toolPermissions)\n```json\n{ \"name\": \"gmail\", \"label\": \"Gmail\", \"description\": \"Read, search, and draft emails\", \"icon\": \"📧\", \"version\": \"1.0.0\", \"mcpServers\": [{ \"name\": \"gmail\", \"command\": \"npx\", \"args\": [\"-y\", \"@gongrzhe/server-gmail-autoauth-mcp\"] }], \"receivers\": [{ \"name\": \"gmail-webhook\", \"mode\": \"webhook\", \"source\": \"gmail\", \"transform\": \"./transform.ts\" }], \"setup\": { \"authCommand\": \"npx -y @gongrzhe/server-gmail-autoauth-mcp auth\", \"checkCommand\": \"test -f ~/.gmail-mcp/credentials.json\" }, \"toolPermissions\": { \"scope\": \"per-call\", \"safe\": [{ \"tool\": \"mcp__gmail__search\", \"label\": \"Search inbox\" }], \"critical\": [{ \"tool\": \"mcp__gmail__send\", \"label\": \"Send emails\" }] } }\n```"
     }
   ]
 }
@@ -1009,7 +1009,7 @@ After removing from config and manifests, if the module's `source` is `'custom'`
 
 - [ ] **Step 4: Add a test for directory cleanup**
 
-Add a test in `remove.test.ts` that verifies the directory is actually deleted when removing a custom module. Create a temp dir, register it, then remove — assert the directory no longer exists.
+Add a test in `remove.test.ts` that verifies the directory is actually deleted when removing a custom module. Create a temp dir, register it, then remove; assert the directory no longer exists.
 
 - [ ] **Step 5: Run tests**
 
@@ -1054,7 +1054,7 @@ Also remove unused marketplace i18n strings (`toolbox.marketplace*`).
 
 - [ ] **Step 3: Add the "Create Module" button and dialog**
 
-Add a button at the top of the modules panel. On click, show a simple dialog asking for the module name (validate against `/^[a-z0-9-]+$/` client-side). On submit, call `POST /api/modules/create-session`. On success, navigate to the session/task view using React Router's `useNavigate()` — the target route depends on the existing routing setup (check `apps/web/src/` for route definitions, likely something like `/tasks/:taskId`).
+Add a button at the top of the modules panel. On click, show a simple dialog asking for the module name (validate against `/^[a-z0-9-]+$/` client-side). On submit, call `POST /api/modules/create-session`. On success, navigate to the session/task view using React Router's `useNavigate()`, the target route depends on the existing routing setup (check `apps/web/src/` for route definitions, likely something like `/tasks/:taskId`).
 
 - [ ] **Step 4: Run frontend dev to verify**
 
@@ -1070,7 +1070,7 @@ git commit -m "feat(web): add Create Module button and name dialog"
 
 ---
 
-### Task 16: Integration test — full flow
+### Task 16: Integration test: full flow
 
 **Files:**
 - Create: `apps/backend/src/features/modules/integration.test.ts`
@@ -1080,8 +1080,8 @@ git commit -m "feat(web): add Create Module button and name dialog"
 Test the full flow:
 1. Create a temp directory simulating `~/.config/opentidy/modules/`
 2. Write a valid `module.json` for a test module
-3. Call `validateModule` — assert valid
-4. Call the shared registration logic — assert module appears in config and manifests
+3. Call `validateModule`, assert valid
+4. Call the shared registration logic; assert module appears in config and manifests
 5. Verify the module would appear in `listModules` response
 
 ```typescript

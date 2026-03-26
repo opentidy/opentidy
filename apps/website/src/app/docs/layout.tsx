@@ -13,7 +13,7 @@ export default function DocsLayout({
     <>
       <DocsHeader />
 
-      {/* Subtle emerald glow — top right, matching homepage vibe */}
+      {/* Subtle emerald glow, top right, matching homepage vibe */}
       <div
         className="pointer-events-none fixed top-0 right-0 -z-10"
         style={{
@@ -24,7 +24,7 @@ export default function DocsLayout({
         }}
       />
 
-      {/* Grid lines — same as homepage */}
+      {/* Grid lines (same as homepage) */}
       <div
         className="pointer-events-none fixed inset-0 -z-10 opacity-[0.02]"
         style={{

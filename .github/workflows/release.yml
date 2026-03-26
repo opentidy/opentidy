@@ -43,7 +43,7 @@ jobs:
           # for the @opentidy/backend package. It also copies dist/ and package.json.
           pnpm --filter @opentidy/backend deploy ./release --prod --legacy
 
-          # The shared package is a workspace dependency — pnpm deploy resolves it
+          # The shared package is a workspace dependency; pnpm deploy resolves it
           # into node_modules, but we also include the source for reference.
           mkdir -p ./release/shared
           cp -r packages/shared/dist/ ./release/shared/dist/

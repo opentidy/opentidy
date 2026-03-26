@@ -15,9 +15,9 @@ export interface ReceiverPlugin {
   source: string;
   /** One-time initialization (connect, auth, etc.) */
   init: () => Promise<void> | void;
-  /** Start receiving — call onMessage for each new message */
+  /** Start receiving: call onMessage for each new message */
   start: (onMessage: (msg: ReceiverPluginMessage) => void) => Promise<void> | void;
-  /** Stop receiving — cleanup resources */
+  /** Stop receiving: cleanup resources */
   stop: () => Promise<void> | void;
 }
 
@@ -27,7 +27,7 @@ export interface ReceiverConfig {
   options?: Record<string, unknown>;
 }
 
-// Built-in receiver factories — keyed by type name
+// Built-in receiver factories, keyed by type name
 const builtinFactories: Record<string, (options?: Record<string, unknown>) => ReceiverPlugin> = {};
 
 export function registerBuiltinReceiver(

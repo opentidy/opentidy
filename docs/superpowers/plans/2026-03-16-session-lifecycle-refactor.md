@@ -1,4 +1,4 @@
-# Session Lifecycle Refactor — `claude -p` Child Process
+# Session Lifecycle Refactor: `claude -p` Child Process
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -36,9 +36,9 @@
 | File | Changes |
 |------|---------|
 | `apps/backend/scripts/on-stop.sh` | Keep for interactive mode only. No changes needed (already signal-only). |
-| `plugins/opentidy-hooks/hooks/hooks.json` | No changes — hooks still fire in `-p` mode for audit + security guards. |
+| `plugins/opentidy-hooks/hooks/hooks.json` | No changes. Hooks still fire in `-p` mode for audit + security guards. |
 | `workspace/CLAUDE.md` | Remove `/exit` references. Update "mode autonome" language. |
-| `apps/backend/src/terminal/bridge.ts` | No changes — still used for interactive mode. |
+| `apps/backend/src/terminal/bridge.ts` | No changes. Still used for interactive mode. |
 
 ### Deleted / deprecated
 | File | Status |
@@ -103,7 +103,7 @@ describe('AutonomousExecutor', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `pnpm --filter @opentidy/backend test -- tests/launcher/autonomous-executor.test.ts`
-Expected: FAIL — module not found
+Expected: FAIL (module not found)
 
 - [ ] **Step 3: Implement the autonomous executor**
 
@@ -172,7 +172,7 @@ export function createAutonomousExecutor() {
         if (event.sessionId) extractedSessionId = event.sessionId;
         for (const cb of outputCallbacks) cb(event);
       } catch {
-        // Non-JSON line — ignore
+        // Non-JSON line, ignore
       }
     });
 
@@ -272,7 +272,7 @@ Run: `pnpm --filter @opentidy/backend test -- tests/launcher/autonomous-executor
 
 ```bash
 git add apps/backend/src/launcher/autonomous-executor.ts apps/backend/tests/launcher/autonomous-executor.test.ts
-git commit -m "feat(launcher): add autonomous executor — claude -p child process with stream-json parsing"
+git commit -m "feat(launcher): add autonomous executor, claude -p child process with stream-json parsing"
 ```
 
 ---
@@ -287,7 +287,7 @@ git commit -m "feat(launcher): add autonomous executor — claude -p child proce
 In `packages/shared/src/types.ts`:
 
 ```typescript
-// Update SessionStatus — add 'takeover' for transition state
+// Update SessionStatus to add 'takeover' for transition state
 export type SessionStatus = 'active' | 'idle' | 'mfa' | 'finished' | 'takeover';
 
 // Add mode to Session
@@ -307,8 +307,8 @@ export type SSEEventType =
   | 'session:ended'
   | 'session:idle'
   | 'session:active'
-  | 'session:output'        // NEW — streaming output from autonomous session
-  | 'session:mode-changed'  // NEW — autonomous ↔ interactive transition
+  | 'session:output'        // NEW: streaming output from autonomous session
+  | 'session:mode-changed'  // NEW: autonomous ↔ interactive transition
   | 'checkpoint:created'
   | 'checkpoint:resolved'
   | 'suggestion:created'
@@ -332,7 +332,7 @@ git commit -m "feat(shared): add session mode (autonomous/interactive) and new S
 
 ---
 
-### Task 3: Refactor session.ts — dual-mode launcher
+### Task 3: Refactor session.ts for dual-mode launcher
 
 **Files:**
 - Modify: `apps/backend/src/launcher/session.ts`
@@ -347,7 +347,7 @@ This is the core change. The launcher supports two modes:
 Add to the internal `sessions` Map value:
 ```typescript
 interface InternalSession extends Session {
-  processHandle?: ProcessHandle; // autonomous mode — child process ref
+  processHandle?: ProcessHandle; // autonomous mode, child process ref
 }
 ```
 
@@ -380,7 +380,7 @@ The new flow:
 6. Wire output → SSE `session:output`
 7. Record session with `mode: 'autonomous'`
 
-Key change — replace lines 128-179 (tmux spawn + sendKeys polling) with:
+Key change: replace lines 128-179 (tmux spawn + sendKeys polling) with:
 
 ```typescript
 // Spawn autonomous child process
@@ -444,14 +444,14 @@ deps.sse.emit({ type: 'session:started', data: { dossierId, mode: 'autonomous' }
 deps.notify.notifyStarted?.(dossierId);
 ```
 
-- [ ] **Step 4: Add `handleAutonomousExit()` — the core lifecycle handler**
+- [ ] **Step 4: Add `handleAutonomousExit()`, the core lifecycle handler**
 
 ```typescript
 function handleAutonomousExit(dossierId: string): void {
   const dossierDir = path.join(deps.workspaceDir, dossierId);
   const now = new Date().toISOString();
 
-  // Read state.md — guaranteed to be written since process exited
+  // Read state.md (guaranteed to be written since process exited)
   let dossier;
   try {
     dossier = deps.workspace.getDossier(dossierId);
@@ -589,20 +589,20 @@ async function releaseControl(dossierId: string): Promise<void> {
   const dossier = deps.workspace.getDossier(dossierId);
 
   if (dossier.status === 'TERMINÉ') {
-    // Done — cleanup
+    // Done, cleanup
     handleAutonomousExit(dossierId);
     return;
   }
 
   if (dossier.status === 'BLOQUÉ') {
-    // Still blocked — just update mode, don't relaunch
+    // Still blocked; just update mode, don't relaunch
     sessions.delete(dossierId);
     deps.locks.release(dossierId);
     deps.sse.emit({ type: 'session:ended', data: { dossierId }, timestamp: new Date().toISOString() });
     return;
   }
 
-  // EN COURS — relaunch as autonomous with --resume
+  // EN COURS: relaunch as autonomous with --resume
   sessions.delete(dossierId);
   deps.locks.release(dossierId);
   await launchSession(dossierId, { source: 'system', content: 'Continue ton travail.' });
@@ -618,8 +618,8 @@ Add `takeControl` and `releaseControl` to the returned object.
 Update `tests/launcher/session.test.ts`:
 - Mock `autonomousExecutor` instead of (or alongside) tmux executor
 - Test `handleAutonomousExit` for each state (TERMINÉ, BLOQUÉ, EN COURS)
-- Test `takeControl()` — kills child process, launches tmux
-- Test `releaseControl()` — kills tmux, relaunches as `-p`
+- Test `takeControl()`: kills child process, launches tmux
+- Test `releaseControl()`: kills tmux, relaunches as `-p`
 
 - [ ] **Step 8: Build + test**
 
@@ -629,12 +629,12 @@ Run: `pnpm --filter @opentidy/backend build && pnpm --filter @opentidy/backend t
 
 ```bash
 git add apps/backend/src/launcher/session.ts apps/backend/tests/launcher/session.test.ts
-git commit -m "feat(launcher): dual-mode sessions — autonomous (claude -p) + interactive (tmux --resume)"
+git commit -m "feat(launcher): dual-mode sessions, autonomous (claude -p) + interactive (tmux --resume)"
 ```
 
 ---
 
-### Task 4: Simplify watchdog — remove tmux polling
+### Task 4: Simplify watchdog by removing tmux polling
 
 **Files:**
 - Modify: `apps/backend/src/launcher/watchdog.ts`
@@ -709,7 +709,7 @@ export function createWorkspaceWatcher(deps: {
 
 - [ ] **Step 2: Update watchdog tests**
 
-Rewrite tests to only test fs.watch behavior — remove all tmux/capturePane/idle tests.
+Rewrite tests to only test fs.watch behavior. Remove all tmux/capturePane/idle tests.
 
 - [ ] **Step 3: Build + test**
 
@@ -719,7 +719,7 @@ Run: `pnpm --filter @opentidy/backend build && pnpm --filter @opentidy/backend t
 
 ```bash
 git add apps/backend/src/launcher/watchdog.ts apps/backend/tests/launcher/watchdog.test.ts
-git commit -m "refactor(watchdog): strip to fs.watch only — lifecycle handled by process exit"
+git commit -m "refactor(watchdog): strip to fs.watch only, lifecycle handled by process exit"
 ```
 
 ---
@@ -738,7 +738,7 @@ Remove all lifecycle signal routing (`handleLifecycleSignal`, `launchPostSession
 
 ```typescript
 function handleStop(dossierId: string, payload: HookPayload): void {
-  // In autonomous mode: this comes via stream-json, not HTTP — so rarely called
+  // In autonomous mode: this comes via stream-json, not HTTP, so rarely called
   // In interactive mode: on-stop.sh signals state changes
   deps.sse.emit({
     type: 'session:active',
@@ -749,7 +749,7 @@ function handleStop(dossierId: string, payload: HookPayload): void {
 }
 ```
 
-Remove `lastProcessedState` dedup Map — no longer needed.
+Remove `lastProcessedState` dedup Map (no longer needed).
 
 - [ ] **Step 2: Update tests**
 
@@ -761,7 +761,7 @@ Remove lifecycle signal tests. Keep audit, PostToolUse, PreToolUse, Notification
 
 ```bash
 git add apps/backend/src/hooks/handler.ts apps/backend/tests/hooks/handler.test.ts
-git commit -m "refactor(hooks): simplify — lifecycle handled by process exit, hooks for audit only"
+git commit -m "refactor(hooks): simplify, lifecycle handled by process exit, hooks for audit only"
 ```
 
 ---
@@ -851,7 +851,7 @@ git commit -m "feat(server): wire autonomous executor + take/release control API
 - [ ] **Step 1: Update session instructions**
 
 Replace references to `/exit` with process-exit-aware language:
-- Remove: "fais `/exit`" — in `-p` mode, Claude stops producing output and the process exits
+- Remove: "fais `/exit`" (in `-p` mode, Claude stops producing output and the process exits)
 - Update: "Personne ne regarde ton terminal" → "Tu travailles en mode autonome."
 - Keep: All state.md format, checkpoint protocol, browser usage, memory rules
 
@@ -864,7 +864,7 @@ git commit -m "docs(workspace): update CLAUDE.md for autonomous -p mode"
 
 ---
 
-## Chunk 2: Frontend — Dual-Mode Terminal + Control Buttons
+## Chunk 2: Frontend, Dual-Mode Terminal + Control Buttons
 
 ### Task 8: Create SessionOutput component
 
@@ -947,7 +947,7 @@ function TerminalPane({ sessionName, dossierId, mode }: {
   if (mode === 'autonomous') {
     return <SessionOutput dossierId={dossierId} />;
   }
-  // Interactive mode — existing ttyd iframe behavior
+  // Interactive mode: existing ttyd iframe behavior
   // ... existing code
 }
 ```
@@ -956,7 +956,7 @@ function TerminalPane({ sessionName, dossierId, mode }: {
 
 ```bash
 git add apps/web/src/components/TerminalPane.tsx
-git commit -m "feat(web): TerminalPane dual-mode — SSE stream for autonomous, ttyd for interactive"
+git commit -m "feat(web): TerminalPane dual-mode, SSE stream for autonomous, ttyd for interactive"
 ```
 
 ---
@@ -1032,8 +1032,8 @@ git commit -m "feat(web): add Prendre/Rendre la main buttons for session mode tr
 - [ ] **Step 1: Update recover()**
 
 On startup, child processes from the previous backend run are dead. Recovery must:
-1. Check for active tmux sessions (interactive mode survivors) — reconcile
-2. Check for dossiers with `status: EN COURS` and no active session — relaunch as autonomous
+1. Check for active tmux sessions (interactive mode survivors) and reconcile
+2. Check for dossiers with `status: EN COURS` and no active session, then relaunch as autonomous
 3. Skip dossiers with `## En attente` or `BLOQUÉ`
 
 ```typescript
@@ -1078,7 +1078,7 @@ git commit -m "feat(launcher): recovery handles both autonomous (relaunch) and i
 
 ---
 
-### Task 12: Integration test — full lifecycle
+### Task 12: Integration test for full lifecycle
 
 **Files:**
 - Create: `apps/backend/tests/launcher/lifecycle-autonomous.test.ts`

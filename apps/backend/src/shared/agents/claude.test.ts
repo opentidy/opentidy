@@ -106,7 +106,7 @@ describe('createClaudeAdapter', () => {
         cwd: '/workspace/task-1',
       });
       expect(args).not.toContain('-p');
-      // No instruction appended — args may be empty or last arg is not a sentence
+      // No instruction appended. Args may be empty or last arg is not a sentence
       if (args.length > 0) {
         const lastArg = args[args.length - 1];
         expect(lastArg).not.toMatch(/^[A-Z][a-z]/);

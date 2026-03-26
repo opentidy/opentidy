@@ -2,7 +2,7 @@
 
 ## Project: OpenTidy
 
-Open-source personal AI assistant. Manages administrative tasks via autonomous AI agent sessions (agent-agnostic — Claude Code, Gemini CLI, Copilot CLI), with hook-based guardrails and a web app. Distributed via Homebrew.
+Open-source personal AI assistant. Manages administrative tasks via autonomous AI agent sessions (agent-agnostic: Claude Code, Gemini CLI, Copilot CLI), with hook-based guardrails and a web app. Distributed via Homebrew.
 
 **Repo:** `opentidy/opentidy` (GitHub org)
 **Homebrew tap:** `opentidy/homebrew-opentidy`
@@ -14,14 +14,14 @@ Open-source personal AI assistant. Manages administrative tasks via autonomous A
 
 **This is a PUBLIC open-source repository. Every file, every commit, every diff is visible to everyone on the internet.**
 
-### Zero personal information — no exceptions
+### Zero personal information, no exceptions
 
 - **NEVER** commit real names (except copyright holder in LICENSE/CLA), email addresses, phone numbers, physical addresses, account IDs, chat IDs, or any PII
 - **NEVER** commit API keys, tokens, bearer tokens, passwords, or secrets of any kind
 - **NEVER** commit URLs pointing to personal infrastructure (Cloudflare tunnels, self-hosted services, personal domains)
 - **NEVER** reference specific user accounts, Telegram chat IDs, Gmail addresses, or real contacts in code, comments, configs, or fixtures
 - **Fixtures and test data** must use only fictitious data: `example.com` emails, placeholder names ("Alice", "Bob"), fake IDs (`chat-123`), generic URLs
-- **Config files** committed to the repo must contain only placeholders or empty values — real config lives in `~/.config/opentidy/` (gitignored)
+- **Config files** committed to the repo must contain only placeholders or empty values. Real config lives in `~/.config/opentidy/` (gitignored)
 
 ### Before every commit
 
@@ -59,14 +59,14 @@ pnpm --filter @opentidy/shared build   # shared types only
 
 ### 8 guiding principles
 
-1. **Speed is not a criterion** — admin tasks, not real-time
-2. **AI agent CLI is the execution engine** — agent-agnostic (Claude Code, Gemini CLI, Copilot CLI), skills, MCP, browser, session resume
-3. **Budget is not a constraint** — Claude Max, no token compromises
-4. **Intelligence lives in Claude, not the code** — backend does plumbing, Claude decides
-5. **No interruption — isolated parallelism** — each task = its own session
-6. **The assistant runs quietly in the background** — hybrid events + crons
-7. **Quick/interactive actions = specialized tool** — not the core system
-8. **Continuous improvement** — gaps.md = natural backlog
+1. **Speed is not a criterion** (admin tasks, not real-time)
+2. **AI agent CLI is the execution engine**: agent-agnostic (Claude Code, Gemini CLI, Copilot CLI), skills, MCP, browser, session resume
+3. **Budget is not a constraint** (Claude Max, no token compromises)
+4. **Intelligence lives in Claude, not the code**: backend does plumbing, Claude decides
+5. **No interruption, isolated parallelism**: each task = its own session
+6. **The assistant runs quietly in the background**: hybrid events + crons
+7. **Quick/interactive actions = specialized tool**, not the core system
+8. **Continuous improvement**: gaps.md = natural backlog
 
 ### Monorepo
 
@@ -78,13 +78,13 @@ opentidy/
 ├── apps/
 │   ├── backend/             # Hono API, daemon, features (VSA)
 │   └── web/                 # React SPA, Vite, features (VSA)
-├── workspace/               # runtime — tasks, state.md, artifacts (gitignored)
+├── workspace/               # runtime: tasks, state.md, artifacts (gitignored)
 └── docs/                    # public documentation
 ```
 
 ### Vertical Slice Architecture (VSA)
 
-Backend and frontend follow VSA — code is organized by feature/domain, not by technical layer. Each feature directory is self-contained: route + handler + logic + colocated tests. An agent opens one directory and has full context.
+Backend and frontend follow VSA: code is organized by feature/domain, not by technical layer. Each feature directory is self-contained: route + handler + logic + colocated tests. An agent opens one directory and has full context.
 
 **Backend** (`apps/backend/src/`):
 ```
@@ -143,14 +143,14 @@ All other features are standalone. Cross-feature deps are injected via `deps` pa
 - Title generation via agent one-shot
 
 **Hooks** (`features/hooks/`):
-- `POST /api/hooks` — audit + SSE for lifecycle events
+- `POST /api/hooks`: audit + SSE for lifecycle events
 
 **Notifications** (`features/notifications/`):
-- Telegram (grammy) — checkpoint notifications, completions, escalations
+- Telegram (grammy): checkpoint notifications, completions, escalations
 
 **Shared** (`shared/`):
 - SQLite (`better-sqlite3`), PID locks, dedup, agent spawner + semaphore, SSE emitter, auth middleware, config, paths
-- Agent abstraction: `shared/agents/` — `AgentAdapter` interface, `resolveAgent()` registry, Claude adapter
+- Agent abstraction: `shared/agents/`: `AgentAdapter` interface, `resolveAgent()` registry, Claude adapter
 
 ### Agent Abstraction
 
@@ -165,22 +165,22 @@ Key files: `spawn-agent.ts` (spawner), `agents/claude.ts` (adapter), `agents/reg
 
 ### Instruction files (2 levels of session context)
 
-**Level 1** — `workspace/INSTRUCTIONS.md` (global, written once):
+**Level 1**, `workspace/INSTRUCTIONS.md` (global, written once):
 - Identity, style, security rules, expected formats, available tools
 - Copied to agent-native file (`CLAUDE.md`, `GEMINI.md`, `AGENTS.md`) at spawn time
 
-**Level 2** — `workspace/<task>/INSTRUCTIONS.md` (generated by backend at each launch):
+**Level 2**, `workspace/<task>/INSTRUCTIONS.md` (generated by backend at each launch):
 - Task objective, confirm mode, event/instruction, contacts
 - Copied to agent-native file at spawn time, stale files from other agents cleaned up
 
 ### Permission System
 
-**Architecture:** module manifests declare `toolPermissions` — each tool tagged as `safe` or `critical`, scoped `per-call` or `per-task`. The user chooses a permission level per module: `allow` / `confirm` / `ask`.
+**Architecture:** module manifests declare `toolPermissions`, each tool tagged as `safe` or `critical`, scoped `per-call` or `per-task`. The user chooses a permission level per module: `allow` / `confirm` / `ask`.
 
 **3 presets:**
-- `supervised` — everything is `ask` (prompt user before each action)
-- `autonomous` — critical tools are `confirm`, safe tools are `allow`
-- `full-auto` — everything is `allow`
+- `supervised`: everything is `ask` (prompt user before each action)
+- `autonomous`: critical tools are `confirm`, safe tools are `allow`
+- `full-auto`: everything is `allow`
 
 **At session launch**, `buildAllowedTools()` produces an `--allowedTools` list from the active manifests. A `type: "command"` PreToolUse hook intercepts `confirm`-level tool calls and calls `POST /api/permissions/check` before proceeding.
 
@@ -188,7 +188,7 @@ Key files: `spawn-agent.ts` (spawner), `agents/claude.ts` (adapter), `agents/reg
 
 **AI role:** limited to generating human-readable summaries for notifications. All decision logic is deterministic.
 
-**Lifecycle hooks:** `plugins/opentidy-hooks/guardrails.json` — `type: "command"` hooks only (Stop/SessionEnd audit, non-blocking). Lifecycle is managed by process exit.
+**Lifecycle hooks:** `plugins/opentidy-hooks/guardrails.json`, `type: "command"` hooks only (Stop/SessionEnd audit, non-blocking). Lifecycle is managed by process exit.
 
 ### Data flow
 
@@ -207,22 +207,22 @@ Gmail webhook / SMS watcher / WhatsApp watcher / Telegram / Web app
 
 Sessions are spawned via `spawn-agent.ts` which delegates to the active `AgentAdapter`. The adapter builds CLI args for its agent.
 
-**Autonomous mode (default)** — Node.js child process via `adapter.buildArgs({ mode: 'one-shot', ... })`:
+**Autonomous mode (default)**: Node.js child process via `adapter.buildArgs({ mode: 'one-shot', ... })`:
 ```bash
 # Example with Claude adapter:
 claude -p --strict-mcp-config --mcp-config '{}' --system-prompt "..." "<instruction>"
 # Process runs in the task cwd, exit = end of session
 ```
 
-**Interactive mode ("Take Over")** — tmux via `adapter.buildArgs({ mode: 'interactive', ... })`:
+**Interactive mode ("Take Over")**: tmux via `adapter.buildArgs({ mode: 'interactive', ... })`:
 ```bash
 tmux new-session -d -s opentidy-<task-id> \
   "cd workspace/<task-id> && <agent-binary> <adapter-generated-args>"
 ```
 
-**One-shot calls** (triage, sweep, memory) — all use `adapter.buildArgs({ mode: 'one-shot', ... })` then `spawnAgent()`.
+**One-shot calls** (triage, sweep, memory): all use `adapter.buildArgs({ mode: 'one-shot', ... })` then `spawnAgent()`.
 
-**Tool permissions** — `--allowedTools` built from module manifests at launch. Confirm-level tools intercepted by PreToolUse hook → `POST /api/permissions/check` → user approve/deny via Telegram.
+**Tool permissions**: `--allowedTools` built from module manifests at launch. Confirm-level tools intercepted by PreToolUse hook → `POST /api/permissions/check` → user approve/deny via Telegram.
 
 ### Browser: Camoufox
 
@@ -236,23 +236,23 @@ Each session has its own Camoufox instance with an isolated profile. Not Chrome/
 **Tech:** React 19, Vite, React Router v7, Tailwind CSS v4 (CSS-first), Zustand, xterm.js
 
 **Pages:**
-- Home — active tasks + suggestions + gaps
-- Task detail — state.md, checkpoint, terminal (xterm.js → ttyd/tmux, interactive mode only), artifacts
-- New task — instruction + confirm mode
-- Notifications — history
+- Home: active tasks + suggestions + gaps
+- Task detail: state.md, checkpoint, terminal (xterm.js → ttyd/tmux, interactive mode only), artifacts
+- New task: instruction + confirm mode
+- Notifications: history
 
 **SSE**: native EventSource → Zustand store in real-time
 
-**React 19**: NEVER use `useMemo`, `useCallback`, or `React.memo` — React Compiler handles memoization.
+**React 19**: NEVER use `useMemo`, `useCallback`, or `React.memo`; React Compiler handles memoization.
 
 ## Code Style
 
 - **TypeScript strict** everywhere
 - **Zod** for validation (schemas in `packages/shared`)
-- **Factory functions** — no classes. Each module exports `createX()` returning an interface. Enables easy mocking in tests.
-- **SSOT** — never duplicate types, constants, or state
-- **Progressive Logging** — `console.error`/`console.warn` with context. `console.log` at boundaries (API route entry, hook handler, Claude spawn). Prefix `[service]` (e.g., `[launcher]`, `[receiver]`, `[triage]`). No logs in loops.
-- **Agent Timeouts** — All agent one-shot calls (triage, checkup, title gen, memory agents) must have a timeout of **1h minimum** (`3_600_000`). Agents can be slow under load (rate limits, queue). The timeout is a zombie guard, not a perf constraint. NEVER set a short timeout (30s, 60s) on an agent call.
+- **Factory functions**: no classes. Each module exports `createX()` returning an interface. Enables easy mocking in tests.
+- **SSOT**: never duplicate types, constants, or state
+- **Progressive Logging**: `console.error`/`console.warn` with context. `console.log` at boundaries (API route entry, hook handler, Claude spawn). Prefix `[service]` (e.g., `[launcher]`, `[receiver]`, `[triage]`). No logs in loops.
+- **Agent Timeouts**: All agent one-shot calls (triage, checkup, title gen, memory agents) must have a timeout of **1h minimum** (`3_600_000`). Agents can be slow under load (rate limits, queue). The timeout is a zombie guard, not a perf constraint. NEVER set a short timeout (30s, 60s) on an agent call.
 
 ## Testing
 
@@ -267,13 +267,13 @@ Each session has its own Camoufox instance with an isolated profile. Not Chrome/
 
 When generating test tasks for OpenTidy (test tasks, debug, feature validation):
 - **NEVER irreversible actions**: no sending real emails to third parties, no transactions, no public posts
-- **Emails only to the configured user** — never to real contacts
+- **Emails only to the configured user**, never to real contacts
 - **Fictitious destinations**: use `example.com` for fake email addresses
 - **Safe navigation**: public sites only (Wikipedia, CoinGecko, Booking), no login on sensitive accounts
 
 ## Git
 
-### Conventional commits (required — Release Please generates changelogs from them)
+### Conventional commits (required; Release Please generates changelogs from them)
 
 Format: `type(scope): message`
 
@@ -293,7 +293,7 @@ Breaking changes: add `!` after scope → `feat(backend)!: redesign triage pipel
 
 ### Commit frequently
 
-**Commit after every logical unit of work** — don't accumulate changes. Examples:
+**Commit after every logical unit of work.** Don't accumulate changes. Examples:
 - Added a new function + its tests → commit
 - Fixed a bug → commit
 - Refactored a module → commit
@@ -314,7 +314,7 @@ Small, focused commits make PRs easy to review and give Release Please good mate
 
 **Agents (Claude Code sessions):**
 - Always work on a feature branch, never on `main`
-- Commit as you go — after each logical step, not at the end
+- Commit as you go, after each logical step, not at the end
 - Push and open a PR when done (use `gh pr create`)
 - Never add `Co-Authored-By`
 - Never force-push or rewrite history
@@ -347,11 +347,11 @@ opentidy logs        # tail log files
 opentidy uninstall   # scoped removal (service, config, data, tunnel)
 ```
 
-**CI/CD:** GitHub Actions (`release.yml`) — tag `v*` → test → build → `pnpm deploy` → tarball → GitHub Release → update Homebrew tap
+**CI/CD:** GitHub Actions (`release.yml`): tag `v*` → test → build → `pnpm deploy` → tarball → GitHub Release → update Homebrew tap
 
 **Config:** `~/.config/opentidy/config.json` (secrets, bearer token, port, update prefs, user info, MCP service states)
 
-**Agent isolation:** each agent gets its own config directory under `~/.config/opentidy/agents/<name>/` (e.g., `CLAUDE_CONFIG_DIR=~/.config/opentidy/agents/claude/`). Config generated by `adapter.writeConfig()` during `opentidy setup` — hooks, permissions, MCP servers. User's personal agent config is never touched.
+**Agent isolation:** each agent gets its own config directory under `~/.config/opentidy/agents/<name>/` (e.g., `CLAUDE_CONFIG_DIR=~/.config/opentidy/agents/claude/`). Config generated by `adapter.writeConfig()` during `opentidy setup`: hooks, permissions, MCP servers. User's personal agent config is never touched.
 
 **Remote access:** Cloudflare Tunnel (Zero Trust) + bearer token auth
 
@@ -360,31 +360,31 @@ opentidy uninstall   # scoped removal (service, config, data, tunnel)
 ## Secrets & Auth
 
 - **Agent auth**: each agent uses its own auth mechanism (Claude = OAuth/Max subscription, Gemini = Google account, Copilot = GitHub subscription). Never hardcode API keys.
-- **Config**: `~/.config/opentidy/config.json` (Telegram tokens, bearer token, port, user info, MCP states) — never committed
+- **Config**: `~/.config/opentidy/config.json` (Telegram tokens, bearer token, port, user info, MCP states), never committed
 - **Cloudflare**: credentials managed by `cloudflared` itself
 - **Never hardcode secrets** in code, committed .env files, or docker-compose
 - **Public repo rule**: if a value is secret or personal, it goes in runtime config (`~/.config/opentidy/`), never in the repo. Code must read from config at runtime, not from hardcoded values.
 
 ## Key Paths
 
-- `apps/backend/src/features/` — backend feature slices (VSA)
-- `apps/backend/src/shared/` — backend cross-cutting code (db, locks, auth, config, sse)
-- `apps/backend/src/cli/` — CLI commands (setup, doctor, status, update, logs, uninstall)
-- `apps/backend/src/server.ts` — route assembler (imports from features/, mounts on Hono)
-- `apps/backend/src/index.ts` — boot orchestrator (deps → server → periodic → listen)
-- `apps/web/src/features/` — frontend feature slices (VSA)
-- `apps/web/src/shared/` — frontend shared (Layout, store, api, i18n, utils)
-- `packages/shared/src/` — shared types, Zod schemas
-- `bin/opentidy` — CLI wrapper (resolves node@22, launches dist/cli.js)
-- `apps/backend/config/claude/` — Claude Code config template
-- `plugins/opentidy-hooks/` — PreToolUse hooks (lifecycle audit)
-- `workspace/` — runtime data (tasks, state.md, artifacts) — **gitignored**
-- `workspace/INSTRUCTIONS.md` — global level 1 prompt (source of truth, not gitignored)
-- `apps/backend/src/shared/agents/` — agent adapters (claude.ts, registry.ts)
-- `apps/backend/src/shared/spawn-agent.ts` — agent-agnostic process spawner
-- `apps/backend/src/features/modules/` — module registry, manifest loader, tool permission resolver
-- `apps/backend/src/features/permissions/` — confirm flow, `POST /api/permissions/check`, pending store
-- `plugins/opentidy-hooks/guardrails.json` — lifecycle hook rules (Stop/SessionEnd audit)
-- `/tmp/opentidy-locks/` — PID lock files runtime
-- `docs/` — public documentation
-- `.github/workflows/release.yml` — CI/CD pipeline
+- `apps/backend/src/features/`: backend feature slices (VSA)
+- `apps/backend/src/shared/`: backend cross-cutting code (db, locks, auth, config, sse)
+- `apps/backend/src/cli/`: CLI commands (setup, doctor, status, update, logs, uninstall)
+- `apps/backend/src/server.ts`: route assembler (imports from features/, mounts on Hono)
+- `apps/backend/src/index.ts`: boot orchestrator (deps → server → periodic → listen)
+- `apps/web/src/features/`: frontend feature slices (VSA)
+- `apps/web/src/shared/`: frontend shared (Layout, store, api, i18n, utils)
+- `packages/shared/src/`: shared types, Zod schemas
+- `bin/opentidy`: CLI wrapper (resolves node@22, launches dist/cli.js)
+- `apps/backend/config/claude/`: Claude Code config template
+- `plugins/opentidy-hooks/`: PreToolUse hooks (lifecycle audit)
+- `workspace/`: runtime data (tasks, state.md, artifacts), **gitignored**
+- `workspace/INSTRUCTIONS.md`: global level 1 prompt (source of truth, not gitignored)
+- `apps/backend/src/shared/agents/`: agent adapters (claude.ts, registry.ts)
+- `apps/backend/src/shared/spawn-agent.ts`: agent-agnostic process spawner
+- `apps/backend/src/features/modules/`: module registry, manifest loader, tool permission resolver
+- `apps/backend/src/features/permissions/`: confirm flow, `POST /api/permissions/check`, pending store
+- `plugins/opentidy-hooks/guardrails.json`: lifecycle hook rules (Stop/SessionEnd audit)
+- `/tmp/opentidy-locks/`: PID lock files runtime
+- `docs/`: public documentation
+- `.github/workflows/release.yml`: CI/CD pipeline

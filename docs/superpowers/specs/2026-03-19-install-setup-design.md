@@ -1,4 +1,4 @@
-# Installation & Setup Zero-Friction — Design Spec
+# Installation & Setup Zero-Friction: Design Spec
 
 **Date:** 2026-03-19
 **Goal:** Reduce installation and setup friction to a single terminal line, then a guided UI experience. Support both human users (technical non-dev) and LLM agents.
@@ -10,22 +10,22 @@ The current setup has too much friction:
 - Heavy dependency chain (Homebrew, node@22, pnpm, tmux, ttyd, python3, cloudflared, Claude CLI, Camoufox, pipx)
 - Multiple OAuth flows that bounce between terminal and browser
 - Manual LaunchAgent activation (`launchctl load`)
-- Bearer token displayed in terminal — user must copy it somewhere
+- Bearer token displayed in terminal, user must copy it somewhere
 - No clear separation between "required to run" and "nice to have"
-- Agent auth (Claude) hardcoded — not agent-agnostic
+- Agent auth (Claude) hardcoded, not agent-agnostic
 
 ## Design Principles
 
-1. **One line to start** — `curl | bash` installs everything and opens the UI
-2. **Never let go** — user is guided continuously, never lost
-3. **Resilient** — any step can be retried independently, no "start over"
-4. **Dual-mode** — human (UI) and LLM agent (API) can complete setup
-5. **Progressive** — core setup first, services at your own pace
-6. **Single surface** — one place to configure things (Settings page), not two (CLI + UI)
+1. **One line to start**: `curl | bash` installs everything and opens the UI
+2. **Never let go**: user is guided continuously, never lost
+3. **Resilient**: any step can be retried independently, no "start over"
+4. **Dual-mode**: human (UI) and LLM agent (API) can complete setup
+5. **Progressive**: core setup first, services at your own pace
+6. **Single surface**: one place to configure things (Settings page), not two (CLI + UI)
 
 ## Architecture: 3 Phases
 
-### Phase 1 — Install (terminal, automatic, ~3 min)
+### Phase 1: Install (terminal, automatic, ~3 min)
 
 **Entry point:**
 ```bash
@@ -43,14 +43,14 @@ The current setup has too much friction:
 8. Open `http://localhost:5175` in default browser
 
 **What it installs:**
-- Homebrew, `node@22`, `pnpm` — build toolchain
-- `tmux`, `ttyd` — session management (required for core functionality)
+- Homebrew, `node@22`, `pnpm`, build toolchain
+- `tmux`, `ttyd`; session management (required for core functionality)
 
 **What it does NOT install (deferred to Phase 2/3 via UI):**
-- Agent CLIs (Claude Code, Gemini CLI, Copilot CLI) — Phase 2
-- `python3`, `pipx`, Camoufox — Phase 3 (optional service)
-- `cloudflared` — Phase 3 (optional service)
-- `wacli` — Phase 3 (optional service)
+- Agent CLIs (Claude Code, Gemini CLI, Copilot CLI), Phase 2
+- `python3`, `pipx`, Camoufox: Phase 3 (optional service)
+- `cloudflared`: Phase 3 (optional service)
+- `wacli`: Phase 3 (optional service)
 
 **What it does NOT do:**
 - No interactive prompts (no questions asked)
@@ -64,27 +64,27 @@ The current setup has too much friction:
 
 **Agent-agnostic:** No agent CLI is installed at this phase. The install script only handles system infrastructure. Agent CLIs are installed in Phase 2 via the UI terminal drawer.
 
-### Phase 2 — Core Setup (UI wizard, first launch)
+### Phase 2: Core Setup (UI wizard, first launch)
 
 The UI detects `config.setupComplete !== true` and displays a **full-screen setup wizard** (not the dashboard). The dashboard is inaccessible until core setup is complete.
 
-#### Step 1 — Welcome + User Info
+#### Step 1: Welcome + User Info
 
 Simple web form:
 - Name (required)
 - Language: fr / en (defaults to browser locale)
 - Single "Continue" button
 
-Minimal — no email, no company. Email is only used as optional context in the generated agent instructions (CLAUDE.md) and can be added later in Settings. The `status.ts` check for "user-info done" must be updated to only require `name`.
+Minimal; no email, no company. Email is only used as optional context in the generated agent instructions (CLAUDE.md) and can be added later in Settings. The `status.ts` check for "user-info done" must be updated to only require `name`.
 
-#### Step 2 — Connect an Agent
+#### Step 2: Connect an Agent
 
 The user must connect at least one AI agent CLI for OpenTidy to function.
 
 **UI shows agent cards:**
-- Claude Code — badge "Stable"
-- Gemini CLI — badge "Experimental"
-- Copilot CLI — badge "Experimental" (or "Coming soon")
+- Claude Code, badge "Stable"
+- Gemini CLI, badge "Experimental"
+- Copilot CLI, badge "Experimental" (or "Coming soon")
 
 **Flow when user clicks "Connect" on an agent:**
 1. A **drawer** slides up from the bottom of the page, containing an embedded terminal (xterm.js)
@@ -92,7 +92,7 @@ The user must connect at least one AI agent CLI for OpenTidy to function.
 3. Once installed, the terminal runs the auth command (e.g., `claude auth login`)
 4. The OAuth popup opens in the browser naturally
 5. When auth completes, the terminal shows a success message
-6. The drawer stays open — shows "Connected" state with a "Close" button. **No auto-close.**
+6. The drawer stays open; shows "Connected" state with a "Close" button. **No auto-close.**
 7. The agent card in the UI updates to "Connected ✓"
 
 **The user can connect multiple agents.** At least one is required to proceed. Only one agent is "active" at a time (configurable in Settings > Agents). Additional agents are available as alternatives.
@@ -106,7 +106,7 @@ The user must connect at least one AI agent CLI for OpenTidy to function.
 - On error: stays open with error visible, "Retry" button available
 - Can be reopened from the agent card if closed
 
-#### Step 3 — macOS Permissions
+#### Step 3: macOS Permissions
 
 List of permission cards, each with:
 - Icon + name (e.g., "Messages", "Mail", "Calendar")
@@ -116,18 +116,18 @@ List of permission cards, each with:
 
 **Required permissions** must be granted to continue. **Optional permissions** can be skipped.
 
-**Full Disk Access** is special — cannot be triggered programmatically:
+**Full Disk Access** is special; cannot be triggered programmatically:
 - Card shows step-by-step instructions with screenshot
 - "Open System Settings" button → opens the right pane
 - "I've done it" button → backend verifies via `osascript`
 
-#### Step 4 — Done
+#### Step 4: Done
 
 - "OpenTidy is ready!"
 - Two CTAs: "Create your first task" → /nouveau | "Configure services" → /settings
-- `config.setupComplete = true` — wizard never shows again
+- `config.setupComplete = true`: wizard never shows again
 
-### Phase 3 — Services Configuration (UI, progressive, Settings page)
+### Phase 3: Services Configuration (UI, progressive, Settings page)
 
 **Location:** The existing Toolbox/Settings page, unified. One place for everything.
 
@@ -135,10 +135,10 @@ After core setup, the dashboard shows a **banner/nudge**:
 > "Enhance OpenTidy: connect Gmail, Telegram, WhatsApp to unlock automatic task detection."
 > [Configure services →]
 
-#### Settings Page — Service Cards
+#### Settings Page: Service Cards
 
 Each service is a card with:
-- Status indicator: `Not configured` / `Connected ✓` / `Error — reconfigure`
+- Status indicator: `Not configured` / `Connected ✓` / `Error, reconfigure`
 - "Configure" button → service-specific inline flow
 - "Test" button → verifies connection works
 - "Disconnect" button
@@ -153,14 +153,14 @@ Each service is a card with:
 | **Camoufox** | "Install" button → terminal drawer opens → runs install command → success → card updates |
 | **Cloudflare Tunnel** | "Connect" → terminal drawer opens → `cloudflared tunnel login` → browser OAuth → then inline form for tunnel name + hostname → backend creates tunnel + DNS + config |
 | **GitHub Issues** | Inline form: PAT token field + owner + repo → "Test" verifies token has repo scope |
-| **Additional agents** | Same flow as Phase 2 Step 2 — agent card + terminal drawer |
+| **Additional agents** | Same flow as Phase 2 Step 2, agent card + terminal drawer |
 | **MCP servers** | Existing Toolbox functionality (marketplace, toggle, add custom) |
 | **Skills** | Existing Toolbox functionality (curated toggle, add custom) |
 
 #### Health Checks
 
 - Each connected service is verified periodically (configurable, default every hour)
-- On failure: card status changes to "Error — reconfigure", banner appears in dashboard
+- On failure: card status changes to "Error; reconfigure", banner appears in dashboard
 - One click → re-run the config flow for that service only
 
 **Health status stored in config per service:**
@@ -199,7 +199,7 @@ interface TerminalDrawerProps {
 
 This is the same component for: agent install, agent auth, WhatsApp QR, Cloudflare setup, Camoufox install, or any future flow that needs a terminal.
 
-#### Terminal Drawer — Backend PTY
+#### Terminal Drawer: Backend PTY
 
 The terminal drawer requires a WebSocket PTY endpoint (new capability, distinct from the existing tmux+ttyd architecture used for agent sessions):
 
@@ -216,7 +216,7 @@ WebSocket  /api/terminal/pty?command=<base64-encoded-command>
 6. PTY processes are tracked and cleaned up on server shutdown
 
 **Security:**
-- This endpoint is **localhost-only** — rejected if `request.headers.host` is not `localhost` or `127.0.0.1`
+- This endpoint is **localhost-only**; rejected if `request.headers.host` is not `localhost` or `127.0.0.1`
 - The `command` parameter is validated against an allowlist of known setup commands (agent install, agent auth, wacli, cloudflared, pipx). Arbitrary command execution is not allowed.
 - Setup-related endpoints (`/api/setup/*`, `/api/terminal/pty`) require auth even on localhost when `config.setupComplete === true`, to prevent post-setup abuse.
 
@@ -295,7 +295,7 @@ An LLM agent can complete the entire setup by calling these endpoints sequential
 - **Auto-start:** LaunchAgent activated during Phase 1 install, `KeepAlive: true`
 - **Stop:** `opentidy stop` CLI or UI Settings > Service > Stop button
 - **Start:** `opentidy start` CLI or UI Settings > Service > Start button
-- **Uninstall:** `opentidy uninstall` CLI — menu: service / config / data / everything
+- **Uninstall:** `opentidy uninstall` CLI; menu: service / config / data / everything
 - **UI Danger Zone:** Settings > Danger Zone > Reset config / Remove everything
 
 ## Config Type Changes
@@ -318,13 +318,13 @@ interface OpenTidyConfig {
 The existing `/toolbox` route becomes `/settings` and is the single location for all configuration:
 
 **Sections:**
-1. **Services** (new) — Telegram, Gmail, WhatsApp, Cloudflare, GitHub, Camoufox service cards
-2. **Agents** (existing, enhanced) — agent cards with connect/disconnect, active agent selector
-3. **MCP Servers** (existing) — marketplace, toggle, add custom
-4. **Skills** (existing) — curated toggle, add custom
-5. **Security** (new) — bearer token reveal, auth settings
-6. **Service Control** (new) — start/stop/restart OpenTidy daemon
-7. **Danger Zone** (existing) — reset config, remove everything
+1. **Services** (new). Telegram, Gmail, WhatsApp, Cloudflare, GitHub, Camoufox service cards
+2. **Agents** (existing, enhanced); agent cards with connect/disconnect, active agent selector
+3. **MCP Servers** (existing); marketplace, toggle, add custom
+4. **Skills** (existing), curated toggle, add custom
+5. **Security** (new); bearer token reveal, auth settings
+6. **Service Control** (new); start/stop/restart OpenTidy daemon
+7. **Danger Zone** (existing); reset config, remove everything
 
 The setup wizard (Phase 2) and the Settings page share the same underlying components (AgentSetup, ServiceCard, PermissionsStep). The wizard is a guided walkthrough; Settings is the freeform access to the same controls.
 
@@ -338,31 +338,31 @@ The current `opentidy setup` CLI command remains functional as a fallback:
 ## Files Impacted
 
 **New files:**
-- `apps/web/src/shared/TerminalDrawer.tsx` — reusable terminal drawer component
-- `apps/web/src/features/settings/SetupWizard.tsx` — full-screen first-run wizard
-- `apps/web/src/features/settings/ServiceCard.tsx` — service config card component
-- `apps/web/src/features/settings/PermissionsStep.tsx` — permissions wizard step
-- `apps/web/src/features/settings/AgentSetup.tsx` — agent connection flow
-- `apps/backend/src/features/setup/` — new feature slice for setup API endpoints
+- `apps/web/src/shared/TerminalDrawer.tsx`: reusable terminal drawer component
+- `apps/web/src/features/settings/SetupWizard.tsx`: full-screen first-run wizard
+- `apps/web/src/features/settings/ServiceCard.tsx`: service config card component
+- `apps/web/src/features/settings/PermissionsStep.tsx`: permissions wizard step
+- `apps/web/src/features/settings/AgentSetup.tsx`: agent connection flow
+- `apps/backend/src/features/setup/`: new feature slice for setup API endpoints
 - `apps/backend/src/features/setup/user-info.ts`
 - `apps/backend/src/features/setup/agents.ts`
 - `apps/backend/src/features/setup/permissions.ts`
 - `apps/backend/src/features/setup/services.ts`
 - `apps/backend/src/features/setup/health.ts`
-- `apps/backend/src/features/terminal/pty.ts` — WebSocket PTY endpoint for terminal drawer
+- `apps/backend/src/features/terminal/pty.ts`: WebSocket PTY endpoint for terminal drawer
 
 **Modified files:**
-- `install.sh` — simplified: silent install, auto-start service, open browser
-- `apps/backend/src/server.ts` — mount setup routes
-- `apps/backend/src/index.ts` — skip periodic tasks if `setupComplete !== true`
-- `apps/web/src/App.tsx` — route guard: redirect to wizard if setup incomplete
-- `apps/web/src/features/settings/` — integrate service cards into existing Toolbox
-- `apps/backend/src/cli/setup.ts` — redirect to UI wizard instead of CLI menu
-- `packages/shared/src/types.ts` — add `setupComplete`, service health types
+- `install.sh`: simplified: silent install, auto-start service, open browser
+- `apps/backend/src/server.ts`: mount setup routes
+- `apps/backend/src/index.ts`: skip periodic tasks if `setupComplete !== true`
+- `apps/web/src/App.tsx`: route guard: redirect to wizard if setup incomplete
+- `apps/web/src/features/settings/`: integrate service cards into existing Toolbox
+- `apps/backend/src/cli/setup.ts`: redirect to UI wizard instead of CLI menu
+- `packages/shared/src/types.ts`: add `setupComplete`, service health types
 
 **Deprecated (not removed yet):**
-- `apps/backend/src/cli/setup/` modules — still functional via CLI fallback
-- `setup.sh` — legacy Mac Mini script
+- `apps/backend/src/cli/setup/` modules, still functional via CLI fallback
+- `setup.sh`: legacy Mac Mini script
 
 ## Not In Scope
 

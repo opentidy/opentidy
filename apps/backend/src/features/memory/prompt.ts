@@ -8,7 +8,7 @@ import type { AppDeps } from '../../server.js';
 export function promptMemoryRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /memory/prompt — natural language → create/update memory
+  // POST /memory/prompt: natural language → create/update memory
   // Registered BEFORE /:filename routes to avoid "prompt" matching as :filename
   router.post('/memory/prompt', async (c) => {
     if (!deps.memoryAgents) return c.json({ error: 'memory agents not available' }, 503);

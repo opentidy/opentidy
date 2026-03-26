@@ -12,7 +12,7 @@
   }],
   "skills": [{
     "name": "browser-skill",
-    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins. If a CAPTCHA appears, wait 15-30 seconds — the CapSolver extension (if configured) solves them automatically. Do NOT interact with CAPTCHA elements yourself."
+    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins. If a CAPTCHA appears, wait 15-30 seconds: the CapSolver extension (if configured) solves them automatically. Do NOT interact with CAPTCHA elements yourself."
   }],
   "setup": {
     "authCommand": "command -v pipx >/dev/null || brew install pipx && pipx install camoufox && camoufox fetch",
@@ -24,7 +24,7 @@
         "type": "password",
         "required": false,
         "storage": "keychain",
-        "placeholder": "CAP-xxx (optional — enables automatic CAPTCHA solving)"
+        "placeholder": "CAP-xxx (optional, enables automatic CAPTCHA solving)"
       }
     ]
   },

@@ -14,7 +14,7 @@ export function createGapsManager(workspaceDir: string) {
     return 'open';
   }
 
-  // Split structured content into sections — supports both `---` separators and `## date —` heading boundaries
+  // Split structured content into sections: supports both `---` separators and `## date :` heading boundaries
   function splitSections(content: string): string[] {
     if (/^---$/m.test(content)) {
       return content.split(/^---$/m).filter(s => s.trim());
@@ -24,7 +24,7 @@ export function createGapsManager(workspaceDir: string) {
     const lines = content.split('\n');
     let current = '';
     for (const line of lines) {
-      if (/^## \d{4}-\d{2}-\d{2} — /.test(line) && current.trim()) {
+      if (/^## \d{4}-\d{2}-\d{2} : /.test(line) && current.trim()) {
         sections.push(current);
         current = '';
       }
@@ -48,7 +48,7 @@ export function createGapsManager(workspaceDir: string) {
   function parseStructuredSections(content: string): Amelioration[] {
     const sections = splitSections(content);
     return sections.map((section, i) => {
-      const title = section.match(/## .+? — (.+)/)?.[1]?.replace(/\[RÉSOLU\]|\[IGNORÉ\]|\[RESOLVED\]|\[IGNORED\]/g, '').trim() ?? '';
+      const title = section.match(/## .+? : (.+)/)?.[1]?.replace(/\[RÉSOLU\]|\[IGNORÉ\]|\[RESOLVED\]|\[IGNORED\]/g, '').trim() ?? '';
       const date = section.match(/## (\d{4}-\d{2}-\d{2})/)?.[1] ?? '';
       const problem = matchField(section, 'Problème', 'Problem');
       const impact = matchField(section, 'Impact');
@@ -97,8 +97,8 @@ export function createGapsManager(workspaceDir: string) {
     if (!fs.existsSync(gapsFile)) return [];
     const content = fs.readFileSync(gapsFile, 'utf-8');
 
-    // Structured format uses --- separators with ## date — title headings
-    const hasStructuredFormat = /^## \d{4}-\d{2}-\d{2} — /m.test(content);
+    // Structured format uses --- separators with ## date : title headings
+    const hasStructuredFormat = /^## \d{4}-\d{2}-\d{2} : /m.test(content);
 
     if (hasStructuredFormat) {
       return parseStructuredSections(content);
@@ -117,7 +117,7 @@ export function createGapsManager(workspaceDir: string) {
     const content = fs.readFileSync(gapsFile, 'utf-8');
 
     // Detect format
-    const hasStructured = /^## \d{4}-\d{2}-\d{2} — /m.test(content);
+    const hasStructured = /^## \d{4}-\d{2}-\d{2} : /m.test(content);
 
     if (!hasStructured) {
       // Legacy bullet format
@@ -139,7 +139,7 @@ export function createGapsManager(workspaceDir: string) {
       }
       fs.writeFileSync(gapsFile, lines.join('\n'));
     } else {
-      // Structured format — use same splitSections logic
+      // Structured format, use same splitSections logic
       const hasSeparators = /^---$/m.test(content);
       const sections = splitSections(content);
       if (index < sections.length) {
@@ -171,7 +171,7 @@ export function createGapsManager(workspaceDir: string) {
   function updateGapFields(index: number, fields: { githubIssueNumber?: number; suggestionSlug?: string }): void {
     if (!fs.existsSync(gapsFile)) return;
     const content = fs.readFileSync(gapsFile, 'utf-8');
-    const hasStructured = /^## \d{4}-\d{2}-\d{2} — /m.test(content);
+    const hasStructured = /^## \d{4}-\d{2}-\d{2} : /m.test(content);
     if (!hasStructured) return;
 
     const sections = splitSections(content);

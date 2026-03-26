@@ -38,7 +38,7 @@ export function createKeychainAdapter(): KeychainAdapter {
         entry.deletePassword();
         console.log(`[keychain] Deleted ${moduleName}/${key}`);
       } catch {
-        // Key not found — that's fine
+        // Key not found, that's fine
       }
     },
   };

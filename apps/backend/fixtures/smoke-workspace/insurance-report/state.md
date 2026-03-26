@@ -24,5 +24,5 @@ DEADLINE: 2026-03-18
 - Insurance support: support@example-insurance.com
 
 ## Log
-- 2026-03-12 — Form downloaded, started filling
-- 2026-03-10 — First login, portal navigation
+- 2026-03-12: Form downloaded, started filling
+- 2026-03-10: First login, portal navigation

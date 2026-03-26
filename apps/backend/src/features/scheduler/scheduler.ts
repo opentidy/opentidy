@@ -86,7 +86,7 @@ export function createScheduler(deps: SchedulerDeps) {
   async function fire(schedule: Schedule): Promise<void> {
     if (schedule.taskId) {
       if (locks.isLocked(schedule.taskId)) {
-        console.log(`[scheduler] Skipping ${schedule.label} — task ${schedule.taskId} is locked`);
+        console.log(`[scheduler] Skipping ${schedule.label}, task ${schedule.taskId} is locked`);
         return; // once stays in DB for retry, recurring waits for next cycle
       }
       console.log(`[scheduler] Firing ${schedule.label} for task ${schedule.taskId}`);
@@ -145,7 +145,7 @@ export function createScheduler(deps: SchedulerDeps) {
         insertStmt.run(null, 'recurring', null, effectiveCheckupInterval, 'checkup', 'Workspace checkup', 'system');
         console.log(`[scheduler] Seeded workspace checkup schedule (${effectiveCheckupInterval}ms)`);
       } else {
-        // Disabled — seed as far-future one-shot so it exists but won't fire
+        // Disabled: seed as far-future one-shot so it exists but won't fire
         insertStmt.run(null, 'once', '9999-12-31T23:59:59Z', null, 'checkup', 'Workspace checkup', 'system');
         console.log('[scheduler] Seeded workspace checkup schedule (disabled)');
       }
@@ -229,7 +229,7 @@ export function createScheduler(deps: SchedulerDeps) {
     disableSystem(id: number): void {
       const existing = getByIdStmt.get(id) as Record<string, unknown> | undefined;
       if (!existing) throw new Error(`Schedule ${id} not found`);
-      // Set interval to null and type to 'once' with a far-future run_at — effectively disabled
+      // Set interval to null and type to 'once' with a far-future run_at (effectively disabled)
       db.prepare("UPDATE schedules SET type = 'once', run_at = '9999-12-31T23:59:59Z', interval_ms = NULL WHERE id = ?").run(id);
       console.log(`[scheduler] System schedule ${id} disabled`);
     },

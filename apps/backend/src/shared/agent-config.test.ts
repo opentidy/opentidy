@@ -109,7 +109,7 @@ describe('syncModuleSkills', () => {
     syncModuleSkills([{ name: 'old-skill', content: 'old' }], testDir);
     expect(existsSync(join(testDir, 'skills', 'old-skill'))).toBe(true);
 
-    // Second sync: different skill — old one should be gone
+    // Second sync: different skill. Old one should be gone.
     syncModuleSkills([{ name: 'new-skill', content: 'new' }], testDir);
     expect(existsSync(join(testDir, 'skills', 'old-skill'))).toBe(false);
     expect(existsSync(join(testDir, 'skills', 'new-skill', 'SKILL.md'))).toBe(true);

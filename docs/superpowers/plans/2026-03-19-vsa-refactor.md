@@ -119,8 +119,8 @@ Every file that imports from the moved modules needs its import path updated. Th
 | `../infra/claude-semaphore.js` | `../shared/claude-semaphore.js` |
 | `../infra/claude-tracker.js` | `../shared/claude-tracker.js` |
 | `../infra/updater.js` | `../shared/updater.js` |
-| `../infra/audit.js` | DO NOT update yet — moves to `features/system/audit.ts` in Task 8 |
-| `../infra/notification-store.js` | DO NOT update yet — moves to `features/notifications/store.ts` in Task 7 |
+| `../infra/audit.js` | DO NOT update yet, moves to `features/system/audit.ts` in Task 8 |
+| `../infra/notification-store.js` | DO NOT update yet, moves to `features/notifications/store.ts` in Task 7 |
 | `../sse/emitter.js` | `../shared/sse.js` |
 | `../middleware/auth.js` | `../shared/auth.js` |
 | `../utils/slug.js` | `../shared/slug.js` |
@@ -133,26 +133,26 @@ Every file that imports from the moved modules needs its import path updated. Th
 | `../platform/service-installer.js` | `../shared/platform/service-installer.js` |
 
 Use grep to find every import reference and update it. Pay special attention to:
-- `src/index.ts` — imports from many infra modules
-- `src/server.ts` — imports auth
-- `src/launcher/session.ts` — imports locks
-- `src/launcher/checkup.ts` — imports spawn-claude, slug, memory-context
-- `src/receiver/triage.ts` — imports spawn-claude, memory-context
-- `src/workspace/title.ts` — imports spawn-claude
-- `src/memory/agents.ts` — imports spawn-claude
-- `src/notifications/telegram.ts` — no internal imports (OK)
-- `src/hooks/handler.ts` — no internal imports (OK)
-- `src/terminal/bridge.ts` — imports clipboard
-- `src/cli/*.ts` — import config, paths
-- `src/daemon.ts` — imports paths
-- `src/boot/periodic-tasks.ts` — imports watchdog
-- All test files — update import paths to `../../src/shared/...` or relative paths
-- Test helpers (mock-deps, mock-request) — update their own imports and all test files that import them
+- `src/index.ts`: imports from many infra modules
+- `src/server.ts`: imports auth
+- `src/launcher/session.ts`: imports locks
+- `src/launcher/checkup.ts`: imports spawn-claude, slug, memory-context
+- `src/receiver/triage.ts`: imports spawn-claude, memory-context
+- `src/workspace/title.ts`: imports spawn-claude
+- `src/memory/agents.ts`: imports spawn-claude
+- `src/notifications/telegram.ts`: no internal imports (OK)
+- `src/hooks/handler.ts`: no internal imports (OK)
+- `src/terminal/bridge.ts`: imports clipboard
+- `src/cli/*.ts`: import config, paths
+- `src/daemon.ts`: imports paths
+- `src/boot/periodic-tasks.ts`: imports watchdog
+- All test files; update import paths to `../../src/shared/...` or relative paths
+- Test helpers (mock-deps, mock-request), update their own imports and all test files that import them
 
 Also update imports **within** moved files:
-- `src/shared/spawn-claude.ts` — imports from `./claude-semaphore.js` (same dir, no change needed)
-- `src/shared/updater.ts` — imports from `./paths.js` (same dir now, adjust if needed)
-- `src/shared/dedup.ts` — may import database (same dir now)
+- `src/shared/spawn-claude.ts`: imports from `./claude-semaphore.js` (same dir, no change needed)
+- `src/shared/updater.ts`: imports from `./paths.js` (same dir now, adjust if needed)
+- `src/shared/dedup.ts`: may import database (same dir now)
 
 - [ ] **Step 6: Verify build passes**
 
@@ -169,7 +169,7 @@ Update `apps/backend/vitest.config.ts`:
 include: ['src/**/*.test.ts', 'tests/**/*.test.ts']
 ```
 
-(Both patterns needed during migration — tests/ still has some files)
+(Both patterns needed during migration, tests/ still has some files)
 
 - [ ] **Step 8: Run tests**
 
@@ -223,15 +223,15 @@ mv src/workspace/title.ts src/features/dossiers/title.ts
 
 Read `src/routes/dossiers.ts` (149 lines). It exports `createDossierRoutes(deps)` which registers all dossier endpoints on a single Hono router. Split each endpoint into its own file:
 
-- `src/features/dossiers/list.ts` — `GET /dossiers` route
-- `src/features/dossiers/get.ts` — `GET /dossiers/:id` route
-- `src/features/dossiers/create.ts` — `POST /dossiers` route
-- `src/features/dossiers/instruct.ts` — `POST /dossiers/:id/instruction` route
-- `src/features/dossiers/complete.ts` — `POST /dossiers/:id/complete` route
-- `src/features/dossiers/resume.ts` — `POST /dossiers/:id/resume` route
-- `src/features/dossiers/waiting-type.ts` — `POST /dossiers/:id/waiting-type` route
-- `src/features/dossiers/upload.ts` — `POST /dossiers/:id/artifacts` route
-- `src/features/dossiers/download.ts` — `GET /dossiers/:id/artifact/:filename` route
+- `src/features/dossiers/list.ts`: `GET /dossiers` route
+- `src/features/dossiers/get.ts`: `GET /dossiers/:id` route
+- `src/features/dossiers/create.ts`: `POST /dossiers` route
+- `src/features/dossiers/instruct.ts`: `POST /dossiers/:id/instruction` route
+- `src/features/dossiers/complete.ts`: `POST /dossiers/:id/complete` route
+- `src/features/dossiers/resume.ts`: `POST /dossiers/:id/resume` route
+- `src/features/dossiers/waiting-type.ts`: `POST /dossiers/:id/waiting-type` route
+- `src/features/dossiers/upload.ts`: `POST /dossiers/:id/artifacts` route
+- `src/features/dossiers/download.ts`: `GET /dossiers/:id/artifact/:filename` route
 
 Each file exports a function like:
 ```ts
@@ -259,14 +259,14 @@ mv tests/workspace/title.test.ts src/features/dossiers/title.test.ts
 - [ ] **Step 5: Update all import paths**
 
 Files that import from workspace/:
-- `src/launcher/session.ts` — `../workspace/state.js` → `../features/dossiers/state.js` (will move later, but update now)
-- `src/routes/dossiers.ts` — `../workspace/state.js` → `../features/dossiers/state.js` (if not yet deleted)
-- `src/index.ts` — update workspace imports
-- All moved test files — update their relative imports
+- `src/launcher/session.ts`: `../workspace/state.js` → `../features/dossiers/state.js` (will move later, but update now)
+- `src/routes/dossiers.ts`: `../workspace/state.js` → `../features/dossiers/state.js` (if not yet deleted)
+- `src/index.ts`: update workspace imports
+- All moved test files, update their relative imports
 
 Files within the moved files:
-- `src/features/dossiers/title.ts` — update import from `../infra/spawn-claude.js` to `../../shared/spawn-claude.js`
-- `src/features/dossiers/state.ts` — check imports
+- `src/features/dossiers/title.ts`: update import from `../infra/spawn-claude.js` to `../../shared/spawn-claude.js`
+- `src/features/dossiers/state.ts`: check imports
 
 - [ ] **Step 6: Build and test**
 
@@ -319,8 +319,8 @@ mv src/launcher/watchdog.ts src/features/checkup/watchdog.ts
 - [ ] **Step 3: Split routes/sessions.ts into individual route files**
 
 Read `src/routes/sessions.ts` (24 lines). Split into:
-- `src/features/sessions/list.ts` — `GET /sessions`
-- `src/features/sessions/stop.ts` — `POST /sessions/:id/stop`
+- `src/features/sessions/list.ts`: `GET /sessions`
+- `src/features/sessions/stop.ts`: `POST /sessions/:id/stop`
 
 Each exports a route function taking `AppDeps`.
 
@@ -340,9 +340,9 @@ Key updates:
 - Within `src/features/sessions/post-session.ts`: update import from `./session.js` → `./launch.js`
 - Within `src/features/sessions/executor.ts`: update import from `./session.js` → `./launch.js`
 - Within `src/features/checkup/sweep.ts`: update imports from `../utils/...` → `../../shared/...`, `../infra/...` → `../../shared/...`
-- `src/index.ts` — update all launcher imports
-- `src/boot/periodic-tasks.ts` — update watchdog import to `../features/checkup/watchdog.js`
-- `src/utils/triage-handler.ts` — update launcher import (if any)
+- `src/index.ts`: update all launcher imports
+- `src/boot/periodic-tasks.ts`: update watchdog import to `../features/checkup/watchdog.js`
+- `src/utils/triage-handler.ts`: update launcher import (if any)
 
 - [ ] **Step 6: Build and test**
 
@@ -413,8 +413,8 @@ Within moved files:
 - `mail-reader.ts`, `sms-reader.ts`: `./plugin.js` stays (same dir)
 
 External files:
-- `src/index.ts` — update receiver imports
-- `src/routes/hooks.ts` — update webhook import if referencing receiver
+- `src/index.ts`: update receiver imports
+- `src/routes/hooks.ts`: update webhook import if referencing receiver
 
 - [ ] **Step 4: Build and test**
 
@@ -436,7 +436,7 @@ git add -A && git commit -m "refactor(backend): move triage to features/triage/ 
 - Move: `src/memory/manager.ts` → `src/features/memory/manager.ts`
 - Move: `src/memory/agents.ts` → `src/features/memory/agents.ts`
 - Move: `src/memory/lock.ts` → `src/features/memory/lock.ts`
-- Delete: `src/memory/index.ts` (barrel file — no barrel files in VSA)
+- Delete: `src/memory/index.ts` (barrel file, no barrel files in VSA)
 - Split: `src/routes/memory.ts` → individual route files in `src/features/memory/`
 - Move tests:
   - `tests/memory/manager.test.ts` → `src/features/memory/manager.test.ts`
@@ -459,12 +459,12 @@ rm src/memory/index.ts
 - [ ] **Step 2: Split routes/memory.ts into individual route files**
 
 Read `src/routes/memory.ts` (87 lines). Split into:
-- `src/features/memory/list.ts` — `GET /memory`
-- `src/features/memory/create.ts` — `POST /memory`
-- `src/features/memory/read.ts` — `GET /memory/:category/:name`
-- `src/features/memory/update.ts` — `PUT /memory/:category/:name`
-- `src/features/memory/archive.ts` — `POST /memory/:category/:name/archive`
-- `src/features/memory/prompt.ts` — `POST /memory/prompt`
+- `src/features/memory/list.ts`: `GET /memory`
+- `src/features/memory/create.ts`: `POST /memory`
+- `src/features/memory/read.ts`: `GET /memory/:category/:name`
+- `src/features/memory/update.ts`: `PUT /memory/:category/:name`
+- `src/features/memory/archive.ts`: `POST /memory/:category/:name/archive`
+- `src/features/memory/prompt.ts`: `POST /memory/prompt`
 
 Each exports a route function taking `AppDeps`.
 
@@ -486,7 +486,7 @@ Within moved files:
 - `manager.ts`: check for internal imports
 
 External files:
-- `src/index.ts` — update `from './memory/index.js'` to direct imports: `from './features/memory/manager.js'`, `from './features/memory/agents.js'`, `from './features/memory/lock.js'`
+- `src/index.ts`: update `from './memory/index.js'` to direct imports: `from './features/memory/manager.js'`, `from './features/memory/agents.js'`, `from './features/memory/lock.js'`
 
 - [ ] **Step 5: Build and test**
 
@@ -639,13 +639,13 @@ mv src/fixtures/test-tasks.ts src/features/system/test-tasks.ts
 - [ ] **Step 2: Create route files from routes/system.ts**
 
 Split remaining routes from `src/routes/system.ts` (after ameliorations, checkup, terminal, notifications have been extracted):
-- `src/features/system/health.ts` — `GET /health`
-- `src/features/system/reset.ts` — `POST /reset`
-- `src/features/system/processes.ts` — `GET /claude-processes` + `GET /claude-processes/:id/output`
-- `src/features/system/events.ts` — `GET /events` (SSE endpoint)
+- `src/features/system/health.ts`: `GET /health`
+- `src/features/system/reset.ts`: `POST /reset`
+- `src/features/system/processes.ts`: `GET /claude-processes` + `GET /claude-processes/:id/output`
+- `src/features/system/events.ts`: `GET /events` (SSE endpoint)
 
 Also extract checkup routes to `src/features/checkup/`:
-- `src/features/checkup/trigger.ts` — `POST /checkup` + `GET /checkup/status`
+- `src/features/checkup/trigger.ts`: `POST /checkup` + `GET /checkup/status`
 
 - [ ] **Step 3: Move tests**
 
@@ -765,7 +765,7 @@ git add -A && git commit -m "refactor(backend): rewrite server.ts as pure assemb
 ### Task 10: Update index.ts and delete old directories
 
 **Files:**
-- Modify: `src/index.ts` — update all imports to new paths
+- Modify: `src/index.ts`, update all imports to new paths
 - Delete: all empty old directories
 
 - [ ] **Step 1: Update index.ts imports**
@@ -914,10 +914,10 @@ Every file needs its import paths updated. Key patterns:
 - `../i18n/i18n` → `../shared/i18n/i18n`
 
 Critical files to update:
-- `src/App.tsx` — all page imports change
-- `src/main.tsx` — store and i18n imports change
-- Every component/page — cross-imports change
-- All test files — source imports change
+- `src/App.tsx`: all page imports change
+- `src/main.tsx`: store and i18n imports change
+- Every component/page, cross-imports change
+- All test files, source imports change
 
 - [ ] **Step 6: Update vitest config**
 
@@ -946,7 +946,7 @@ cd /Users/lolo/Documents/opentidy && pnpm build && pnpm --filter @opentidy/web t
 cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/web test:e2e
 ```
 
-E2E tests import from `fixtures/mock-api.ts` only — they should pass without changes since they test via the browser, not direct imports.
+E2E tests import from `fixtures/mock-api.ts` only; they should pass without changes since they test via the browser, not direct imports.
 
 - [ ] **Step 10: Commit**
 
@@ -1035,5 +1035,5 @@ Also update `docs/specification.md` if it references internal paths.
 - [ ] **Step 8: Final commit**
 
 ```bash
-git add -A && git commit -m "refactor: complete VSA migration — verify clean build and tests"
+git add -A && git commit -m "refactor: complete VSA migration, verify clean build and tests"
 ```

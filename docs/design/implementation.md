@@ -1,4 +1,4 @@
-# V2 — Spec technique d'implémentation
+# V2 : Spec technique d'implémentation
 
 Document vivant. Contient toutes les décisions techniques validées, les contraintes,
 et les questions ouvertes pour l'implémentation de la V2.
@@ -25,7 +25,7 @@ alfred/
 │   └── web/                 # React SPA, Vite
 ```
 
-Pas de Turborepo pour l'instant — pnpm workspaces suffit pour 2 apps + 1 package.
+Pas de Turborepo pour l'instant, pnpm workspaces suffit pour 2 apps + 1 package.
 Si ça grandit, Turborepo se branche par-dessus sans rien changer.
 
 ### Stratégie de plan piloté par les tests
@@ -39,22 +39,22 @@ liste les IDs de tests qu'elle doit faire passer. Si un ID n'apparaît dans aucu
 
 ### Mac Mini dédié
 - Machine dédiée à l'assistant, tourne 24/7
-- macOS natif (pas de container) — nécessaire pour AppleScript, Contacts,
+- macOS natif (pas de container): nécessaire pour AppleScript, Contacts,
   Messages, osascript, accès système complet
 - Le Mac Mini est l'environnement isolé de l'assistant, pas de conflit avec l'utilisateur
 
-### Déploiement backend — LaunchAgent macOS
+### Déploiement backend : LaunchAgent macOS
 - `com.opentidy.agent.plist` dans `~/Library/LaunchAgents/`
 - Daemon Node.js qui tourne en permanence
 - Logs dans `~/Library/Logs/` (rotation 5MB)
 - Première install via `setup.sh` (voir section ci-dessous)
 - Mises à jour : `git pull && pnpm build && launchctl kickstart`
 
-### setup.sh — installation complète Mac Mini
+### setup.sh : installation complète Mac Mini
 
 Script d'installation unique qui configure tout le Mac Mini. Deux parties :
 
-**Partie 1 — Installation des dépendances** (automatisé) :
+**Partie 1, Installation des dépendances** (automatisé) :
 - Homebrew (si absent)
 - Node.js, pnpm
 - Claude CLI + OAuth login
@@ -65,10 +65,10 @@ Script d'installation unique qui configure tout le Mac Mini. Deux parties :
 - Installation du LaunchAgent
 - Configuration du tunnel Cloudflare
 
-**Partie 2 — Permissions macOS** (guidé, clics manuels nécessaires) :
+**Partie 2, Permissions macOS** (guidé, clics manuels nécessaires) :
 
 Le script ouvre chaque panneau System Settings et attend confirmation.
-Apple impose l'approbation manuelle pour les permissions TCC — aucun moyen
+Apple impose l'approbation manuelle pour les permissions TCC; aucun moyen
 de les accorder programmatiquement sans MDM (et les profils PPPC MDM ne
 peuvent pas pré-autoriser Screen Recording, Camera, Microphone de toute façon).
 
@@ -99,37 +99,37 @@ echo ""
 sudo spctl --master-disable
 
 # Full Disk Access
-echo "1/7 — Full Disk Access → ajoute Terminal.app"
+echo "1/7 : Full Disk Access → ajoute Terminal.app"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Accessibility
-echo "2/7 — Accessibility → ajoute Terminal.app"
+echo "2/7 : Accessibility → ajoute Terminal.app"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Automation
-echo "3/7 — Automation → Terminal → coche Messages, Contacts, Calendar, Finder, System Events"
+echo "3/7 : Automation → Terminal → coche Messages, Contacts, Calendar, Finder, System Events"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_Automation"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Screen Recording
-echo "4/7 — Screen Recording → ajoute Terminal.app"
+echo "4/7 : Screen Recording → ajoute Terminal.app"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Input Monitoring
-echo "5/7 — Input Monitoring → ajoute Terminal.app"
+echo "5/7 : Input Monitoring → ajoute Terminal.app"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_ListenEvent"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Developer Tools
-echo "6/7 — Developer Tools → ajoute Terminal.app"
+echo "6/7 : Developer Tools → ajoute Terminal.app"
 open "x-apple.systempreferences:com.apple.preference.security?Privacy_DevTools"
 read -p "   Appuie sur Entrée quand c'est fait..."
 
 # Vérification
-echo "7/7 — Vérification..."
+echo "7/7 : Vérification..."
 # Test rapide : accès Contacts via osascript
 osascript -e 'tell application "Contacts" to get name of first person' && echo "✓ Contacts OK" || echo "✗ Contacts FAILED"
 # Test rapide : accès fichiers
@@ -140,12 +140,12 @@ echo "=== Setup terminé ==="
 
 **Approche écartée : profils PPPC (.mobileconfig)**
 Les profils PPPC nécessitent un MDM (Mobile Device Management) pour être installés.
-Impossible d'installer un `.mobileconfig` sur un Mac perso sans MDM — Apple bloque
+Impossible d'installer un `.mobileconfig` sur un Mac perso sans MDM, Apple bloque
 avec "Profile must originate from a user-approved MDM server". De plus, Screen Recording
 et Camera/Microphone ne peuvent JAMAIS être pré-autorisés même avec MDM (deny-only).
 Pour un seul Mac Mini dédié, un MDM serait overkill.
 
-### Déploiement frontend — Coolify
+### Déploiement frontend : Coolify
 - App web (React SPA) hébergée sur Coolify
 - Dockerfile multi-stage : build Vite → serve statique (nginx/Caddy)
 - Deploy automatique depuis le repo git
@@ -157,7 +157,7 @@ Pour un seul Mac Mini dédié, un MDM serait overkill.
 
 ### Sessions Claude
 - **Tmux** pour toutes les sessions (validé dans la spec)
-- **`--dangerously-skip-permissions`** sur toutes les sessions — désactive les
+- **`--dangerously-skip-permissions`** sur toutes les sessions: désactive les
   prompts de permission Claude Code. La sécurité est assurée par les hooks
   PreToolUse (garde-fous), pas par le système de permissions intégré.
   Les hooks firent AVANT le check de permissions, donc restent actifs.
@@ -166,11 +166,11 @@ Pour un seul Mac Mini dédié, un MDM serait overkill.
 - Session ID persisté dans `workspace/<dossier>/.session-id` pour resume
 
 ### Browser
-- **Camoufox** (pas Chrome/Playwright) — anti-détection, profils isolés
+- **Camoufox** (pas Chrome/Playwright): anti-détection, profils isolés
 - Chaque session a son propre profil → parallélisme total
 - L'utilisateur garde Chrome pour lui
 
-### Cron sweep — `claude -p` périodique (APPROCHE VALIDÉE)
+### Cron sweep : `claude -p` périodique (APPROCHE VALIDÉE)
 
 **Décision** : `setInterval` dans le backend + `claude -p` pour le scan.
 
@@ -194,7 +194,7 @@ un seul task, c'est overkill).
 
 #### Approches explorées et écartées
 
-**Approche B — Session tmux pour le sweep** :
+**Approche B, Session tmux pour le sweep** :
 Le sweep lance une session tmux classique. Claude scanne, écrit les résultats dans
 `workspace/_sweep/results.json`. SessionEnd hook fire → backend lit le fichier → lance
 les sessions.
@@ -203,12 +203,12 @@ les sessions.
   parallèle pour un task qui n'a pas besoin d'interactivité
 - **Écarté** : ajoute de la complexité pour rien, `claude -p` est plus direct
 
-**Approche C — Backend pur avec métadonnées structurées** :
+**Approche C, Backend pur avec métadonnées structurées** :
 Standardiser le haut de state.md avec des champs parsables (PROCHAINE_ACTION,
 DEADLINE, DERNIÈRE_ACTION). Le backend parse les dates et décide quels dossiers
 lancer. Claude n'est pas utilisé pour le sweep.
 - Pro : zéro session Claude consommée (~24/jour économisées)
-- Con : fragile — Claude n'écrit pas toujours les métadonnées correctement, parser
+- Con : fragile: Claude n'écrit pas toujours les métadonnées correctement, parser
   du markdown semi-structuré est hacky, on contraint le format libre de state.md,
   et on économise des sessions Claude Max qui sont de toute façon illimitées
   (principe #3 : le budget n'est pas une contrainte)
@@ -238,7 +238,7 @@ les 4-6h pour scanner l'inbox.
 - **Validation** : Zod (partagé avec le frontend via `packages/shared/`)
 - **Cron sweep** : `setInterval` + `claude -p` (voir section Infra pour le détail)
 
-### Détection d'état — hooks centralisés (pas de file watching)
+### Détection d'état : hooks centralisés (pas de file watching)
 
 Pas de file watching (ni chokidar, ni fs.watch, ni polling). La détection de l'état
 des sessions Claude est faite par les **hooks Claude Code** qui notifient le backend
@@ -314,14 +314,14 @@ Si Claude ne l'écrit pas → fallback sur `tmux capture-pane` (dernières ligne
 La détection ne dépend JAMAIS d'une instruction à Claude.
 
 ### Ce que le backend fait (~200-400 lignes)
-1. **Receiver** — reçoit webhooks Gmail, watchers SMS/WhatsApp, instructions app web
-2. **Launcher** — lance/résume sessions Claude dans tmux, gère locks
-3. **Hook handler** — endpoint centralisé `/api/hooks`, route les events hooks
-4. **State manager** — lit les fichiers workspace/ (state.md, suggestions, gaps)
-5. **API** — routes pour l'app web (dossiers, suggestions, sessions, fichiers)
-6. **SSE** — events temps réel vers l'app web (alimenté par le hook handler)
-7. **Notifications** — push Telegram via grammY (liens vers app web)
-8. **Infrastructure** — dedup events, locks, retry/backoff, crash recovery, audit trail
+1. **Receiver**, reçoit webhooks Gmail, watchers SMS/WhatsApp, instructions app web
+2. **Launcher**, lance/résume sessions Claude dans tmux, gère locks
+3. **Hook handler**, endpoint centralisé `/api/hooks`, route les events hooks
+4. **State manager**, lit les fichiers workspace/ (state.md, suggestions, gaps)
+5. **API**, routes pour l'app web (dossiers, suggestions, sessions, fichiers)
+6. **SSE**, events temps réel vers l'app web (alimenté par le hook handler)
+7. **Notifications**, push Telegram via grammY (liens vers app web)
+8. **Infrastructure**, dedup events, locks, retry/backoff, crash recovery, audit trail
 
 ### Ce que le backend ne fait PAS
 - Pas de triage IA (Claude le fait)
@@ -377,7 +377,7 @@ La détection ne dépend JAMAIS d'une instruction à Claude.
 
 ## 6. Stack dev/tooling
 
-- **Package manager** : pnpm (enforced via `"preinstall": "npx only-allow pnpm"` + `"packageManager": "pnpm@10.x"` dans package.json racine — `npm install` échoue avec un message d'erreur)
+- **Package manager** : pnpm (enforced via `"preinstall": "npx only-allow pnpm"` + `"packageManager": "pnpm@10.x"` dans package.json racine, `npm install` échoue avec un message d'erreur)
 - **Linting/Formatting** : ESLint + Prettier
 - **TypeScript** : strict mode
 

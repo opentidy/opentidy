@@ -175,7 +175,7 @@ describe('Home page', () => {
     expect(screen.getByText(/Loading|Chargement/)).toBeDefined();
   });
 
-  it('does not show "En fond" section — no legacy background sessions area', async () => {
+  it('does not show "En fond" section (no legacy background sessions area)', async () => {
     storeState.sessions = [makeSession({ status: 'active' })];
     storeState.suggestions = [makeSuggestion()];
 

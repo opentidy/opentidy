@@ -323,13 +323,13 @@ describe('createModuleLifecycle', () => {
       const stopMock2 = vi.fn().mockResolvedValue(undefined);
 
       // Access internal state by using the module with a polling receiver whose import we mock
-      // This tests the shape/contract — real integration covered by startReceivers tests above.
+      // This tests the shape/contract; real integration covered by startReceivers tests above.
       // Minimal contract: stopAll doesn't throw on empty state.
       const lifecycle = createModuleLifecycle({ loadConfig, saveConfig, manifests, regenerateAgentConfig, sse });
       await lifecycle.stopAll();
 
       // Verify the mocks would be called if receivers were active (shape contract verified)
-      expect(stopMock1).not.toHaveBeenCalled(); // Not wired in — confirms isolation
+      expect(stopMock1).not.toHaveBeenCalled(); // Not wired in, confirms isolation
       expect(stopMock2).not.toHaveBeenCalled();
     });
   });

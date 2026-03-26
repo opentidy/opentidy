@@ -12,7 +12,7 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     // Page title
     await expect(page.getByRole('heading', { name: 'Ameliorations' })).toBeVisible();
 
-    // Default filter is "ouverts" — 2 unresolved ameliorations
+    // Default filter is "ouverts": 2 unresolved ameliorations
     await expect(page.getByText('MFA TOTP insurance portal')).toBeVisible();
     await expect(page.getByText('Rate limit Gmail')).toBeVisible();
 
@@ -28,11 +28,11 @@ test.describe('E2E-APP-17: Ameliorations page shows cards', () => {
     await expect(page.getByText('Add TOTP support')).toBeVisible();
     await expect(page.getByText('Add backoff')).toBeVisible();
 
-    // "Marquer resolu" buttons — 2 for the unresolved items
+    // "Marquer resolu" buttons, 2 for the unresolved items
     const resolveButtons = page.getByRole('button', { name: 'Marquer resolu' });
     await expect(resolveButtons).toHaveCount(2);
 
-    // Task link button — first amelioration has taskId
+    // Task link button: first amelioration has taskId
     await expect(page.getByRole('button', { name: /Task: insurance-report/ })).toBeVisible();
   });
 });
@@ -42,7 +42,7 @@ test.describe('E2E-APP-18: Filter buttons Ouverts/Resolus', () => {
     await setupMockApi(page);
     await page.goto('/ameliorations');
 
-    // Default: Ouverts — 2 items
+    // Default: Ouverts, 2 items
     await expect(page.getByText('MFA TOTP insurance portal')).toBeVisible();
     await expect(page.getByText('Rate limit Gmail')).toBeVisible();
     await expect(page.getByText('Old issue fixed')).not.toBeVisible();

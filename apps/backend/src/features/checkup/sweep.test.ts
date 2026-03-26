@@ -209,7 +209,7 @@ describe('Checkup', () => {
     await checkup.runCheckup();
 
     expect(mockNotificationStore.record).toHaveBeenCalledWith({
-      message: 'Checkup completed — 1 session launched, 1 suggestion created',
+      message: 'Checkup completed: 1 session launched, 1 suggestion created',
       link: '/',
     });
     expect(mockSse.emit).toHaveBeenCalledWith(
@@ -232,7 +232,7 @@ describe('Checkup', () => {
     await checkup.runCheckup();
 
     expect(mockNotificationStore.record).toHaveBeenCalledWith({
-      message: 'Checkup completed — nothing to report',
+      message: 'Checkup completed: nothing to report',
       link: '/',
     });
   });
@@ -244,7 +244,7 @@ describe('Checkup', () => {
   it.todo('detects dormant task (no session for 2 weeks)');
 });
 
-describe('Checkup — memory context', () => {
+describe('Checkup, memory context', () => {
   let wsDir: string;
 
   const memoryEntries: MemoryEntry[] = [

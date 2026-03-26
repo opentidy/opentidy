@@ -1,4 +1,4 @@
-# Alfred — Spec complète
+# Alfred : Spec complète
 
 **Projet** : Alfred (V2 de l'assistant personnel)
 **Repo** : `alfred` (nouveau repo séparé de AI-assistant)
@@ -17,10 +17,10 @@ nécessaire, et s'améliore au fil du temps.
 
 ### Ce que V1 a prouvé
 
-L'utilisateur a commencé par le skill `/comptable` — facturation, timesheets, dépenses. En
+L'utilisateur a commencé par le skill `/comptable`, facturation, timesheets, dépenses. En
 voyant Claude Code travailler, il a constaté que Claude est quasi 100% autonome sur
 des tâches admin complexes. Le seul point de blocage : l'authentification (captcha,
-MFA). Le problème n'est pas la capacité de Claude — c'est l'orchestration autour.
+MFA). Le problème n'est pas la capacité de Claude, c'est l'orchestration autour.
 
 ### Les vrais besoins (benchmark V2)
 
@@ -55,7 +55,7 @@ et remplace tout le "cerveau" par Claude lui-même.
 
 ## 2. Principes validés
 
-### Principe 1 — La vitesse n'est pas un critère
+### Principe 1 : La vitesse n'est pas un critère
 
 L'assistant gère des dossiers administratifs, pas des conversations temps réel. Que
 Claude mette 10 secondes ou 2 minutes pour trier un email, le résultat est le même.
@@ -63,40 +63,40 @@ Claude mette 10 secondes ou 2 minutes pour trier un email, le résultat est le m
 **Conséquences** : pas d'optimisation de latence, pas de queue avec priorités
 ultra-fines. On se concentre sur la qualité des résultats.
 
-**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code) — là
+**Exception** : l'usage interactif direct (l'utilisateur dans un terminal Claude Code), là
 c'est du live, mais c'est géré nativement.
 
-### Principe 2 — Claude Code est le moteur d'exécution
+### Principe 2 : Claude Code est le moteur d'exécution
 
 Tout le travail est fait par Claude Code, qui utilise Claude Max (abonnement fixe).
 
-**Pourquoi** : Claude Code a déjà tout l'écosystème — skills, MCP servers, browser
+**Pourquoi** : Claude Code a déjà tout l'écosystème, skills, MCP servers, browser
 automation, accès système macOS, session resume. Reconstruire ça avec l'API ou
 l'Agent SDK coûterait des semaines de travail pour un résultat équivalent.
 
-### Principe 3 — Le budget n'est pas une contrainte
+### Principe 3 : Le budget n'est pas une contrainte
 
 Pas de compromis d'architecture pour économiser des tokens ou des ressources. On
 peut lancer plusieurs sessions en parallèle. Les limites pratiques de Claude Max
 (rate limits, parallélisme) restent à évaluer empiriquement.
 
-### Principe 4 — L'intelligence est dans Claude, pas dans le code
+### Principe 4 : L'intelligence est dans Claude, pas dans le code
 
 Le code backend ne contient PAS de logique métier, de triage, de décision, de
 routing intelligent. Il fait de la plomberie : recevoir events, lancer Claude,
 persister l'état. Claude décide quoi faire, comment, dans quel ordre.
 
-**Nuance** : certaines fonctions backend NE SONT PAS de l'intelligence — dédup
+**Nuance** : certaines fonctions backend NE SONT PAS de l'intelligence, dédup
 events, resource locks, retry/backoff, audit trail, crash recovery. C'est de
 l'infrastructure, pas de la décision. Ça reste dans le code.
 
-### Principe 5 — Pas d'interruption — parallélisme isolé
+### Principe 5 : Pas d'interruption, parallélisme isolé
 
 Si Claude travaille sur une facture, il finit. Un event urgent ne l'interrompt
-pas — il lance une nouvelle session parallèle. Chaque Claude a son propre espace
+pas. il lance une nouvelle session parallèle. Chaque Claude a son propre espace
 et ses propres ressources. Les conflits de ressources sont gérés par les locks.
 
-### Principe 6 — L'assistant tourne en fond, tranquillement
+### Principe 6 : L'assistant tourne en fond, tranquillement
 
 Pas de réactivité à la seconde. L'assistant travaille méthodiquement, vérifie
 régulièrement, avance sur les dossiers.
@@ -105,13 +105,13 @@ régulièrement, avance sur les dossiers.
 - Event-driven pour les stimuli externes (webhook Gmail, message Telegram)
 - Cron périodique pour le travail de fond (vérifier les dossiers, relances, deadlines)
 
-### Principe 7 — Actions rapides/interactives = outil spécialisé
+### Principe 7 : Actions rapides/interactives = outil spécialisé
 
 Si un cas d'usage demande de la réactivité ou de l'interactivité (conversations
-temps réel, réservations en live), c'est un outil/skill spécialisé — pas le système
+temps réel, réservations en live), c'est un outil/skill spécialisé; pas le système
 principal.
 
-### Principe 8 — Amélioration continue
+### Principe 8 : Amélioration continue
 
 Quand Claude n'arrive pas à faire quelque chose, il reporte le gap dans
 `workspace/_gaps/gaps.md`. C'est un backlog naturel d'améliorations, généré par
@@ -123,14 +123,14 @@ l'usage réel.
 
 ### Le raisonnement
 
-On a d'abord pensé en termes d'agents spécialisés (compta, admin, social) — Approche D.
-Puis un agent unique qui gère un "bureau" — Approche C. Mais un seul agent = un seul
+On a d'abord pensé en termes d'agents spécialisés (compta, admin, social), Approche D.
+Puis un agent unique qui gère un "bureau", Approche C. Mais un seul agent = un seul
 contexte = goulot d'étranglement.
 
-**Le vrai problème technique n'est ni la capacité ni la vitesse — c'est que le contexte
+**Le vrai problème technique n'est ni la capacité ni la vitesse, c'est que le contexte
 de Claude est fini.** On ne peut pas lui donner l'état de tous les dossiers + tous les
 emails + tous les messages. Même si ça rentre, la qualité se dégrade quand le contexte
-est trop chargé (dégradation qui accélère après 75% d'utilisation — recherche Google ADK).
+est trop chargé (dégradation qui accélère après 75% d'utilisation, recherche Google ADK).
 
 ### La solution : sessions focalisées par dossier
 
@@ -244,14 +244,14 @@ alfred/
 │   └── web/                  # React SPA, Vite
 ```
 
-Pas de Turborepo pour l'instant — pnpm workspaces suffit pour 2 apps + 1 package.
+Pas de Turborepo pour l'instant, pnpm workspaces suffit pour 2 apps + 1 package.
 Si ça grandit, Turborepo se branche par-dessus sans rien changer.
 
 ---
 
 ## 5. Composants en détail
 
-### 5.1 RECEIVER — réception des stimuli
+### 5.1 RECEIVER : réception des stimuli
 
 Reçoit tout ce qui peut déclencher du travail et le transforme en event uniforme.
 
@@ -272,7 +272,7 @@ Reçoit tout ce qui peut déclencher du travail et le transforme en event unifor
 
 **Triage / routing** : Claude fait le triage (principe #4).
 Un appel `claude -p` par event. Le backend passe le **contenu complet de chaque
-state.md** dans le prompt — Claude voit l'objectif, le journal, et surtout les
+state.md** dans le prompt, Claude voit l'objectif, le journal, et surtout les
 sections `## Waiting` (critères de reprise), ce qui permet un matching bien
 plus précis entre un event entrant et le bon dossier.
 
@@ -289,19 +289,19 @@ Réponse JSON attendue (3 cas) :
 ```
 
 Notes :
-- `dossierIds` est un tableau — un event peut concerner plusieurs dossiers (E2E-RCV-06)
+- `dossierIds` est un tableau: un event peut concerner plusieurs dossiers (E2E-RCV-06)
 - Si le dossier est déjà locké, l'event est ajouté au CLAUDE.md du dossier (section
   "Events en attente") pour traitement au prochain lancement/resume
-- Pas de batching — un triage par event, le dedup élimine les doublons en amont
+- Pas de batching: un triage par event, le dedup élimine les doublons en amont
 - Rate limits : si `claude -p` rate-limited (429), backoff exponentiel comme en V1
 
 **Règle fondamentale : Claude ne crée jamais de dossier lui-même.** Seul l'utilisateur peut
 créer un dossier (via l'app web) ou approuver une suggestion de Claude.
 
-### 5.2 WORKSPACE — état des dossiers
+### 5.2 WORKSPACE : état des dossiers
 
 Chaque dossier en cours a un répertoire dans `workspace/` avec des fichiers markdown.
-Pas de base de données pour l'état — des fichiers lisibles par l'humain ET par Claude.
+Pas de base de données pour l'état, des fichiers lisibles par l'humain ET par Claude.
 
 ```
 workspace/
@@ -349,7 +349,7 @@ Dernière action: 2026-03-13
 
 ## Ce qui reste à faire
 - Avr 2025: timesheet trouvé (152h), facture à créer
-- Mai 2025: timesheet MANQUANT — email envoyé à Sopra le 12/03
+- Mai 2025: timesheet MANQUANT, email envoyé à Sopra le 12/03
 
 ## Waiting
 Email envoyé à billing@soprasteria.com le 12/03 pour le timesheet de mai.
@@ -373,7 +373,7 @@ plus avancer parce qu'il attend une info externe (réponse email, document, conf
 d'un tiers). Distinct de `checkpoint.md` qui signale un besoin d'intervention de l'utilisateur.
 
 **Rôle dans le système :**
-- **Triage** : le prompt reçoit le state.md complet — the `## Waiting` section aide
+- **Triage** : le prompt reçoit le state.md complet, the `## Waiting` section aide
   Claude à matcher un event entrant avec le bon dossier (ex: "ce dossier attend un
   email de contact@example.com" + un email arrive de ce contact → match)
 - **Checkup** : le prompt sait qu'un dossier avec `## Waiting` ne doit pas être
@@ -392,7 +392,7 @@ Quand Claude a besoin de l'utilisateur (question, validation, info manquante), i
 un checkpoint.
 
 ```markdown
-# Checkpoint — Attente validation
+# Checkpoint : Attente validation
 
 ## Ce que j'ai fait
 Créé 2 factures pour avril et mai 2025.
@@ -410,7 +410,7 @@ Valider les factures avant envoi.
 3. [Annuler] → j'annule et j'attends tes instructions
 ```
 
-### 5.3 LAUNCHER — lancement des sessions Claude
+### 5.3 LAUNCHER : lancement des sessions Claude
 
 Lance des sessions Claude Code avec le bon contexte. Deux modes d'exécution :
 
@@ -420,7 +420,7 @@ Les sessions tournent comme des child processes Node.js via `claude -p --output-
 Process exit = signal fiable de fin de session. Pas de polling, pas de hooks pour le lifecycle.
 
 Avantages vs tmux :
-- Lifecycle déterministe : process exit → `handleAutonomousExit()` — pas besoin de hooks/polling
+- Lifecycle déterministe : process exit → `handleAutonomousExit()`, pas besoin de hooks/polling
 - stdout NDJSON parsable en temps réel (stream events pour le frontend)
 - Post-session agent automatique (extraction mémoire, gaps, journal)
 - Plus simple : pas de tmux capture-pane, pas d'idle detection, pas de nudging
@@ -436,14 +436,14 @@ Quand l'utilisateur veut interagir directement :
 
 **Contexte chargé via CLAUDE.md (2 niveaux)** :
 
-Niveau 1 — `workspace/CLAUDE.md` (global, écrit une fois, partagé par toutes les sessions) :
+Niveau 1. `workspace/CLAUDE.md` (global, écrit une fois, partagé par toutes les sessions) :
 - Identité (assistant personnel, français, style d'écriture)
 - Comment travailler (lire state.md, mettre à jour le journal, écrire checkpoint.md si bloqué)
 - Formats attendus (state.md, checkpoint.md, suggestions, gaps)
 - Outils disponibles (Gmail MCP, Camoufox, Bitwarden, etc.)
 - Règles de sécurité (ne pas réessayer si un hook refuse)
 
-Niveau 2 — `workspace/<dossier>/CLAUDE.md` (généré par le backend à chaque lancement) :
+Niveau 2 ,  `workspace/<dossier>/CLAUDE.md` (généré par le backend à chaque lancement) :
 - Objectif du dossier
 - Mode confirm (oui/non)
 - Event ou instruction déclencheur
@@ -472,14 +472,14 @@ tmux new-session -d -s alfred-<dossier-id> \
 claude -p --system-prompt "Mode sweep. Analyse workspace/..." "Lis workspace/*/state.md..."
 claude -p --system-prompt "Mode triage." "Event: email de comptable@sopra.com..."
 ```
-Pas de CLAUDE.md dédié — `--system-prompt` suffit pour les appels one-shot.
+Pas de CLAUDE.md dédié, `--system-prompt` suffit pour les appels one-shot.
 
 **Parallélisme** : plusieurs child processes en même temps, chacun sur un dossier
 différent. Locks de dossier (PID, `/tmp/opentidy-locks/`) pour empêcher deux
 sessions de travailler sur le même dossier.
 
 **Sessions Claude** :
-- **`--dangerously-skip-permissions`** sur toutes les sessions — désactive les
+- **`--dangerously-skip-permissions`** sur toutes les sessions: désactive les
   prompts de permission Claude Code. La sécurité est assurée par les hooks
   PreToolUse (garde-fous), pas par le système de permissions intégré.
   Les hooks firent AVANT le check de permissions, donc restent actifs.
@@ -489,7 +489,7 @@ sessions de travailler sur le même dossier.
 
 **Browser : Camoufox** (pas Chrome/Playwright). Chaque session a sa propre instance
 Camoufox avec un profil isolé. Avantages :
-- Parallélisme total — plus de lock browser entre agents
+- Parallélisme total: plus de lock browser entre agents
 - Anti-détection (pas détecté comme bot par les sites)
 - Sessions persistantes par profil (cookies, login conservés entre sessions)
 - L'utilisateur garde Chrome pour lui, aucune interférence
@@ -506,13 +506,13 @@ interactif.
 | `PostToolUse` | Action exécutée | Audit log |
 
 **Post-session agent** : s'exécute automatiquement après process exit dans
-`handleAutonomousExit()` — extraction mémoire, vérification gaps, journal. Déclenché
+`handleAutonomousExit()`, extraction mémoire, vérification gaps, journal. Déclenché
 uniquement si le transcript est substantiel.
 
 **Checkpoint.md** : optionnel (best-effort). Si Claude l'écrit → résumé structuré dans l'app.
 En mode autonome, le process exit déclenche la vérification de l'état (COMPLETED, BLOCKED, checkpoint).
 
-### 5.4 GARDE-FOUS — hooks PreToolUse
+### 5.4 GARDE-FOUS : hooks PreToolUse
 
 C'est le composant le plus critique. Claude a accès à tout : emails, banque,
 factures, browser. Une erreur a des conséquences réelles.
@@ -530,7 +530,7 @@ Stats clés :
 
 #### La solution : hooks PreToolUse `type: "prompt"`
 
-Claude Code a des **hooks PreToolUse** — du code qui s'exécute automatiquement,
+Claude Code a des **hooks PreToolUse**, du code qui s'exécute automatiquement,
 côté SYSTÈME, avant chaque appel d'outil. Ce n'est PAS une instruction à Claude.
 Claude ne les appelle pas, ne peut pas les skipper, ne sait même pas qu'ils existent.
 
@@ -610,9 +610,9 @@ Les deux cohabitent sur le même matcher (exécution parallèle).
 | Camoufox click/fill_form | Oui (prompt) | 10s | Peut déclencher paiements/soumissions |
 | Camoufox evaluate/run_code | Oui (prompt) | 10s | Exécution JS arbitraire |
 | Bash (patterns réseau) | Oui (command) | 10s | curl POST, ssh, scp = actions externes |
-| Gmail search/read | Non | — | Lecture seule, zéro risque |
-| Camoufox navigate/snapshot | Non | — | Navigation/lecture, zéro risque |
-| Read/Grep/Glob/Write interne | Non | — | Opérations locales, zéro risque |
+| Gmail search/read | Non | (none) | Lecture seule, zéro risque |
+| Camoufox navigate/snapshot | Non | (none) | Navigation/lecture, zéro risque |
+| Read/Grep/Glob/Write interne | Non | (none) | Opérations locales, zéro risque |
 
 #### Les 4 règles ADN
 
@@ -623,13 +623,13 @@ Les deux cohabitent sur le même matcher (exécution parallèle).
 
 #### Limites honnêtes
 
-1. Le mini-Claude peut aussi se tromper — mais deux Claude indépendants se trompant pareil c'est moins probable
-2. Le browser reste le point le plus faible — le champ `element` aide beaucoup mais "Submit" ne dit pas toujours ce qui est soumis
-3. Le ralentissement browser — 10s par clic significatif. Acceptable (principe #1)
-4. Les hooks prompt utilisent du contexte Claude — à monitorer
-5. Les cas non anticipés — aucun système ne couvre 100%. Le filet ultime c'est l'audit trail + la réparabilité
+1. Le mini-Claude peut aussi se tromper, mais deux Claude indépendants se trompant pareil c'est moins probable
+2. Le browser reste le point le plus faible. le champ `element` aide beaucoup mais "Submit" ne dit pas toujours ce qui est soumis
+3. Le ralentissement browser, 10s par clic significatif. Acceptable (principe #1)
+4. Les hooks prompt utilisent du contexte Claude, à monitorer
+5. Les cas non anticipés; aucun système ne couvre 100%. Le filet ultime c'est l'audit trail + la réparabilité
 
-### 5.5 APP WEB — interface principale de l'utilisateur
+### 5.5 APP WEB : interface principale de l'utilisateur
 
 L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 
@@ -640,7 +640,7 @@ L'app web remplace le combo Telegram+Dashboard de V1 comme interface principale.
 | Home | `/` | Dossiers en cours + statut, actions en attente, suggestions, sessions actives, activité récente |
 | Dossiers | `/dossiers` | Liste avec filtres Actifs/Terminés/Bloqués, recherche |
 | Dossier | `/dossier/:id` | State.md rendu, checkpoint résumé, sidebar (session, fichiers, historique), barre d'instruction |
-| Terminal | `/terminal` | Sessions tmux (mode interactif) — interaction directe avec Claude |
+| Terminal | `/terminal` | Sessions tmux (mode interactif): interaction directe avec Claude |
 | Nouveau | `/nouveau` | Créer un dossier + recommandations en dessous |
 | Améliorations | `/ameliorations` | Limites détectées par l'assistant, backlog d'évolutions |
 
@@ -652,7 +652,7 @@ dans l'UI (le terminal est le bon endroit pour ça).
 
 **Mobile** : PWA responsive, pas d'app native. Desktop = icon rail gauche, mobile = tab bar bas.
 
-### 5.6 NOTIFICATIONS — Telegram (rôle réduit)
+### 5.6 NOTIFICATIONS : Telegram (rôle réduit)
 
 Telegram n'est plus l'interface principale. Il sert uniquement de push notification
 vers l'utilisateur avec un lien vers l'app web.
@@ -662,16 +662,16 @@ vers l'utilisateur avec un lien vers l'app web.
 - "Bloqué sur exali.com (MFA) → [Intervenir]"
 - "Relance envoyée à Sopra pour timesheet mai"
 
-PAS d'actions depuis Telegram — juste des notifications. Les actions nécessitent le
+PAS d'actions depuis Telegram, juste des notifications. Les actions nécessitent le
 contexte visuel de l'app.
 
-### 5.7 AMÉLIORATIONS — détection des limites
+### 5.7 AMÉLIORATIONS : détection des limites
 
 Quand Claude n'arrive pas à faire quelque chose, il écrit dans
 `workspace/_gaps/gaps.md` :
 
 ```markdown
-## 2026-03-14 — Connexion exali.com
+## 2026-03-14, Connexion exali.com
 Problème: Le site demande un MFA par app mobile (authenticator).
 Impact: Je ne peux pas remplir le rapport annuel.
 Suggestion: Ajouter un skill pour lire les codes TOTP.
@@ -680,7 +680,7 @@ Suggestion: Ajouter un skill pour lire les codes TOTP.
 Visible dans la page "Améliorations" de l'app web. Logs/Audit trail : pas de page
 dédiée, activité récente sur le tableau de bord avec lien "Voir les logs complets".
 
-### 5.8 SUGGESTIONS — Claude propose, l'utilisateur décide
+### 5.8 SUGGESTIONS : Claude propose, l'utilisateur décide
 
 Claude ne peut pas créer de dossiers. Il crée des suggestions dans `workspace/_suggestions/`.
 
@@ -692,7 +692,7 @@ Claude ne peut pas créer de dossiers. Il crée des suggestions dans `workspace/
 **Format** (`workspace/_suggestions/<slug>.md`) :
 
 ```markdown
-# Suggestion — Relance impôts chypriotes
+# Suggestion : Relance impôts chypriotes
 
 URGENCE: urgent
 SOURCE: Email reçu de tax@cyprus.gov.cy le 12/03
@@ -801,7 +801,7 @@ L'utilisateur interagit via ttyd. Quand il a fini → "Rendre la main" → kill 
 ### Mode interactif ("Prendre la main")
 
 Quand l'utilisateur est en mode interactif (tmux via ttyd) :
-- Idle timer disponible (1h par défaut) — hook `idle_prompt` → notification
+- Idle timer disponible (1h par défaut), hook `idle_prompt` → notification
 - Si l'utilisateur ne répond pas (timeout) : `tmux send-keys` pour demander la sauvegarde
 - Annulation timer : prochain hook de la session → `cancelIdleTimer()`
 
@@ -830,7 +830,7 @@ Au startup, le backend réconcilie en deux passes :
 
 ---
 
-## 8. Cron sweep — `claude -p` périodique
+## 8. Cron sweep : `claude -p` périodique
 
 **Décision** : `setInterval` dans le backend + `claude -p` pour le scan.
 
@@ -864,7 +864,7 @@ distincts car ils n'ont pas de contexte CLAUDE.md ni de resume.
 | Approche | Pro | Con | Verdict |
 |---|---|---|---|
 | Session tmux pour le sweep | Cohérent avec le reste | Plus indirect, fichier intermédiaire | **Écarté** |
-| Backend pur avec métadonnées structurées | Zéro session Claude | Fragile — Claude n'écrit pas toujours les métadonnées correctement, optimise quelque chose d'inutile (Claude Max illimité) | **Écarté** |
+| Backend pur avec métadonnées structurées | Zéro session Claude | Fragile: Claude n'écrit pas toujours les métadonnées correctement, optimise quelque chose d'inutile (Claude Max illimité) | **Écarté** |
 | Hybride (2 tasks séparés) | Séparation des concerns | Mêmes problèmes que métadonnées + complexité ajoutée | **Écarté** |
 
 ---
@@ -884,14 +884,14 @@ distincts car ils n'ont pas de contexte CLAUDE.md ni de resume.
 | Logs | `~/Library/Logs/` | Rotation 5MB |
 | Locks | PID dans `/tmp/opentidy-locks/` | Crash recovery via détection PID mort |
 
-### 9.2 setup.sh — installation Mac Mini
+### 9.2 setup.sh : installation Mac Mini
 
-**Partie 1 — Dépendances** (automatisé) :
+**Partie 1, Dépendances** (automatisé) :
 - Homebrew, Node.js, pnpm, Claude CLI + OAuth, Camoufox, tmux, cloudflared
 - Clone repo, `pnpm install && pnpm build`
 - Installation LaunchAgent + tunnel Cloudflare
 
-**Partie 2 — Permissions macOS** (guidé, clics manuels) :
+**Partie 2, Permissions macOS** (guidé, clics manuels) :
 
 Le script ouvre chaque panneau System Settings et attend confirmation.
 L'astuce : accorder les permissions à **Terminal.app**. Tous les processus
@@ -910,7 +910,7 @@ enfants héritent automatiquement.
 | Input Monitoring | Privacy & Security → Input Monitoring | Terminal.app |
 | Developer Tools | Privacy & Security → Developer Tools | Terminal.app |
 
-**Approche écartée : profils PPPC (.mobileconfig)** — nécessitent MDM, impossible
+**Approche écartée : profils PPPC (.mobileconfig)**, nécessitent MDM, impossible
 sur un Mac perso. Screen Recording et Camera ne peuvent JAMAIS être pré-autorisés
 même avec MDM.
 
@@ -924,17 +924,17 @@ même avec MDM.
 | Telegram bot | grammY | Mature, retry/rate limiting |
 | Validation | Zod | Partagé frontend/backend via shared/ |
 | Cron sweep | `setInterval` + `claude -p` | Voir section 8 |
-| State (planifié) | `better-sqlite3` (`workspace/_data/opentidy.db`) | 4 tables : `claude_processes`, `notifications`, `dedup_hashes`, `sessions` — remplace l'état in-memory |
+| State (planifié) | `better-sqlite3` (`workspace/_data/opentidy.db`) | 4 tables : `claude_processes`, `notifications`, `dedup_hashes`, `sessions`: remplace l'état in-memory |
 
 **Ce que le backend fait (~200-400 lignes)** :
-1. Receiver — webhooks Gmail, watchers SMS/WhatsApp, instructions app web
-2. Launcher — lance sessions autonomes (`claude -p` child process), mode interactif (tmux), gère locks
-3. Hook handler — endpoint centralisé `/api/hooks`, audit + SSE (lifecycle géré par process exit en autonome)
-4. State manager — lit les fichiers workspace/ (state.md, suggestions, gaps)
-5. API — routes pour l'app web (dossiers, suggestions, sessions, fichiers)
-6. SSE — events temps réel vers l'app web
-7. Notifications — push Telegram via grammY
-8. Infrastructure — dedup events, locks, retry/backoff, crash recovery, audit trail
+1. Receiver, webhooks Gmail, watchers SMS/WhatsApp, instructions app web
+2. Launcher. lance sessions autonomes (`claude -p` child process), mode interactif (tmux), gère locks
+3. Hook handler. endpoint centralisé `/api/hooks`, audit + SSE (lifecycle géré par process exit en autonome)
+4. State manager, lit les fichiers workspace/ (state.md, suggestions, gaps)
+5. API, routes pour l'app web (dossiers, suggestions, sessions, fichiers)
+6. SSE, events temps réel vers l'app web
+7. Notifications, push Telegram via grammY
+8. Infrastructure, dedup events, locks, retry/backoff, crash recovery, audit trail
 
 **Ce que le backend ne fait PAS** :
 - Pas de triage IA (Claude le fait)
@@ -985,7 +985,7 @@ Types et schemas partagés entre backend et frontend :
 
 ---
 
-## 10. Hooks — référence technique
+## 10. Hooks : référence technique
 
 ### Ce que le hook reçoit (stdin JSON)
 
@@ -1070,7 +1070,7 @@ Supportent les regex, case-sensitive :
 | MCP servers | ✅ Intégralement | Gmail, Calendar, Notion, Coolify, etc. |
 | Resource locks (PID) | ✅ Mécanisme | /tmp/opentidy-locks/ |
 | Dedup par hash | ✅ Concept | Éviter les doublons webhook |
-| Tmux sessions | 🔄 Mode interactif uniquement | "Prendre la main" — autonome = child process |
+| Tmux sessions | 🔄 Mode interactif uniquement | "Prendre la main": autonome = child process |
 | React dashboard | ❌ Refaire | UI repensée de zéro |
 | Telegram bot | 🔄 Simplifier | Notifications uniquement |
 | Event bus | ❌ Remplacer | Receiver simple |
@@ -1086,14 +1086,14 @@ Supportent les regex, case-sensitive :
 
 | Approche | Idée | Ce qu'on garde | Pourquoi écartée |
 |---|---|---|---|
-| A — Workflows codés | Steps prédéfinis avec checkpoints | Concept de checkpoint | Steps codés = rigide. Claude s'adapte dynamiquement. |
-| B — Règles YAML | Routing par pattern matching | — | Casse dès que la réalité est nuancée. |
-| C — Agent unique | Un Claude, un bureau virtuel | Bureau virtuel en fichiers | Un seul contexte = goulot. Pas de parallélisme. |
-| D — Multi-agent domaine | Agents compta/admin/social | Parallélisme isolé | Claude est déjà généraliste. Granularité = dossier, pas domaine. |
-| E — Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie. "50 lignes" irréaliste. |
-| F — Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser. |
-| G — Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'archi finale (autonome = child process, interactif = tmux). |
-| H — CLIs custom | Remplacer MCP par des CLIs | — | "Programmer ce que Claude sait déjà faire." |
+| A: Workflows codés | Steps prédéfinis avec checkpoints | Concept de checkpoint | Steps codés = rigide. Claude s'adapte dynamiquement. |
+| B: Règles YAML | Routing par pattern matching | (none) | Casse dès que la réalité est nuancée. |
+| C: Agent unique | Un Claude, un bureau virtuel | Bureau virtuel en fichiers | Un seul contexte = goulot. Pas de parallélisme. |
+| D: Multi-agent domaine | Agents compta/admin/social | Parallélisme isolé | Claude est déjà généraliste. Granularité = dossier, pas domaine. |
+| E: Skills only | Tout en skills, backend 50 lignes | Intelligence dans les prompts | On a besoin de plomberie. "50 lignes" irréaliste. |
+| F: Stateless pur | Chaque event = session fraîche | Sessions fraîches = robuste | Overhead cold-start. Perte état browser. |
+| G: Hybride | Stateless par défaut, stateful si besoin | Compromis pragmatique | Intégré dans l'archi finale (autonome = child process, interactif = tmux). |
+| H: CLIs custom | Remplacer MCP par des CLIs | (none) | "Programmer ce que Claude sait déjà faire." |
 
 **Autres décisions écartées** :
 - **Claude API / Agent SDK** : trop cher, pas d'écosystème existant
@@ -1130,7 +1130,7 @@ Supportent les regex, case-sensitive :
 | GET | `/api/ameliorations` | Liste des gaps |
 | GET | `/api/sessions` | Sessions actives (autonomes + interactives) |
 | GET | `/api/notifications/recent` | Notifications récentes |
-| GET | `/api/events` | SSE — events temps réel |
+| GET | `/api/events` | SSE: events temps réel |
 
 ---
 
@@ -1146,7 +1146,7 @@ Supportent les regex, case-sensitive :
 
 ---
 
-## 15. Recherche externe — concepts clés retenus
+## 15. Recherche externe : concepts clés retenus
 
 | Concept | Source | Ce qu'on en retient |
 |---|---|---|
@@ -1170,9 +1170,9 @@ L'architecture doit être assez flexible pour brancher ces features, pas conçue
 - Shopping / achats en ligne
 - Gestion de voyage
 - Veille informationnelle
-- **OMI** (device enregistrement continu) — à explorer
-- **iPhone 11** (écran cassé) — dédié à l'assistant
-- **Mac Mini dédié** — déjà prévu dans l'infra
+- **OMI** (device enregistrement continu): à explorer
+- **iPhone 11** (écran cassé): dédié à l'assistant
+- **Mac Mini dédié**: déjà prévu dans l'infra
 
 ---
 
@@ -1184,9 +1184,9 @@ liste les IDs de tests qu'elle doit faire passer. Si un ID n'apparaît dans aucu
 
 ---
 
-## 18. Tests E2E — 148 tests exhaustifs
+## 18. Tests E2E : 148 tests exhaustifs
 
-### Stratégie technique — 3 niveaux
+### Stratégie technique : 3 niveaux
 
 | Niveau | Outil | Quand lancer | Couvre |
 |---|---|---|---|
@@ -1291,335 +1291,335 @@ pnpm smoke:cleanup
 
 ---
 
-### 18.1 RECEIVER — Réception et triage des events 🧪
+### 18.1 RECEIVER : Réception et triage des events 🧪
 
-**E2E-RCV-01** — Event Gmail → routing vers dossier existant
+**E2E-RCV-01**, Event Gmail → routing vers dossier existant
 - Webhook Gmail reçoit email de `billing@soprasteria.com`
 - Claude triage identifie `factures-sopra`, route l'event
 - **Attendu** : event traité dans le contexte du dossier, state.md mis à jour
 
-**E2E-RCV-02** — Event Gmail → pas de dossier → suggestion
+**E2E-RCV-02**, Event Gmail → pas de dossier → suggestion
 - Email de `tax@cyprus.gov.cy`, aucun dossier ne matche
 - **Attendu** : suggestion créée, PAS de dossier. Notification si urgent.
 
-**E2E-RCV-03** — Event Gmail → déduplication
+**E2E-RCV-03**, Event Gmail → déduplication
 - Même webhook reçu 2 fois (retry Gmail)
 - **Attendu** : hash déjà vu → event ignoré, pas de doublon
 
-**E2E-RCV-04** — Event WhatsApp watcher → routing
+**E2E-RCV-04**, Event WhatsApp watcher → routing
 - Message WhatsApp d'un acheteur, dossier `2ememain-bureau` existe
 - **Attendu** : message traité, state.md mis à jour
 
-**E2E-RCV-05** — Event SMS watcher → nouveau contact → suggestion
+**E2E-RCV-05**, Event SMS watcher → nouveau contact → suggestion
 - SMS d'un numéro inconnu, aucun dossier ne matche
 - **Attendu** : suggestion créée
 
-**E2E-RCV-06** — Event multi-dossiers
+**E2E-RCV-06**, Event multi-dossiers
 - Email de la comptable concerne 2 dossiers
 - **Attendu** : les 2 dossiers sont mis à jour, pas de duplication
 
-**E2E-RCV-07** — Event spam / non pertinent
+**E2E-RCV-07**, Event spam / non pertinent
 - Email marketing, aucun dossier, pas matière à suggestion
 - **Attendu** : event ignoré
 
-**E2E-RCV-08** — Event pour un dossier COMPLETED
+**E2E-RCV-08**, Event pour un dossier COMPLETED
 - Email pour un dossier au statut COMPLETED
 - **Attendu** : suggestion créée (pas de réouverture automatique)
 
 ---
 
-### 18.2 WORKSPACE — État des dossiers 🧪
+### 18.2 WORKSPACE : État des dossiers 🧪
 
-**E2E-WS-01** — Création de dossier via app web
+**E2E-WS-01**, Création de dossier via app web
 - L'utilisateur tape instruction, clique "Lancer"
 - **Attendu** : dossier créé, session active, state.md avec objectif
 
-**E2E-WS-02** — Création via approbation de suggestion
+**E2E-WS-02**, Création via approbation de suggestion
 - L'utilisateur clique "Créer le dossier" sur une suggestion
 - **Attendu** : dossier créé avec contexte de la suggestion, suggestion supprimée
 
-**E2E-WS-03** — Ignorer une suggestion
+**E2E-WS-03**, Ignorer une suggestion
 - **Attendu** : suggestion supprimée, aucun dossier créé
 
-**E2E-WS-04** — State.md mis à jour après session
+**E2E-WS-04**, State.md mis à jour après session
 - Claude travaille, met à jour state.md
 - **Attendu** : state.md reflète le travail fait
 
-**E2E-WS-05** — State.md condensation
+**E2E-WS-05**, State.md condensation
 - state.md avec historique très long (>50 entrées)
 - **Attendu** : Claude condense les anciennes entrées, info essentielle préservée
 
-**E2E-WS-06** — Checkpoint.md création et détection
+**E2E-WS-06**, Checkpoint.md création et détection
 - Claude écrit checkpoint.md, hook détecte, notification envoyée
 - **Attendu** : checkpoint visible dans l'UI avec résumé + "Ouvrir le terminal"
 
-**E2E-WS-07** — Checkpoint.md supprimé après réponse
+**E2E-WS-07**, Checkpoint.md supprimé après réponse
 - L'utilisateur répond, Claude continue et supprime checkpoint.md
 - **Attendu** : checkpoint disparaît de l'UI
 
-**E2E-WS-08** — Artifacts stockés dans le bon dossier
+**E2E-WS-08**, Artifacts stockés dans le bon dossier
 - Claude crée une facture PDF
 - **Attendu** : fichier dans `workspace/<dossier>/artifacts/`, accessible dans l'app
 
-**E2E-WS-09** — Dossier terminé
+**E2E-WS-09**, Dossier terminé
 - Claude met `STATUS: COMPLETED`, hook SessionEnd détecte
 - **Attendu** : dossier "terminé" dans l'app, notification Telegram
 
-**E2E-WS-10** — _inbox/events.md — events non rattachés
+**E2E-WS-10**, _inbox/events.md, events non rattachés
 - Event non rattaché à aucun dossier, pas de suggestion
 - **Attendu** : event loggé dans l'inbox
 
-**E2E-WS-11** — Validation du format state.md
+**E2E-WS-11**, Validation du format state.md
 - App web parse `STATUS:` (IN_PROGRESS, COMPLETED, BLOCKED)
 - **Attendu** : statut correctement parsé et affiché
 
-**E2E-WS-12** — Création de dossier avec fichier joint
+**E2E-WS-12**, Création de dossier avec fichier joint
 - Instruction + 2 photos jointes
 - **Attendu** : dossier créé, fichiers dans artifacts/, Claude les voit
 
-**E2E-WS-13** — Upload de fichier vers un dossier existant
+**E2E-WS-13**, Upload de fichier vers un dossier existant
 - Checkpoint demande des photos, l'utilisateur upload via l'interface
 - **Attendu** : Claude reçoit les fichiers et continue
 
 ---
 
-### 18.3 LAUNCHER — Sessions Claude tmux 🧪
+### 18.3 LAUNCHER : Sessions Claude tmux 🧪
 
-**E2E-LCH-01** — Lancement d'une session focalisée
+**E2E-LCH-01**, Lancement d'une session focalisée
 - Event déclenche travail, lock créé, session tmux lancée
 - **Attendu** : session active, lock créé, contexte chargé
 
-**E2E-LCH-02** — Lock empêche session parallèle
+**E2E-LCH-02**, Lock empêche session parallèle
 - Dossier déjà locké, nouvel event arrive
 - **Attendu** : pas de 2e session, event en attente
 
-**E2E-LCH-03** — Sessions parallèles sur dossiers différents
+**E2E-LCH-03**, Sessions parallèles sur dossiers différents
 - 2 events pour 2 dossiers différents
 - **Attendu** : 2 sessions indépendantes, chacune avec son lock
 
-**E2E-LCH-04** — Contexte minimal chargé
+**E2E-LCH-04**, Contexte minimal chargé
 - **Attendu** : uniquement state.md + event + prompt système, pas d'autres dossiers
 
-**E2E-LCH-05** — Détection fin de session (hook SessionEnd)
+**E2E-LCH-05**, Détection fin de session (hook SessionEnd)
 - Hook SessionEnd → lock supprimé, checkpoint vérifié, log audit
 - **Attendu** : lock libéré, notification si checkpoint/terminé
 
-**E2E-LCH-06** — Crash recovery
+**E2E-LCH-06**, Crash recovery
 - Session crash, PID mort, lock présent
 - **Attendu** : PID mort détecté, lock nettoyé, session relançable
 
-**E2E-LCH-07** — Resume après timeout
+**E2E-LCH-07**, Resume après timeout
 - `claude --resume <session-id>` avec historique compacté
 - **Attendu** : continuité conversationnelle
 
-**E2E-LCH-08** — Sweep ignore les dossiers lockés
+**E2E-LCH-08**, Sweep ignore les dossiers lockés
 - **Attendu** : seuls les dossiers non lockés sont traités
 
-**E2E-LCH-09** — Confirm mode
+**E2E-LCH-09**, Confirm mode
 - Dossier avec "Valider avant actions externes"
 - **Attendu** : action transformée en checkpoint au lieu d'exécutée
 
-**E2E-LCH-10** — Réutilisation profil Camoufox
+**E2E-LCH-10**, Réutilisation profil Camoufox
 - Cookies de session toujours valides entre sessions
 - **Attendu** : pas besoin de re-login
 
-**E2E-LCH-11** — Event arrive pour dossier avec checkpoint en cours
+**E2E-LCH-11**, Event arrive pour dossier avec checkpoint en cours
 - Dossier locké avec checkpoint
 - **Attendu** : event stocké pour traitement ultérieur, pas de perte
 
 ---
 
-### 18.4 GARDE-FOUS — Hooks PreToolUse 🧪
+### 18.4 GARDE-FOUS : Hooks PreToolUse 🧪
 
-**E2E-GF-01** — Email safe → ALLOW
+**E2E-GF-01**, Email safe → ALLOW
 - gmail.reply() vers contact connu, contenu standard
 - **Attendu** : ALLOW, email envoyé, audit trail
 
-**E2E-GF-02** — Email avec montant anormal → DENY
+**E2E-GF-02**, Email avec montant anormal → DENY
 - gmail.send() avec montant incohérent (120 000€ au lieu de 12 000€)
 - **Attendu** : DENY, email non envoyé
 
-**E2E-GF-03** — Email première interaction → ASK
+**E2E-GF-03**, Email première interaction → ASK
 - gmail.send() vers nouveau destinataire
 - **Attendu** : ASK, notification Telegram, email en attente
 
-**E2E-GF-04** — Browser click safe → ALLOW
+**E2E-GF-04**, Browser click safe → ALLOW
 - browser_click sur "Search button"
 - **Attendu** : ALLOW, clic exécuté
 
-**E2E-GF-05** — Browser click paiement → DENY
+**E2E-GF-05**, Browser click paiement → DENY
 - browser_click sur "Confirm Payment button"
 - **Attendu** : DENY, clic bloqué
 
-**E2E-GF-06** — Browser fill_form financier → DENY
+**E2E-GF-06**, Browser fill_form financier → DENY
 - browser_fill_form sur formulaire de virement
 - **Attendu** : DENY
 
-**E2E-GF-07** — Browser evaluate JS arbitraire
+**E2E-GF-07**, Browser evaluate JS arbitraire
 - browser_evaluate avec JS qui modifie le DOM
 - **Attendu** : ALLOW si lecture, DENY si modification financière
 
-**E2E-GF-08** — Bash avec curl POST → vérification
+**E2E-GF-08**, Bash avec curl POST → vérification
 - Bash `curl -X POST https://api.external.com/...`
 - **Attendu** : hook vérifie, ALLOW ou DENY selon cible
 
-**E2E-GF-09** — Lecture seule Gmail → pas de hook
+**E2E-GF-09**, Lecture seule Gmail → pas de hook
 - gmail.search() ou gmail.read()
 - **Attendu** : exécution directe
 
-**E2E-GF-10** — Lecture seule browser → pas de hook
+**E2E-GF-10**, Lecture seule browser → pas de hook
 - browser_navigate ou browser_snapshot
 - **Attendu** : exécution directe
 
-**E2E-GF-11** — Opérations locales → pas de hook
+**E2E-GF-11**, Opérations locales → pas de hook
 - Read, Write, Grep, Glob
 - **Attendu** : exécution directe
 
-**E2E-GF-12** — PostToolUse audit trail
+**E2E-GF-12**, PostToolUse audit trail
 - gmail.send() ALLOW → PostToolUse → audit log
 - **Attendu** : log avec timestamp, tool, params, session, résultat
 
-**E2E-GF-13** — Hook timeout
+**E2E-GF-13**, Hook timeout
 - Mini-Claude met plus de 30s
 - **Attendu** : timeout → DENY par sécurité
 
-**E2E-GF-14** — Hook updatedInput — correction des paramètres
+**E2E-GF-14**, Hook updatedInput, correction des paramètres
 - gmail.send() avec typo destinataire → hook corrige
 - **Attendu** : email envoyé avec paramètres corrigés
 
-**E2E-GF-15** — Hook ASK → l'utilisateur approuve
+**E2E-GF-15**, Hook ASK → l'utilisateur approuve
 - **Attendu** : email envoyé, audit log, Claude continue
 
-**E2E-GF-16** — Hook ASK → l'utilisateur refuse
+**E2E-GF-16**, Hook ASK → l'utilisateur refuse
 - **Attendu** : email NON envoyé, Claude s'adapte
 
-**E2E-GF-17** — Hook ASK → timeout sans réponse
+**E2E-GF-17**, Hook ASK → timeout sans réponse
 - **Attendu** : DENY par défaut, Claude informé
 
-**E2E-GF-18** — Plusieurs hooks sur même appel
+**E2E-GF-18**, Plusieurs hooks sur même appel
 - gmail.send() matche 2 hooks PreToolUse
 - **Attendu** : les 2 doivent ALLOW pour que l'action s'exécute
 
 ---
 
-### 18.5 APP WEB — Interface 🎭
+### 18.5 APP WEB : Interface 🎭
 
-**E2E-APP-01** — Home affiche les checkpoints en attente
+**E2E-APP-01**, Home affiche les checkpoints en attente
 - 1 checkpoint + 1 MFA bloquant
 - **Attendu** : section "Pour toi" avec 2 cartes + "Ouvrir le terminal"
 
-**E2E-APP-02** — Home affiche les suggestions
+**E2E-APP-02**, Home affiche les suggestions
 - 2 suggestions dans `_suggestions/`
 - **Attendu** : section "Suggestions" avec boutons "Créer le dossier" / "Ignorer"
 
-**E2E-APP-03** — Home affiche les sessions actives
+**E2E-APP-03**, Home affiche les sessions actives
 - 2 sessions tmux en cours
 - **Attendu** : section "En fond" avec dot vert, durée
 
-**E2E-APP-04** — Home activité récente + lien logs
+**E2E-APP-04**, Home activité récente + lien logs
 - **Attendu** : derniers events, lien "Voir les logs complets"
 
-**E2E-APP-05** — Home zen quand rien à faire
+**E2E-APP-05**, Home zen quand rien à faire
 - **Attendu** : orbe, "Tout roule", sessions actives listées
 
-**E2E-APP-06** — Dossiers — liste avec filtres
+**E2E-APP-06**, Dossiers, liste avec filtres
 - **Attendu** : filtres Actifs/Terminés/Bloqués, recherche, "+ Nouveau"
 
-**E2E-APP-07** — Dossiers — badge checkpoint
+**E2E-APP-07**, Dossiers, badge checkpoint
 - **Attendu** : badge "1 checkpoint" sur la carte du dossier
 
-**E2E-APP-08** — Dossier detail — state.md rendu
+**E2E-APP-08**, Dossier detail, state.md rendu
 - **Attendu** : HTML lisible, pas markdown brut
 
-**E2E-APP-09** — Dossier detail — checkpoint résumé
+**E2E-APP-09**, Dossier detail, checkpoint résumé
 - **Attendu** : bannière avec résumé + "Ouvrir le terminal"
 
-**E2E-APP-10** — Dossier detail — sidebar
+**E2E-APP-10**, Dossier detail, sidebar
 - **Attendu** : statut session, fichiers, historique
 
-**E2E-APP-11** — Dossier detail — barre d'instruction
+**E2E-APP-11**, Dossier detail, barre d'instruction
 - **Attendu** : instruction envoyée, session lancée ou notifiée
 
-**E2E-APP-12** — Terminal — onglets de sessions
+**E2E-APP-12**, Terminal, onglets de sessions
 - **Attendu** : 3 onglets nommés par dossier, indicateur de statut
 
-**E2E-APP-13** — Terminal — interaction tmux
+**E2E-APP-13**, Terminal, interaction tmux
 - **Attendu** : input envoyé, Claude répond, terminal temps réel
 
-**E2E-APP-14** — Terminal — barre de statut
+**E2E-APP-14**, Terminal, barre de statut
 - **Attendu** : nom dossier, numéro tmux, durée idle, statut
 
-**E2E-APP-15** — Nouveau — créer un dossier
+**E2E-APP-15**, Nouveau, créer un dossier
 - **Attendu** : dossier créé, session lancée, redirection
 
-**E2E-APP-16** — Nouveau — recommandations en dessous
+**E2E-APP-16**, Nouveau, recommandations en dessous
 - **Attendu** : suggestions affichées sous le formulaire
 
-**E2E-APP-17** — Améliorations — liste des limites
+**E2E-APP-17**, Améliorations, liste des limites
 - **Attendu** : cartes avec titre, description, impact, suggestion
 
-**E2E-APP-18** — Améliorations — filtrer ouvertes/résolues
+**E2E-APP-18**, Améliorations, filtrer ouvertes/résolues
 - **Attendu** : filtre fonctionne
 
-**E2E-APP-19** — PWA responsive — mobile
+**E2E-APP-19**, PWA responsive, mobile
 - **Attendu** : tab bar en bas, contenu adapté
 
-**E2E-APP-20** — PWA responsive — desktop
+**E2E-APP-20**, PWA responsive, desktop
 - **Attendu** : icon rail à gauche, avatar en bas
 
-**E2E-APP-21** — Navigation Home → Dossier → Terminal
+**E2E-APP-21**, Navigation Home → Dossier → Terminal
 - **Attendu** : navigation fluide, bon dossier/session ciblé
 
-**E2E-APP-22** — Mises à jour temps réel (SSE)
+**E2E-APP-22**, Mises à jour temps réel (SSE)
 - **Attendu** : Home se met à jour sans refresh
 
-**E2E-APP-23** — Recherche de dossier
+**E2E-APP-23**, Recherche de dossier
 - **Attendu** : filtre par texte fonctionne
 
-**E2E-APP-24** — Terminal sur mobile
+**E2E-APP-24**, Terminal sur mobile
 - **Attendu** : terminal fonctionnel (scroll, input)
 
-**E2E-APP-25** — Urgence visuelle des suggestions
+**E2E-APP-25**, Urgence visuelle des suggestions
 - **Attendu** : bordure rouge/jaune/grise, urgentes en premier
 
-**E2E-APP-26** — État vide / premier lancement
+**E2E-APP-26**, État vide / premier lancement
 - **Attendu** : Home zen, Dossiers vide avec message d'accueil, pas de crash
 
-**E2E-APP-27** — Navigation Telegram → app web
+**E2E-APP-27**, Navigation Telegram → app web
 - **Attendu** : lien ouvre la bonne page (pas la Home générique)
 
-**E2E-APP-28** — Instruction bar + mode confirm
+**E2E-APP-28**, Instruction bar + mode confirm
 - **Attendu** : instruction avec flag confirm, session en mode confirm
 
 ---
 
-### 18.6 NOTIFICATIONS — Telegram 🧪
+### 18.6 NOTIFICATIONS : Telegram 🧪
 
-**E2E-NTF-01** — Checkpoint → notification Telegram
+**E2E-NTF-01**, Checkpoint → notification Telegram
 - **Attendu** : message avec lien vers l'app web
 
-**E2E-NTF-02** — MFA bloquant → notification
+**E2E-NTF-02**, MFA bloquant → notification
 - **Attendu** : "Bloqué sur exali.com (MFA) → [Intervenir]"
 
-**E2E-NTF-03** — Dossier terminé → notification
+**E2E-NTF-03**, Dossier terminé → notification
 - **Attendu** : "Dossier 'Comptable belge' terminé"
 
-**E2E-NTF-04** — Suggestion urgente → notification
+**E2E-NTF-04**, Suggestion urgente → notification
 - **Attendu** : notification avec lien
 
-**E2E-NTF-05** — Suggestion normale → PAS de notification
+**E2E-NTF-05**, Suggestion normale → PAS de notification
 - **Attendu** : visible dans l'app uniquement
 
-**E2E-NTF-06** — Action externe loggée → notification informative
+**E2E-NTF-06**, Action externe loggée → notification informative
 - **Attendu** : "Relance envoyée à Sopra"
 
-**E2E-NTF-07** — Notification contient un lien vers l'app
+**E2E-NTF-07**, Notification contient un lien vers l'app
 - **Attendu** : lien cliquable vers page pertinente
 
-**E2E-NTF-08** — Échec d'envoi → retry
+**E2E-NTF-08**, Échec d'envoi → retry
 - **Attendu** : retry avec backoff (3 tentatives max)
 
-**E2E-NTF-09** — Anti-spam notifications
+**E2E-NTF-09**, Anti-spam notifications
 - 20 events en 30 secondes
 - **Attendu** : notifications groupées ou rate-limitées
 
@@ -1627,80 +1627,80 @@ pnpm smoke:cleanup
 
 ### 18.7 SUGGESTIONS 🧪
 
-**E2E-SUG-01** — Suggestion créée par triage event
+**E2E-SUG-01**, Suggestion créée par triage event
 - (Couvert par E2E-RCV-02)
 
-**E2E-SUG-02** — Suggestion créée par sweep
+**E2E-SUG-02**, Suggestion créée par sweep
 - **Attendu** : suggestion avec source "Sweep", urgence, résumé
 
-**E2E-SUG-03** — Suggestion en travaillant sur un autre dossier
+**E2E-SUG-03**, Suggestion en travaillant sur un autre dossier
 - **Attendu** : suggestion créée, travail principal continue
 
-**E2E-SUG-04** — Format suggestion complet
+**E2E-SUG-04**, Format suggestion complet
 - **Attendu** : URGENCE, SOURCE, DATE, Résumé, Pourquoi, Ce que je ferais
 
-**E2E-SUG-05** — Suggestion approuvée → dossier + session
+**E2E-SUG-05**, Suggestion approuvée → dossier + session
 - (Couvert par E2E-WS-02)
 
-**E2E-SUG-06** — Suggestion ignorée → supprimée
+**E2E-SUG-06**, Suggestion ignorée → supprimée
 - (Couvert par E2E-WS-03)
 
-**E2E-SUG-07** — Pas de suggestion dupliquée
+**E2E-SUG-07**; Pas de suggestion dupliquée
 - **Attendu** : pas de 2e suggestion pour le même sujet
 
-**E2E-SUG-08** — Suggestion approuvée avec instructions personnalisées
+**E2E-SUG-08**, Suggestion approuvée avec instructions personnalisées
 - L'utilisateur ajoute une instruction en approuvant
 - **Attendu** : state.md contient résumé de la suggestion + instruction de l'utilisateur
 
-**E2E-SUG-09** — Sweep crée plusieurs suggestions
+**E2E-SUG-09**, Sweep crée plusieurs suggestions
 - **Attendu** : suggestions distinctes, slugs uniques
 
 ---
 
 ### 18.8 AMÉLIORATIONS (Gaps) 🧪
 
-**E2E-AML-01** — Claude détecte une limite
+**E2E-AML-01**, Claude détecte une limite
 - **Attendu** : nouvelle entrée dans gaps.md
 
-**E2E-AML-02** — Limite visible dans l'app
+**E2E-AML-02**, Limite visible dans l'app
 - **Attendu** : cartes avec titre, description, impact, suggestion
 
-**E2E-AML-03** — Marquer comme résolue
+**E2E-AML-03**, Marquer comme résolue
 - **Attendu** : entrée marquée résolue, filtrée par défaut
 
-**E2E-AML-04** — Pas de doublon
+**E2E-AML-04**; Pas de doublon
 - **Attendu** : une seule entrée pour le même problème
 
 ---
 
-### 18.9 SESSION LIFECYCLE — Idle, timeout, resume 🧪
+### 18.9 SESSION LIFECYCLE : Idle, timeout, resume 🧪
 
-**E2E-SLC-01** — Claude idle → hook idle_prompt → notification
+**E2E-SLC-01**, Claude idle → hook idle_prompt → notification
 - **Attendu** : notification envoyée, timer actif (1h)
 
-**E2E-SLC-02** — L'utilisateur répond avant timeout → prochain hook annule le timer
+**E2E-SLC-02**. L'utilisateur répond avant timeout → prochain hook annule le timer
 - Mécanisme : n'importe quel hook (PreToolUse, Stop, PostToolUse) de la session idle → `cancelIdleTimer()`
 - **Attendu** : session continue, timer annulé, statut repasse à `active`
 
-**E2E-SLC-03** — Timeout expiré → sauvegarde et fin
+**E2E-SLC-03**, Timeout expiré → sauvegarde et fin
 - Backend envoie `tmux send-keys` "Timeout, sauvegarde"
 - **Attendu** : state.md à jour, session terminée, lock libéré, session_id sauvé
 
-**E2E-SLC-04** — Resume après timeout
+**E2E-SLC-04**, Resume après timeout
 - `claude --resume <session-id>`
 - **Attendu** : Claude reprend avec historique compacté
 
-**E2E-SLC-05** — Hook Stop détecte fin de réponse
+**E2E-SLC-05**, Hook Stop détecte fin de réponse
 - **Attendu** : hook détecte la fin, backend vérifie l'état
 
-**E2E-SLC-06** — Session.id persisté
+**E2E-SLC-06**, Session.id persisté
 - **Attendu** : `workspace/<dossier>/.session-id` existe avec le bon ID
 
-**E2E-SLC-07** — Crash recovery → sessions tmux réconciliées
+**E2E-SLC-07**, Crash recovery → sessions tmux réconciliées
 - Backend redémarre, tmux a des sessions `alfred-*` actives
 - **Attendu** : sessions reconstruites dans la Map, hooks fonctionnent à nouveau
 
-**E2E-SLC-08** — Crash recovery → locks stales nettoyés
+**E2E-SLC-08**, Crash recovery → locks stales nettoyés
 - Backend redémarre, lock file avec PID mort dans `/tmp/opentidy-locks/`
 - **Attendu** : lock supprimé, dossier disponible
 
@@ -1708,46 +1708,46 @@ pnpm smoke:cleanup
 
 ### 18.10 CRON SWEEP 🧪
 
-**E2E-CRN-01** — Sweep lance des sessions focalisées
+**E2E-CRN-01**, Sweep lance des sessions focalisées
 - 3 dossiers, 2 ont besoin d'action
 - **Attendu** : 2 sessions lancées, 3e ignoré
 
-**E2E-CRN-02** — Sweep skip les dossiers lockés
+**E2E-CRN-02**, Sweep skip les dossiers lockés
 - (Couvert par E2E-LCH-08)
 
-**E2E-CRN-03** — Sweep détecte deadline proche
+**E2E-CRN-03**, Sweep détecte deadline proche
 - **Attendu** : session lancée pour avancer
 
-**E2E-CRN-04** — Sweep détecte relance à faire
+**E2E-CRN-04**, Sweep détecte relance à faire
 - "Relancer si pas de réponse avant le 16/03", on est le 17/03
 - **Attendu** : session lancée, relance envoyée
 
-**E2E-CRN-05** — Sweep crée des suggestions
+**E2E-CRN-05**, Sweep crée des suggestions
 - Emails non traités détectés
 - **Attendu** : suggestions créées
 
-**E2E-CRN-06** — Sweep quand rien à faire
+**E2E-CRN-06**, Sweep quand rien à faire
 - **Attendu** : pas de session lancée, log "rien à faire"
 
 ---
 
 ### 18.11 INFRASTRUCTURE 🧪
 
-**E2E-INF-01** — Resource lock — browser parallèle
+**E2E-INF-01**, Resource lock, browser parallèle
 - 2 sessions avec 2 profils Camoufox
 - **Attendu** : parallélisme total (profils isolés)
 
-**E2E-INF-02** — Lock PID — process mort nettoyé
+**E2E-INF-02**, Lock PID, process mort nettoyé
 - **Attendu** : pas de blocage permanent
 
-**E2E-INF-03** — Audit trail complet
+**E2E-INF-03**, Audit trail complet
 - **Attendu** : chaque action externe loggée avec timestamp, tool, params, résultat
 
-**E2E-INF-04** — Retry/backoff sur erreur Claude
+**E2E-INF-04**, Retry/backoff sur erreur Claude
 - Erreur 429 → backoff exponentiel
 - **Attendu** : session reprend, pas de crash
 
-**E2E-INF-05** — Dedup event par content hash
+**E2E-INF-05**, Dedup event par content hash
 - (Couvert par E2E-RCV-03)
 
 ---
@@ -1760,7 +1760,7 @@ pnpm smoke:setup
 pnpm smoke:start
 ```
 
-**E2E-FULL-01** — Email → dossier existant → action → audit
+**E2E-FULL-01**, Email → dossier existant → action → audit
 ```
 /test Envoie un webhook Gmail POST /api/webhook/gmail avec un email de billing@soprasteria.com
 (sujet: "Timesheet juin"). Vérifie que :
@@ -1771,7 +1771,7 @@ pnpm smoke:start
 5. L'app web sur / affiche une session active pour "factures-sopra"
 ```
 
-**E2E-FULL-02** — Email nouveau → suggestion → approbation → travail
+**E2E-FULL-02**, Email nouveau → suggestion → approbation → travail
 ```
 /test Envoie un webhook Gmail POST /api/webhook/gmail avec un email de tax@cyprus.gov.cy
 (sujet: "Tax declaration deadline"). Vérifie que :
@@ -1784,7 +1784,7 @@ pnpm smoke:start
 7. L'app web sur /dossiers affiche le nouveau dossier
 ```
 
-**E2E-FULL-03** — Instruction utilisateur → dossier → checkpoint
+**E2E-FULL-03**, Instruction utilisateur → dossier → checkpoint
 ```
 /test Dans l'app web, va sur /nouveau. Tape "Rapport exali annuel 2025"
 et clique "Lancer". Vérifie que :
@@ -1795,7 +1795,7 @@ et clique "Lancer". Vérifie que :
 5. Un lock existe dans /tmp/opentidy-locks/
 ```
 
-**E2E-FULL-04** — Sweep → deadline → travail autonome
+**E2E-FULL-04**, Sweep → deadline → travail autonome
 ```
 /test Vérifie le workspace : exali-rapport/ a un state.md avec deadline dans 3 jours.
 Déclenche un sweep via POST /api/sweep. Vérifie que :
@@ -1804,7 +1804,7 @@ Déclenche un sweep via POST /api/sweep. Vérifie que :
 3. L'app web montre une session active dans "En fond"
 ```
 
-**E2E-FULL-05** — Sweep → rien à faire → silence
+**E2E-FULL-05**, Sweep → rien à faire → silence
 ```
 /test Vérifie que tous les dossiers sont COMPLETED ou à jour.
 Déclenche un sweep via POST /api/sweep. Vérifie que :
@@ -1813,7 +1813,7 @@ Déclenche un sweep via POST /api/sweep. Vérifie que :
 3. L'app web affiche le mode zen
 ```
 
-**E2E-FULL-06** — Hook DENY → Claude s'adapte
+**E2E-FULL-06**, Hook DENY → Claude s'adapte
 ```
 /test Vérifie qu'une session active existe. Vérifie que si Claude tente
 une action bloquée (gmail.send vers inconnu), le hook retourne DENY. Vérifie que :
@@ -1823,7 +1823,7 @@ une action bloquée (gmail.send vers inconnu), le hook retourne DENY. Vérifie q
 4. Le bouton "Ouvrir le terminal" est présent
 ```
 
-**E2E-FULL-07** — Timeout idle → resume → continuation
+**E2E-FULL-07**, Timeout idle → resume → continuation
 ```
 /test Vérifie qu'un dossier a un checkpoint.md et un .session-id.
 Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
@@ -1835,7 +1835,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 6. L'app web montre la session active
 ```
 
-**E2E-FULL-08** — 3 sessions parallèles
+**E2E-FULL-08**, 3 sessions parallèles
 ```
 /test Crée 3 dossiers via /nouveau : "Test A", "Test B", "Test C". Vérifie que :
 1. 3 dossiers dans workspace/
@@ -1845,7 +1845,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 5. Chaque dossier a son propre state.md
 ```
 
-**E2E-FULL-09** — Claude découvre un gap
+**E2E-FULL-09**, Claude découvre un gap
 ```
 /test Vérifie qu'un dossier a une session active. Après le travail, vérifie que :
 1. workspace/_gaps/gaps.md contient une nouvelle entrée
@@ -1855,7 +1855,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 5. Les deux sont indépendants
 ```
 
-**E2E-FULL-10** — Claude ne crée jamais de dossier seul
+**E2E-FULL-10**, Claude ne crée jamais de dossier seul
 ```
 /test Envoie 5 webhooks Gmail différents. Aucun dossier existant ne matche. Vérifie que :
 1. AUCUN nouveau dossier créé dans workspace/
@@ -1864,7 +1864,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 4. Chaque suggestion a URGENCE, SOURCE, Résumé
 ```
 
-**E2E-FULL-11** — Échange de fichiers utilisateur ↔ Claude
+**E2E-FULL-11**, Échange de fichiers utilisateur ↔ Claude
 ```
 /test Ouvre un dossier avec checkpoint demandant des photos. Vérifie que :
 1. Upload 2 images via le formulaire
@@ -1874,7 +1874,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 5. state.md mentionne les fichiers reçus
 ```
 
-**E2E-FULL-12** — Premier lancement — workspace vide
+**E2E-FULL-12**, Premier lancement, workspace vide
 ```
 /test Supprime workspace/*. Redémarre le backend. Ouvre l'app. Vérifie que :
 1. Pas de crash
@@ -1885,7 +1885,7 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 6. Retour sur / → dossier dans "En fond"
 ```
 
-**E2E-FULL-13** — Backend restart avec sessions en cours
+**E2E-FULL-13**, Backend restart avec sessions en cours
 ```
 /test Note les sessions tmux actives. Redémarre le backend. Vérifie que :
 1. Sessions tmux toujours actives
@@ -1898,56 +1898,56 @@ Simule un timeout via POST /api/session/<id>/timeout. Vérifie que :
 
 ### 18.13 EDGE CASES 🧪
 
-**E2E-EDGE-01** — Event arrive pendant un sweep
+**E2E-EDGE-01**, Event arrive pendant un sweep
 - **Attendu** : event traité indépendamment du sweep
 
-**E2E-EDGE-02** — Dossier même nom qu'une suggestion
+**E2E-EDGE-02**, Dossier même nom qu'une suggestion
 - **Attendu** : dossier créé, suggestion auto-nettoyée
 
-**E2E-EDGE-03** — Checkpoint mais session crash avant notification
+**E2E-EDGE-03**, Checkpoint mais session crash avant notification
 - **Attendu** : checkpoint détecté au prochain sweep/event
 
-**E2E-EDGE-04** — State.md corrompu / vide
+**E2E-EDGE-04**, State.md corrompu / vide
 - **Attendu** : Claude reconstitue via session-id/historique, signale le problème
 
-**E2E-EDGE-05** — Plusieurs checkpoints en même temps
+**E2E-EDGE-05**, Plusieurs checkpoints en même temps
 - **Attendu** : 3 checkpoints affichés dans "Pour toi"
 
-**E2E-EDGE-06** — Rate limit Claude Max
+**E2E-EDGE-06**, Rate limit Claude Max
 - **Attendu** : backoff, retry, session en attente
 
-**E2E-EDGE-07** — Webhook flood (100 emails en 1 minute)
+**E2E-EDGE-07**, Webhook flood (100 emails en 1 minute)
 - **Attendu** : dedup filtre, pas de crash, pas de sessions infinies
 
-**E2E-EDGE-08** — L'utilisateur modifie state.md manuellement
+**E2E-EDGE-08**, L'utilisateur modifie state.md manuellement
 - **Attendu** : Claude s'adapte aux changements
 
-**E2E-EDGE-09** — Suggestion pour dossier qui vient d'être créé
+**E2E-EDGE-09**, Suggestion pour dossier qui vient d'être créé
 - **Attendu** : suggestion obsolète, events futurs routés vers le dossier
 
-**E2E-EDGE-10** — Dossier sans session depuis 2 semaines
+**E2E-EDGE-10**, Dossier sans session depuis 2 semaines
 - **Attendu** : sweep lance une session pour vérifier pertinence
 
-**E2E-EDGE-11** — Hook DENY en boucle
+**E2E-EDGE-11**, Hook DENY en boucle
 - **Attendu** : après N tentatives, checkpoint au lieu de boucler
 
-**E2E-EDGE-12** — Camoufox profil corrompu
+**E2E-EDGE-12**, Camoufox profil corrompu
 - **Attendu** : Claude signale dans gaps.md
 
-**E2E-EDGE-13** — Lock stale détecté par le sweep
+**E2E-EDGE-13**, Lock stale détecté par le sweep
 - **Attendu** : lock nettoyé, dossier disponible
 
-**E2E-EDGE-14** — Checkpoint.md malformé ou vide
+**E2E-EDGE-14**, Checkpoint.md malformé ou vide
 - **Attendu** : notification dégradée, pas de crash backend
 
-**E2E-EDGE-15** — Double-clic "Créer le dossier" (concurrence)
+**E2E-EDGE-15**, Double-clic "Créer le dossier" (concurrence)
 - **Attendu** : 1 seul dossier, 2e requête ignorée
 
-**E2E-EDGE-16** — State.md avec statut non reconnu
+**E2E-EDGE-16**, State.md avec statut non reconnu
 - **Attendu** : affichage dégradé (statut "inconnu"), pas de crash
 
-**E2E-EDGE-17** — Erreur disque pendant écriture
+**E2E-EDGE-17**, Erreur disque pendant écriture
 - **Attendu** : erreur détectée, notification d'alerte
 
-**E2E-EDGE-18** — Backend restart avec locks orphelins
+**E2E-EDGE-18**, Backend restart avec locks orphelins
 - **Attendu** : locks PID morts nettoyés au boot, PID vivants conservés

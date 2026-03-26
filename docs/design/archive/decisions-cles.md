@@ -5,12 +5,12 @@
 ### Comment on en est arrivé là
 
 On a d'abord pensé en termes d'"agents spécialisés" (un agent compta, un agent admin,
-un agent social) — c'est l'approche D (bureau d'agents). L'idée était séduisante :
+un agent social). c'est l'approche D (bureau d'agents). L'idée était séduisante :
 chaque agent a son domaine, son prompt optimisé, son workspace.
 
 Mais en réfléchissant, l'utilisateur a fait remarquer que Claude peut lui-même déterminer
 quels skills utiliser et quel contexte charger. La spécialisation par domaine
-n'apporte pas grand-chose — Claude est déjà généraliste et bon dans tous ces domaines.
+n'apporte pas grand-chose, Claude est déjà généraliste et bon dans tous ces domaines.
 
 Par contre, ce qui est CERTAIN, c'est qu'on ne peut pas avoir UN SEUL Claude qui gère
 tout. Pas parce qu'il n'est pas assez intelligent, mais parce que son contexte est fini.
@@ -18,7 +18,7 @@ Si on lui donne l'état de tous les dossiers + tous les emails + tous les messag
 toutes les tâches en cours, ça déborde. Et même si ça rentre, la qualité se dégrade
 quand le contexte est trop chargé.
 
-Et on ne peut pas non plus le laisser tourner indéfiniment sur une session longue —
+Et on ne peut pas non plus le laisser tourner indéfiniment sur une session longue, 
 le contexte s'accumule, le bruit augmente, les réponses dérivent.
 
 ### La solution : sessions focalisées par dossier
@@ -88,7 +88,7 @@ Telegram est trop limitant pour prendre des actions complexes :
 - "J'ai besoin de toi" → lien vers l'app web pour agir
 - "J'ai fini X" → résumé + lien pour voir les détails
 - "Truc urgent arrivé" → alerte avec contexte minimal
-- PAS d'actions depuis Telegram — juste des notifications qui renvoient vers l'app
+- PAS d'actions depuis Telegram: juste des notifications qui renvoient vers l'app
 
 **Claude Code interactif (usage ponctuel)**
 - Quand l'utilisateur veut faire quelque chose lui-même directement
@@ -96,12 +96,12 @@ Telegram est trop limitant pour prendre des actions complexes :
 - Pas de changement par rapport à aujourd'hui
 
 ### Craintes et questions ouvertes
-- **L'app web ajoute de la complexité** — C'est un frontend à maintenir. Le dashboard V1
+- **L'app web ajoute de la complexité**, C'est un frontend à maintenir. Le dashboard V1
   existe déjà (React 19, Fastify API), est-ce qu'on le réutilise ou on repart de zéro ?
-- **Intervention sur captcha/MFA via web** — Est-ce que c'est réaliste techniquement ?
+- **Intervention sur captcha/MFA via web**: Est-ce que c'est réaliste techniquement ?
   Il faudrait que l'app web montre le browser de Claude en temps réel et permette
   à l'utilisateur d'interagir. C'est faisable (VNC, noVNC, screenshot polling) mais complexe.
-- **Mobile-first ou desktop-first ?** — L'utilisateur est souvent sur mobile. L'app doit être
+- **Mobile-first ou desktop-first ?**: L'utilisateur est souvent sur mobile. L'app doit être
   utilisable sur téléphone pour les validations rapides.
 
 ---
@@ -116,12 +116,12 @@ travail de réécriture.
 
 De plus, les CLIs qu'on imaginait (ex: `invoice list --missing`) encodaient de la
 logique métier dans le CLI. Or Claude sait déjà faire ce raisonnement. On n'a pas besoin
-de programmer "trouver les factures manquantes" — Claude peut chercher dans Gmail,
+de programmer "trouver les factures manquantes", Claude peut chercher dans Gmail,
 comparer, et conclure. Le rôle des outils c'est juste des ponts vers les services
 (chercher, envoyer, lister), pas de la logique métier.
 
 ### Claude API / Agent SDK
-L'API Claude est payante au token — beaucoup trop cher pour un usage intensif 24/7.
+L'API Claude est payante au token, beaucoup trop cher pour un usage intensif 24/7.
 L'Agent SDK utilise aussi l'API. Claude Code avec Claude Max est gratuit et a déjà
 tout l'écosystème (skills, MCP, browser). Choix évident.
 

@@ -9,7 +9,7 @@ import type { AppDeps } from '../../server.js';
 export function terminalPortRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // GET /terminal/:sessionName/port — returns ttyd port for an existing tmux session
+  // GET /terminal/:sessionName/port: returns ttyd port for an existing tmux session
   router.get('/terminal/:sessionName/port', async (c) => {
     const sessionName = c.req.param('sessionName');
     const port = await deps.terminal?.ensureReady(sessionName);
@@ -17,7 +17,7 @@ export function terminalPortRoute(deps: AppDeps) {
     return c.json({ port });
   });
 
-  // POST /terminal/run — run a command in tmux+ttyd, returns port
+  // POST /terminal/run: run a command in tmux+ttyd, returns port
   // Accepts { module: "email" } (looks up authCommand) or { command: "..." } (direct)
   router.post('/terminal/run', async (c) => {
     if (!deps.terminal?.runCommand) {

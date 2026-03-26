@@ -1,4 +1,4 @@
-# Suggestion — Tax Filing Follow-up
+# Suggestion: Tax Filing Follow-up
 
 URGENCY: urgent
 SOURCE: Email received from tax@example-authority.gov on 03/12

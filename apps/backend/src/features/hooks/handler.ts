@@ -84,7 +84,7 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
   }
 
   function handlePreToolUse(taskId: string, payload: HookPayload): void {
-    // Audit log only — command hooks observe, they don't decide
+    // Audit log only: command hooks observe, they don't decide
     deps.audit.log({
       sessionId: payload.session_id,
       toolName: payload.tool_name ?? 'unknown',
@@ -104,14 +104,14 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
   }
 
   function handleNotification(taskId: string, payload: HookPayload): void {
-    // Notify only — no launcher state change needed
+    // Notify only, no launcher state change needed
     if (deps.notify.notifyIdle) {
       deps.notify.notifyIdle(taskId);
     }
   }
 
   function handleSessionEnd(taskId: string, payload: HookPayload): void {
-    // SessionEnd fires when Claude Code process exits — cleanup only
+    // SessionEnd fires when Claude Code process exits; cleanup only
     deps.launcher.handleSessionEnd(taskId);
     deps.onSessionEnd?.(taskId);
     deps.sse.emit({
@@ -142,7 +142,7 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
   return { handle, parsePayload };
 }
 
-// Hono route — POST /hooks
+// Hono route: POST /hooks
 export function hookRoute(deps: { hooks: { handleHook(body: unknown): { status: string } } }) {
   const router = new Hono();
   router.post('/hooks', async (c) => {

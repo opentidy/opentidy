@@ -28,7 +28,7 @@ export async function setupGitHub(): Promise<void> {
 
   const token = await ask('  GitHub Personal Access Token: ');
   if (!token.trim()) {
-    info('Skipped — no token provided.');
+    info('Skipped, no token provided.');
     return;
   }
 

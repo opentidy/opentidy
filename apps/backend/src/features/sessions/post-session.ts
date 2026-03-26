@@ -43,7 +43,7 @@ export function createPostSessionHandlers(
     try {
       if (fs.existsSync(claudeDir)) {
         // Claude Code encodes cwd as project dir name: /a/b/c → -a-b-c
-        // Only match dirs that correspond to the workspace path — never the repo
+        // Only match dirs that correspond to the workspace path (never the repo
         // root, which would also match the developer's personal Claude sessions
         const workspacePrefix = deps.workspaceDir!.replace(/\//g, '-');
         const projectDirs = fs.readdirSync(claudeDir)

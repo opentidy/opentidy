@@ -37,7 +37,7 @@ describe('agent-tracker', () => {
     expect(id).toBeGreaterThan(0);
   });
 
-  it('completes a process with exit code — status=done, exitCode set, endedAt set', () => {
+  it('completes a process with exit code: status=done, exitCode set, endedAt set', () => {
     const tracker = createAgentTracker(db);
     const id = tracker.start('triage', 'task-xyz');
     tracker.complete(id, 0);
@@ -49,7 +49,7 @@ describe('agent-tracker', () => {
     expect(proc!.endedAt).toBeDefined();
   });
 
-  it('marks a process as error — status=error', () => {
+  it('marks a process as error: status=error', () => {
     const tracker = createAgentTracker(db);
     const id = tracker.start('checkup');
     tracker.fail(id);

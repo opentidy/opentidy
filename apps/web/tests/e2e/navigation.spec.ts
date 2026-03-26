@@ -12,7 +12,7 @@ test.describe('E2E-APP-27: Deep link to task', () => {
     // Correct task is displayed
     await expect(page.getByRole('heading', { name: 'Invoices Acme' })).toBeVisible();
     await expect(page.getByText('En cours')).toBeVisible();
-    // StateRenderer shows "Objectif" heading — visible in whichever viewport
+    // StateRenderer shows "Objectif" heading, visible in whichever viewport
     await expect(page.locator('h3:visible', { hasText: 'Objectif' })).toBeVisible();
   });
 

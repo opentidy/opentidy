@@ -89,12 +89,12 @@ async function main(): Promise<void> {
 
     // Verify by unlocking
     if (!verifyPassword(masterPassword)) {
-      console.error('❌ Failed to unlock vault — wrong master password?');
+      console.error('❌ Failed to unlock vault. Wrong master password?');
       if (attempt === MAX_RETRIES) process.exit(1);
       continue;
     }
 
-    console.log('✓ Password verified — vault unlocked successfully\n');
+    console.log('✓ Password verified, vault unlocked successfully\n');
 
     // Store in keychain
     try {

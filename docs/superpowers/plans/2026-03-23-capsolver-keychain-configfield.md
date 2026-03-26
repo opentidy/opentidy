@@ -4,11 +4,11 @@
 
 **Goal:** Add CapSolver API key as an optional, keychain-stored config field on the browser module so users can configure CAPTCHA solving from the UI or CLI.
 
-**Architecture:** Extend `ConfigField` with `storage?: 'keychain'` property. Backend `lifecycle.configure()` routes keychain fields to OS keychain via `@napi-rs/keyring` instead of `config.json`. Browser module's `start-mcp.js` wrapper reads the key directly from keychain at runtime (like `password-manager/start-mcp.js`) — the key is NEVER written to `config.json`, `settings.json`, or `mcp-config.json`.
+**Architecture:** Extend `ConfigField` with `storage?: 'keychain'` property. Backend `lifecycle.configure()` routes keychain fields to OS keychain via `@napi-rs/keyring` instead of `config.json`. Browser module's `start-mcp.js` wrapper reads the key directly from keychain at runtime (like `password-manager/start-mcp.js`). The key is NEVER written to `config.json`, `settings.json`, or `mcp-config.json`.
 
 **Tech Stack:** TypeScript, Zod, `@napi-rs/keyring`, Vitest
 
-**Security note:** Keychain values must NEVER flow through `envFromConfig` — that would write them to `mcp-config.json` in plaintext. The MCP wrapper reads from keychain directly at process startup, passing the value only as an in-memory env var to the child process.
+**Security note:** Keychain values must NEVER flow through `envFromConfig` because that would write them to `mcp-config.json` in plaintext. The MCP wrapper reads from keychain directly at process startup, passing the value only as an in-memory env var to the child process.
 
 ---
 
@@ -92,7 +92,7 @@ it('rejects configField with invalid storage value', () => {
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/shared test -- --run`
-Expected: FAIL — `storage: 'keychain'` not recognized by schema
+Expected: FAIL because `storage: 'keychain'` is not recognized by schema
 
 - [ ] **Step 3: Update ConfigFieldSchema in schemas.ts**
 
@@ -190,7 +190,7 @@ export function createKeychainAdapter(): KeychainAdapter {
         entry.deletePassword();
         console.log(`[keychain] Deleted ${moduleName}/${key}`);
       } catch {
-        // Key not found — that's fine
+        // Key not found, that's fine
       }
     },
   };
@@ -325,7 +325,7 @@ it('works without keychain dep (modules without keychain fields)', async () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- --run src/features/modules/lifecycle.test.ts`
-Expected: FAIL — `keychain` not a recognized property of deps
+Expected: FAIL because `keychain` is not a recognized property of deps
 
 - [ ] **Step 3: Add keychain to ModuleLifecycleDeps and implement configure()**
 
@@ -457,7 +457,7 @@ describe('isModuleConfigured with keychain fields', () => {
         ],
       },
     };
-    // No keychain adapter — optional field, should still be configured
+    // No keychain adapter. Optional field, should still be configured
     expect(isModuleConfigured(manifest, {})).toBe(true);
   });
 });
@@ -466,7 +466,7 @@ describe('isModuleConfigured with keychain fields', () => {
 - [ ] **Step 2: Run tests to verify they fail**
 
 Run: `cd /Users/lolo/Documents/opentidy && pnpm --filter @opentidy/backend test -- --run src/features/modules/checks.test.ts`
-Expected: FAIL — `isModuleConfigured` doesn't accept keychain param
+Expected: FAIL because `isModuleConfigured` doesn't accept keychain param
 
 - [ ] **Step 3: Update isModuleConfigured**
 
@@ -552,7 +552,7 @@ Replace `apps/backend/modules/browser/module.json`. Key changes:
   }],
   "skills": [{
     "name": "browser-skill",
-    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins. If a CAPTCHA appears, wait 15-30 seconds — the CapSolver extension (if configured) solves them automatically. Do NOT interact with CAPTCHA elements yourself."
+    "content": "When browsing the web, use the Camoufox MCP tools. Each session has its own isolated browser profile with persistent cookies and logins. If a CAPTCHA appears, wait 15-30 seconds; the CapSolver extension (if configured) solves them automatically. Do NOT interact with CAPTCHA elements yourself."
   }],
   "setup": {
     "authCommand": "command -v pipx >/dev/null || brew install pipx && pipx install camoufox && camoufox fetch",
@@ -564,7 +564,7 @@ Replace `apps/backend/modules/browser/module.json`. Key changes:
         "type": "password",
         "required": false,
         "storage": "keychain",
-        "placeholder": "CAP-xxx (optional — enables automatic CAPTCHA solving)"
+        "placeholder": "CAP-xxx (optional, enables automatic CAPTCHA solving)"
       }
     ]
   },
@@ -609,7 +609,7 @@ git commit -m "feat(backend): add CapSolver configField to browser module"
 
 - [ ] **Step 1: Create the wrapper script**
 
-Create `apps/backend/modules/browser/start-mcp.js`. This follows the `password-manager/start-mcp.js` pattern — reads the API key from keychain directly, NEVER from env/config files.
+Create `apps/backend/modules/browser/start-mcp.js`. This follows the `password-manager/start-mcp.js` pattern: reads the API key from keychain directly, NEVER from env/config files.
 
 ```javascript
 #!/usr/bin/env node
@@ -620,7 +620,7 @@ Create `apps/backend/modules/browser/start-mcp.js`. This follows the `password-m
 // Reads CapSolver API key from OS keychain (if configured).
 // If present: downloads + extracts the CapSolver Firefox addon, injects the API key.
 // Then launches camofox-mcp.
-// IMPORTANT: Only use console.error for logging — stdout is the MCP protocol channel.
+// IMPORTANT: Only use console.error for logging. stdout is the MCP protocol channel.
 
 import { existsSync, mkdirSync, writeFileSync, readFileSync } from 'fs';
 import { join } from 'path';
@@ -657,7 +657,7 @@ function setupCapsolverAddon(apiKey) {
       console.error('[browser] CapSolver extension extracted');
     } catch (err) {
       console.error('[browser] Failed to download CapSolver extension:', err.message);
-      return; // Non-fatal — continue without addon
+      return; // Non-fatal, continue without addon
     }
   }
 

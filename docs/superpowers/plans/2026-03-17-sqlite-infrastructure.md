@@ -1,10 +1,10 @@
-# SQLite Infrastructure — Persistent State for Alfred
+# SQLite Infrastructure: Persistent State for Alfred
 
 > **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Replace all volatile in-memory state (notifications, dedup, sessions) with SQLite persistence, and add a claude process tracker for full observability of all Claude invocations.
 
-**Architecture:** Single `better-sqlite3` database at `workspace/_data/opentidy.db`. 4 tables. Existing module interfaces preserved — callers don't change. New `claude-tracker` module wraps all 5 places that invoke Claude.
+**Architecture:** Single `better-sqlite3` database at `workspace/_data/opentidy.db`. 4 tables. Existing module interfaces preserved; callers don't change. New `claude-tracker` module wraps all 5 places that invoke Claude.
 
 **Tech Stack:** `better-sqlite3` (sync, no async overhead), existing factory function pattern.
 
@@ -61,7 +61,7 @@ Test: creates file, creates 4 tables, idempotent (can call twice).
 
 - [ ] **Step 3: Implement database module**
 
-`createDatabase(dataDir)` — creates dir, opens SQLite with WAL mode, creates 4 tables (claude_processes, notifications, dedup_hashes, sessions) with IF NOT EXISTS, returns the db instance.
+`createDatabase(dataDir)`: creates dir, opens SQLite with WAL mode, creates 4 tables (claude_processes, notifications, dedup_hashes, sessions) with IF NOT EXISTS, returns the db instance.
 
 Schema:
 ```sql
@@ -165,7 +165,7 @@ Prepared statements for INSERT OR REPLACE and DELETE on sessions table. Called a
 On boot, load rows from sessions table. These represent sessions that died with the backend. Clear them from DB, then proceed with existing recovery logic (tmux reconcile + orphan relaunch).
 
 - [ ] **Step 4: Update tests**
-- [ ] **Step 5: Update index.ts — pass db**
+- [ ] **Step 5: Update index.ts to pass db**
 - [ ] **Step 6: Build + test**
 - [ ] **Step 7: Commit**
 
@@ -189,12 +189,12 @@ The pattern for each is identical:
 3. Call `tracker.complete(id, exitCode)` on success
 4. Call `tracker.fail(id)` on error
 
-- [ ] **Step 1: Wire triage.ts** — type='triage'
-- [ ] **Step 2: Wire title.ts** — type='title'
-- [ ] **Step 3: Wire memory/agents.ts** — type='memory-injection', 'memory-extraction', or 'memory-prompt'
-- [ ] **Step 4: Wire autonomous-executor.ts** — type='autonomous', include pid
-- [ ] **Step 5: Wire checkup.ts** — type='checkup'
-- [ ] **Step 6: Wire all in index.ts** — pass tracker to each module
+- [ ] **Step 1: Wire triage.ts** (type='triage')
+- [ ] **Step 2: Wire title.ts** (type='title')
+- [ ] **Step 3: Wire memory/agents.ts** (type='memory-injection', 'memory-extraction', or 'memory-prompt')
+- [ ] **Step 4: Wire autonomous-executor.ts** (type='autonomous', include pid)
+- [ ] **Step 5: Wire checkup.ts** (type='checkup')
+- [ ] **Step 6: Wire all in index.ts** (pass tracker to each module)
 - [ ] **Step 7: Build + test**
 - [ ] **Step 8: Commit**
 

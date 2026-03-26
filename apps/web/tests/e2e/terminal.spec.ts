@@ -9,7 +9,7 @@ test.describe('E2E-APP-12: Terminal shows session tabs with status indicators', 
     await setupMockApi(page);
     await page.goto('/terminal');
 
-    // Session tabs — taskId with hyphens replaced by spaces
+    // Session tabs: taskId with hyphens replaced by spaces
     await expect(page.getByRole('button', { name: /invoices acme/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /insurance report/i })).toBeVisible();
     await expect(page.getByRole('button', { name: /blocked test/i })).toBeVisible();
@@ -28,11 +28,11 @@ test.describe('E2E-APP-13: Terminal shows TerminalPane when tab selected', () =>
 
     await page.goto('/terminal');
 
-    // The first session is auto-selected — TerminalPane container div exists
+    // The first session is auto-selected. TerminalPane container div exists
     // xterm creates a div with class "xterm" inside
     // We just verify the terminal pane area exists (the div container)
     const terminalArea = page.locator('.xterm');
-    // Wait for xterm to mount — it may take a moment
+    // Wait for xterm to mount; it may take a moment
     await expect(terminalArea).toBeVisible({ timeout: 5000 });
   });
 });

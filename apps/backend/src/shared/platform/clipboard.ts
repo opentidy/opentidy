@@ -12,7 +12,7 @@ export function getClipboardCopyCommand(): string {
     case 'win32':
       return 'clip.exe';
     default:
-      // Linux — prefer xclip, fall back to xsel
+      // Linux: prefer xclip, fall back to xsel
       return 'xclip -selection clipboard';
   }
 }

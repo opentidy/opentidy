@@ -12,7 +12,7 @@ export function DoneStep() {
     try {
       await fetch('/api/setup/complete', { method: 'POST' });
     } catch {
-      // Best-effort — navigate anyway
+      // Best-effort. Navigate anyway
     }
     navigate(path);
   };

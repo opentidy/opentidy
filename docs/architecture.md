@@ -1,16 +1,16 @@
 # Architecture
 
-OpenTidy is a lightweight orchestration layer around Claude Code. The core insight: Claude Code already has everything needed to be a powerful autonomous agent — browser automation, filesystem access, MCP tools, session resume. OpenTidy just provides the infrastructure to let it work independently on persistent tasks.
+OpenTidy is a lightweight orchestration layer around Claude Code. The core insight: Claude Code already has everything needed to be a powerful autonomous agent (browser automation, filesystem access, MCP tools, session resume). OpenTidy just provides the infrastructure to let it work independently on persistent tasks.
 
 ## Design principles
 
 1. **Speed doesn't matter.** Administrative tasks take days, not seconds. No latency optimization, no priority queues. Focus on result quality.
 
-2. **Claude Code is the execution engine.** Not the API. Not an agent framework. Claude Code sessions with full tool access — browser, filesystem, MCP servers, skills.
+2. **Claude Code is the execution engine.** Not the API. Not an agent framework. Claude Code sessions with full tool access: browser, filesystem, MCP servers, skills.
 
 3. **The intelligence is in Claude, not the code.** The backend contains zero business logic, zero decision-making, zero routing intelligence. It's plumbing: receive events, spawn Claude, persist state. Claude decides what to do.
 
-4. **No interruption — isolated parallelism.** Each task gets its own Claude Code session. Sessions run in parallel without interfering. A new event doesn't interrupt an ongoing session — it spawns a new one.
+4. **No interruption, isolated parallelism.** Each task gets its own Claude Code session. Sessions run in parallel without interfering. A new event doesn't interrupt an ongoing session; it spawns a new one.
 
 5. **The assistant works quietly in the background.** Hybrid event-driven + cron model. Events trigger work, periodic sweeps catch what events miss.
 
@@ -142,8 +142,8 @@ claude -p --output-format stream-json --dangerously-skip-permissions \
 
 **Context loading:** Two-level CLAUDE.md system.
 
-- **Level 1** — `workspace/CLAUDE.md` (global, shared by all sessions): identity, work style, security rules, available tools, expected formats
-- **Level 2** — `workspace/<task>/CLAUDE.md` (auto-generated per launch): task objective, confirm mode, triggering event, relevant contacts
+- **Level 1**, `workspace/CLAUDE.md` (global, shared by all sessions): identity, work style, security rules, available tools, expected formats
+- **Level 2**, `workspace/<task>/CLAUDE.md` (auto-generated per launch): task objective, confirm mode, triggering event, relevant contacts
 
 Claude Code automatically loads CLAUDE.md files from the working directory and parents. This persists across `--resume`.
 
@@ -155,7 +155,7 @@ Claude Code automatically loads CLAUDE.md files from the working directory and p
 
 ### Workspace
 
-Each task is a directory in `workspace/` with markdown files. No database for state — human-readable files that Claude can also read and write.
+Each task is a directory in `workspace/` with markdown files. No database for state; these are human-readable files that Claude can also read and write.
 
 ```
 workspace/
@@ -194,7 +194,7 @@ Last action: 2026-03-13
 
 ## Remaining
 - Apr 2025: timesheet found (152h), invoice to create
-- May 2025: timesheet MISSING — email sent to client on 03/12
+- May 2025: timesheet MISSING, email sent to client on 03/12
 
 ## Waiting For
 Email sent to billing@example.com on 03/12 for May timesheet.
@@ -204,7 +204,7 @@ Follow up if no response by 2026-03-16.
 - Client billing: billing@example.com
 ```
 
-Claude manages the size of state.md itself — condensing old entries when the file grows too large.
+Claude manages the size of state.md itself, condensing old entries when the file grows too large.
 
 #### The "Waiting For" section
 
@@ -212,7 +212,7 @@ An optional section in state.md, written by Claude when it can't progress becaus
 
 **Role in the system:**
 - **Triage** uses it to match incoming events to the right task
-- **Sweep** respects it — doesn't relaunch a waiting task unless a follow-up date has passed
+- **Sweep** respects it and doesn't relaunch a waiting task unless a follow-up date has passed
 - **Launcher** clears it automatically when relaunching a session
 - **Web app** displays the first line on the task card
 
@@ -221,7 +221,7 @@ An optional section in state.md, written by Claude when it can't progress becaus
 When Claude needs the user's input, it writes a checkpoint:
 
 ```markdown
-# Checkpoint — Awaiting Validation
+# Checkpoint: Awaiting Validation
 
 ## What I Did
 Created 2 invoices for April and May 2025.
@@ -241,7 +241,7 @@ Validate the invoices before sending.
 
 ### Notifications
 
-Telegram serves as a push notification channel with links to the web app. Not an interaction channel — all actions happen in the web app.
+Telegram serves as a push notification channel with links to the web app. Not an interaction channel; all actions happen in the web app.
 
 **Types:**
 - "April invoice ready for review → [View in app]"
@@ -266,7 +266,7 @@ In the web app, suggestions appear on the home page with two actions: "Create Ta
 When Claude can't accomplish something, it logs it in `workspace/_gaps/gaps.md`:
 
 ```markdown
-## 2026-03-14 — Login to example.com
+## 2026-03-14: Login to example.com
 Problem: The site requires MFA via a mobile authenticator app.
 Impact: Cannot complete the annual report.
 Suggestion: Add TOTP code reading capability.
@@ -280,17 +280,17 @@ Modules extend OpenTidy's capabilities. Each module lives in `apps/backend/modul
 
 ### Three levels
 
-**Level 1 — JSON-only MCP** (`module.json` with `mcpServers`):
+**Level 1, JSON-only MCP** (`module.json` with `mcpServers`):
 The simplest pattern. The backend configures the declared MCP server in the agent's session. No custom code needed.
 Examples: browser (Camoufox), password-manager, email.
 
-**Level 2 — JSON + receiver.ts** (`module.json` with `receiver`):
+**Level 2, JSON + receiver.ts** (`module.json` with `receiver`):
 Adds event ingestion. The receiver watches an external source and feeds events into triage. The MCP server (if any) is configured separately.
 Examples: modules that only need to ingest external events.
 
-**Level 3 — JSON + daemon.ts** (`module.json` with `daemon`):
-A long-running process managed by the backend lifecycle. The daemon receives a `ModuleContext` that provides: `emit()` for pushing events into triage, `registerTool()` for exposing MCP tools, `logger` for prefixed logging, `onShutdown()` for cleanup, and `dataDir` for persistent storage. Daemon tools are registered on the built-in OpenTidy MCP server — the agent sees them as `mcp__opentidy__<tool_name>`.
-Examples: WhatsApp (Baileys — one WebSocket handles both incoming messages and outgoing tool calls).
+**Level 3, JSON + daemon.ts** (`module.json` with `daemon`):
+A long-running process managed by the backend lifecycle. The daemon receives a `ModuleContext` that provides: `emit()` for pushing events into triage, `registerTool()` for exposing MCP tools, `logger` for prefixed logging, `onShutdown()` for cleanup, and `dataDir` for persistent storage. Daemon tools are registered on the built-in OpenTidy MCP server, and the agent sees them as `mcp__opentidy__<tool_name>`.
+Examples: WhatsApp (Baileys, where one WebSocket handles both incoming messages and outgoing tool calls).
 
 ### Daemon lifecycle
 
@@ -393,6 +393,6 @@ After each autonomous process exit:
 
 ## Next steps
 
-- [Security](security.md) — hooks, guardrails, and audit system in detail
-- [Configuration](configuration.md) — all config options
-- [Specification](specification.md) — full product specification
+- [Security](security.md): hooks, guardrails, and audit system in detail
+- [Configuration](configuration.md): all config options
+- [Specification](specification.md): full product specification

@@ -18,14 +18,14 @@ interface GenerateOpts {
   taskInfo: TaskInfo;
   instructionFile: string;
   event?: { source: string; content: string };
-  /** Enabled module manifests — used to generate the capabilities index */
+  /** Enabled module manifests, used to generate the capabilities index */
   modules?: { manifests: Map<string, ModuleManifest>; states: Record<string, ModuleState> };
 }
 
 /**
  * Build a capabilities index from enabled modules.
  * Each line maps a module to its access method (MCP tools, skills, or both).
- * Fully module-agnostic — derived from manifests, no hardcoding.
+ * Fully module-agnostic: derived from manifests, no hardcoding.
  */
 function buildCapabilitiesSection(
   manifests: Map<string, ModuleManifest>,
@@ -51,7 +51,7 @@ function buildCapabilitiesSection(
 
     if (accessMethods.length === 0) continue;
 
-    lines.push(`- **${manifest.label}** — ${manifest.description} → ${accessMethods.join(', ')}`);
+    lines.push(`- **${manifest.label}**: ${manifest.description} → ${accessMethods.join(', ')}`);
   }
 
   if (lines.length === 0) return '';
@@ -62,11 +62,11 @@ function buildCapabilitiesSection(
 
   // Add scheduling tools explicitly (part of opentidy MCP but worth highlighting)
   section += `\n### Scheduling\n`;
-  section += `- \`mcp__opentidy__schedule_create\` — Schedule a future action\n`;
+  section += `- \`mcp__opentidy__schedule_create\`: Schedule a future action\n`;
   section += `  - once: { type: "once", runAt: "ISO-datetime", label: "...", taskId: "${taskId}" }\n`;
   section += `  - recurring: { type: "recurring", intervalMs: N, label: "...", taskId: "${taskId}" }\n`;
-  section += `- \`mcp__opentidy__schedule_list\` — List schedules\n`;
-  section += `- \`mcp__opentidy__schedule_delete\` — Remove a schedule by id\n`;
+  section += `- \`mcp__opentidy__schedule_list\`: List schedules\n`;
+  section += `- \`mcp__opentidy__schedule_delete\`: Remove a schedule by id\n`;
   section += `\nDo NOT write NEXT ACTION in state.md. Use schedule_create instead.\n`;
 
   return section;
@@ -86,7 +86,7 @@ export function generateTaskInstructions(opts: GenerateOpts): void {
     content += buildCapabilitiesSection(modules.manifests, modules.states, taskId);
   } else {
     // Fallback: hardcoded OpenTidy tools (for backwards compat / tests without modules)
-    content += `\n## Available MCP Tools (OpenTidy)\n\n- \`mcp__opentidy__schedule_create\` — Schedule a future action\n  - once: { type: "once", runAt: "ISO-datetime", label: "...", taskId: "${taskId}" }\n  - recurring: { type: "recurring", intervalMs: N, label: "...", taskId: "${taskId}" }\n- \`mcp__opentidy__schedule_list\` — List schedules (optional taskId filter)\n- \`mcp__opentidy__schedule_delete\` — Remove a schedule by id\n- \`mcp__opentidy__suggestion_create\` — Suggest a new task\n- \`mcp__opentidy__gap_report\` — Report a capability gap\n\nDo NOT write NEXT ACTION in state.md. Use schedule_create instead.\n`;
+    content += `\n## Available MCP Tools (OpenTidy)\n\n- \`mcp__opentidy__schedule_create\`: Schedule a future action\n  - once: { type: "once", runAt: "ISO-datetime", label: "...", taskId: "${taskId}" }\n  - recurring: { type: "recurring", intervalMs: N, label: "...", taskId: "${taskId}" }\n- \`mcp__opentidy__schedule_list\`: List schedules (optional taskId filter)\n- \`mcp__opentidy__schedule_delete\`: Remove a schedule by id\n- \`mcp__opentidy__suggestion_create\`: Suggest a new task\n- \`mcp__opentidy__gap_report\`: Report a capability gap\n\nDo NOT write NEXT ACTION in state.md. Use schedule_create instead.\n`;
   }
 
   content += `\n## End of work\nWhen you have finished working on this task, update STATUS: COMPLETED in state.md.\n`;

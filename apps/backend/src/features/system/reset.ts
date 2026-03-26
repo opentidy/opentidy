@@ -9,9 +9,9 @@ import { getOpenTidyPaths } from '../../shared/paths.js';
 export function resetRoute(deps: AppDeps) {
   const router = new Hono();
 
-  // POST /reset — factory reset: kill sessions, wipe workspace, clear DB, reset config to defaults
+  // POST /reset: factory reset, kill sessions, wipe workspace, clear DB, reset config to defaults
   router.post('/reset', async (c) => {
-    console.log('[opentidy] RESET — factory reset');
+    console.log('[opentidy] RESET, factory reset');
     const { execFileSync } = await import('child_process');
     const { readdirSync, rmSync, statSync, existsSync, mkdirSync } = await import('fs');
 
@@ -33,7 +33,7 @@ export function resetRoute(deps: AppDeps) {
       mkdirSync(join(deps.workspaceDir, dir), { recursive: true });
     }
 
-    // 3. Clear database — wipe all tables
+    // 3. Clear database: wipe all tables
     if (deps.db) {
       try {
         deps.db.exec('DELETE FROM schedules');
@@ -102,9 +102,9 @@ export function resetRoute(deps: AppDeps) {
     // 9. Notify all connected clients to refresh
     deps.sse.emit({ type: 'system:reset', data: {}, timestamp: new Date().toISOString() });
 
-    console.log('[opentidy] Factory reset complete — exiting for clean restart');
+    console.log('[opentidy] Factory reset complete, exiting for clean restart');
 
-    // Schedule process exit after response is sent — the process manager (launchd/brew services)
+    // Schedule process exit after response is sent. The process manager (launchd/brew services)
     // restarts the backend with fresh state (recomputed AGENT_CONFIG_DIR, fresh DB connections, etc.)
     setTimeout(() => process.exit(0), 500);
 

@@ -45,10 +45,10 @@ export interface AgentSetupDeps {
 
 function checkOnboarded(agentConfigDir: string, name: AgentName): boolean {
   // Claude Code stores hasCompletedOnboarding in .claude.json after the full onboarding wizard.
-  // Just checking auth status is not enough — the user may have logged in via OAuth but not
+  // Just checking auth status is not enough; the user may have logged in via OAuth but not
   // finished the theme/permissions steps. Without this flag, Claude Code re-shows the onboarding.
   if (name !== 'claude') return true;
-  // Agent config dir must exist — if cleared (e.g., after reset), agent is not onboarded
+  // Agent config dir must exist; if cleared (e.g., after reset), agent is not onboarded
   if (!agentConfigDir || !fs.existsSync(agentConfigDir)) return false;
   try {
     const statePath = path.join(agentConfigDir, '.claude.json');
@@ -97,7 +97,7 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
     });
   });
 
-  // POST /setup/agents/disconnect — log out the agent from OpenTidy's isolated config
+  // POST /setup/agents/disconnect: log out the agent from OpenTidy's isolated config
   app.post('/setup/agents/disconnect', (c) => {
     const agent = c.req.query('agent');
     console.log(`[setup] POST /setup/agents/disconnect agent=${agent}`);
@@ -114,7 +114,7 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
         env: { ...process.env, CLAUDE_CONFIG_DIR: configDir },
       });
     } catch {
-      // Ignore — may already be logged out
+      // Ignore, may already be logged out
     }
 
     return c.json({ success: true });

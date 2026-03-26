@@ -23,7 +23,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const doc = getDoc(slug);
   return {
-    title: doc ? `${doc.title} — OpenTidy` : "Not Found — OpenTidy",
+    title: doc ? `${doc.title} | OpenTidy` : "Not Found | OpenTidy",
     description: `OpenTidy documentation: ${doc?.title ?? ""}`,
   };
 }

@@ -27,7 +27,7 @@ export function createLockManager(lockDir: string) {
       fs.writeFileSync(p, String(process.pid), { flag: 'wx' });
       return true;
     } catch {
-      // File exists — check if the holding process is still alive
+      // File exists. Check if the holding process is still alive.
       if (!isLocked(taskId)) {
         // Stale lock was cleaned up by isLocked, retry once
         try {

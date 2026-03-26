@@ -8,9 +8,9 @@ import { TtydTerminal } from './TtydTerminal';
 interface TerminalDrawerProps {
   open: boolean;
   title: string;
-  /** Module name — backend looks up authCommand from manifest */
+  /** Module name: backend looks up authCommand from manifest */
   moduleName?: string;
-  /** Direct command — used when not tied to a module (e.g. agent setup) */
+  /** Direct command, used when not tied to a module (e.g. agent setup) */
   command?: string;
   onClose: () => void;
 }

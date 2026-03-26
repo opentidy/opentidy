@@ -22,7 +22,7 @@ export interface ExistingIssue {
   title: string;
 }
 
-// PII patterns — defense-in-depth check before creating public issues
+// PII patterns: defense-in-depth check before creating public issues
 const PII_PATTERNS = [
   /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/,    // email
   /(?:\+\d{1,3}\s?)?\(?\d{2,4}\)?[\s.-]\d{2,4}[\s.-]\d{2,4}/, // phone
@@ -63,7 +63,7 @@ export function createGitHubIssueManager(config: GitHubIssueConfig) {
 
   async function createIssue(gap: SanitizedGap): Promise<number | null> {
     if (containsPII(gap.sanitizedTitle) || containsPII(gap.sanitizedBody)) {
-      throw new Error('PII detected in sanitized gap content — refusing to create public issue');
+      throw new Error('PII detected in sanitized gap content. Refusing to create public issue');
     }
 
     const labels = ['auto-gap'];

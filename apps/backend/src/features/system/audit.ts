@@ -31,7 +31,7 @@ export function createAuditLogger(auditDir: string) {
         console.log(`[audit] rotated log file (${(stats.size / 1024 / 1024).toFixed(1)} MB)`);
       }
     } catch {
-      // File doesn't exist yet — nothing to rotate
+      // File doesn't exist yet, nothing to rotate
     }
   }
 
