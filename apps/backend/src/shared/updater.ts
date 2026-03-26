@@ -49,7 +49,7 @@ export function createUpdater(deps: UpdaterDeps) {
       const res = await fetch(`https://api.github.com/repos/${deps.repoOwner}/${deps.repoName}/releases/latest`);
       if (!res.ok) return { available: false };
       const data = await res.json() as { tag_name: string };
-      const latest = data.tag_name.replace(/^v/, '');
+      const latest = data.tag_name.replace(/^(opentidy-)?v/, '');
       if (isNewerVersion(deps.currentVersion, latest)) {
         return { available: true, version: latest };
       }
