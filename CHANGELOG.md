@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.0.3](https://github.com/opentidy/opentidy/compare/v0.0.2...v0.0.3) (2026-03-26)
+
+
+### Features
+
+* **cli:** add opentidy stop and opentidy restart commands ([699aa84](https://github.com/opentidy/opentidy/commit/699aa842c0a2f48bb485d73aaf37e0c7af293ead))
+
+
+### Bug Fixes
+
+* **backend:** auto-install CLI deps in module setup and verify flows ([667d2d1](https://github.com/opentidy/opentidy/commit/667d2d16356783a1581e2bef0124e40532915bc9))
+* **backend:** fix iMessage receiver (start/stop interface) and updater tag parsing ([f615dc4](https://github.com/opentidy/opentidy/commit/f615dc4c5e8320c2de62400dc0db2c9775308337))
+* **backend:** remove redundant checkCommand for whatsapp module (baileys is a bundled dep) ([2339e95](https://github.com/opentidy/opentidy/commit/2339e95db600e7f859ba48f399c574016712b392))
+* **backend:** use macOS security CLI for keychain access instead of @napi-rs/keyring ([4d4f230](https://github.com/opentidy/opentidy/commit/4d4f2301ef274217cadbe23d9104d8f0d7e0faa8))
+* **ci:** fix release tag format and workflow trigger ([af43c3e](https://github.com/opentidy/opentidy/commit/af43c3e9096806088629ceb2216d45f19fd3b61b))
+* **cli:** debug install dir resolution in opentidy update ([bb5a3ad](https://github.com/opentidy/opentidy/commit/bb5a3adc5c160cd1bccc9b860ad6d237837824d4))
+* **cli:** opentidy update waits for server restart with health check ([6a6698e](https://github.com/opentidy/opentidy/commit/6a6698e19b26085efb00b2197bb5409c633166ee))
+* **cli:** strip opentidy- prefix from release tags in update check ([59e663a](https://github.com/opentidy/opentidy/commit/59e663af6464ca177969828d5060d2d291d8ed6d))
+* **cli:** walk up directory tree to find .git instead of hardcoded depth ([e1aba99](https://github.com/opentidy/opentidy/commit/e1aba997390418b522680ee68e6c2848a6a6409f))
+* install.sh creates CLI wrapper, adds PATH to .zshrc, fixes LaunchAgent ([a009e9f](https://github.com/opentidy/opentidy/commit/a009e9f42014831147899a4bca3b9b8b0b09f19a))
+
 ## [0.0.2](https://github.com/opentidy/opentidy/compare/opentidy-v0.0.1...opentidy-v0.0.2) (2026-03-26)
 
 
