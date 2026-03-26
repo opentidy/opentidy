@@ -5,7 +5,6 @@
 // Runs interactively: bw login → prompt master password → store in OS keychain → verify.
 // Invoked via: npx tsx ./setup.ts (from authCommand in module.json)
 
-import { Entry } from '@napi-rs/keyring';
 import { execFileSync, spawnSync } from 'child_process';
 import { createInterface } from 'readline';
 
@@ -103,16 +102,14 @@ async function main(): Promise<void> {
 
     console.log('✓ Password verified, vault unlocked successfully\n');
 
-    // Store in keychain
+    // Store in keychain via macOS `security` CLI (no native module popup)
     try {
-      const entry = new Entry(SERVICE, ACCOUNT);
-      entry.setPassword(masterPassword);
+      // Remove existing entry if any
+      try { execFileSync('security', ['delete-generic-password', '-s', SERVICE, '-a', ACCOUNT], { stdio: 'pipe' }); } catch { /* may not exist */ }
+      execFileSync('security', ['add-generic-password', '-s', SERVICE, '-a', ACCOUNT, '-w', masterPassword, '-U'], { stdio: 'pipe' });
       console.log('✓ Master password stored in OS keychain\n');
     } catch (err) {
-      // Clean up on failure
-      try { new Entry(SERVICE, ACCOUNT).deletePassword(); } catch { /* ignore */ }
       console.error('❌ Failed to store in keychain:', (err as Error).message);
-      console.error('  On Linux, ensure gnome-keyring or kwallet is installed and running.');
       process.exit(1);
     }
 

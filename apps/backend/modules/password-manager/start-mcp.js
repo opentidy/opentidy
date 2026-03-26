@@ -6,17 +6,26 @@
 // Reads master password from OS keychain → bw unlock → sets BW_SESSION → runs MCP server.
 // IMPORTANT: Only use console.error for logging. Stdout is the MCP protocol channel.
 
-import { Entry } from '@napi-rs/keyring';
 import { execFileSync, spawn } from 'child_process';
 import { createRequire } from 'module';
 
 const SERVICE = 'opentidy';
 const ACCOUNT = 'bitwarden-master-password';
 
+function readFromKeychain(service, account) {
+  try {
+    return execFileSync('security', ['find-generic-password', '-s', service, '-a', account, '-w'], {
+      encoding: 'utf-8',
+      timeout: 5_000,
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
 try {
-  // 1. Read master password from OS keychain
-  const entry = new Entry(SERVICE, ACCOUNT);
-  const masterPassword = entry.getPassword();
+  // 1. Read master password from OS keychain (via `security` CLI — no popup)
+  const masterPassword = readFromKeychain(SERVICE, ACCOUNT);
   if (!masterPassword) {
     console.error('[password-manager] No master password in keychain. Run: opentidy setup');
     process.exit(1);
