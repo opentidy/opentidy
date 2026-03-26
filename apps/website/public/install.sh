@@ -119,6 +119,23 @@ else
   ok "Config exists"
 fi
 
+# --- CLI wrapper ---
+log "Installing CLI..."
+mkdir -p "$HOME/.local/bin"
+cat > "$HOME/.local/bin/opentidy" <<SH
+#!/bin/bash
+export PATH="\$HOME/.local/bin:$NODE_DIR:/opt/homebrew/bin:\$PATH"
+exec "$NODE_DIR/node" "$INSTALL_DIR/apps/backend/dist/cli.js" "\$@"
+SH
+chmod +x "$HOME/.local/bin/opentidy"
+
+# Ensure ~/.local/bin is in PATH (add to .zshrc if not already there)
+if ! grep -q '\.local/bin' "$HOME/.zshrc" 2>/dev/null; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
+  dim "Added ~/.local/bin to PATH in .zshrc"
+fi
+ok "CLI installed (opentidy)"
+
 # --- LaunchAgent (for future reboots) ---
 log "Installing service..."
 PLIST_SRC="$INSTALL_DIR/com.opentidy.agent.plist"
@@ -129,6 +146,7 @@ launchctl unload "$PLIST_DST" 2>/dev/null || true
 
 sed -e "s|__INSTALL_DIR__|$INSTALL_DIR|g" \
     -e "s|__HOME__|$HOME|g" \
+    -e "s|__NODE__|$NODE_CMD|g" \
     "$PLIST_SRC" > "$PLIST_DST"
 
 launchctl load "$PLIST_DST" 2>/dev/null || true

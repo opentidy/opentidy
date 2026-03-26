@@ -2,8 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   OpenTidy LaunchAgent template.
-  install.sh copies this to ~/Library/LaunchAgents/ and replaces __INSTALL_DIR__ with the actual path.
-  Telegram credentials and other secrets are read from ~/.config/opentidy/config.json at runtime.
+  install.sh copies this to ~/Library/LaunchAgents/ and replaces __INSTALL_DIR__, __NODE__, __HOME__.
 -->
 <plist version="1.0">
 <dict>
@@ -12,7 +11,8 @@
 
 	<key>ProgramArguments</key>
 	<array>
-		<string>__INSTALL_DIR__/bin/opentidy</string>
+		<string>__NODE__</string>
+		<string>__INSTALL_DIR__/apps/backend/dist/cli.js</string>
 		<string>start</string>
 	</array>
 
@@ -22,9 +22,11 @@
 	<key>EnvironmentVariables</key>
 	<dict>
 		<key>PATH</key>
-		<string>__HOME__/.nvm/versions/node/v22/bin:__HOME__/.local/share/fnm/aliases/default/bin:__HOME__/.volta/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+		<string>__HOME__/.local/bin:/opt/homebrew/opt/node@22/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
 		<key>NODE_ENV</key>
 		<string>production</string>
+		<key>HOME</key>
+		<string>__HOME__</string>
 	</dict>
 
 	<key>KeepAlive</key>
