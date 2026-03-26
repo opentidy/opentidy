@@ -135,6 +135,77 @@ OpenTidy uses **Vertical Slice Architecture** — each feature is self-contained
 
 Look at `features/modules/` or `features/suggestions/` for well-structured examples.
 
+## Creating a daemon module
+
+Use a daemon module when you need both event ingestion (receiver) and MCP tools that share a single persistent connection. If your module only needs an MCP server, use a JSON-only module.json. If it only needs event ingestion, use a receiver.ts.
+
+### Module structure
+
+```
+apps/backend/modules/<name>/
+  module.json     # manifest: name, daemon entry, toolPermissions
+  daemon.ts       # long-running process, receives ModuleContext
+  auth.mjs        # optional: setup/auth script (e.g., QR code pairing)
+```
+
+### module.json
+
+```json
+{
+  "name": "my-module",
+  "label": "My Module",
+  "description": "What it does",
+  "version": "1.0.0",
+  "daemon": { "entry": "./daemon.ts" },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": [
+      { "tool": "my_module_read", "label": "Read data" }
+    ],
+    "critical": [
+      { "tool": "my_module_write", "label": "Write data" }
+    ]
+  }
+}
+```
+
+### daemon.ts
+
+The daemon receives a `ModuleContext` and runs until shutdown:
+
+```typescript
+// SPDX-License-Identifier: AGPL-3.0-only
+// Copyright (c) 2026 Loaddr Ltd
+
+import type { ModuleContext } from '@opentidy/shared';
+
+export async function start(ctx: ModuleContext): Promise<void> {
+  // Register tools — agent sees them as mcp__opentidy__<name>
+  ctx.registerTool('my_module_read', {
+    description: 'Read data from the service',
+    inputSchema: { type: 'object', properties: { query: { type: 'string' } } },
+  }, async (input) => {
+    return { content: [{ type: 'text', text: 'result' }] };
+  });
+
+  // Emit events into the triage pipeline
+  ctx.emit({ source: 'my-module', content: 'New item received', ts: Date.now() });
+
+  // Register cleanup
+  ctx.onShutdown(() => {
+    // close connections, flush state
+  });
+}
+```
+
+### How tools are registered
+
+Tools declared in `toolPermissions` use short names (`my_module_read`). When the daemon calls `ctx.registerTool('my_module_read', ...)`, the tool is registered on the built-in OpenTidy MCP server. The agent sees it as `mcp__opentidy__my_module_read`. The permission system uses the short name from the manifest to match.
+
+### How events are emitted
+
+`ctx.emit()` pushes a `ReceiverEvent` into the same triage pipeline used by webhooks and watchers. The event goes through dedup and Claude-based classification like any other event.
+
 ## Code style
 
 ### TypeScript
