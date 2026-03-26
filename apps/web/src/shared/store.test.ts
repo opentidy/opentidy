@@ -18,6 +18,8 @@ vi.mock('./api', () => ({
   timeoutSession: vi.fn().mockResolvedValue({ ok: true }),
   resolveAmelioration: vi.fn().mockResolvedValue({ resolved: true }),
   triggerCheckup: vi.fn().mockResolvedValue({}),
+  fetchClaudeProcesses: vi.fn().mockResolvedValue([]),
+  fetchCheckupStatus: vi.fn().mockResolvedValue({}),
 }));
 
 import { useStore, connectSSE } from './store';
@@ -76,8 +78,8 @@ describe('Zustand store', () => {
 
   describe('mutation actions', () => {
     it('createTask calls API then refreshes tasks', async () => {
-      await useStore.getState().createTask('New task', true);
-      expect(api.createTask).toHaveBeenCalledWith('New task', true);
+      await useStore.getState().createTask('New task');
+      expect(api.createTask).toHaveBeenCalledWith('New task');
       expect(api.fetchTasks).toHaveBeenCalled();
     });
 
@@ -88,8 +90,8 @@ describe('Zustand store', () => {
     });
 
     it('sendInstruction calls API without refresh', async () => {
-      await useStore.getState().sendInstruction('acme', 'Do it', false);
-      expect(api.sendInstruction).toHaveBeenCalledWith('acme', 'Do it', false);
+      await useStore.getState().sendInstruction('acme', 'Do it');
+      expect(api.sendInstruction).toHaveBeenCalledWith('acme', 'Do it');
     });
 
     it('approveSuggestion refreshes suggestions and tasks', async () => {
@@ -167,8 +169,9 @@ describe('Zustand store', () => {
       expect(eventTypes).toContain('task:completed');
       expect(eventTypes).toContain('suggestion:created');
       expect(eventTypes).toContain('amelioration:created');
-      // 8 SSE refresh map + 2 custom (session:output, process:output) + 'open' + 'error' = 12
-      expect(eventTypes.length).toBe(12);
+      expect(eventTypes).toContain('system:reset');
+      // 9 SSE refresh map + 2 custom (session:output, process:output) + 'open' + 'error' = 13
+      expect(eventTypes.length).toBe(13);
     });
 
     it('returns a cleanup function that closes the EventSource', () => {

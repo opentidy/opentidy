@@ -34,8 +34,26 @@
     "schedule": "Schedule",
     "suggestions": "Task Proposals",
     "modules": "Modules",
+    "permissions": "Permissions",
+    "agents": "Agents",
     "settings": "Settings",
-    "sectionAgent": "Agent"
+    "sectionAgent": "Agent",
+    "sectionConfig": "Configuration",
+    "sectionDebug": "Debug"
+  },
+  "permissions": {
+    "title": "Permissions",
+    "description": "Control what the agent can do — built-in capabilities and module tools.",
+    "presetLabel": "Security Preset",
+    "builtinLabel": "Built-in Capabilities",
+    "moduleLabel": "Module Tools",
+    "readFiles": "Read files",
+    "writeFiles": "Write & edit files",
+    "runCommands": "Run any command",
+    "webAccess": "Web fetch & search",
+    "subAgents": "Launch sub-agents",
+    "needsApproval": "Needs approval",
+    "noModuleTools": "No enabled modules with tool permissions."
   },
   "home": {
     "waitingForYou": "Waiting for you",
@@ -63,7 +81,21 @@
     "deleteConfirm": "Delete everything? Sessions, tasks, locks — fresh start.",
     "launchTestConfirm": "Launch all test tasks?",
     "runCheckup": "Run checkup",
-    "newTask": "+ New task"
+    "newTask": "+ New task",
+    "allClear": "All clear",
+    "nothingNeeded": "No tasks running. Nothing needs your attention.",
+    "completedCount_one": "{{count}} task completed",
+    "completedCount_other": "{{count}} tasks completed",
+    "tasksRunning_one": "{{count}} task running",
+    "tasksRunning_other": "{{count}} tasks running",
+    "onTrack": "Everything's on track. Nothing needs you.",
+    "running": "Running",
+    "needsYou": "Needs your action",
+    "needsYouCount_one": "{{count}} needs you",
+    "needsYouCount_other": "{{count}} need you",
+    "waitingCount_one": "{{count}} waiting",
+    "waitingCount_other": "{{count}} waiting",
+    "suggestsLabel": "OpenTidy suggests"
   },
   "nouveau": {
     "title": "New task",
@@ -90,7 +122,16 @@
     "taskCompleted": "This task is completed. Reopen it to start a session.",
     "reopenTask": "Reopen task",
     "startSession": "Start a session",
-    "notFound": "Task not found"
+    "notFound": "Task not found",
+    "sessionHistory": "Sessions",
+    "noSessions": "No previous sessions",
+    "sessionStatus": {
+      "running": "Running",
+      "completed": "Completed",
+      "stopped": "Stopped",
+      "error": "Error"
+    },
+    "resumeSession": "Resume"
   },
   "ameliorations": {
     "title": "Improvements",
@@ -117,7 +158,10 @@
   "suggestion": {
     "viewOriginal": "View original message",
     "createTask": "Create task",
-    "ignore": "Ignore"
+    "ignore": "Ignore",
+    "whatIWouldDo": "What I would do",
+    "instructionPlaceholder": "Refine the instruction before launching...",
+    "why": "Why"
   },
   "instruction": {
     "placeholder": "Send an instruction to this task..."
@@ -163,6 +207,9 @@
     "doneCount": "{{count}} done",
     "all": "All",
     "noProcesses": "No processes",
+    "noProcessesDesc": "Agent processes (triage, checkup, memory) will appear here as they run.",
+    "prompt": "Prompt",
+    "linkedTask": "Task",
     "waitingForSlot": "Waiting for a slot (max 3 concurrent)"
   },
   "memory": {
@@ -195,10 +242,7 @@
     "emptyWaitingTiers": "Tasks waiting for a third party (email reply, callback...) will show up here.",
     "emptySuggestions": "The assistant monitors your emails and messages. New tasks it detects will appear here.",
     "emptyTasks": "Your active tasks will appear here.",
-    "emptyCreateCta": "Create your first task",
-    "navLockedProcesses": "Visible when tasks are running",
-    "navLockedAmeliorations": "Appears after a few days of use",
-    "navLockedMemory": "The assistant learns over time"
+    "emptyCreateCta": "Create your first task"
   },
   "toolbox": {
     "title": "Agent Toolbox",
@@ -335,19 +379,6 @@
     "permTool": "Tool",
     "permissionsDesc": "Control how the agent handles sensitive actions for each module.",
     "criticalTools": "critical tools",
-    "mcp.default": "Gives the agent tools to interact with {{label}}",
-    "mcp.gmail": "Gives the agent tools to read, search, and send emails",
-    "mcp.browser": "Gives the agent a web browser to visit sites and interact with pages",
-    "mcp.whatsapp": "Gives the agent tools to read and send WhatsApp messages",
-    "mcp.telegram": "Gives the agent tools to send notifications and read updates",
-    "mcp.opentidy": "Gives the agent tools to manage tasks, suggestions, and schedules",
-    "skill.default": "Provides instructions on how to use {{label}}",
-    "skill.browser": "Teaches the agent how to browse with isolated sessions and anti-detection",
-    "receiver.default": "Listens for incoming events from {{label}}",
-    "receiver.gmail": "Automatically receives new emails via webhook",
-    "receiver.whatsapp": "Listens for incoming WhatsApp messages in real time",
-    "receiver.apple-mail": "Watches for new emails in Apple Mail",
-    "receiver.imessage": "Watches for incoming SMS and iMessage",
     "level.allow": "Allow",
     "level.ask": "Ask",
     "level.block": "Block",
@@ -385,7 +416,25 @@
     "serviceRunning": "Running",
     "serviceStopped": "Stopped",
     "restart": "Restart",
-    "dangerZone": "Danger Zone"
+    "dangerZone": "Danger Zone",
+    "preferences": "Preferences",
+    "preferencesDescription": "General settings for OpenTidy",
+    "prefLanguage": "Language",
+    "prefAutoUpdate": "Automatic updates",
+    "prefAutoUpdateDesc": "Check for and install updates automatically",
+    "prefScanInterval": "Periodic scan",
+    "prefScanIntervalDesc": "How often the assistant checks for pending tasks",
+    "prefNotificationRate": "Notification rate limit",
+    "prefNotificationRateDesc": "Minimum time between Telegram notifications",
+    "prefSaved": "Saved",
+    "prefScanDisabled": "Disabled",
+    "prefScan30m": "Every 30 min",
+    "prefScan1h": "Every hour",
+    "prefScan2h": "Every 2 hours",
+    "prefScan6h": "Every 6 hours",
+    "prefRateInstant": "Instant",
+    "prefRate1m": "1 min",
+    "prefRate5m": "5 min"
   },
   "modules": {
     "configure": "Configure",
@@ -401,7 +450,14 @@
     "comingSoon": "Coming soon",
     "command": "Command",
     "args": "Arguments",
-    "add": "Add"
+    "add": "Add",
+    "createModule": "Create Module",
+    "moduleName": "Module name",
+    "moduleNamePlaceholder": "my-module",
+    "moduleNameError": "Name must be lowercase letters, numbers, and hyphens only",
+    "creating": "Creating...",
+    "scanQr": "Scan this QR code with your phone to connect",
+    "qrHint": "Open WhatsApp > Settings > Linked Devices > Link a Device"
   },
   "helpTooltip": {
     "task": "A task that the assistant manages for you, from start to finish.",

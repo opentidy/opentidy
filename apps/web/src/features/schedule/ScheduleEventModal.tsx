@@ -74,17 +74,17 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
         {/* Header */}
         <h2 className="text-sm font-medium text-text mb-1 tracking-tight">{schedule.label}</h2>
         <div className="flex items-center gap-2 mb-5">
-          <span className="text-[11px] text-text-tertiary">
+          <span className="text-[13px] text-text-tertiary">
             {schedule.type === 'once' ? t('schedule.once') : t('schedule.recurring')}
           </span>
           {schedule.taskId && (
             <>
               <span className="text-text-tertiary/30">·</span>
-              <span className="text-[11px] text-text-tertiary">{schedule.taskId}</span>
+              <span className="text-[13px] text-text-tertiary">{schedule.taskId}</span>
             </>
           )}
           <span className="text-text-tertiary/30">·</span>
-          <span className="text-[10px] text-text-tertiary/50">{schedule.createdBy}</span>
+          <span className="text-[12px] text-text-tertiary/50">{schedule.createdBy}</span>
         </div>
 
         {/* Timing — editable for non-system */}
@@ -101,7 +101,7 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
                 <div className="flex gap-1 flex-1">
                   {INTERVAL_UNITS.map(u => (
                     <button key={u.key} type="button" onClick={() => setIntervalUnit(u.key)}
-                      className={`flex-1 text-[10px] py-1.5 rounded-md border transition-colors ${
+                      className={`flex-1 text-[12px] py-1.5 rounded-md border transition-colors ${
                         intervalUnit === u.key
                           ? 'border-white/20 bg-white/[0.06] text-text'
                           : 'border-white/[0.04] text-text-tertiary/60 hover:text-text-tertiary'
@@ -113,7 +113,7 @@ export default function ScheduleEventModal({ schedule, onClose, onSaved }: Sched
               </div>
             )}
             {schedule.instruction && (
-              <p className="text-[11px] text-text-tertiary/70 leading-relaxed">{schedule.instruction}</p>
+              <p className="text-[13px] text-text-tertiary/70 leading-relaxed">{schedule.instruction}</p>
             )}
           </div>
         )}

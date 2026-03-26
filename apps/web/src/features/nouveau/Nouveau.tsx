@@ -11,7 +11,7 @@ import ExampleChips from './ExampleChips';
 export default function Nouveau() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { suggestions, fetchSuggestions, createTask, uploadFile } = useStore();
+  const { suggestions, fetchSuggestions, createTask } = useStore();
   const [instruction, setInstruction] = useState('');
   const [launching, setLaunching] = useState(false);
   const launchingRef = useRef(false);

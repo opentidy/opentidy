@@ -25,7 +25,7 @@ export default function Sidebar({ task, session }: SidebarProps) {
     <aside className="w-[260px] shrink-0 space-y-6">
       {session && sessionDot && (
         <div>
-          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('sidebar.session')}</h4>
+          <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('sidebar.session')}</h4>
           <div className="flex items-center gap-2 mb-1">
             <span className={`w-2 h-2 rounded-full ${sessionDot}`} />
             <span className="text-sm text-green">{sessionLabel} - {formatDuration(session.startedAt)}</span>
@@ -47,7 +47,7 @@ export default function Sidebar({ task, session }: SidebarProps) {
 
       {task.artifacts.length > 0 && (
         <div>
-          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h4>
+          <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h4>
           <ul className="space-y-1.5">
             {task.artifacts.map((file) => (
               <li key={file} className="flex items-center gap-2 text-sm">

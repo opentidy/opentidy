@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import type { Task, Suggestion, Amelioration, Session, MemoryIndexEntry, MemoryEntry, AgentProcess } from '@opentidy/shared';
+import type { Task, Suggestion, Amelioration, Session, SessionHistoryEntry, MemoryIndexEntry, MemoryEntry, AgentProcess } from '@opentidy/shared';
 
 const BASE = '/api';
 
@@ -17,6 +17,7 @@ export const fetchTask = (id: string) => json<Task>(`/task/${id}`);
 export const fetchSuggestions = () => json<Suggestion[]>('/suggestions');
 export const fetchAmeliorations = () => json<Amelioration[]>('/ameliorations');
 export const fetchSessions = () => json<Session[]>('/sessions');
+export const fetchSessionHistory = (taskId: string) => json<SessionHistoryEntry[]>(`/tasks/${taskId}/sessions/history`);
 export const fetchCheckupStatus = () => json<{ lastRun: string | null; nextRun: string | null; result: string; launched: string[]; suggestions: number }>('/checkup/status');
 
 export const getArtifactUrl = (taskId: string, filename: string) =>
@@ -87,6 +88,18 @@ export const fetchProcessOutput = async (id: number): Promise<string> => {
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return res.text();
 };
+
+// Preferences
+export interface Preferences {
+  language: string;
+  autoUpdate: boolean;
+  scanInterval: string;
+  notificationRateLimit: number;
+}
+
+export const fetchPreferences = () => json<Preferences>('/settings/preferences');
+export const updatePreferences = (data: Partial<Preferences>) =>
+  json<Preferences>('/settings/preferences', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
 
 export const resetEverything = async () => {
   await json('/reset', { method: 'POST' });

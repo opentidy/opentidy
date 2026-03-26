@@ -24,7 +24,7 @@ export default function TaskCard({ task, session }: { task: Task; session?: Sess
           <div className="flex items-center gap-2 mb-1 min-w-0">
             <span className={`w-[7px] h-[7px] rounded-full ${config.dot} shrink-0`} />
             <span className="text-sm font-medium text-text truncate">{task.title}</span>
-            <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${config.badgeBg} ${config.badge} shrink-0 whitespace-nowrap`}>
+            <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${config.badgeBg} ${config.badge} shrink-0 whitespace-nowrap`}>
               {t(config.labelKey)}
             </span>
           </div>
@@ -32,12 +32,12 @@ export default function TaskCard({ task, session }: { task: Task; session?: Sess
         </div>
         <div className="text-right shrink-0 flex flex-col items-end gap-1">
           {session?.status === 'active' && (
-            <span className="flex items-center gap-1 text-[9px] text-green">
+            <span className="flex items-center gap-1 text-[11px] text-green">
               <span className="w-1 h-1 rounded-full bg-green animate-pulse" />
               Terminal
             </span>
           )}
-          <div className="text-[9px] text-[#48484a]">{task.lastAction}</div>
+          <div className="text-[11px] text-[#48484a]">{task.lastAction}</div>
         </div>
       </div>
     </div>

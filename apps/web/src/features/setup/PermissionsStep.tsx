@@ -158,7 +158,7 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
               <ol className="mt-3 space-y-1 border-t border-border-subtle pt-3">
                 {(INSTRUCTIONS[perm.name] ?? []).map((step, i) => (
                   <li key={i} className="flex items-start gap-2 text-xs text-text-secondary">
-                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[10px] font-bold text-accent">
+                    <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-accent/20 text-[12px] font-bold text-accent">
                       {i + 1}
                     </span>
                     <span>{step}</span>

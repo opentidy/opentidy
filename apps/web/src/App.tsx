@@ -3,6 +3,7 @@
 
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import Layout from './shared/Layout';
 import Home from './features/home/Home';
 import TaskDetail from './features/tasks/TaskDetail';
@@ -13,8 +14,11 @@ import SchedulePage from './features/schedule/SchedulePage';
 import Memory from './features/memory/Memory';
 import Settings from './features/settings/Settings';
 import ModulesPage from './features/modules/ModulesPage';
-import Suggestions from './features/suggestions/Suggestions';
+import AgentsPage from './features/agents/AgentsPage';
+
+import PermissionsPage from './features/permissions/PermissionsPage';
 import SetupWizard from './features/setup/SetupWizard';
+import { useStore } from './shared/store';
 
 function SetupGuard({ children }: { children: React.ReactNode }) {
   const [setupComplete, setSetupComplete] = useState<boolean | null>(null);
@@ -31,9 +35,22 @@ function SetupGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ResetOverlay() {
+  const { t } = useTranslation();
+  return (
+    <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-bg">
+      <div className="h-8 w-8 animate-spin rounded-full border-2 border-text-tertiary border-t-accent" />
+      <p className="mt-4 text-sm text-text-secondary">{t('toolbox.resetting')}</p>
+    </div>
+  );
+}
+
 export default function App() {
+  const resetting = useStore((s) => s.resetting);
+
   return (
     <BrowserRouter>
+      {resetting && <ResetOverlay />}
       <Routes>
         <Route path="/setup" element={<SetupWizard />} />
         <Route
@@ -44,7 +61,7 @@ export default function App() {
           }
         >
           <Route path="/" element={<Home />} />
-          <Route path="/suggestions" element={<Suggestions />} />
+
           <Route path="/task/:id" element={<TaskDetail />} />
           <Route path="/terminal" element={<Terminal />} />
           <Route path="/nouveau" element={<Nouveau />} />
@@ -52,6 +69,8 @@ export default function App() {
           <Route path="/schedule" element={<SchedulePage />} />
           <Route path="/memory" element={<Memory />} />
           <Route path="/modules" element={<ModulesPage />} />
+          <Route path="/permissions" element={<PermissionsPage />} />
+          <Route path="/agents" element={<AgentsPage />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
       </Routes>

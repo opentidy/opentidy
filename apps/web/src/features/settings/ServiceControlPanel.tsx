@@ -52,7 +52,7 @@ export default function ServiceControlPanel() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.serviceControl')}</h2>
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.serviceControl')}</h2>
         <p className="text-xs text-text-tertiary">{t('settings.serviceControlDescription')}</p>
       </div>
 

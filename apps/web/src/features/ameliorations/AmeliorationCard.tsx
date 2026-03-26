@@ -45,12 +45,12 @@ export default function AmeliorationCard({
         <div className="flex items-center gap-2 flex-wrap">
           <h3 className="font-semibold text-text">{amelioration.title}</h3>
           {amelioration.category && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-medium ${categoryColors[amelioration.category]}`}>
+            <span className={`text-[12px] px-1.5 py-0.5 rounded-md font-medium ${categoryColors[amelioration.category]}`}>
               {categoryLabels[amelioration.category]}
             </span>
           )}
           {amelioration.source && (
-            <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-text-tertiary/10 text-text-tertiary font-medium">
+            <span className="text-[12px] px-1.5 py-0.5 rounded-md bg-text-tertiary/10 text-text-tertiary font-medium">
               {amelioration.source}
             </span>
           )}

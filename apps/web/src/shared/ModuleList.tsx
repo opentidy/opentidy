@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { ModuleInfo, PermissionConfig, PermissionLevel, PermissionPreset, ModulePermissionLevel } from '@opentidy/shared';
+import type { ModuleInfo } from '@opentidy/shared';
+import { QRCodeSVG } from 'qrcode.react';
 import ModuleCard from '../features/settings/ModuleCard';
 import ModuleConfigDialog from '../features/settings/ModuleConfigDialog';
 import { TerminalDrawer } from './TerminalDrawer';
@@ -15,19 +16,6 @@ async function fetchModules(): Promise<ModuleInfo[]> {
   return data.modules;
 }
 
-async function fetchPermissions(): Promise<PermissionConfig | null> {
-  try {
-    const res = await fetch('/api/permissions/config');
-    if (!res.ok) return null;
-    const data = await res.json();
-    return data.permissions;
-  } catch {
-    return null;
-  }
-}
-
-const PRESETS: PermissionPreset[] = ['supervised', 'assisted', 'autonomous'];
-
 interface ModuleListProps {
   /** Auto-enable core modules on mount (setup wizard only) */
   autoEnableCore?: boolean;
@@ -38,18 +26,31 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
   const [modules, setModules] = useState<ModuleInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [permissions, setPermissions] = useState<PermissionConfig | null>(null);
-  const [savingPreset, setSavingPreset] = useState(false);
-  const [savingModule, setSavingModule] = useState<string | null>(null);
 
   const [terminalModule, setTerminalModule] = useState<ModuleInfo | null>(null);
   const [configuringModule, setConfiguringModule] = useState<ModuleInfo | null>(null);
+  const [qrData, setQrData] = useState<{ name: string; qr: string } | null>(null);
+
+  // Listen for daemon auth SSE events (QR code for WhatsApp etc.)
+  useEffect(() => {
+    const es = new EventSource('/api/events');
+    es.addEventListener('module:auth-required', (e: MessageEvent) => {
+      try {
+        const event = JSON.parse(e.data);
+        setQrData({ name: event.data.name, qr: event.data.qr });
+      } catch {}
+    });
+    es.addEventListener('module:auth-complete', () => {
+      setQrData(null);
+      refetch();
+    });
+    return () => es.close();
+  }, []);
 
   async function refetch() {
     try {
-      const [mods, perms] = await Promise.all([fetchModules(), fetchPermissions()]);
+      const mods = await fetchModules();
       setModules(mods);
-      setPermissions(perms);
     } catch (err) {
       console.error('[modules] failed to fetch:', (err as Error).message);
       setError((err as Error).message);
@@ -57,21 +58,19 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
   }
 
   useEffect(() => {
-    Promise.all([fetchModules(), fetchPermissions()])
-      .then(async ([mods, perms]) => {
+    fetchModules()
+      .then(async (mods) => {
         setModules(mods);
-        setPermissions(perms);
-        // Auto-enable core modules + modules whose deps are already on disk
-        const toEnable = mods.filter((m) =>
-          !m.enabled && ((autoEnableCore && m.core) || m.ready === true)
-        );
+        // Auto-enable during setup wizard only: core modules (opentidy)
+        const toEnable = autoEnableCore
+          ? mods.filter((m) => !m.enabled && m.core)
+          : [];
         for (const mod of toEnable) {
           await fetch(`/api/modules/${mod.name}/enable`, { method: 'POST' });
         }
         if (toEnable.length > 0) {
-          const [freshMods, freshPerms] = await Promise.all([fetchModules(), fetchPermissions()]);
+          const freshMods = await fetchModules();
           setModules(freshMods);
-          setPermissions(freshPerms);
         }
       })
       .catch((err) => {
@@ -87,100 +86,8 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
   }
 
   async function handleDisable(name: string) {
-    await fetch(`/api/modules/${name}/disable`, { method: 'POST' });
+    await fetch(`/api/modules/${name}/disable?clean=true`, { method: 'POST' });
     refetch();
-  }
-
-  // Preset handler
-  async function handlePreset(preset: PermissionPreset) {
-    setSavingPreset(true);
-    try {
-      const res = await fetch('/api/permissions/preset', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preset }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setPermissions(data.permissions);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setSavingPreset(false);
-    }
-  }
-
-  // Normalize a module's permission value (string or {safe,critical,overrides}) into full form
-  function normalizeLevel(value: PermissionLevel | ModulePermissionLevel | undefined): ModulePermissionLevel | undefined {
-    if (!permissions) return undefined;
-    if (!value) {
-      const d = permissions.defaultLevel ?? 'ask';
-      return { safe: d, critical: d };
-    }
-    if (typeof value === 'string') return { safe: value, critical: value };
-    // Migrate old read/write format
-    if ('read' in value && !('safe' in value)) {
-      return { safe: (value as any).read, critical: (value as any).write, overrides: (value as any).overrides };
-    }
-    return value;
-  }
-
-  // Lookup which group (safe/critical) a tool belongs to
-  function findToolGroup(moduleName: string, toolName: string): 'safe' | 'critical' {
-    const mod = modules.find(m => m.name === moduleName);
-    const tp = mod?.toolPermissions;
-    if (tp?.safe?.some((d: any) => (typeof d === 'string' ? d : d.tool) === toolName)) return 'safe';
-    return 'critical';
-  }
-
-  // Per-module permission level handler (group: safe/critical, or per-tool override)
-  async function handlePermissionChange(moduleName: string, key: 'safe' | 'critical' | string, level: PermissionLevel) {
-    if (!permissions) return;
-    setSavingModule(moduleName);
-    const current = normalizeLevel(permissions.modules[moduleName])!;
-
-    let newValue: ModulePermissionLevel;
-    if (key === 'safe' || key === 'critical') {
-      // Group-level change
-      newValue = { ...current, [key]: level };
-    } else {
-      // Per-tool: check if level matches group default — if so, remove override
-      const group = findToolGroup(moduleName, key);
-      const groupLevel = current[group];
-      const overrides = { ...current.overrides };
-      if (level === groupLevel) {
-        delete overrides[key];
-      } else {
-        overrides[key] = level;
-      }
-      // Clean up empty overrides
-      newValue = { ...current, overrides: Object.keys(overrides).length > 0 ? overrides : undefined };
-    }
-
-    const updated: PermissionConfig = {
-      ...permissions,
-      modules: { ...permissions.modules, [moduleName]: newValue },
-    };
-    try {
-      const res = await fetch('/api/permissions/config', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updated),
-      });
-      if (res.ok) {
-        setPermissions(updated);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setSavingModule(null);
-    }
-  }
-
-  function getModuleLevels(moduleName: string): ModulePermissionLevel | undefined {
-    if (!permissions) return undefined;
-    return normalizeLevel(permissions.modules[moduleName]);
   }
 
   // Poll verify endpoint while terminal is open — auto-close on success
@@ -206,9 +113,7 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
               setTerminalModule(null);
             }
           }
-        } catch {
-          // ignore
-        }
+        } catch { /* ignore */ }
       }, 1000);
     };
 
@@ -245,9 +150,7 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
             await handleEnable(terminalModule.name);
           }
         }
-      } catch {
-        // ignore
-      }
+      } catch { /* ignore */ }
     }
     setTerminalModule(null);
     refetch();
@@ -270,85 +173,50 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
   const installed = modules.filter((m) => m.enabled);
   const available = modules.filter((m) => !m.enabled);
 
-  function renderCard(mod: ModuleInfo) {
-    return (
-      <ModuleCard
-        key={mod.name}
-        module={mod}
-        onEnable={handleEnable}
-        onDisable={handleDisable}
-        onConfigure={(name) => {
-          const m = modules.find((x) => x.name === name);
-          if (m) setConfiguringModule(m);
-        }}
-        onInstall={handleInstall}
-        permissionLevels={mod.enabled ? getModuleLevels(mod.name) : undefined}
-        onPermissionChange={handlePermissionChange}
-        savingPermission={savingModule === mod.name}
-      />
-    );
-  }
-
   return (
     <>
       {error && (
         <div className="text-red text-sm p-3 bg-red/10 rounded-lg mb-4">{error}</div>
       )}
 
-      {/* Preset buttons with descriptions */}
-      {permissions && (
-        <div className="mb-5 flex gap-2">
-          {PRESETS.map((id) => {
-            const isSelected = permissions.preset === id;
-            const presetKey = id.charAt(0).toUpperCase() + id.slice(1);
-            return (
-              <button
-                key={id}
-                type="button"
-                disabled={savingPreset}
-                onClick={() => handlePreset(id)}
-                className={`flex flex-1 flex-col items-start gap-1 rounded-lg border px-3 py-2.5 text-left transition-colors ${
-                  isSelected
-                    ? 'border-accent bg-accent/[.08] text-text'
-                    : 'border-border bg-surface hover:bg-card text-text-secondary'
-                } disabled:opacity-40`}
-              >
-                <span className="text-xs font-semibold">
-                  {t(`setup.preset${presetKey}`)}
-                </span>
-                <span className="text-[10px] leading-tight text-text-tertiary line-clamp-2">
-                  {t(`setup.preset${presetKey}Desc`)}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
       {modules.length === 0 ? (
         <div className="text-text-tertiary text-sm">{t('settings.noModules')}</div>
       ) : (
         <div className="space-y-5">
-          {/* Installed modules */}
           {installed.length > 0 && (
             <div>
-              <h4 className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
+              <h4 className="text-[12px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
                 {t('setup.installed')} ({installed.length})
               </h4>
               <div className="grid grid-cols-2 gap-3">
-                {installed.map(renderCard)}
+                {installed.map((mod) => (
+                  <ModuleCard
+                    key={mod.name}
+                    module={mod}
+                    onEnable={handleEnable}
+                    onDisable={handleDisable}
+                    onInstall={handleInstall}
+                  />
+                ))}
               </div>
             </div>
           )}
 
-          {/* Available modules */}
           {available.length > 0 && (
             <div>
-              <h4 className="text-[10px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
+              <h4 className="text-[12px] font-semibold uppercase tracking-wider text-text-tertiary mb-2">
                 {t('setup.available')} ({available.length})
               </h4>
               <div className="grid grid-cols-2 gap-3">
-                {available.map(renderCard)}
+                {available.map((mod) => (
+                  <ModuleCard
+                    key={mod.name}
+                    module={mod}
+                    onEnable={handleEnable}
+                    onDisable={handleDisable}
+                    onInstall={handleInstall}
+                  />
+                ))}
               </div>
             </div>
           )}
@@ -371,6 +239,25 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
           onClose={() => setConfiguringModule(null)}
           onSave={handleConfigSave}
         />
+      )}
+
+      {qrData && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setQrData(null)}>
+          <div className="bg-card rounded-2xl p-8 max-w-sm w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="text-lg font-semibold text-center mb-2">
+              {modules.find(m => m.name === qrData.name)?.label ?? qrData.name}
+            </h3>
+            <p className="text-sm text-text-secondary text-center mb-6">
+              {t('modules.scanQr')}
+            </p>
+            <div className="flex justify-center bg-white p-4 rounded-xl">
+              <QRCodeSVG value={qrData.qr} size={256} />
+            </div>
+            <p className="text-xs text-text-tertiary text-center mt-4">
+              {t('modules.qrHint')}
+            </p>
+          </div>
+        </div>
       )}
     </>
   );

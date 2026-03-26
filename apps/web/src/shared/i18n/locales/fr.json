@@ -34,8 +34,26 @@
     "schedule": "Agenda",
     "suggestions": "Propositions",
     "modules": "Modules",
+    "permissions": "Permissions",
+    "agents": "Agents",
     "settings": "Paramètres",
-    "sectionAgent": "Agent"
+    "sectionAgent": "Agent",
+    "sectionConfig": "Configuration",
+    "sectionDebug": "Debug"
+  },
+  "permissions": {
+    "title": "Permissions",
+    "description": "Contrôle ce que l'agent peut faire — capacités natives et outils des modules.",
+    "presetLabel": "Preset de sécurité",
+    "builtinLabel": "Capacités natives",
+    "moduleLabel": "Outils des modules",
+    "readFiles": "Lire des fichiers",
+    "writeFiles": "Écrire et éditer des fichiers",
+    "runCommands": "Exécuter n'importe quelle commande",
+    "webAccess": "Accès web (fetch & search)",
+    "subAgents": "Lancer des sous-agents",
+    "needsApproval": "Approbation requise",
+    "noModuleTools": "Aucun module activé avec des permissions d'outils."
   },
   "home": {
     "waitingForYou": "En attente de toi",
@@ -63,7 +81,21 @@
     "deleteConfirm": "Tout supprimer ? Sessions, tasks, locks — fresh start.",
     "launchTestConfirm": "Lancer toutes les tâches de test ?",
     "runCheckup": "Lancer checkup",
-    "newTask": "+ Nouveau task"
+    "newTask": "+ Nouveau task",
+    "allClear": "Tout est calme",
+    "nothingNeeded": "Aucun task en cours. Rien n'a besoin de toi.",
+    "completedCount_one": "{{count}} task terminé",
+    "completedCount_other": "{{count}} tasks terminés",
+    "tasksRunning_one": "{{count}} task en cours",
+    "tasksRunning_other": "{{count}} tasks en cours",
+    "onTrack": "Tout avance bien. Rien n'a besoin de toi.",
+    "running": "En cours",
+    "needsYou": "En attente de toi",
+    "needsYouCount_one": "{{count}} t'attend",
+    "needsYouCount_other": "{{count}} t'attendent",
+    "waitingCount_one": "{{count}} en attente",
+    "waitingCount_other": "{{count}} en attente",
+    "suggestsLabel": "OpenTidy te propose"
   },
   "nouveau": {
     "title": "Nouveau task",
@@ -90,7 +122,16 @@
     "taskCompleted": "Ce task est terminé. Rouvre-le pour lancer une session.",
     "reopenTask": "Rouvrir le task",
     "startSession": "Démarrer une session",
-    "notFound": "Task introuvable"
+    "notFound": "Task introuvable",
+    "sessionHistory": "Sessions",
+    "noSessions": "Aucune session précédente",
+    "sessionStatus": {
+      "running": "En cours",
+      "completed": "Terminée",
+      "stopped": "Stoppée",
+      "error": "Erreur"
+    },
+    "resumeSession": "Reprendre"
   },
   "ameliorations": {
     "title": "Améliorations",
@@ -117,7 +158,10 @@
   "suggestion": {
     "viewOriginal": "Voir le message original",
     "createTask": "Créer le task",
-    "ignore": "Ignorer"
+    "ignore": "Ignorer",
+    "whatIWouldDo": "Ce que je ferais",
+    "instructionPlaceholder": "Affiner l'instruction avant de lancer...",
+    "why": "Pourquoi"
   },
   "instruction": {
     "placeholder": "Donner une instruction à ce task..."
@@ -163,6 +207,9 @@
     "doneCount": "{{count}} terminés",
     "all": "Tous",
     "noProcesses": "Aucun processus",
+    "noProcessesDesc": "Les processus agent (triage, checkup, mémoire) apparaîtront ici au fur et à mesure.",
+    "prompt": "Prompt",
+    "linkedTask": "Tâche",
     "waitingForSlot": "En attente d'un slot (max 3 simultanés)"
   },
   "memory": {
@@ -195,10 +242,7 @@
     "emptyWaitingTiers": "Les tâches en attente d'un tiers (réponse email, rappel...) s'affichent ici.",
     "emptySuggestions": "L'assistant surveille tes emails et messages. Les nouvelles tâches détectées apparaîtront ici.",
     "emptyTasks": "Tes tâches en cours apparaîtront ici.",
-    "emptyCreateCta": "Crée ton premier task",
-    "navLockedProcesses": "Visible quand des tâches sont en cours",
-    "navLockedAmeliorations": "S'affiche après quelques jours d'utilisation",
-    "navLockedMemory": "L'assistant apprend au fil du temps"
+    "emptyCreateCta": "Crée ton premier task"
   },
   "toolbox": {
     "title": "Outils de l'agent",
@@ -335,19 +379,6 @@
     "permTool": "Outil",
     "permissionsDesc": "Contrôlez comment l'agent gère les actions sensibles pour chaque module.",
     "criticalTools": "outils critiques",
-    "mcp.default": "Donne des outils à l'agent pour interagir avec {{label}}",
-    "mcp.gmail": "Donne des outils à l'agent pour lire, rechercher et envoyer des emails",
-    "mcp.browser": "Donne un navigateur web à l'agent pour visiter des sites et interagir avec des pages",
-    "mcp.whatsapp": "Donne des outils à l'agent pour lire et envoyer des messages WhatsApp",
-    "mcp.telegram": "Donne des outils à l'agent pour envoyer des notifications et lire les mises à jour",
-    "mcp.opentidy": "Donne des outils à l'agent pour gérer les tâches, suggestions et plannings",
-    "skill.default": "Fournit des instructions sur l'utilisation de {{label}}",
-    "skill.browser": "Apprend à l'agent à naviguer avec des sessions isolées et anti-détection",
-    "receiver.default": "Écoute les événements entrants de {{label}}",
-    "receiver.gmail": "Reçoit automatiquement les nouveaux emails via webhook",
-    "receiver.whatsapp": "Écoute les messages WhatsApp entrants en temps réel",
-    "receiver.apple-mail": "Surveille les nouveaux emails dans Apple Mail",
-    "receiver.imessage": "Surveille les SMS et iMessage entrants",
     "level.allow": "Autoriser",
     "level.ask": "Demander",
     "level.block": "Bloquer",
@@ -385,7 +416,25 @@
     "serviceRunning": "En cours d'exécution",
     "serviceStopped": "Arrêté",
     "restart": "Redémarrer",
-    "dangerZone": "Zone de danger"
+    "dangerZone": "Zone de danger",
+    "preferences": "Préférences",
+    "preferencesDescription": "Paramètres généraux d'OpenTidy",
+    "prefLanguage": "Langue",
+    "prefAutoUpdate": "Mises à jour automatiques",
+    "prefAutoUpdateDesc": "Vérifier et installer les mises à jour automatiquement",
+    "prefScanInterval": "Scan périodique",
+    "prefScanIntervalDesc": "Fréquence de vérification des tâches en attente",
+    "prefNotificationRate": "Limite de notifications",
+    "prefNotificationRateDesc": "Temps minimum entre les notifications Telegram",
+    "prefSaved": "Enregistré",
+    "prefScanDisabled": "Désactivé",
+    "prefScan30m": "Toutes les 30 min",
+    "prefScan1h": "Toutes les heures",
+    "prefScan2h": "Toutes les 2 heures",
+    "prefScan6h": "Toutes les 6 heures",
+    "prefRateInstant": "Instantané",
+    "prefRate1m": "1 min",
+    "prefRate5m": "5 min"
   },
   "modules": {
     "configure": "Configurer",
@@ -401,7 +450,14 @@
     "comingSoon": "Bientôt disponible",
     "command": "Commande",
     "args": "Arguments",
-    "add": "Ajouter"
+    "add": "Ajouter",
+    "createModule": "Créer un module",
+    "moduleName": "Nom du module",
+    "moduleNamePlaceholder": "mon-module",
+    "moduleNameError": "Le nom doit contenir uniquement des lettres minuscules, des chiffres et des tirets",
+    "creating": "Création...",
+    "scanQr": "Scannez ce QR code avec votre téléphone pour connecter",
+    "qrHint": "Ouvrez WhatsApp > Réglages > Appareils connectés > Lier un appareil"
   },
   "helpTooltip": {
     "task": "Une tâche que l'assistant gère pour toi, de A à Z.",

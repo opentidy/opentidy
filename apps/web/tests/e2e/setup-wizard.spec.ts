@@ -138,13 +138,13 @@ test.describe('Setup Wizard', () => {
         body: JSON.stringify({
           modules: [
             {
-              name: 'gmail',
-              label: 'Gmail',
-              description: 'Read, search, and draft emails via Gmail',
+              name: 'email',
+              label: 'Email',
+              description: 'Read, search, and send emails via IMAP/SMTP (any provider)',
               icon: '📧',
               source: 'curated',
               enabled: true,
-              components: { mcpServers: ['gmail'], skills: [], receivers: ['gmail-webhook'] },
+              components: { mcpServers: [], skills: [{ name: 'email-skill' }], receivers: [{ name: 'email-imap', mode: 'polling', source: 'email' }] },
               setup: { needsAuth: true, configFields: [], configured: true },
             },
             {
@@ -154,7 +154,7 @@ test.describe('Setup Wizard', () => {
               icon: '📨',
               source: 'curated',
               enabled: false,
-              components: { mcpServers: ['telegram'], skills: [], receivers: [] },
+              components: { mcpServers: [{ name: 'telegram' }], skills: [], receivers: [] },
               setup: { needsAuth: false, configFields: [], configured: false },
             },
           ],
@@ -188,7 +188,7 @@ test.describe('Setup Wizard', () => {
     await page.getByRole('button', { name: 'Continue' }).click();
 
     // Step 4: modules step
-    await expect(page.getByText('Gmail')).toBeVisible();
+    await expect(page.getByText('Email')).toBeVisible();
     await expect(page.getByText('Telegram')).toBeVisible();
 
     // Continue to done step

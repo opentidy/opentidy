@@ -14,9 +14,9 @@ function MarkdownContent({ raw }: { raw: string }) {
         const trimmed = line.trimStart();
 
         // H1
-        if (trimmed.startsWith('# ')) return <h2 key={i} className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mt-4 mb-1">{trimmed.slice(2)}</h2>;
+        if (trimmed.startsWith('# ')) return <h2 key={i} className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mt-4 mb-1">{trimmed.slice(2)}</h2>;
         // H2
-        if (trimmed.startsWith('## ')) return <h3 key={i} className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mt-4 mb-1">{trimmed.slice(3)}</h3>;
+        if (trimmed.startsWith('## ')) return <h3 key={i} className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mt-4 mb-1">{trimmed.slice(3)}</h3>;
         // H3
         if (trimmed.startsWith('### ')) return <h4 key={i} className="text-xs font-semibold text-text-secondary mt-3 mb-1">{trimmed.slice(4)}</h4>;
         // Status/mode metadata lines (both EN and FR)
@@ -51,7 +51,7 @@ export default function StateRenderer({ task }: { task: Task }) {
 
         {task.artifacts.length > 0 && (
           <div>
-            <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h3>
             <ul className="space-y-1">
               {task.artifacts.map((artifact) => (
                 <li key={artifact} className="flex items-center gap-2 text-xs text-text-secondary">
@@ -63,7 +63,7 @@ export default function StateRenderer({ task }: { task: Task }) {
                     href={getArtifactUrl(task.id, artifact)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-accent text-[11px] hover:underline"
+                    className="text-accent text-[13px] hover:underline"
                   >
                     {artifact}
                   </a>
@@ -95,13 +95,13 @@ export default function StateRenderer({ task }: { task: Task }) {
       )}
 
       <div>
-        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('stateRenderer.objective')}</h3>
+        <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('stateRenderer.objective')}</h3>
         <p className="text-xs text-text-secondary leading-relaxed">{task.objective}</p>
       </div>
 
       {task.journal && task.journal.length > 0 && (
         <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('stateRenderer.log')}</h3>
+          <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('stateRenderer.log')}</h3>
           <div className="space-y-2">
             {task.journal.slice().reverse().map((entry, i) => (
               <div key={i} className="flex items-start gap-3 text-xs">
@@ -115,7 +115,7 @@ export default function StateRenderer({ task }: { task: Task }) {
 
       {task.artifacts.length > 0 && (
         <div>
-          <h3 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h3>
+          <h3 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')}</h3>
           <ul className="space-y-1">
             {task.artifacts.map((artifact) => (
               <li key={artifact} className="flex items-center gap-2 text-xs text-text-secondary">
@@ -127,7 +127,7 @@ export default function StateRenderer({ task }: { task: Task }) {
                   href={getArtifactUrl(task.id, artifact)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-accent text-[11px] hover:underline"
+                  className="text-accent text-[13px] hover:underline"
                 >
                   {artifact}
                 </a>

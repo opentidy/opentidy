@@ -18,7 +18,7 @@ export default function SecurityPanel() {
   return (
     <div>
       <div className="mb-6">
-        <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.security')}</h2>
+        <h2 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a]">{t('settings.security')}</h2>
         <p className="text-xs text-text-tertiary">{t('settings.securityDescription')}</p>
       </div>
 

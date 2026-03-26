@@ -12,11 +12,11 @@ export default function ModuleIcon({ name, size = 24, className }: ModuleIconPro
   const shared = { width: s, height: s, viewBox: '0 0 24 24', className, fill: 'none' as const };
 
   switch (name) {
-    case 'gmail':
+    case 'email':
       return (
         <svg {...shared} viewBox="0 0 24 24">
-          <path d="M2 6a2 2 0 0 1 2-4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6z" fill="#EA4335" fillOpacity="0.15" stroke="#EA4335" strokeWidth="1.5"/>
-          <path d="M2 6l10 7 10-7" stroke="#EA4335" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <rect x="2" y="5" width="20" height="14" rx="2" fill="#3B82F6" fillOpacity="0.15" stroke="#3B82F6" strokeWidth="1.5"/>
+          <path d="M2 7l10 7 10-7" stroke="#3B82F6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       );
 
@@ -48,14 +48,6 @@ export default function ModuleIcon({ name, size = 24, className }: ModuleIconPro
       return (
         <svg {...shared} viewBox="0 0 24 24">
           <path d="M12 3C7.03 3 3 6.58 3 11c0 2.1.87 4.02 2.3 5.46L4 21l4.1-1.84A10.7 10.7 0 0 0 12 20c4.97 0 9-3.58 9-8s-4.03-8-9-8z" fill="#34C759" fillOpacity="0.15" stroke="#34C759" strokeWidth="1.5"/>
-        </svg>
-      );
-
-    case 'apple-mail':
-      return (
-        <svg {...shared} viewBox="0 0 24 24">
-          <rect x="3" y="5" width="18" height="14" rx="2" fill="#007AFF" fillOpacity="0.15" stroke="#007AFF" strokeWidth="1.5"/>
-          <path d="M3 7l9 6 9-6" stroke="#007AFF" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       );
 

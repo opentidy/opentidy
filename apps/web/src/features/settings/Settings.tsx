@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import SecurityPanel from './SecurityPanel';
+import PreferencesPanel from './PreferencesPanel';
+
 import TunnelPanel from './TunnelPanel';
 import ServiceControlPanel from './ServiceControlPanel';
 import DangerZonePanel from './DangerZonePanel';
@@ -9,7 +10,7 @@ import DangerZonePanel from './DangerZonePanel';
 export default function Settings() {
   return (
     <div className="p-5 md:p-7 space-y-6 overflow-y-auto h-full">
-      <SecurityPanel />
+      <PreferencesPanel />
       <div className="border-t border-border pt-6">
         <TunnelPanel />
       </div>

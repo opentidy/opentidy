@@ -22,7 +22,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
     slug: 'tax-filing-2025',
     title: 'Tax filing 2025',
     urgency: 'normal',
-    source: 'gmail',
+    source: 'email',
     date: '2026-03-14',
     summary: 'Deadline approaching for tax filing',
     why: 'Tax deadline is next week',

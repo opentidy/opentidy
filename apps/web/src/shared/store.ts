@@ -3,7 +3,7 @@
 
 import { create } from 'zustand';
 import { useSyncExternalStore } from 'react';
-import type { Task, Suggestion, Amelioration, Session, SSEEventType, MemoryIndexEntry, MemoryEntry, AgentProcess } from '@opentidy/shared';
+import type { Task, Suggestion, Amelioration, Session, SessionHistoryEntry, SSEEventType, MemoryIndexEntry, MemoryEntry, AgentProcess } from '@opentidy/shared';
 import * as api from './api';
 
 export interface SessionOutputLine {
@@ -22,6 +22,7 @@ interface Store {
   selectedMemory: MemoryEntry | null;
   memoryLoading: boolean;
   claudeProcesses: AgentProcess[];
+  sessionHistory: SessionHistoryEntry[];
   loading: boolean;
   error: string | null;
   clearError: () => void;
@@ -30,6 +31,7 @@ interface Store {
   selectMemory: (filename: string) => Promise<void>;
   clearSelectedMemory: () => void;
   fetchClaudeProcesses: () => Promise<void>;
+  fetchSessionHistory: (taskId: string) => Promise<void>;
 
   fetchTasks: () => Promise<void>;
   fetchSuggestions: () => Promise<void>;
@@ -50,6 +52,7 @@ interface Store {
   resolveAmelioration: (id: string) => Promise<void>;
   ignoreAmelioration: (id: string) => Promise<void>;
   triggerCheckup: () => Promise<void>;
+  resetting: boolean;
   resetEverything: () => Promise<void>;
   launchTestTasks: () => Promise<void>;
 }
@@ -96,7 +99,7 @@ export function useProcessOutput(trackId: number): string {
 export const useStore = create<Store>((set, get) => ({
   tasks: [], suggestions: [], ameliorations: [], sessions: [], checkupStatus: null, loading: false,
   memoryIndex: [], selectedMemory: null, memoryLoading: false,
-  claudeProcesses: [],
+  claudeProcesses: [], sessionHistory: [],
   error: null,
   clearError: () => set({ error: null }),
 
@@ -124,6 +127,13 @@ export const useStore = create<Store>((set, get) => ({
       set({ claudeProcesses: await api.fetchClaudeProcesses() });
     } catch (err) {
       console.warn('[store] fetchClaudeProcesses failed:', (err as Error).message);
+    }
+  },
+  fetchSessionHistory: async (taskId: string) => {
+    try {
+      set({ sessionHistory: await api.fetchSessionHistory(taskId) });
+    } catch (err) {
+      console.warn('[store] fetchSessionHistory failed:', (err as Error).message);
     }
   },
 
@@ -176,9 +186,15 @@ export const useStore = create<Store>((set, get) => ({
   resolveAmelioration: (id) => withError(set, async () => { await api.resolveAmelioration(id); await get().fetchAmeliorations(); }),
   ignoreAmelioration: (id) => withError(set, async () => { await api.ignoreAmelioration(id); await get().fetchAmeliorations(); }),
   triggerCheckup: () => withError(set, async () => { await api.triggerCheckup(); }),
+  resetting: false,
   resetEverything: async () => {
-    await api.resetEverything();
-    window.location.reload();
+    set({ resetting: true });
+    try {
+      await api.resetEverything();
+    } catch {
+      // Backend may not restart in dev mode — redirect anyway since config is already reset
+    }
+    window.location.href = '/setup';
   },
   launchTestTasks: () => withError(set, async () => {
     await api.launchTestTasks();

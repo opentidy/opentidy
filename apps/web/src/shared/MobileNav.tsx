@@ -6,29 +6,25 @@ import { useTranslation } from 'react-i18next';
 import { useStore } from './store';
 import NavIcon from './NavIcon';
 
-type TabItem = { to: string; icon: string; labelKey: string; unlockedKey: string | null; badgeKey?: string };
+type TabItem = { to: string; icon: string; labelKey: string; badgeKey?: string };
 
 const tabs: TabItem[] = [
-  { to: '/', icon: 'home', labelKey: 'nav.home', unlockedKey: null },
-  { to: '/suggestions', icon: 'suggestions', labelKey: 'nav.suggestions', unlockedKey: null, badgeKey: 'suggestions' },
-  { to: '/schedule', icon: 'schedule', labelKey: 'nav.schedule', unlockedKey: null },
-  { to: '/modules', icon: 'modules', labelKey: 'nav.modules', unlockedKey: null },
+  { to: '/', icon: 'home', labelKey: 'nav.home' },
+  { to: '/schedule', icon: 'schedule', labelKey: 'nav.schedule' },
+  { to: '/memory', icon: 'memory', labelKey: 'nav.memory' },
+  { to: '/settings', icon: 'toolbox', labelKey: 'nav.settings' },
 ];
 
 export default function MobileNav() {
   const { t } = useTranslation();
-  const { ameliorations, suggestions } = useStore();
-  const hasContent: Record<string, boolean> = {
-    ameliorations: ameliorations.length > 0,
-  };
+  const { suggestions } = useStore();
   const badgeCounts: Record<string, number> = {
     suggestions: suggestions.length,
   };
 
   return (
     <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-surface border-t border-border flex justify-around items-center h-16 z-50">
-      {tabs.map(({ to, icon, labelKey, unlockedKey, badgeKey }, i) => {
-        const locked = unlockedKey !== null && !hasContent[unlockedKey];
+      {tabs.map(({ to, icon, labelKey, badgeKey }, i) => {
         const badge = badgeKey ? badgeCounts[badgeKey] ?? 0 : 0;
         const isCenter = i === 2;
 
@@ -52,18 +48,16 @@ export default function MobileNav() {
           <NavLink
             key={to}
             to={to}
-            onClick={locked ? (e) => e.preventDefault() : undefined}
-            aria-disabled={locked || undefined}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 text-[10px] ${
+              `flex flex-col items-center gap-1 text-[12px] ${
                 isActive ? 'text-accent' : 'text-[#48484a]'
-              } ${locked ? 'opacity-40 cursor-default' : ''}`
+              }`
             }
           >
             <div className="relative">
               <NavIcon icon={icon} />
               {badge > 0 && (
-                <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-bold px-1">
+                <span className="absolute -top-1 -right-2 min-w-[14px] h-3.5 flex items-center justify-center rounded-full bg-accent text-white text-[11px] font-bold px-1">
                   {badge}
                 </span>
               )}
