@@ -11,16 +11,16 @@ export async function runUpdate(): Promise<void> {
 
   try {
     execFileSync('brew', ['update'], { stdio: 'inherit', timeout: 60_000 });
-    const outdated = execFileSync('brew', ['outdated', 'opentidy'], { encoding: 'utf-8', timeout: 10_000 }).trim();
-    if (outdated) {
-      console.log(`\n  Update available: ${outdated}`);
-      console.log('  Upgrading...\n');
-      execFileSync('brew', ['upgrade', 'opentidy'], { stdio: 'inherit', timeout: 300_000 });
-      console.log('\n  Restarting...');
+    console.log('\n  Upgrading...\n');
+    const output = execFileSync('brew', ['upgrade', 'opentidy'], { encoding: 'utf-8', timeout: 300_000 });
+    if (output.includes('already installed')) {
+      console.log('  Already up to date.\n');
+    } else {
+      const newVersion = getVersion();
+      console.log(`  Updated to ${newVersion}`);
+      console.log('  Restarting...');
       execFileSync('brew', ['services', 'restart', 'opentidy'], { stdio: 'inherit', timeout: 30_000 });
       console.log('  Done.\n');
-    } else {
-      console.log('  Already up to date.\n');
     }
   } catch (err) {
     console.error('  Update failed:', err instanceof Error ? err.message : err);
