@@ -10,7 +10,7 @@ import { createAgentSemaphore } from './agent-semaphore.js';
 interface SpawnAgentDeps {
   adapter: AgentAdapter;
   tracker?: {
-    start(type: AgentProcessType, taskId?: string, pid?: number, description?: string): number;
+    start(type: AgentProcessType, taskId?: string, pid?: number, description?: string, instruction?: string): number;
     markRunning?(id: number, pid?: number): void;
     complete(id: number, exitCode: number): void;
     fail(id: number): void;
@@ -29,6 +29,7 @@ export interface SpawnAgentOptions {
   type: AgentProcessType;
   taskId?: string;
   description?: string;
+  instruction?: string;
   onOutput?: (chunk: string) => void;
 }
 
@@ -46,9 +47,9 @@ export function createSpawnAgent(deps: SpawnAgentDeps): SpawnAgentFn {
   const { adapter } = deps;
 
   return function spawnAgent(opts: SpawnAgentOptions): SpawnAgentHandle {
-    const { args, cwd, type, taskId, description, onOutput } = opts;
+    const { args, cwd, type, taskId, description, instruction, onOutput } = opts;
 
-    const trackId = deps.tracker?.start(type, taskId, undefined, description);
+    const trackId = deps.tracker?.start(type, taskId, undefined, description, instruction);
 
     let outputPath: string | undefined;
     if (deps.outputDir && trackId != null) {

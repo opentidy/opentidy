@@ -110,11 +110,11 @@ describe('GET /setup/status', () => {
     expect(body.services.telegram.status).toBe('not_configured');
   });
 
-  it('services.gmail is connected when configured', async () => {
+  it('services.email is connected when configured', async () => {
     const deps = makeDeps({
       loadConfig: () => makeConfig({
         modules: {
-          gmail: { enabled: true, source: 'curated' },
+          email: { enabled: true, source: 'curated' },
         },
       }),
     });
@@ -122,14 +122,14 @@ describe('GET /setup/status', () => {
     const res = await app.request('/setup/status');
     const body = await res.json() as any;
 
-    expect(body.services.gmail.status).toBe('connected');
+    expect(body.services.email.status).toBe('connected');
   });
 
-  it('services.gmail is not_configured when not configured', async () => {
+  it('services.email is not_configured when not configured', async () => {
     const app = setupStatusRoute(makeDeps());
     const res = await app.request('/setup/status');
     const body = await res.json() as any;
 
-    expect(body.services.gmail.status).toBe('not_configured');
+    expect(body.services.email.status).toBe('not_configured');
   });
 });

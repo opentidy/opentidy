@@ -65,7 +65,7 @@ export function createSuggestionsManager(workspaceDir: string) {
   }
 
   function writeSuggestion(
-    suggestion: { title: string; urgency: string; why: string },
+    suggestion: { title: string; urgency: string; why: string; summary?: string; whatIWouldDo?: string },
     source: string,
     eventContent?: string,
   ): string {
@@ -77,12 +77,16 @@ export function createSuggestionsManager(workspaceDir: string) {
       `**Source:** ${source}`,
       `**Date:** ${new Date().toISOString().slice(0, 10)}`,
       '',
-      `## Why`,
-      suggestion.why,
-      '',
     ];
+    if (suggestion.summary) {
+      lines.push(`## Summary`, suggestion.summary, '');
+    }
+    lines.push(`## Why`, suggestion.why, '');
+    if (suggestion.whatIWouldDo) {
+      lines.push(`## What I would do`, suggestion.whatIWouldDo, '');
+    }
     if (eventContent) {
-      lines.push(`## Context`, `Original event: ${eventContent.slice(0, 500)}`, '');
+      lines.push(`## Context`, eventContent.slice(0, 500), '');
     }
     fs.mkdirSync(suggestionsDir, { recursive: true });
     fs.writeFileSync(path.join(suggestionsDir, `${slug}.md`), lines.join('\n'));

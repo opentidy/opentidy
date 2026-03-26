@@ -28,7 +28,6 @@ export function makeDeps(overrides: Partial<AppDeps> = {}): AppDeps {
       sendMessage: async () => {},
     },
     hooks: { handleHook: () => ({ status: 'ok' }) },
-    receiver: { handleGmailWebhook: async () => ({ accepted: true }) },
     checkup: {
       runCheckup: async () => ({ launched: [], suggestions: 0 }),
       getStatus: () => ({ lastRun: null, nextRun: null, result: '', launched: [], suggestions: 0 }),

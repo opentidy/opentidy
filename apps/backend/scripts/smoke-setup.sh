@@ -116,8 +116,8 @@ Suggestion: Add a skill to read TOTP codes from the authenticator app.
 
 ---
 
-## 2026-03-12 — Gmail API rate limit
-Problem: Gmail API returns 429 after ~50 requests in 1 minute.
+## 2026-03-12 — Email provider rate limit
+Problem: Email provider returns 429 after ~50 requests in 1 minute.
 Impact: Batch email processing is slowed, some emails may be missed.
 Suggestion: Implement exponential backoff and a cache for already-read emails.
 
@@ -131,9 +131,9 @@ GAPS
 
 # --- _audit/actions.log ---
 cat > "$FIXTURE_DIR/_audit/actions.log" << 'AUDIT'
-{"sessionId":"sess-abc-001","toolName":"mcp__gmail__search","toolInput":{"query":"from:billing@example-client.com"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:00.000Z"}
-{"sessionId":"sess-abc-001","toolName":"mcp__gmail__read","toolInput":{"messageId":"msg-123"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:05.000Z"}
-{"sessionId":"sess-abc-001","toolName":"mcp__gmail__send","toolInput":{"to":"billing@example-client.com","subject":"Follow-up May timesheet"},"decision":"ALLOW","result":"sent","timestamp":"2026-03-13T10:16:00.000Z"}
+{"sessionId":"sess-abc-001","toolName":"mcp__email__search","toolInput":{"query":"from:billing@example-client.com"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:00.000Z"}
+{"sessionId":"sess-abc-001","toolName":"mcp__email__read","toolInput":{"messageId":"msg-123"},"decision":"ALLOW","timestamp":"2026-03-13T10:15:05.000Z"}
+{"sessionId":"sess-abc-001","toolName":"mcp__email__send","toolInput":{"to":"billing@example-client.com","subject":"Follow-up May timesheet"},"decision":"ALLOW","result":"sent","timestamp":"2026-03-13T10:16:00.000Z"}
 {"sessionId":"sess-def-002","toolName":"Bash","toolInput":{"command":"curl https://insurance-portal.example.com/login"},"decision":"ALLOW","timestamp":"2026-03-12T14:30:00.000Z"}
 {"sessionId":"sess-def-002","toolName":"mcp__camofox__navigate","toolInput":{"url":"https://insurance-portal.example.com/report"},"decision":"ALLOW","timestamp":"2026-03-12T14:31:00.000Z"}
 AUDIT

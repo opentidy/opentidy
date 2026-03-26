@@ -82,7 +82,7 @@ export async function setupClaude(): Promise<void> {
   if (mcpNames.length > 0) {
     info(`MCP servers: ${mcpNames.join(', ')}`);
   } else {
-    warn('No MCP servers configured. Run setup for Gmail/Camoufox/WhatsApp first.');
+    warn('No MCP servers configured. Run setup for email/Camoufox/WhatsApp first.');
   }
 
   // Auth

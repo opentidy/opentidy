@@ -6,15 +6,15 @@ import { createPermissionChecker } from './check.js';
 import type { PermissionCheckDeps } from './types.js';
 import type { ModuleManifest } from '@opentidy/shared';
 
-const gmailManifest: ModuleManifest = {
-  name: 'gmail',
-  label: 'Gmail',
+const emailManifest: ModuleManifest = {
+  name: 'email',
+  label: 'Email',
   description: '',
   version: '1.0.0',
   toolPermissions: {
     scope: 'per-call',
-    safe: ['mcp__gmail__search', 'mcp__gmail__read_message'],
-    critical: ['mcp__gmail__send', 'mcp__gmail__reply'],
+    safe: ['mcp__email__search', 'mcp__email__read_message'],
+    critical: ['mcp__email__send', 'mcp__email__reply'],
   },
 };
 
@@ -31,7 +31,7 @@ const browserManifest: ModuleManifest = {
 };
 
 const manifests = new Map<string, ModuleManifest>([
-  ['gmail', gmailManifest],
+  ['email', emailManifest],
   ['browser', browserManifest],
 ]);
 
@@ -41,7 +41,7 @@ function makeDeps(overrides: Partial<PermissionCheckDeps> = {}): PermissionCheck
     loadConfig: () => ({
       preset: 'supervised',
       defaultLevel: 'ask',
-      modules: { gmail: 'ask', browser: 'ask' },
+      modules: { email: { safe: 'allow', critical: 'ask' }, browser: { safe: 'allow', critical: 'ask' } },
     }),
     state: {
       isGranted: vi.fn().mockReturnValue(false),
@@ -61,7 +61,7 @@ describe('createPermissionChecker', () => {
       const deps = makeDeps();
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__search', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__email__search', {});
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -88,14 +88,14 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', { to: 'alice@example.com' });
+      const result = await checker.check('task-1', 'session-1', 'mcp__email__send', { to: 'alice@example.com' });
 
       expect(result).toBe('allow');
       expect(deps.requestApproval).toHaveBeenCalledWith({
         taskId: 'task-1',
-        toolName: 'mcp__gmail__send',
+        toolName: 'mcp__email__send',
         toolInput: { to: 'alice@example.com' },
-        moduleName: 'gmail',
+        moduleName: 'email',
       });
     });
 
@@ -105,7 +105,7 @@ describe('createPermissionChecker', () => {
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__email__send', {});
 
       expect(result).toBe('deny');
       expect(deps.audit.log).toHaveBeenCalledWith(
@@ -188,12 +188,12 @@ describe('createPermissionChecker', () => {
         loadConfig: () => ({
           preset: 'supervised',
           defaultLevel: 'block',
-          modules: { gmail: 'block', browser: 'block' },
+          modules: { email: 'block', browser: 'block' },
         }),
       });
       const checker = createPermissionChecker(deps);
 
-      const result = await checker.check('task-1', 'session-1', 'mcp__gmail__send', {});
+      const result = await checker.check('task-1', 'session-1', 'mcp__email__send', {});
 
       expect(result).toBe('deny');
       expect(deps.requestApproval).not.toHaveBeenCalled();
@@ -208,11 +208,11 @@ describe('createPermissionChecker', () => {
       const deps = makeDeps();
       const checker = createPermissionChecker(deps);
 
-      await checker.check('task-1', 'sess-abc', 'mcp__gmail__read_message', { messageId: '42' });
+      await checker.check('task-1', 'sess-abc', 'mcp__email__read_message', { messageId: '42' });
 
       expect(deps.audit.log).toHaveBeenCalledWith({
         sessionId: 'sess-abc',
-        toolName: 'mcp__gmail__read_message',
+        toolName: 'mcp__email__read_message',
         toolInput: { messageId: '42' },
         decision: 'ALLOW',
       });

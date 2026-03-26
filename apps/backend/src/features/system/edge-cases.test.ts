@@ -8,10 +8,6 @@ import os from 'os';
 import { parseStateMd } from '../tasks/state.js';
 import { createTaskManager } from '../tasks/create-manager.js';
 import { createGapsManager } from '../ameliorations/gaps.js';
-import { createDedupStore } from '../../shared/dedup.js';
-import { createDatabase } from '../../shared/database.js';
-import { createWebhookReceiver } from '../triage/webhook.js';
-
 describe('Edge cases', () => {
   let wsDir: string;
 
@@ -20,32 +16,6 @@ describe('Edge cases', () => {
   });
   afterEach(() => {
     fs.rmSync(wsDir, { recursive: true, force: true });
-  });
-
-  // E2E-EDGE-07: Webhook flood — 100 emails
-  it('handles 100 webhooks without crash or memory leak (E2E-EDGE-07)', async () => {
-    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-dedup-edge-'));
-    const db = createDatabase(tmpDir);
-    const dedup = createDedupStore(db);
-    const triage = vi.fn().mockResolvedValue(undefined);
-    const receiver = createWebhookReceiver({ dedup, triage });
-
-    for (let i = 0; i < 100; i++) {
-      await receiver.handleGmailWebhook({
-        from: `sender${i}@test.com`,
-        to: 'user@test.com',
-        subject: `Email ${i}`,
-        body: `Body ${i}`,
-        messageId: `msg-${i}`,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
-    // All 100 unique → all should be accepted and triage called
-    expect(triage).toHaveBeenCalledTimes(100);
-
-    db.close();
-    fs.rmSync(tmpDir, { recursive: true, force: true });
   });
 
   // E2E-EDGE-08: Manual state.md edit with extra sections

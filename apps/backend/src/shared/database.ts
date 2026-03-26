@@ -65,6 +65,18 @@ export function createDatabase(dataDir: string): Database.Database {
 
     CREATE INDEX IF NOT EXISTS idx_schedules_task ON schedules(task_id);
 
+    CREATE TABLE IF NOT EXISTS session_history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      task_id TEXT NOT NULL,
+      agent_session_id TEXT,
+      started_at TEXT NOT NULL DEFAULT (datetime('now')),
+      ended_at TEXT,
+      status TEXT NOT NULL DEFAULT 'running',
+      trigger_source TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_session_history_task ON session_history(task_id);
+
     CREATE INDEX IF NOT EXISTS idx_claude_processes_type ON claude_processes(type);
     CREATE INDEX IF NOT EXISTS idx_claude_processes_status ON claude_processes(status);
     CREATE INDEX IF NOT EXISTS idx_notifications_timestamp ON notifications(timestamp);
@@ -79,6 +91,10 @@ export function createDatabase(dataDir: string): Database.Database {
   if (!columns.some(c => c.name === 'description')) {
     db.exec('ALTER TABLE claude_processes ADD COLUMN description TEXT');
     console.log('[db] Migrated claude_processes: added description column');
+  }
+  if (!columns.some(c => c.name === 'instruction')) {
+    db.exec('ALTER TABLE claude_processes ADD COLUMN instruction TEXT');
+    console.log('[db] Migrated claude_processes: added instruction column');
   }
 
   console.log('[db] SQLite database ready at', dbPath);

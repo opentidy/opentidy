@@ -14,9 +14,9 @@ Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to r
 ### E2E-FULL-01 — Email → existing job → action → audit
 
 ```
-/test Send a Gmail webhook POST /api/webhook/gmail with an email from billing@example-client.com
+/test Simulate an incoming email event (POST /api/triage) from billing@example-client.com
 (subject: "June timesheet"). Verify that:
-1. The backend accepts the webhook (200)
+1. The backend accepts the event (200)
 2. The file workspace/invoices-acme/state.md is modified (new entry)
 3. A session exists for "invoices-acme"
 4. The file workspace/_audit/actions.log contains a recent entry
@@ -26,7 +26,7 @@ Manual E2E tests E2E-FULL-01 to E2E-FULL-13. Each test is a `/test` command to r
 ### E2E-FULL-02 — New email → suggestion → approval → work → completed
 
 ```
-/test Send a Gmail webhook POST /api/webhook/gmail with an email from tax@example-authority.gov
+/test Simulate an incoming email event (POST /api/triage) from tax@example-authority.gov
 (subject: "Tax declaration deadline"). Verify that:
 1. No "tax-filing" job is created in workspace/
 2. A file workspace/_suggestions/tax-filing*.md exists with URGENCY: urgent
@@ -74,7 +74,7 @@ Trigger a sweep via POST /api/sweep. Verify that:
 
 ```
 /test Verify that a job with an active session exists. In that job's workspace,
-verify that if Claude attempts a blocked action (e.g. gmail.send to an unknown recipient),
+verify that if Claude attempts a blocked action (e.g. email.send to an unknown recipient),
 the hook returns DENY. Verify that:
 1. The file workspace/_audit/actions.log contains a DENY entry
 2. A checkpoint.md is created in the job (Claude asks for user help)
@@ -122,8 +122,8 @@ verify that:
 ### E2E-FULL-10 — Claude never creates a job on its own
 
 ```
-/test Send 5 different Gmail webhooks with varied subjects (invoice, tax,
-insurance, appointment, client request) to POST /api/webhook/gmail.
+/test Simulate 5 different incoming email events with varied subjects (invoice, tax,
+insurance, appointment, client request) via POST /api/triage.
 No existing job matches these emails. After processing, verify that:
 1. NO new job has been created in workspace/ (ls workspace/ without _*)
 2. Suggestions exist in workspace/_suggestions/ (at least 3)

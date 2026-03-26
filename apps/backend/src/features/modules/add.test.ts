@@ -30,6 +30,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -62,11 +63,9 @@ describe('addModuleRoute', () => {
     expect(body.module.source).toBe('custom');
     expect(body.module.enabled).toBe(false);
 
-    // Verify config was saved
-    expect(deps.saveConfig).toHaveBeenCalledOnce();
-
-    // Verify manifest was stored in-memory
-    expect(deps.manifests.has('my-plugin')).toBe(true);
+    // Verify registration was called via lifecycle
+    expect(deps.lifecycle.registerCustomModule).toHaveBeenCalledOnce();
+    expect(deps.lifecycle.registerCustomModule).toHaveBeenCalledWith('my-plugin', expect.objectContaining({ name: 'my-plugin' }));
   });
 
   it('returns 400 when name is missing', async () => {

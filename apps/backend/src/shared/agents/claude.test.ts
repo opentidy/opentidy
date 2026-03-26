@@ -113,16 +113,33 @@ describe('createClaudeAdapter', () => {
       }
     });
 
-    it('includes --strict-mcp-config only for one-shot mode', () => {
+    it('uses empty MCP config for one-shot mode', () => {
       const oneShot = adapter.buildArgs({ mode: 'one-shot', cwd: '/workspace' });
       expect(oneShot).toContain('--strict-mcp-config');
       expect(oneShot).toContain('{"mcpServers":{}}');
+    });
+
+    it('uses mcp-config.json for autonomous/interactive when file exists', () => {
+      vi.mocked(fs.existsSync).mockReturnValue(true);
+
+      const autonomous = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace' });
+      expect(autonomous).toContain('--strict-mcp-config');
+      expect(autonomous).toContain('--mcp-config');
+      expect(autonomous).toContain('/fake/config/dir/mcp-config.json');
 
       const interactive = adapter.buildArgs({ mode: 'interactive', cwd: '/workspace' });
-      expect(interactive).not.toContain('--strict-mcp-config');
+      expect(interactive).toContain('--strict-mcp-config');
+      expect(interactive).toContain('/fake/config/dir/mcp-config.json');
+    });
+
+    it('skips --strict-mcp-config for autonomous/interactive when mcp-config.json missing', () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false);
 
       const autonomous = adapter.buildArgs({ mode: 'autonomous', cwd: '/workspace' });
       expect(autonomous).not.toContain('--strict-mcp-config');
+
+      const interactive = adapter.buildArgs({ mode: 'interactive', cwd: '/workspace' });
+      expect(interactive).not.toContain('--strict-mcp-config');
     });
   });
 
@@ -161,7 +178,7 @@ describe('createClaudeAdapter', () => {
 
     it('generates PreToolUse command hook when confirm tools exist', () => {
       const manifests = new Map<string, ModuleManifest>([
-        ['gmail', makeManifest('gmail', [], ['mcp__gmail__send'])],
+        ['email', makeManifest('email', [], ['mcp__email__send'])],
       ]);
 
       adapter.writeConfig({
@@ -180,7 +197,7 @@ describe('createClaudeAdapter', () => {
 
       const written = JSON.parse(writeCall![1] as string);
       expect(written.hooks.PreToolUse).toHaveLength(1);
-      expect(written.hooks.PreToolUse[0].matcher).toContain('mcp__gmail__send');
+      expect(written.hooks.PreToolUse[0].matcher).toContain('mcp__email__send');
       expect(written.hooks.PreToolUse[0].hooks[0].type).toBe('command');
       expect(written.hooks.PreToolUse[0].hooks[0].command).toContain('/api/permissions/check');
       expect(written.hooks.PreToolUse[0].hooks[0].timeout).toBe(3600000);
@@ -193,7 +210,7 @@ describe('createClaudeAdapter', () => {
         modules: {},
       };
       const manifests = new Map<string, ModuleManifest>([
-        ['gmail', makeManifest('gmail', ['mcp__gmail__read'], ['mcp__gmail__send'])],
+        ['email', makeManifest('email', ['mcp__email__read'], ['mcp__email__send'])],
       ]);
 
       adapter.writeConfig({

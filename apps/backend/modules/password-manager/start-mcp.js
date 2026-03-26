@@ -3,11 +3,12 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 // Wrapper script for Bitwarden MCP server.
-// Reads master password from OS keychain → bw unlock → spawns MCP server with fresh BW_SESSION.
+// Reads master password from OS keychain → bw unlock → sets BW_SESSION → runs MCP server.
 // IMPORTANT: Only use console.error for logging — stdout is the MCP protocol channel.
 
 import { Entry } from '@napi-rs/keyring';
 import { execFileSync, spawn } from 'child_process';
+import { createRequire } from 'module';
 
 const SERVICE = 'opentidy';
 const ACCOUNT = 'bitwarden-master-password';
@@ -33,9 +34,13 @@ try {
     process.exit(1);
   }
 
-  // 3. Spawn the Bitwarden MCP server with BW_SESSION
-  // stdio: inherit passes stdin/stdout/stderr through (MCP uses stdin/stdout for JSON-RPC)
-  const mcp = spawn('npx', ['-y', '@bitwarden/mcp-server'], {
+  // 3. Spawn the Bitwarden MCP server binary directly with BW_SESSION.
+  // npx doesn't forward stdin/stdout properly for MCP protocol,
+  // so we resolve the binary path and run it with node directly.
+  const require = createRequire(import.meta.url);
+  const mcpBin = require.resolve('@bitwarden/mcp-server/dist/index.js');
+
+  const mcp = spawn(process.execPath, [mcpBin], {
     env: { ...process.env, BW_SESSION: sessionToken },
     stdio: ['inherit', 'inherit', 'inherit'],
   });

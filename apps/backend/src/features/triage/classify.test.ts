@@ -16,16 +16,16 @@ describe('Triager', () => {
   it('routes event to matching task', async () => {
     const runClaude = vi.fn().mockResolvedValue('{ "taskIds": ["invoices-acme"] }');
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'Email de billing@example-client.com: Invoice march' });
+    const result = await triager.triage({ source: 'email', content: 'Email de billing@example-client.com: Invoice march' });
     expect(result.taskIds).toEqual(['invoices-acme']);
     expect(result.suggestion).toBeUndefined();
   });
 
   // E2E-RCV-02
   it('creates suggestion when no task matches', async () => {
-    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "Tax Filing 2025", "urgency": "normal", "source": "gmail", "why": "Nouveau sujet" } }');
+    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "Tax Filing 2025", "urgency": "normal", "source": "email", "why": "Nouveau sujet" } }');
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'Email de tax@example-authority.gov' });
+    const result = await triager.triage({ source: 'email', content: 'Email de tax@example-authority.gov' });
     expect(result.taskIds).toBeUndefined();
     expect(result.suggestion?.title).toBe('Tax Filing 2025');
   });
@@ -34,7 +34,7 @@ describe('Triager', () => {
   it('routes event to multiple tasks', async () => {
     const runClaude = vi.fn().mockResolvedValue('{ "taskIds": ["invoices-acme", "insurance-report"] }');
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'Email from accountant: concerns Acme AND Insurance' });
+    const result = await triager.triage({ source: 'email', content: 'Email from accountant: concerns Acme AND Insurance' });
     expect(result.taskIds).toEqual(['invoices-acme', 'insurance-report']);
   });
 
@@ -42,24 +42,24 @@ describe('Triager', () => {
   it('ignores spam', async () => {
     const runClaude = vi.fn().mockResolvedValue('{ "ignore": true, "reason": "spam marketing" }');
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'PROMO -50% SOLDES' });
+    const result = await triager.triage({ source: 'email', content: 'PROMO -50% SOLDES' });
     expect(result.ignore).toBe(true);
   });
 
   // E2E-RCV-08
   it('handles event for COMPLETED task', async () => {
     const tasksWithTermine = [...tasks, { id: 'old-task', title: 'Old', status: 'COMPLETED' as const }];
-    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "Reopen old-task?", "urgency": "low", "source": "gmail", "why": "Completed task but new email" } }');
+    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "Reopen old-task?", "urgency": "low", "source": "email", "why": "Completed task but new email" } }');
     const triager = createTriager({ runClaude, listTasks: () => tasksWithTermine });
-    const result = await triager.triage({ source: 'gmail', content: 'Re: old task' });
+    const result = await triager.triage({ source: 'email', content: 'Re: old task' });
     expect(result.suggestion).toBeDefined();
   });
 
   // E2E-SUG-03
   it('creates suggestion while working on another task', async () => {
-    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "New thing", "urgency": "normal", "source": "gmail", "why": "Not related to active tasks" } }');
+    const runClaude = vi.fn().mockResolvedValue('{ "suggestion": { "title": "New thing", "urgency": "normal", "source": "email", "why": "Not related to active tasks" } }');
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'Completely different subject' });
+    const result = await triager.triage({ source: 'email', content: 'Completely different subject' });
     expect(result.suggestion).toBeDefined();
   });
 
@@ -68,14 +68,14 @@ describe('Triager', () => {
     const runClaude = vi.fn().mockResolvedValue('{ "taskIds": ["new-task"] }');
     const freshTasks = [...tasks, { id: 'new-task', title: 'New', status: 'IN_PROGRESS' as const }];
     const triager = createTriager({ runClaude, listTasks: () => freshTasks });
-    const result = await triager.triage({ source: 'gmail', content: 'Re: new task' });
+    const result = await triager.triage({ source: 'email', content: 'Re: new task' });
     expect(result.taskIds).toEqual(['new-task']);
   });
 
   it('handles claude -p failure gracefully', async () => {
     const runClaude = vi.fn().mockRejectedValue(new Error('rate limited'));
     const triager = createTriager({ runClaude, listTasks: () => tasks });
-    const result = await triager.triage({ source: 'gmail', content: 'some email' });
+    const result = await triager.triage({ source: 'email', content: 'some email' });
     // Fallback : creates a generic suggestion rather than losing the event
     expect(result.suggestion).toBeDefined();
   });

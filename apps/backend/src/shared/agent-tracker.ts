@@ -6,7 +6,7 @@ import type { AgentProcess, AgentProcessType } from '@opentidy/shared';
 
 export function createAgentTracker(db: Database.Database) {
   const insertStmt = db.prepare(
-    "INSERT INTO claude_processes (type, task_id, pid, status, description) VALUES (?, ?, ?, 'queued', ?)"
+    "INSERT INTO claude_processes (type, task_id, pid, status, description, instruction) VALUES (?, ?, ?, 'queued', ?, ?)"
   );
   const runningStmt = db.prepare(
     "UPDATE claude_processes SET status = 'running', pid = ? WHERE id = ?"
@@ -21,8 +21,8 @@ export function createAgentTracker(db: Database.Database) {
     'UPDATE claude_processes SET output_path = ? WHERE id = ?'
   );
 
-  function start(type: AgentProcessType, taskId?: string, pid?: number, description?: string): number {
-    const result = insertStmt.run(type, taskId ?? null, pid ?? null, description ?? null);
+  function start(type: AgentProcessType, taskId?: string, pid?: number, description?: string, instruction?: string): number {
+    const result = insertStmt.run(type, taskId ?? null, pid ?? null, description ?? null, instruction ?? null);
     console.log(`[agent-tracker] QUEUED ${type}${taskId ? ` (${taskId})` : ''}${description ? ` — ${description.slice(0, 60)}` : ''} → id=${result.lastInsertRowid}`);
     return Number(result.lastInsertRowid);
   }
@@ -58,6 +58,7 @@ export function createAgentTracker(db: Database.Database) {
       exitCode: row.exit_code ?? undefined,
       outputPath: row.output_path ?? undefined,
       description: row.description ?? undefined,
+      instruction: row.instruction ?? undefined,
     };
   }
 

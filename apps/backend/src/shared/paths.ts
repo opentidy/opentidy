@@ -10,8 +10,9 @@ export interface OpenTidyPaths {
   data: string;     // ~/.local/share/opentidy (Linux) or ~/Library/Application Support/opentidy (macOS)
   log: string;      // ~/.local/state/opentidy (Linux) or ~/Library/Logs/opentidy (macOS)
   cache: string;    // ~/.cache/opentidy (Linux) or ~/Library/Caches/opentidy (macOS)
-  temp: string;     // $TMPDIR/opentidy or /tmp/opentidy (Unix) or %TEMP%\opentidy (Windows)
-  lockDir: string;  // temp/locks
+  temp: string;           // $TMPDIR/opentidy or /tmp/opentidy (Unix) or %TEMP%\opentidy (Windows)
+  lockDir: string;        // temp/locks
+  customModules: string;  // config/modules — user-created modules
 }
 
 // env-paths is computed at module load — env overrides are read per-call in getOpenTidyPaths()
@@ -29,5 +30,7 @@ export function getOpenTidyPaths(): OpenTidyPaths {
   const temp = path.join(os.tmpdir(), 'opentidy');
   const lockDir = path.join(temp, 'locks');
 
-  return { config, data, log, cache, temp, lockDir };
+  const customModules = path.join(config, 'modules');
+
+  return { config, data, log, cache, temp, lockDir, customModules };
 }

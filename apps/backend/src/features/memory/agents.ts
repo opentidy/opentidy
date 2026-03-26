@@ -84,16 +84,19 @@ ${input.indexContent}
 ### Mission 1 — Memory
 Extract new information to retain in global memory.
 
+**CRITICAL SCOPE: OpenTidy only.** This memory belongs to the OpenTidy project. Only extract information that is directly relevant to OpenTidy (its features, modules, configuration, users, tasks, sessions, architecture, deployment). If the transcript contains discussions about other projects, tools, or topics unrelated to OpenTidy, **ignore them entirely** — they do not belong in this memory.
+
 **To extract:**
-- Business facts (company status, new contact, decision made)
-- Lessons learned (failed approach, prefer X over Y)
-- Temporal context (project on hold, client not responding)
-- Corrections to previous information
+- OpenTidy-related business facts (decisions, contacts, feature direction)
+- Lessons learned within OpenTidy (failed approach, prefer X over Y)
+- Temporal context about OpenTidy (module on hold, feature blocked)
+- Corrections to previous OpenTidy-related information
 
 **To ignore:**
 - Execution details (commands run, files modified)
 - What is already in memory and has not changed
 - Purely technical information with no business value
+- **Anything about other projects, products, or services that are not OpenTidy**
 
 **If something new:**
 - Create or update files in ${memDir}/ (use Write)
@@ -173,6 +176,8 @@ If the log is empty or incomplete compared to the transcript (actions performed 
   function buildPromptAgentPrompt(text: string, indexContent: string): string {
     return `You are OpenTidy's memory agent. The user gives you a natural language instruction to add or modify memory.
 
+**CRITICAL SCOPE:** This memory belongs to the OpenTidy project exclusively. Only store information that is directly relevant to OpenTidy (its features, modules, configuration, users, tasks, sessions, architecture, deployment). Reject or ignore instructions about unrelated projects or topics.
+
 ## User instruction
 "${text}"
 
@@ -215,7 +220,7 @@ Free-form content with dated entries [YYYY-MM-DD].
       mode: 'one-shot', cwd: workspaceDir, systemPrompt,
       instruction: userPrompt, allowedTools: ['Read', 'Write', 'Glob'],
     });
-    return deps.spawnAgent({ args, cwd: workspaceDir, type: agentType, description }).promise;
+    return deps.spawnAgent({ args, cwd: workspaceDir, type: agentType, description, instruction: userPrompt }).promise;
   }
 
   async function runInjection(input: InjectionInput): Promise<string> {

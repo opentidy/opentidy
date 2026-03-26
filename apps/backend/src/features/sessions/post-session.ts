@@ -36,12 +36,21 @@ export function createPostSessionHandlers(
     const indexPath = path.join(memoryDir, 'INDEX.md');
 
     // Find most recent transcript for this task in Claude's project data
+    // Only scan project dirs matching the workspace path to avoid picking up
+    // transcripts from unrelated projects (e.g. other dev sessions)
     const claudeDir = path.join(os.homedir(), '.claude', 'projects');
     let transcriptPath = '';
     try {
       if (fs.existsSync(claudeDir)) {
-        // Scan all project dirs for transcripts, pick the most recent .jsonl
-        const projectDirs = fs.readdirSync(claudeDir).filter(d => fs.statSync(path.join(claudeDir, d)).isDirectory());
+        // Claude Code encodes cwd as project dir name: /a/b/c → -a-b-c
+        // Only match dirs that correspond to the workspace path — never the repo
+        // root, which would also match the developer's personal Claude sessions
+        const workspacePrefix = deps.workspaceDir!.replace(/\//g, '-');
+        const projectDirs = fs.readdirSync(claudeDir)
+          .filter(d => {
+            return d.startsWith(workspacePrefix)
+              && fs.statSync(path.join(claudeDir, d)).isDirectory();
+          });
         let newest = 0;
         for (const dir of projectDirs) {
           const projPath = path.join(claudeDir, dir);
@@ -79,8 +88,15 @@ export function createPostSessionHandlers(
   }
 
   function handleSessionEnd(taskId: string): void {
+    const sessionName = `opentidy-${taskId}`;
+
+    // Kill the tmux session and its entire process tree.
+    // Claude Code's MCP children survive SIGHUP, so we must explicitly
+    // kill the process tree before destroying the tmux session.
+    deps.tmuxExecutor.killSession(sessionName).catch(() => {});
+
     deps.locks.release(taskId);
-    deps.terminal.killTtyd(`opentidy-${taskId}`);
+    deps.terminal.killTtyd(sessionName);
     sessions.delete(taskId);
     deps.sse.emit({ type: 'session:ended', data: { taskId }, timestamp: new Date().toISOString() });
     console.log(`[launcher] session ended: ${taskId}`);

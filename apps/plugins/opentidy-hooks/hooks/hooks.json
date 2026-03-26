@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "mcp__gmail__send|mcp__gmail__reply|mcp__gmail__draft|mcp__gmail__forward|mcp__telegram__send_message|mcp__telegram__send_photo|mcp__whatsapp__send_message|mcp__whatsapp__send_media",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5175/api/permissions/check -H 'Content-Type: application/json' -d @-",
+            "timeout": 3600000
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5175/api/hooks -H 'Content-Type: application/json' -d @-"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5175/api/hooks -H 'Content-Type: application/json' -d @-"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "curl -s -X POST http://localhost:5175/api/hooks -H 'Content-Type: application/json' -d @-"
+          }
+        ]
+      }
+    ]
+  }
+}

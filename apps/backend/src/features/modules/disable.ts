@@ -17,7 +17,8 @@ export function disableModuleRoute(deps: ModuleRouteDeps) {
       return c.json({ error: 'Core modules cannot be disabled' }, 400);
     }
 
-    await deps.lifecycle.disable(name);
+    const clean = c.req.query('clean') === 'true';
+    await deps.lifecycle.disable(name, clean);
     return c.json({ success: true });
   });
 

@@ -5,8 +5,8 @@ Suggestion: Add a skill to read TOTP codes from the authenticator app.
 
 ---
 
-## 2026-03-12 — Gmail API rate limit
-Problem: Gmail API returns 429 after ~50 requests in 1 minute.
+## 2026-03-12 — Email provider rate limit
+Problem: Email provider returns 429 after ~50 requests in 1 minute.
 Impact: Batch email processing is slowed, some emails may be missed.
 Suggestion: Implement exponential backoff and a cache for already-read emails.
 

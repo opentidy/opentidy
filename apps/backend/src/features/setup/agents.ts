@@ -48,6 +48,8 @@ function checkOnboarded(agentConfigDir: string, name: AgentName): boolean {
   // Just checking auth status is not enough — the user may have logged in via OAuth but not
   // finished the theme/permissions steps. Without this flag, Claude Code re-shows the onboarding.
   if (name !== 'claude') return true;
+  // Agent config dir must exist — if cleared (e.g., after reset), agent is not onboarded
+  if (!agentConfigDir || !fs.existsSync(agentConfigDir)) return false;
   try {
     const statePath = path.join(agentConfigDir, '.claude.json');
     const data = JSON.parse(fs.readFileSync(statePath, 'utf-8'));

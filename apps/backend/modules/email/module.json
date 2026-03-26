@@ -1,0 +1,40 @@
+{
+  "name": "email",
+  "label": "Email",
+  "description": "Read, search, and send emails via IMAP/SMTP (any provider)",
+  "icon": "📧",
+  "version": "1.0.0",
+  "cli": ["himalaya"],
+  "receivers": [{
+    "name": "email-imap",
+    "mode": "polling",
+    "source": "email",
+    "pollInterval": 300000,
+    "entry": "./receiver.ts"
+  }],
+  "skills": [{
+    "name": "email-skill",
+    "content": "You have access to the `himalaya` CLI for email operations. Always use `--output json` for machine-readable output.\n\n## Reading emails\n```bash\nhimalaya envelope list --output json                    # list inbox\nhimalaya envelope list --output json --page-size 20     # more results\nhimalaya envelope list --output json -f \"[Gmail]/Sent Mail\"  # other folders\nhimalaya message read --output json <ID>                # read full message\nhimalaya attachment download <ID>                       # download attachments\n```\n\n## Searching emails\n```bash\nhimalaya envelope list --output json from \"alice@example.com\"\nhimalaya envelope list --output json subject \"invoice\" and after 2026-01-01\nhimalaya envelope list --output json from \"bob\" or from \"alice\" order by date desc\nhimalaya envelope list --output json flag seen and subject \"report\"\n```\n\n## Sending emails\n```bash\n# Send via template on stdin\nhimalaya message send <<'EOF'\nFrom: user@example.com\nTo: recipient@example.com\nSubject: Hello\n\nMessage body here.\nEOF\n\n# Reply to a message\nhimalaya template reply --output json <ID>   # get reply template\nhimalaya message send < reply.eml            # send it\n\n# Forward a message\nhimalaya template forward --output json <ID>  # get forward template\nhimalaya message send < forward.eml           # send it\n```\n\n## Managing emails\n```bash\nhimalaya flag add <ID> seen                   # mark as read\nhimalaya flag remove <ID> seen                # mark as unread\nhimalaya flag add <ID> flagged                # star/flag\nhimalaya message move \"Archives\" <ID>         # move to folder\nhimalaya message delete <ID>                  # delete (move to trash)\nhimalaya folder list --output json            # list folders\n```\n\n## Key notes\n- Always use `--output json` when you need to parse results\n- Email IDs are returned in envelope list and are required for read/reply/forward\n- For Gmail, folder aliases: inbox=INBOX, sent=[Gmail]/Sent Mail, drafts=[Gmail]/Drafts, trash=[Gmail]/Trash\n- Never send emails without explicit user approval"
+  }],
+  "setup": {
+    "authCommand": "npx tsx ./setup.ts",
+    "checkCommand": "PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" command -v himalaya >/dev/null 2>&1 && PATH=\"$PATH:/opt/homebrew/bin:/usr/local/bin\" himalaya envelope list --page-size 1 >/dev/null 2>&1",
+    "configFields": []
+  },
+  "toolPermissions": {
+    "scope": "per-call",
+    "safe": [
+      { "tool": "Bash(himalaya envelope:*)", "label": "List & search emails" },
+      { "tool": "Bash(himalaya message read:*)", "label": "Read emails" },
+      { "tool": "Bash(himalaya folder:*)", "label": "List folders" },
+      { "tool": "Bash(himalaya attachment:*)", "label": "Download attachments" },
+      { "tool": "Bash(himalaya flag:*)", "label": "Manage email flags" },
+      { "tool": "Bash(himalaya template:*)", "label": "Generate email templates" }
+    ],
+    "critical": [
+      { "tool": "Bash(himalaya message send:*)", "label": "Send emails" },
+      { "tool": "Bash(himalaya message move:*)", "label": "Move emails" },
+      { "tool": "Bash(himalaya message delete:*)", "label": "Delete emails" }
+    ]
+  }
+}

@@ -42,8 +42,8 @@ export function setupStatusRoute(deps: SetupDeps) {
         telegram: {
           status: config.modules?.telegram?.config?.botToken ? 'connected' : 'not_configured',
         },
-        gmail: {
-          status: config.modules?.gmail?.enabled ? 'connected' : 'not_configured',
+        email: {
+          status: config.modules?.email?.enabled ? 'connected' : 'not_configured',
         },
         whatsapp: {
           status: config.modules?.whatsapp?.enabled ? 'connected' : 'not_configured',

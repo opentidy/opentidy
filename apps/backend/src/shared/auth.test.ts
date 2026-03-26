@@ -66,12 +66,12 @@ describe('auth middleware', () => {
     expect(res.status).toBe(200);
   });
 
-  it('always allows /api/webhook/gmail without auth', async () => {
+  it('always allows /api/webhooks/* without auth', async () => {
     const app = new Hono();
     app.use('/api/*', createAuthMiddleware('secret-token'));
-    app.post('/api/webhook/gmail', (c) => c.json({ ok: true }));
+    app.post('/api/webhooks/email/email-imap', (c) => c.json({ ok: true }));
 
-    const res = await app.request('/api/webhook/gmail', { method: 'POST' });
+    const res = await app.request('/api/webhooks/email/email-imap', { method: 'POST' });
     expect(res.status).toBe(200);
   });
 });

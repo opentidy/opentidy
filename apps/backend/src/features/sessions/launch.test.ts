@@ -118,12 +118,12 @@ describe('createLauncher (tmux-only)', () => {
     const deps = createMockDeps(wsDir);
     const launcher = createLauncher(deps);
 
-    await launcher.launchSession('test-task', { source: 'gmail', content: 'Facture mars' });
+    await launcher.launchSession('test-task', { source: 'email', content: 'Facture mars' });
 
     const claudeMd = fs.readFileSync(path.join(wsDir, 'test-task', 'CLAUDE.md'), 'utf-8');
     expect(claudeMd).toContain('Test Task');
     expect(claudeMd).toContain('Facture mars');
-    expect(claudeMd).toContain('gmail');
+    expect(claudeMd).toContain('email');
 
     // generateTaskInstructions also writes INSTRUCTIONS.md as source of truth
     const instructionsMd = fs.readFileSync(path.join(wsDir, 'test-task', 'INSTRUCTIONS.md'), 'utf-8');
@@ -268,6 +268,7 @@ describe('createLauncher (tmux-only)', () => {
     await launcher.launchSession('test-task');
     launcher.handleSessionEnd('test-task');
 
+    expect(deps.tmuxExecutor.killSession).toHaveBeenCalledWith('opentidy-test-task');
     expect(deps.locks.release).toHaveBeenCalledWith('test-task');
     expect(deps.terminal.killTtyd).toHaveBeenCalledWith('opentidy-test-task');
     expect(launcher.listActiveSessions()).toHaveLength(0);

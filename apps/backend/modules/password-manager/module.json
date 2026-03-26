@@ -4,6 +4,7 @@
   "description": "Access Bitwarden/Vaultwarden passwords for task execution",
   "icon": "🔐",
   "version": "1.0.0",
+  "cli": ["bw"],
   "mcpServers": [{
     "name": "bitwarden",
     "command": "node",
@@ -30,11 +31,11 @@
     "safe": [
       { "tool": "mcp__bitwarden__status", "label": "Check vault status" },
       { "tool": "mcp__bitwarden__list", "label": "Search vault entries" },
-      { "tool": "mcp__bitwarden__sync", "label": "Sync vault data" }
+      { "tool": "mcp__bitwarden__sync", "label": "Sync vault data" },
+      { "tool": "mcp__bitwarden__generate", "label": "Generate passwords" }
     ],
     "critical": [
-      { "tool": "mcp__bitwarden__get", "label": "Read credential details" },
-      { "tool": "mcp__bitwarden__generate", "label": "Generate passwords" }
+      { "tool": "mcp__bitwarden__get", "label": "Read credential details" }
     ]
   }
 }

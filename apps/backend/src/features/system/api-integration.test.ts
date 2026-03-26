@@ -157,17 +157,7 @@ describe('API Routes', () => {
     expect(await res.json()).toEqual({ ok: true });
   });
 
-  // --- Webhook ---
-
-  it('POST /api/webhook/gmail returns result', async () => {
-    const res = await app.request('/api/webhook/gmail', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ from: 'test@test.com', subject: 'Test' }),
-    });
-    expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ accepted: true });
-  });
+  // --- Webhook (generic route tested in modules/webhook.test.ts) ---
 
   // --- Checkup ---
 

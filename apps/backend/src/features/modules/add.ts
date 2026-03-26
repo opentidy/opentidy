@@ -28,13 +28,8 @@ export function addModuleRoute(deps: ModuleRouteDeps) {
       throw err;
     }
 
-    // Save to config
-    const config = deps.loadConfig();
-    config.modules[body.name] = { enabled: false, source: 'custom' };
-    deps.saveConfig(config);
-
-    // Store manifest in-memory
-    deps.manifests.set(body.name, manifest);
+    // Register via shared lifecycle logic
+    deps.lifecycle.registerCustomModule(body.name, manifest);
 
     const moduleInfo: ModuleInfo = {
       name: body.name,

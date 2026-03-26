@@ -29,6 +29,7 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
       enable: vi.fn().mockResolvedValue(undefined),
       disable: vi.fn().mockResolvedValue(undefined),
       configure: vi.fn().mockResolvedValue(undefined),
+      registerCustomModule: vi.fn(),
     },
     saveConfig: vi.fn(),
   };
@@ -37,14 +38,14 @@ function makeDeps(config?: OpenTidyConfig): ModuleRouteDeps {
 describe('moduleHealthRoute', () => {
   it('returns health status from config', async () => {
     const deps = makeDeps(makeConfig({
-      modules: { gmail: { enabled: true, source: 'curated', health: 'ok' } },
+      modules: { email: { enabled: true, source: 'curated', health: 'ok' } },
     }));
-    deps.manifests.set('gmail', {
-      name: 'gmail', label: 'Gmail', description: 'Gmail integration', version: '1.0.0',
+    deps.manifests.set('email', {
+      name: 'email', label: 'Email', description: 'Email integration', version: '1.0.0',
     });
 
     const app = moduleHealthRoute(deps);
-    const res = await app.request('/modules/gmail/health');
+    const res = await app.request('/modules/email/health');
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ health: 'ok' });
@@ -52,14 +53,14 @@ describe('moduleHealthRoute', () => {
 
   it('returns unknown when module has no health info', async () => {
     const deps = makeDeps(makeConfig({
-      modules: { gmail: { enabled: true, source: 'curated' } },
+      modules: { email: { enabled: true, source: 'curated' } },
     }));
-    deps.manifests.set('gmail', {
-      name: 'gmail', label: 'Gmail', description: 'Gmail integration', version: '1.0.0',
+    deps.manifests.set('email', {
+      name: 'email', label: 'Email', description: 'Email integration', version: '1.0.0',
     });
 
     const app = moduleHealthRoute(deps);
-    const res = await app.request('/modules/gmail/health');
+    const res = await app.request('/modules/email/health');
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ health: 'unknown' });
@@ -67,12 +68,12 @@ describe('moduleHealthRoute', () => {
 
   it('returns unknown for a curated module not yet in config', async () => {
     const deps = makeDeps();
-    deps.manifests.set('gmail', {
-      name: 'gmail', label: 'Gmail', description: 'Gmail integration', version: '1.0.0',
+    deps.manifests.set('email', {
+      name: 'email', label: 'Email', description: 'Email integration', version: '1.0.0',
     });
 
     const app = moduleHealthRoute(deps);
-    const res = await app.request('/modules/gmail/health');
+    const res = await app.request('/modules/email/health');
 
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ health: 'unknown' });
