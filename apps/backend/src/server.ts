@@ -169,8 +169,12 @@ export interface AppDeps {
     launcher: { launchSession(taskId: string): Promise<void> };
   };
   preferencesDeps?: PreferencesDeps;
-  db?: { exec(sql: string): void;};
+  db?: { exec(sql: string): void };
   sessionHistory?: SessionHistory;
+  updater?: {
+    checkForUpdate(): Promise<{ available: boolean; version?: string }>;
+    spawnDetachedUpdater(version: string): void;
+  };
 }
 
 export function createApp(deps?: AppDeps) {
@@ -292,6 +296,22 @@ export function createApp(deps?: AppDeps) {
     // Preferences route
     if (deps.preferencesDeps) {
       app.route('/api', preferencesRoute(deps.preferencesDeps));
+    }
+    // Update check route
+    if (deps.updater) {
+      const upd = deps.updater;
+      app.get('/api/update/check', async (c) => {
+        console.log('[system] GET /api/update/check');
+        const result = await upd.checkForUpdate();
+        return c.json({ ...result, currentVersion: deps.version ?? 'dev' });
+      });
+      app.post('/api/update/apply', async (c) => {
+        console.log('[system] POST /api/update/apply');
+        const { available, version } = await upd.checkForUpdate();
+        if (!available || !version) return c.json({ error: 'Already up to date' }, 400);
+        upd.spawnDetachedUpdater(version);
+        return c.json({ updating: true, version });
+      });
     }
     // Permission check + approval + config routes
     if (deps.permissionDeps) {

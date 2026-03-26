@@ -525,6 +525,7 @@ const app = createApp({
     saveConfig: (cfg: any) => configFns.saveConfig(cfg),
     scheduler,
   },
+  updater: updater ?? undefined,
   permissionDeps: {
     checkerDeps: {
       manifests,
