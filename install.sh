@@ -46,7 +46,7 @@ log "Checking Node.js $REQUIRED_NODE_MAJOR..."
 brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
 NODE_DIR="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
 NODE_CMD="$NODE_DIR/node"
-# Force node@22 first in PATH — overrides nvm, volta, etc.
+# Force node@22 first in PATH (overrides nvm, volta, etc.)
 export PATH="$NODE_DIR:$PATH"
 ok "Node.js $("$NODE_CMD" --version)"
 
@@ -149,7 +149,7 @@ done
 if [ "$healthy" = true ]; then
   ok "Server is up"
 else
-  warn "Server did not respond within 30s — port $PORT may be in use"
+  warn "Server did not respond within 30s; port $PORT may be in use"
   warn "Check logs: opentidy logs"
 fi
 
