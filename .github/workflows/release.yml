@@ -50,6 +50,7 @@ jobs:
           cp -r apps/backend/modules/ ./release/modules/
 
           # Hooks plugin
+          mkdir -p ./release/plugins
           cp -r plugins/opentidy-hooks/ ./release/plugins/opentidy-hooks/
 
           # Claude Code config template
