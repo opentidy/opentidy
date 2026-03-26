@@ -78,9 +78,29 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: dawidd6/action-homebrew-bump-formula@v4
-        with:
-          token: ${{ secrets.HOMEBREW_TAP_TOKEN }}
-          tap: opentidy/opentidy
-          formula: opentidy
-          tag: ${{ github.ref_name }}
+      - name: Update Homebrew formula
+        env:
+          GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+          VERSION_TAG: ${{ github.ref_name }}
+        run: |
+          VERSION="${VERSION_TAG#opentidy-v}"
+          VERSION="${VERSION#v}"
+          TARBALL_URL="https://github.com/opentidy/opentidy/releases/download/${VERSION_TAG}/opentidy-${VERSION}.tar.gz"
+
+          # Download tarball and compute SHA256
+          curl -fsSL "$TARBALL_URL" -o tarball.tar.gz
+          SHA256=$(sha256sum tarball.tar.gz | cut -d' ' -f1)
+          echo "Version: $VERSION, SHA256: $SHA256"
+
+          # Clone tap repo and update formula
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/opentidy/homebrew-opentidy.git" tap
+          cd tap
+          sed -i "s|url \".*\"|url \"${TARBALL_URL}\"|" Formula/opentidy.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/opentidy.rb
+
+          # Commit and push
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/opentidy.rb
+          git commit -m "opentidy ${VERSION}"
+          git push
