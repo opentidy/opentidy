@@ -47,7 +47,7 @@ function badgeLabel(badge: string): string {
   return 'Coming soon';
 }
 
-export default function AgentsPanel() {
+export default function AgentsPage() {
   const { t } = useTranslation();
   const [data, setData] = useState<AgentsResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,23 +56,25 @@ export default function AgentsPanel() {
     fetchAgents().then(setData).catch(e => setError(e.message));
   }, []);
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async function handleActivate(_name: string) {
-    // Agent activation not yet implemented in module system
-    setError('Agent switching not yet available');
-  }
-
-  if (error && !data) return <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>;
-  if (!data) return <div className="text-text-tertiary text-sm animate-pulse">{t('common.loading')}</div>;
+  if (error && !data) return (
+    <div className="p-5 md:p-7">
+      <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>
+    </div>
+  );
+  if (!data) return (
+    <div className="p-5 md:p-7">
+      <div className="text-text-tertiary text-sm animate-pulse">{t('common.loading')}</div>
+    </div>
+  );
 
   return (
-    <div>
-      <div className="mb-6">
+    <div className="p-5 md:p-7 space-y-6 overflow-y-auto h-full">
+      <div>
         <h2 className="text-lg font-semibold">{t('toolbox.agentsTitle')}</h2>
         <p className="text-xs text-text-tertiary">{t('toolbox.agentsDescription')}</p>
       </div>
 
-      {error && <div className="text-red text-sm mb-4 p-3 bg-red/10 rounded-lg">{error}</div>}
+      {error && <div className="text-red text-sm p-3 bg-red/10 rounded-lg">{error}</div>}
 
       <div className="space-y-3">
         {data.agents.map((agent) => (
@@ -88,10 +90,10 @@ export default function AgentsPanel() {
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{agent.label}</span>
                   {agent.active && (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{t('toolbox.activeAgent')}</span>
+                    <span className="text-[12px] px-1.5 py-0.5 rounded bg-accent/10 text-accent">{t('toolbox.activeAgent')}</span>
                   )}
                   {agent.badge !== 'stable' && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${agent.badge === 'experimental' ? 'bg-orange/10 text-orange' : 'bg-card-hover text-text-tertiary'}`}>{badgeLabel(agent.badge)}</span>
+                    <span className={`text-[12px] px-1.5 py-0.5 rounded ${agent.badge === 'experimental' ? 'bg-orange/10 text-orange' : 'bg-card-hover text-text-tertiary'}`}>{badgeLabel(agent.badge)}</span>
                   )}
                 </div>
 
@@ -114,7 +116,7 @@ export default function AgentsPanel() {
                   <span className="text-xs text-accent px-3 py-1.5">{t('toolbox.current')}</span>
                 ) : agent.installed && agent.badge === 'stable' ? (
                   <button
-                    onClick={() => handleActivate(agent.name)}
+                    onClick={() => setError('Agent switching not yet available')}
                     className="px-4 py-1.5 text-sm border border-accent/30 text-accent rounded-lg hover:bg-accent/10"
                   >
                     {t('toolbox.activate')}

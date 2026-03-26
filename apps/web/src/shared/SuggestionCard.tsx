@@ -13,7 +13,7 @@ const urgencyColors: Record<string, { border: string; badge: string; badgeBg: st
 };
 
 const sourceIcons: Record<string, string> = {
-  gmail: 'Email',
+  email: 'Email',
   sms: 'SMS',
   whatsapp: 'WhatsApp',
   telegram: 'Telegram',
@@ -36,13 +36,13 @@ export default function SuggestionCard({ suggestion }: { suggestion: Suggestion 
           <div className="flex items-center gap-2 mb-1">
             <span className={`w-[7px] h-[7px] rounded-full ${colors.dot} shrink-0`} />
             <span className="font-semibold text-text">{suggestion.title}</span>
-            <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${colors.badgeBg} ${colors.badge} capitalize`}>
+            <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${colors.badgeBg} ${colors.badge} capitalize`}>
               {suggestion.urgency}
             </span>
           </div>
           {/* Source + date */}
           <div className="flex items-center gap-2 mt-1 text-xs text-text-tertiary">
-            {sourceLabel && <span className="text-[9px] px-1.5 py-0.5 rounded bg-card-hover text-text-secondary">{sourceLabel}</span>}
+            {sourceLabel && <span className="text-[11px] px-1.5 py-0.5 rounded bg-card-hover text-text-secondary">{sourceLabel}</span>}
             {suggestion.date && <span>{suggestion.date}</span>}
           </div>
         </div>

@@ -12,26 +12,96 @@ import { getArtifactUrl, getTerminalPort } from '../../shared/api';
 import { TtydTerminal } from '../../shared/TtydTerminal';
 import { formatDuration } from '../../shared/utils/format';
 import { taskStatusConfig } from '../../shared/utils/status-colors';
-import type { Task } from '@opentidy/shared';
+import type { Task, SessionHistoryEntry } from '@opentidy/shared';
+import ConfirmModal from '../../shared/ConfirmModal';
+
+const SESSION_STATUS_COLORS: Record<string, { text: string; bg: string }> = {
+  running: { text: 'text-green-400', bg: 'bg-green-400/10' },
+  completed: { text: 'text-blue-400', bg: 'bg-blue-400/10' },
+  stopped: { text: 'text-yellow-400', bg: 'bg-yellow-400/10' },
+  error: { text: 'text-red-400', bg: 'bg-red-400/10' },
+};
+
+function formatSessionDuration(startedAt: string, endedAt?: string): string {
+  const end = endedAt ? new Date(endedAt).getTime() : Date.now();
+  const diff = end - new Date(startedAt).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return '< 1 min';
+  if (mins < 60) return `${mins}m`;
+  return `${Math.floor(mins / 60)}h${String(mins % 60).padStart(2, '0')}m`;
+}
+
+function formatSessionDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  const now = new Date();
+  const isToday = d.toDateString() === now.toDateString();
+  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  if (isToday) return time;
+  return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${time}`;
+}
+
+function SessionHistoryList({ entries, onResume }: { entries: SessionHistoryEntry[]; onResume: (taskId: string) => void }) {
+  const { t } = useTranslation();
+
+  if (entries.length === 0) {
+    return <p className="text-xs text-text-tertiary">{t('taskDetail.noSessions')}</p>;
+  }
+
+  return (
+    <div className="space-y-1.5">
+      {entries.map((entry) => {
+        const colors = SESSION_STATUS_COLORS[entry.status] ?? SESSION_STATUS_COLORS.completed;
+        return (
+          <div key={entry.id} className="flex items-center gap-2 text-xs group">
+            <span className={`${colors.text} ${colors.bg} px-1.5 py-0.5 rounded text-[10px] font-medium shrink-0`}>
+              {t(`taskDetail.sessionStatus.${entry.status}`)}
+            </span>
+            <span className="text-text-secondary truncate">
+              {formatSessionDate(entry.startedAt)}
+            </span>
+            <span className="text-[#48484a]">
+              {formatSessionDuration(entry.startedAt, entry.endedAt)}
+            </span>
+            {entry.agentSessionId && entry.status !== 'running' && (
+              <button
+                onClick={() => onResume(entry.taskId)}
+                className="ml-auto text-accent text-[11px] opacity-0 group-hover:opacity-100 transition-opacity hover:underline shrink-0"
+              >
+                {t('taskDetail.resumeSession')}
+              </button>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function InfoPanel({ task }: { task: Task }) {
   const { t } = useTranslation();
+  const { sessions, sessionHistory, fetchSessionHistory, resumeSession } = useStore();
+
+  // Re-fetch session history when task changes or when active sessions change (via SSE)
+  useEffect(() => {
+    fetchSessionHistory(task.id);
+  }, [task.id, sessions, fetchSessionHistory]);
+
   return (
     <div className="h-full overflow-y-auto p-4 space-y-4 bg-[#161618]">
       <div>
-        <h4 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('taskDetail.state')}</h4>
+        <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('taskDetail.state')}</h4>
         <StateRenderer task={task} />
       </div>
 
       {/* Only show artifacts/journal when stateRaw is absent — StateRenderer already renders them from the markdown */}
       {!task.stateRaw && task.artifacts.length > 0 && (
         <div>
-          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')} ({task.artifacts.length})</h4>
+          <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('common.files')} ({task.artifacts.length})</h4>
           <ul className="space-y-1">
             {task.artifacts.map((file) => (
               <li key={file} className="text-sm">
                 <a href={getArtifactUrl(task.id, file)} target="_blank" rel="noopener noreferrer"
-                  className="text-accent text-[11px] hover:underline">{file}</a>
+                  className="text-accent text-[13px] hover:underline">{file}</a>
               </li>
             ))}
           </ul>
@@ -40,7 +110,7 @@ function InfoPanel({ task }: { task: Task }) {
 
       {!task.stateRaw && task.journal && task.journal.length > 0 && (
         <div>
-          <h4 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('taskDetail.log')}</h4>
+          <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">{t('taskDetail.log')}</h4>
           <div className="space-y-1">
             {task.journal.slice().reverse().map((entry, i) => (
               <div key={i} className="text-xs">
@@ -51,6 +121,14 @@ function InfoPanel({ task }: { task: Task }) {
           </div>
         </div>
       )}
+
+      {/* Session history */}
+      <div>
+        <h4 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a] mb-2">
+          {t('taskDetail.sessionHistory')} {sessionHistory.length > 0 && `(${sessionHistory.length})`}
+        </h4>
+        <SessionHistoryList entries={sessionHistory} onResume={resumeSession} />
+      </div>
     </div>
   );
 }
@@ -62,6 +140,7 @@ export default function TaskDetail() {
   const { tasks, sessions, fetchTasks, fetchSessions, completeTask, stopSession, resumeSession } = useStore();
   const [ttydPort, setTtydPort] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showCompleteConfirm, setShowCompleteConfirm] = useState(false);
 
   useEffect(() => {
     Promise.all([fetchTasks(), fetchSessions()])
@@ -104,9 +183,9 @@ export default function TaskDetail() {
         <div className="flex items-center gap-2.5">
           <button onClick={() => navigate('/')} className="text-text-tertiary hover:text-text-secondary flex items-center gap-1 text-xs shrink-0">&larr;</button>
           <h1 className="text-sm font-semibold text-text truncate">{task.title}</h1>
-          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded ${config.badgeBg} ${config.badge} shrink-0`}>{t(config.labelKey)}</span>
+          <span className={`text-[11px] font-medium px-1.5 py-0.5 rounded ${config.badgeBg} ${config.badge} shrink-0`}>{t(config.labelKey)}</span>
           {session && (
-            <span className="text-[10px] text-[#48484a] bg-card px-2 py-0.5 rounded shrink-0">
+            <span className="text-[12px] text-[#48484a] bg-card px-2 py-0.5 rounded shrink-0">
               {formatDuration(session.startedAt)}
             </span>
           )}
@@ -121,11 +200,7 @@ export default function TaskDetail() {
             )}
             {task.status !== 'COMPLETED' && (
               <button
-                onClick={() => {
-                  if (window.confirm(t('taskDetail.completeConfirm', { title: task.title }))) {
-                    completeTask(task.id).then(() => navigate('/'));
-                  }
-                }}
+                onClick={() => setShowCompleteConfirm(true)}
                 className="bg-card text-text-secondary rounded-lg px-2.5 py-1 text-xs hover:text-red transition-colors"
               >
                 {t('taskDetail.complete')}
@@ -194,6 +269,20 @@ export default function TaskDetail() {
 
       {/* Instruction bar */}
       <InstructionBar taskId={task.id} />
+
+      <ConfirmModal
+        open={showCompleteConfirm}
+        title={t('taskDetail.complete')}
+        description={t('taskDetail.completeConfirm', { title: task.title })}
+        confirmLabel={t('taskDetail.complete')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={() => {
+          setShowCompleteConfirm(false);
+          completeTask(task.id).then(() => navigate('/'));
+        }}
+        onCancel={() => setShowCompleteConfirm(false)}
+      />
     </div>
   );
 }

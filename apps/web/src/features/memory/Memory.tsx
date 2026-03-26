@@ -103,8 +103,8 @@ export default function Memory() {
         {/* Memory list */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 mb-4">
-            <h2 className="text-[10px] font-semibold uppercase tracking-wider text-[#48484a]">{t('common.files')}</h2>
-            <span className="text-[9px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
+            <h2 className="text-[12px] font-semibold uppercase tracking-wider text-[#48484a]">{t('common.files')}</h2>
+            <span className="text-[11px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
               {memoryIndex.length}
             </span>
           </div>
@@ -119,7 +119,7 @@ export default function Memory() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[#48484a] text-[10px] font-semibold uppercase tracking-wider border-b border-border">
+                  <tr className="text-left text-[#48484a] text-[12px] font-semibold uppercase tracking-wider border-b border-border">
                     <th className="pb-2 pr-4">{t('memory.file')}</th>
                     <th className="pb-2 pr-4">{t('memory.category')}</th>
                     <th className="pb-2 pr-4">{t('memory.updated')}</th>
@@ -137,7 +137,7 @@ export default function Memory() {
                     >
                       <td className="py-2.5 pr-4 font-mono text-text">{entry.filename}</td>
                       <td className="py-2.5 pr-4">
-                        <span className="text-[9px] px-1.5 py-0.5 rounded-full bg-purple/10 text-purple">
+                        <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-purple/10 text-purple">
                           {entry.category}
                         </span>
                       </td>

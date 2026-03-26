@@ -4,11 +4,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../shared/store';
+import ConfirmModal from '../../shared/ConfirmModal';
 
 export default function DangerZonePanel() {
   const { t } = useTranslation();
   const { resetEverything } = useStore();
-  const [resetting, setResetting] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   return (
     <div>
@@ -19,21 +20,26 @@ export default function DangerZonePanel() {
         <h3 className="text-sm font-semibold text-red mb-1">{t('toolbox.resetTitle')}</h3>
         <p className="text-xs text-text-tertiary mb-4">{t('toolbox.resetDesc')}</p>
         <button
-          onClick={async () => {
-            if (!confirm(t('toolbox.resetConfirm'))) return;
-            setResetting(true);
-            try { await resetEverything(); } finally { setResetting(false); }
-          }}
-          disabled={resetting}
-          className={`rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors ${
-            resetting
-              ? 'bg-red/20 text-red cursor-wait'
-              : 'bg-red text-white'
-          }`}
+          onClick={() => setShowResetConfirm(true)}
+          className="rounded-lg bg-red px-3.5 py-1.5 text-xs font-medium text-white transition-colors"
         >
-          {resetting ? t('toolbox.resetting') : t('toolbox.resetButton')}
+          {t('toolbox.resetButton')}
         </button>
       </div>
+
+      <ConfirmModal
+        open={showResetConfirm}
+        title={t('toolbox.resetTitle')}
+        description={t('toolbox.resetConfirm')}
+        confirmLabel={t('toolbox.resetButton')}
+        cancelLabel={t('common.cancel')}
+        variant="danger"
+        onConfirm={() => {
+          setShowResetConfirm(false);
+          resetEverything();
+        }}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 }

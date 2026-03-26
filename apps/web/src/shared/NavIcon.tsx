@@ -66,12 +66,29 @@ export default function NavIcon({ icon }: { icon: string }) {
           <line x1="3.5" y1="8" x2="12.5" y2="8" />
         </svg>
       );
+    case 'agents':
+      return (
+        <svg {...svgProps}>
+          <rect x="3" y="2" width="10" height="8" rx="2" ry="2" />
+          <circle cx="6" cy="6" r="1" fill="currentColor" stroke="none" />
+          <circle cx="10" cy="6" r="1" fill="currentColor" stroke="none" />
+          <line x1="5.5" y1="10" x2="5.5" y2="13" />
+          <line x1="10.5" y1="10" x2="10.5" y2="13" />
+        </svg>
+      );
     case 'modules':
       return (
         <svg {...svgProps}>
           <path d="M14 10.5V5.5a1.2 1.2 0 0 0-.6-1.04l-4.5-2.6a1.2 1.2 0 0 0-1.2 0l-4.5 2.6A1.2 1.2 0 0 0 2.6 5.5v5a1.2 1.2 0 0 0 .6 1.04l4.5 2.6a1.2 1.2 0 0 0 1.2 0l4.5-2.6a1.2 1.2 0 0 0 .6-1.04z" />
           <polyline points="2.8,4.6 8,8 13.2,4.6" />
           <line x1="8" y1="14.5" x2="8" y2="8" />
+        </svg>
+      );
+    case 'permissions':
+      return (
+        <svg {...svgProps}>
+          <path d="M8 1.5L2.5 4v4.5c0 3.5 2.3 6.2 5.5 7 3.2-.8 5.5-3.5 5.5-7V4z" />
+          <polyline points="5.5,8 7.2,9.7 10.5,6.3" />
         </svg>
       );
     case 'toolbox':

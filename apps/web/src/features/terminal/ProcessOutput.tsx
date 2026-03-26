@@ -54,7 +54,7 @@ interface ProcessOutputProps {
   endedAt?: string;
 }
 
-export default function ProcessOutput({ processId, status, exitCode, startedAt, endedAt }: ProcessOutputProps) {
+export default function ProcessOutput({ processId }: ProcessOutputProps) {
   const { t } = useTranslation();
   const [output, setOutput] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,17 +67,11 @@ export default function ProcessOutput({ processId, status, exitCode, startedAt, 
       .catch(() => setOutput(null))
       .finally(() => setLoading(false));
   }, [processId]);
-
-  const duration = endedAt ? Math.round((new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000) : null;
   const parsed = output ? parseJSONL(output) : [];
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-4 py-1.5 border-b border-border">
-        <span className="text-xs text-text-tertiary">
-          {status === 'done' && t('terminal.completedIn', { duration: duration ?? '?', exitCode: exitCode ?? '?' })}
-          {status === 'error' && (t('terminal.error') + (duration ? ` ${t('terminal.after', { duration })}` : ''))}
-        </span>
+      <div className="flex items-center justify-end px-4 py-1.5 border-b border-border">
         <div className="flex gap-1">
           <button onClick={() => setViewMode('simple')}
             className={`px-2 py-0.5 rounded text-xs transition-colors ${viewMode === 'simple' ? 'bg-accent text-white' : 'text-text-tertiary hover:text-text-secondary'}`}>

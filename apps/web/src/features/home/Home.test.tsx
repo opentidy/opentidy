@@ -2,9 +2,9 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import type { Task, Suggestion, Session } from '@opentidy/shared';
+import type { Task, Session, Suggestion } from '@opentidy/shared';
 import '../../shared/i18n/i18n';
 import Home from './Home';
 
@@ -43,7 +43,7 @@ function makeSuggestion(overrides: Partial<Suggestion> = {}): Suggestion {
     slug: 'tax-filing',
     title: 'Tax filing 2025',
     urgency: 'normal',
-    source: 'gmail',
+    source: 'email',
     date: '2026-03-14',
     summary: 'Tax deadline approaching',
     why: 'Due next week',
@@ -64,7 +64,6 @@ function makeSession(overrides: Partial<Session> = {}): Session {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  localStorage.clear();
   storeState = {
     tasks: [],
     suggestions: [],
@@ -74,6 +73,8 @@ beforeEach(() => {
     fetchSessions: vi.fn().mockResolvedValue(undefined),
     fetchCheckupStatus: vi.fn().mockResolvedValue(undefined),
     triggerCheckup: vi.fn().mockResolvedValue(undefined),
+    approveSuggestion: vi.fn().mockResolvedValue(undefined),
+    ignoreSuggestion: vi.fn().mockResolvedValue(undefined),
     checkupStatus: null,
     resetEverything: vi.fn(),
     launchTestTasks: vi.fn(),
@@ -82,20 +83,20 @@ beforeEach(() => {
 });
 
 describe('Home page', () => {
-  it('shows WelcomeCard when no tasks and onboarding not dismissed', async () => {
+  it('shows empty state when no tasks, sessions, or suggestions', async () => {
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
     await waitFor(() => {
-      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
+      expect(screen.getByText(/All clear|Tout est en ordre/)).toBeDefined();
     });
   });
 
-  it('renders tasks section when component is loaded', async () => {
-    storeState.tasks = [makeTask()];
-    storeState.suggestions = [makeSuggestion()];
+  it('renders tasks in running section when in progress with active session', async () => {
+    storeState.tasks = [makeTask({ hasActiveSession: true })];
+    storeState.sessions = [makeSession({ status: 'active' })];
 
     render(
       <MemoryRouter>
@@ -108,26 +109,7 @@ describe('Home page', () => {
     });
   });
 
-  it('does not render "En fond" section — active sessions show via task cards', async () => {
-    storeState.sessions = [makeSession({ status: 'active' })];
-    storeState.suggestions = [makeSuggestion()];
-
-    const { container } = render(
-      <MemoryRouter>
-        <Home />
-      </MemoryRouter>,
-    );
-
-    // Wait for component to mount and render
-    await waitFor(() => {
-      expect(screen.getByText('OpenTidy')).toBeDefined();
-    });
-    // Current component has no "En fond" section for active sessions
-    expect(container.textContent).not.toContain('En fond');
-  });
-
-  it('header shows OpenTidy title, not session count', async () => {
-    storeState.sessions = [makeSession(), makeSession({ id: 'opentidy-tax-filing', taskId: 'tax-filing' })];
+  it('header shows Home title', async () => {
     storeState.suggestions = [makeSuggestion()];
 
     render(
@@ -137,25 +119,19 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('OpenTidy')).toBeDefined();
+      expect(screen.getByText('Home')).toBeDefined();
     });
-    // Current header does not display session count
-    expect(screen.queryByText('2 sessions')).toBeNull();
   });
 
-  it('does not render "En fond" when no active sessions', async () => {
-    storeState.suggestions = [makeSuggestion()];
-
-    const { container } = render(
+  it('shows new task button in empty state', async () => {
+    render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
-
     await waitFor(() => {
-      expect(screen.getByText('OpenTidy')).toBeDefined();
+      expect(screen.getByText(/\+ New task|\+ Nouvelle tâche/)).toBeDefined();
     });
-    expect(container.textContent).not.toContain('En fond');
   });
 
   it('calls all fetch functions on mount', () => {
@@ -170,8 +146,8 @@ describe('Home page', () => {
     expect(storeState.fetchSessions).toHaveBeenCalled();
   });
 
-  it('shows WelcomeCard with finished sessions only and no tasks', async () => {
-    storeState.sessions = [makeSession({ status: 'finished' as Session['status'] })];
+  it('renders suggestions section when suggestions exist', async () => {
+    storeState.suggestions = [makeSuggestion()];
 
     render(
       <MemoryRouter>
@@ -180,45 +156,70 @@ describe('Home page', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
+      expect(screen.getByText('Tax filing 2025')).toBeDefined();
     });
   });
 
-  it('hides WelcomeCard after dismissal', async () => {
+  it('shows loading state initially', () => {
+    // Make fetches never resolve to keep loading state
+    storeState.fetchTasks = vi.fn(() => new Promise(() => {}));
+    storeState.fetchSuggestions = vi.fn(() => new Promise(() => {}));
+    storeState.fetchSessions = vi.fn(() => new Promise(() => {}));
+
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
-    await waitFor(() => {
-      expect(screen.getByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeDefined();
-    });
-    fireEvent.click(screen.getByText(/Explore|Explorer/));
-    expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
+
+    expect(screen.getByText(/Loading|Chargement/)).toBeDefined();
   });
 
-  it('does not show WelcomeCard when tasks exist', async () => {
-    storeState.tasks = [makeTask()];
+  it('does not show "En fond" section — no legacy background sessions area', async () => {
+    storeState.sessions = [makeSession({ status: 'active' })];
+    storeState.suggestions = [makeSuggestion()];
+
+    const { container } = render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Home')).toBeDefined();
+    });
+    expect(container.textContent).not.toContain('En fond');
+  });
+
+  it('shows empty state with completed count when only completed tasks', async () => {
+    storeState.tasks = [makeTask({ status: 'COMPLETED', hasActiveSession: false })];
+
     render(
       <MemoryRouter>
         <Home />
       </MemoryRouter>,
     );
+
     await waitFor(() => {
+      expect(screen.getByText(/All clear|Tout est en ordre/)).toBeDefined();
+    });
+  });
+
+  it('idle sessions appear in needs-you section, not running', async () => {
+    storeState.tasks = [makeTask({ status: 'IN_PROGRESS' })];
+    storeState.sessions = [makeSession({ status: 'idle', taskId: 'acme' })];
+
+    render(
+      <MemoryRouter>
+        <Home />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      // Task should appear (in needs-you section since idle defaults to user-waiting)
       expect(screen.getByText('Task Acme')).toBeDefined();
     });
-    expect(screen.queryByText(/Welcome to OpenTidy|Bienvenue sur OpenTidy/)).toBeNull();
-  });
-
-  it('shows contextual empty state text when onboarding dismissed', async () => {
-    localStorage.setItem('opentidy-onboarding-seen', 'true');
-    render(
-      <MemoryRouter>
-        <Home />
-      </MemoryRouter>,
-    );
-    await waitFor(() => {
-      expect(screen.getByText(/Your active tasks|Tes tâches en cours/)).toBeDefined();
-    });
+    // Should not show "Running" section label since the session is idle
+    expect(screen.queryByText(/Running|En cours/)).toBeNull();
   });
 });

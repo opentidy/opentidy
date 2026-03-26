@@ -7,13 +7,13 @@ import { setupMockApi } from './fixtures/mock-api';
 const mockModules = {
   modules: [
     {
-      name: 'gmail',
-      label: 'Gmail',
-      description: 'Read, search, and draft emails via Gmail',
+      name: 'email',
+      label: 'Email',
+      description: 'Read, search, and send emails via IMAP/SMTP (any provider)',
       icon: '📧',
       source: 'curated',
       enabled: true,
-      components: { mcpServers: ['gmail'], skills: [], receivers: ['gmail-webhook'] },
+      components: { mcpServers: [], skills: [{ name: 'email-skill' }], receivers: [{ name: 'email-imap', mode: 'polling', source: 'email' }] },
       setup: { needsAuth: true, configFields: [], configured: true },
     },
     {
@@ -23,7 +23,7 @@ const mockModules = {
       icon: '📨',
       source: 'curated',
       enabled: false,
-      components: { mcpServers: ['telegram'], skills: [], receivers: [] },
+      components: { mcpServers: [{ name: 'telegram' }], skills: [], receivers: [] },
       setup: {
         needsAuth: false,
         configFields: [
@@ -40,7 +40,7 @@ const mockModules = {
       icon: '🌐',
       source: 'curated',
       enabled: false,
-      components: { mcpServers: ['camoufox'], skills: ['browser-skill'], receivers: [] },
+      components: { mcpServers: [{ name: 'camoufox', package: 'camofox-mcp@latest' }], skills: [{ name: 'browser-skill' }], receivers: [] },
     },
   ],
 };
@@ -81,23 +81,23 @@ test.describe('E2E-MODULES-01: Settings page shows Modules section', () => {
 
     await page.goto('/settings');
 
-    await expect(page.getByText('Gmail')).toBeVisible();
+    await expect(page.getByText('Email')).toBeVisible();
     await expect(page.getByText('Telegram')).toBeVisible();
     await expect(page.getByText('Browser')).toBeVisible();
   });
 });
 
 test.describe('E2E-MODULES-02: Module cards show component badges', () => {
-  test('Gmail card shows MCP and Receiver badges', async ({ page }) => {
+  test('Email card shows Skill and Receiver badges', async ({ page }) => {
     await setupMockApi(page);
     await setupModulesMocks(page);
 
     await page.goto('/settings');
 
-    // Locate the Gmail card and check its badges
-    const gmailCard = page.locator('div').filter({ hasText: 'Read, search, and draft emails via Gmail' }).first();
-    await expect(gmailCard.getByText('MCP')).toBeVisible();
-    await expect(gmailCard.getByText('Receiver')).toBeVisible();
+    // Locate the Email card and check its badges
+    const emailCard = page.locator('div').filter({ hasText: 'Read, search, and send emails via IMAP/SMTP' }).first();
+    await expect(emailCard.getByText('Skill')).toBeVisible();
+    await expect(emailCard.getByText('Receiver')).toBeVisible();
   });
 });
 

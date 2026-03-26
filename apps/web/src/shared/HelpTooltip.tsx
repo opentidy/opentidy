@@ -26,7 +26,7 @@ export default function HelpTooltip({ text }: HelpTooltipProps) {
     <span ref={ref} className="relative inline-flex items-center">
       <button
         onClick={() => setOpen(!open)}
-        className="w-4 h-4 rounded-full border border-text-tertiary/30 text-text-tertiary text-[10px] leading-none flex items-center justify-center hover:border-accent hover:text-accent transition-colors"
+        className="w-4 h-4 rounded-full border border-text-tertiary/30 text-text-tertiary text-[12px] leading-none flex items-center justify-center hover:border-accent hover:text-accent transition-colors"
       >
         ?
       </button>

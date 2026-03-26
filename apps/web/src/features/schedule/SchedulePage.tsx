@@ -156,7 +156,7 @@ export default function SchedulePage() {
             <div />
             {weekDays.map((day, i) => (
               <div key={i} className="flex items-center justify-center py-2.5 text-center">
-                <span className="text-[11px] text-text-tertiary uppercase tracking-wide">
+                <span className="text-[13px] text-text-tertiary uppercase tracking-wide">
                   {DAY_NAMES[i]}{' '}
                   <span className={`ml-1 inline-flex size-6 items-center justify-center rounded-full text-xs font-medium ${
                     isToday(day) ? 'bg-accent text-white' : 'text-text-secondary'
@@ -172,7 +172,7 @@ export default function SchedulePage() {
           {HOURS.map(hour => (
             <div key={hour} className="grid grid-cols-[3.5rem_repeat(7,1fr)] border-b border-border-subtle">
               {/* Time label */}
-              <div className="py-3 pr-2 text-right text-[10px] text-[#48484a] tabular-nums -mt-2">
+              <div className="py-3 pr-2 text-right text-[12px] text-[#48484a] tabular-nums -mt-2">
                 {hour === 0 ? '12AM' : hour < 12 ? `${hour}AM` : hour === 12 ? '12PM' : `${hour - 12}PM`}
               </div>
               {/* Day columns */}
@@ -192,9 +192,9 @@ export default function SchedulePage() {
                           key={`${ev.schedule.id}-${j}`}
                           onClick={(e) => { e.stopPropagation(); handleEventClick(ev.schedule); }}
                           style={{ background: colors.bg, borderLeftColor: colors.border, color: colors.text }}
-                          className="w-[calc(100%-4px)] mx-0.5 mt-0.5 px-2 py-1 rounded text-left text-[11px] font-medium border-l-[3px] hover:brightness-125 transition-all truncate"
+                          className="w-[calc(100%-4px)] mx-0.5 mt-0.5 px-2 py-1 rounded text-left text-[13px] font-medium border-l-[3px] hover:brightness-125 transition-all truncate"
                         >
-                          <span className="opacity-60 tabular-nums text-[10px]">
+                          <span className="opacity-60 tabular-nums text-[12px]">
                             {String(ev.hour).padStart(2, '0')}:{String(ev.minute).padStart(2, '0')}
                           </span>{' '}
                           {ev.schedule.label}
@@ -212,10 +212,10 @@ export default function SchedulePage() {
       {/* System tasks footer */}
       {systemSchedules.length > 0 && (
         <div className="mt-3 flex items-center gap-3 px-1">
-          <span className="text-[10px] uppercase tracking-widest text-[#48484a] font-medium">{t('schedule.system')}</span>
+          <span className="text-[12px] uppercase tracking-widest text-[#48484a] font-medium">{t('schedule.system')}</span>
           <div className="h-px flex-1 bg-border-subtle" />
           {systemSchedules.map(s => (
-            <div key={s.id} className="flex items-center gap-1.5 text-[11px] text-text-tertiary">
+            <div key={s.id} className="flex items-center gap-1.5 text-[13px] text-text-tertiary">
               <span className="w-1 h-1 rounded-full bg-green/60" />
               <span>{s.label}</span>
               {s.intervalMs && (

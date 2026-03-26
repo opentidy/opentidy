@@ -14,7 +14,7 @@ export function ModulesStep({ onNext, onBack }: ModulesStepProps) {
 
   return (
     <form
-      className="mx-auto flex w-full max-w-lg flex-col gap-8"
+      className="mx-auto flex w-full max-w-3xl flex-col gap-8"
       onSubmit={(e) => { e.preventDefault(); onNext(); }}
     >
       <div className="text-center">

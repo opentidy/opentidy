@@ -51,7 +51,7 @@ export default function Ameliorations() {
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex items-center gap-3">
           <h1 className="text-xl font-bold text-text">{t('ameliorations.title')}</h1>
-          <span className="text-[9px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
+          <span className="text-[11px] px-2 py-0.5 rounded-md bg-card text-text-tertiary font-medium">
             {loading ? '...' : t('ameliorations.open', { count: openCount })}
           </span>
         </div>
@@ -60,7 +60,7 @@ export default function Ameliorations() {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`text-[11px] rounded-md px-2.5 py-0.5 transition-colors ${
+              className={`text-[13px] rounded-md px-2.5 py-0.5 transition-colors ${
                 filter === f
                   ? 'bg-card text-text'
                   : 'text-[#48484a]'
