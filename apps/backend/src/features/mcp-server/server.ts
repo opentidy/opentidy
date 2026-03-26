@@ -54,8 +54,8 @@ function registerAllTools(server: McpServer, deps: McpServerDeps): void {
   // Register dynamic tools from daemon modules
   if (deps.dynamicToolRegistry) {
     for (const tool of deps.dynamicToolRegistry.listAll()) {
-      server.tool(tool.name, tool.schema.description, tool.schema.inputSchema, async (input) => {
-        return deps.dynamicToolRegistry!.execute(tool.name, input.arguments ?? {});
+      server.tool(tool.name, tool.schema.description, async () => {
+        return deps.dynamicToolRegistry!.execute(tool.name, {});
       });
     }
   }

@@ -10,7 +10,8 @@ interface RegisteredTool {
 }
 
 interface McpToolResult {
-  content: Array<{ type: string; text: string }>;
+  [key: string]: unknown;
+  content: Array<{ type: 'text'; text: string }>;
 }
 
 export interface DynamicToolRegistry {

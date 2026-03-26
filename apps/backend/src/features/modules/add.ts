@@ -40,9 +40,9 @@ export function addModuleRoute(deps: ModuleRouteDeps) {
       enabled: false,
       platform: manifest.platform,
       components: {
-        mcpServers: (manifest.mcpServers ?? []).map((s) => s.name),
-        skills: (manifest.skills ?? []).map((s) => s.name),
-        receivers: (manifest.receivers ?? []).map((r) => r.name),
+        mcpServers: manifest.mcpServers ?? [],
+        skills: manifest.skills ?? [],
+        receivers: manifest.receivers ?? [],
       },
       setup: {
         needsAuth: !!manifest.setup?.authCommand,
