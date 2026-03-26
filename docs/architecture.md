@@ -274,6 +274,28 @@ Suggestion: Add TOTP code reading capability.
 
 These gaps form a natural backlog of improvements, visible in the web app's "Improvements" page.
 
+## Module system
+
+Modules extend OpenTidy's capabilities. Each module lives in `apps/backend/modules/<name>/module.json` and declares its tools, permissions, and integration pattern.
+
+### Three levels
+
+**Level 1 — JSON-only MCP** (`module.json` with `mcpServers`):
+The simplest pattern. The backend configures the declared MCP server in the agent's session. No custom code needed.
+Examples: browser (Camoufox), password-manager, email.
+
+**Level 2 — JSON + receiver.ts** (`module.json` with `receiver`):
+Adds event ingestion. The receiver watches an external source and feeds events into triage. The MCP server (if any) is configured separately.
+Examples: modules that only need to ingest external events.
+
+**Level 3 — JSON + daemon.ts** (`module.json` with `daemon`):
+A long-running process managed by the backend lifecycle. The daemon receives a `ModuleContext` that provides: `emit()` for pushing events into triage, `registerTool()` for exposing MCP tools, `logger` for prefixed logging, `onShutdown()` for cleanup, and `dataDir` for persistent storage. Daemon tools are registered on the built-in OpenTidy MCP server — the agent sees them as `mcp__opentidy__<tool_name>`.
+Examples: WhatsApp (Baileys — one WebSocket handles both incoming messages and outgoing tool calls).
+
+### Daemon lifecycle
+
+Daemons for enabled modules start at boot and stop on disable. Crash recovery uses exponential backoff. The lifecycle API exposes `restartDaemon(name)` for manual recovery.
+
 ## Data flow
 
 ### Event → Action

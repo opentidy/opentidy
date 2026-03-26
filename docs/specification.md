@@ -248,7 +248,7 @@ Receives everything that can trigger work and transforms it into a uniform event
 | Type | Source | Examples |
 |---|---|---|
 | External push | Gmail webhook | New email received |
-| Polling | SMS/WhatsApp watchers | New message (every 5 min) |
+| Polling/Daemon | SMS/WhatsApp (Baileys daemon) | New message |
 | Cron | Background work | "Check tasks, advance what you can" |
 | Cron | Deadlines | "The insurance report is due in 3 days" |
 | Cron | Follow-ups | "No response from the vendor in 3 days" |
@@ -786,6 +786,66 @@ Create a task, analyze the email, prepare the requested documents.
 **In the web app**: dedicated section on the Home. Two actions: "Create Task" or "Ignore".
 Urgency indicated visually by a colored left border. Urgent ones trigger a Telegram notification.
 
+### 5.9 MODULE SYSTEM — Extensible Capabilities
+
+Modules live in `apps/backend/modules/<name>/module.json`. Each module declares its capabilities, tool permissions, and integration pattern. Three levels exist, progressively more powerful.
+
+#### Level 1 — JSON-only MCP
+
+The simplest pattern. `module.json` declares `mcpServers` and optionally `skills`. The backend configures the MCP server in the agent's session at launch time.
+
+Used by: browser (Camoufox), password-manager, email.
+
+#### Level 2 — JSON + receiver.ts
+
+`module.json` plus a `receiver` field pointing to a TypeScript file. The receiver ingests external events (webhooks, polling) and feeds them into triage. The MCP server (if any) is still configured separately.
+
+Used by: modules that only need event ingestion without sharing state with tools.
+
+#### Level 3 — JSON + daemon.ts (Daemon Modules)
+
+`module.json` declares a `daemon` field:
+```json
+{
+  "daemon": { "entry": "./daemon.ts" }
+}
+```
+
+The daemon is a long-running process managed by the module lifecycle system. It receives a `ModuleContext` and can both emit events and register MCP tools on the same connection.
+
+**`DaemonDef`** (in `packages/shared/src/types.ts`):
+```typescript
+interface DaemonDef {
+  entry: string;
+}
+```
+
+**`ModuleContext`** — passed to `daemon.ts` on startup:
+```typescript
+interface ModuleContext {
+  config: Record<string, unknown>;
+  dataDir: string;
+  emit(event: ReceiverEvent): void;
+  registerTool(name: string, schema: ToolSchema, handler: ToolHandler): void;
+  logger: ModuleLogger;
+  onShutdown(fn: () => void | Promise<void>): void;
+}
+```
+
+- `emit()` — pushes a `ReceiverEvent` into the triage pipeline (same as webhook/watcher events)
+- `registerTool()` — registers a tool on the built-in OpenTidy MCP server. The agent sees it as `mcp__opentidy__<name>`.
+- `logger` — prefixed logger (`[module:whatsapp]`)
+- `onShutdown()` — registers cleanup callbacks (close connections, flush state)
+- `dataDir` — persistent storage directory for the module (`~/.config/opentidy/modules/<name>/data/`)
+
+**Daemon lifecycle**: the backend starts daemons for enabled modules at boot and stops them on disable. Crash recovery uses exponential backoff (restart on unexpected exit). `restartDaemon(name)` is exposed on the lifecycle API for manual recovery.
+
+**Tool naming**: modules declare short tool names in `module.json` (e.g., `whatsapp_send_message`). Since daemon tools are registered on the OpenTidy MCP server, the agent sees them as `mcp__opentidy__whatsapp_send_message`.
+
+**When to use daemon**: when a module needs both event ingestion (receiver) and MCP tools that share a single persistent connection. Example: WhatsApp uses Baileys — one WebSocket connection handles both incoming message events and outgoing send/search tool calls.
+
+Used by: WhatsApp (Baileys).
+
 ---
 
 ## 6. Main Flows
@@ -953,7 +1013,7 @@ because they have no CLAUDE.md context nor resume.
 | Backend daemon | macOS LaunchAgent (`com.opentidy.agent.plist`) | Automatic restart, system logs |
 | Agent sessions | Agent-agnostic via `AgentAdapter` (Claude stable, Gemini/Copilot experimental) | Child process (autonomous) + tmux (interactive), reliable lifecycle via process exit |
 | Browser | Camoufox | Anti-detection, isolated profiles, parallelism |
-| Frontend hosting | Coolify | Multi-stage Dockerfile, automatic deploy |
+| Frontend hosting | Backend-served | Vite builds to `web-dist/`, served by Hono backend — no separate hosting needed |
 | Network | Cloudflare Tunnel | No open ports, secure access |
 | Logs | `~/Library/Logs/` | 5MB rotation |
 | Locks | PID in `/tmp/opentidy-locks/` | Crash recovery via dead PID detection |
@@ -969,7 +1029,7 @@ because they have no CLAUDE.md context nor resume.
 | API Auth | Auto-generates bearer token for web app access |
 | Gmail | Gmail MCP OAuth flow (`npx @gongrzhe/server-gmail-autoauth-mcp`) |
 | Camoufox | Creates wrapper script for anti-detection browser MCP |
-| WhatsApp | Checks wacli install + QR code authentication (optional) |
+| WhatsApp | Checks Baileys install + QR code authentication (optional) |
 | Claude Code | Generates `settings.json` dynamically (permissions + mcpServers from configured services), personalizes CLAUDE.md, runs `claude auth login` |
 | Cloudflare | Tunnel creation, DNS route, launchd service |
 | Permissions | macOS Automation permissions for Messages, Mail, Calendar, etc. |
@@ -1017,7 +1077,7 @@ with MDM.
 | State (planned) | `better-sqlite3` (`workspace/_data/opentidy.db`) | 4 tables: `claude_processes`, `notifications`, `dedup_hashes`, `sessions` — replaces in-memory state |
 
 **What the backend does (~200-400 lines)**:
-1. Receiver — Gmail webhooks, SMS/WhatsApp watchers, web app instructions
+1. Receiver — Gmail webhooks, module daemons (WhatsApp via Baileys), web app instructions
 2. Launcher — launches autonomous sessions (`claude -p` child process), interactive mode (tmux), manages locks
 3. Hook handler — centralized endpoint `/api/hooks`, audit + SSE (lifecycle managed by process exit in autonomous)
 4. State manager — reads workspace/ files (state.md, suggestions, gaps)
