@@ -303,7 +303,7 @@ Small, focused commits make PRs easy to review and give Release Please good mate
 
 ### Workflow
 
-**Admin (Lolo)** can push directly to `main` for quick fixes.
+**Repo admins** can push directly to `main` for quick fixes.
 
 **Everyone else (agents, contributors):**
 1. Create a feature branch from `main`: `feat/short-description`, `fix/short-description`, `refactor/short-description`
