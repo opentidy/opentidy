@@ -19,11 +19,15 @@ export async function runUpdate(): Promise<void> {
       return brewUpdate();
     }
     const data = await res.json() as { tag_name: string };
-    const latest = data.tag_name.replace(/^v/, '');
+    const latest = data.tag_name.replace(/^(opentidy-)?v/, '');
 
-    const isNewer = latest.split('.').map(Number).some((v, i) =>
-      v > (currentVersion.split('.').map(Number)[i] || 0)
-    );
+    const latestParts = latest.split('.').map(Number);
+    const currentParts = currentVersion.split('.').map(Number);
+    let isNewer = false;
+    for (let i = 0; i < 3; i++) {
+      if ((latestParts[i] || 0) > (currentParts[i] || 0)) { isNewer = true; break; }
+      if ((latestParts[i] || 0) < (currentParts[i] || 0)) break;
+    }
 
     if (!isNewer) {
       console.log(`  Already up to date (v${currentVersion}).\n`);
