@@ -43,12 +43,12 @@ export interface AgentSetupDeps {
   agentConfigDir: string;
 }
 
-function checkOnboarded(agentConfigDir: string, name: AgentName): boolean {
-  // Claude Code stores hasCompletedOnboarding in .claude.json after the full onboarding wizard.
-  // Just checking auth status is not enough; the user may have logged in via OAuth but not
-  // finished the theme/permissions steps. Without this flag, Claude Code re-shows the onboarding.
+function checkOnboarded(agentConfigDir: string, name: AgentName, authed: boolean): boolean {
+  // If auth is confirmed, consider the agent ready — the onboarding wizard is a UX detail
+  // that doesn't affect OpenTidy's ability to spawn sessions.
   if (name !== 'claude') return true;
-  // Agent config dir must exist; if cleared (e.g., after reset), agent is not onboarded
+  if (authed) return true;
+  // Fallback: check .claude.json if auth check didn't confirm
   if (!agentConfigDir || !fs.existsSync(agentConfigDir)) return false;
   try {
     const statePath = path.join(agentConfigDir, '.claude.json');
@@ -66,15 +66,19 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
     console.log('[setup] GET /setup/agents');
     const activeAgent = deps.getActiveAgent();
 
-    const agents = AGENT_NAMES.map((name) => ({
-      name,
-      label: AGENT_DEFS[name].label,
-      badge: AGENT_DEFS[name].badge,
-      installed: deps.checkInstalled(name),
-      authed: deps.checkAuth(name),
-      onboarded: checkOnboarded(deps.agentConfigDir, name),
-      active: name === activeAgent,
-    }));
+    const agents = AGENT_NAMES.map((name) => {
+      const installed = deps.checkInstalled(name);
+      const authed = deps.checkAuth(name);
+      return {
+        name,
+        label: AGENT_DEFS[name].label,
+        badge: AGENT_DEFS[name].badge,
+        installed,
+        authed,
+        onboarded: checkOnboarded(deps.agentConfigDir, name, authed),
+        active: name === activeAgent,
+      };
+    });
 
     return c.json(agents);
   });
