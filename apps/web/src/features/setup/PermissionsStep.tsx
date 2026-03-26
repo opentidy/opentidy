@@ -58,10 +58,17 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
   };
 
   useEffect(() => {
-    // Initial load: don't check (returns all false), just show the UI fast
     fetch('/api/setup/permissions')
       .then((r) => r.json())
-      .then((data) => setPermissions(data.permissions ?? []))
+      .then((data) => {
+        const perms: Permission[] = data.permissions ?? [];
+        setPermissions(perms);
+        // Start polling immediately if not all granted, so already-granted
+        // permissions are detected without needing to click "Authorize"
+        if (!perms.every((p) => p.granted)) {
+          startPolling();
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);

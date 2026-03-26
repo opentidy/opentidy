@@ -39,6 +39,21 @@ function checkTccForTerminal(service: string): boolean {
   }
 }
 
+// Fallback for Accessibility check when TCC.db is unreadable (no FDA).
+// Uses the native AXIsProcessTrusted() API which checks the responsible app
+// (the terminal that spawned this process) without needing FDA.
+function checkAccessibilityViaAPI(): boolean {
+  try {
+    const result = execFileSync('osascript', [
+      '-l', 'JavaScript',
+      '-e', 'ObjC.import("ApplicationServices"); $.AXIsProcessTrusted()',
+    ], { timeout: 3000, encoding: 'utf-8' });
+    return result.trim() === 'true';
+  } catch {
+    return false;
+  }
+}
+
 export function defaultCheckPermission(name: string): boolean {
   if (process.platform !== 'darwin') return true;
   if (name === 'full-disk-access') {
@@ -51,10 +66,13 @@ export function defaultCheckPermission(name: string): boolean {
       return false;
     }
   }
-  // For other permissions, query the TCC database
+  // For other permissions, try TCC database first (reliable when FDA is available)
   const service = TCC_SERVICES[name];
   if (!service) return false;
-  return checkTccForTerminal(service);
+  if (checkTccForTerminal(service)) return true;
+  // Fallback: AXIsProcessTrusted() works without FDA for accessibility
+  if (name === 'accessibility') return checkAccessibilityViaAPI();
+  return false;
 }
 
 async function defaultGrantPermission(name: string): Promise<{ opened: boolean }> {
