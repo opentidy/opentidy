@@ -88,8 +88,7 @@ if ! grep -q 'better-sqlite3' .npmrc 2>/dev/null; then
   echo "onlyBuiltDependencies=better-sqlite3,esbuild" >> .npmrc
 fi
 
-# Enable pnpm via corepack to ensure it uses the correct node@22
-corepack enable pnpm &>/dev/null || true
+# pnpm already installed via brew above — no corepack needed
 pnpm install --force --silent 2>&1 | tail -3
 pnpm build 2>&1 | tail -3
 ok "Build complete"
