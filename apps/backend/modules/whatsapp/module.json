@@ -7,9 +7,7 @@
   "daemon": {
     "entry": "./daemon.ts"
   },
-  "setup": {
-    "checkCommand": "node -e \"import('@whiskeysockets/baileys').then(() => process.exit(0)).catch(() => process.exit(1))\""
-  },
+  "setup": {},
   "toolPermissions": {
     "scope": "per-call",
     "safe": [
