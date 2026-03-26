@@ -22,4 +22,6 @@ npm install -g opentidy
 
 Write-Host ""
 Write-Host "OpenTidy installed! Run:" -ForegroundColor Green
-Write-Host "  opentidy setup"
+Write-Host "  opentidy start"
+Write-Host ""
+Write-Host "Then open http://localhost:5175 to complete setup."

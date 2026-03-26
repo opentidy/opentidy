@@ -3,7 +3,7 @@
 # Copyright (c) 2026 Loaddr Ltd
 
 # OpenTidy installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
+# Usage: curl -fsSL https://opentidy.com/install.sh | bash
 #
 # Silent, non-interactive. Safe to re-run.
 set -euo pipefail

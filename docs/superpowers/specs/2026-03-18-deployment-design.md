@@ -509,7 +509,7 @@ No PM2 needed. launchd is the native macOS process manager and is more reliable 
 For users who want a one-liner:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
+curl -fsSL https://opentidy.com/install.sh | bash
 ```
 
 This script:

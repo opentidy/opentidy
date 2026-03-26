@@ -11,10 +11,8 @@ const lines = [
   { prompt: false, text: "" },
   { prompt: false, text: "  OpenTidy is running." },
   { prompt: false, text: "    http://localhost:5175" },
-  { prompt: true, text: "opentidy setup" },
-  { prompt: false, text: "  ✓ Telegram configured" },
-  { prompt: false, text: "  ✓ Claude Code authenticated" },
-  { prompt: false, text: "  ✓ Modules installed" },
+  { prompt: false, text: "" },
+  { prompt: false, text: "  Open the browser to complete setup." },
 ];
 
 export function QuickStart() {

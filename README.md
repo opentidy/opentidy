@@ -31,7 +31,7 @@ It's not a chatbot. It's not a copilot. It's an autonomous assistant that runs i
 ## Quick start
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/opentidy/opentidy/main/install.sh | bash
+curl -fsSL https://opentidy.com/install.sh | bash
 ```
 
 That's it. The installer handles everything: Homebrew, Node.js 22, dependencies, build, LaunchAgent, and starts the server. Safe to re-run.

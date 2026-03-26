@@ -22,4 +22,6 @@ npm install -g opentidy
 
 echo ""
 echo "OpenTidy installed! Run:"
-echo "  opentidy setup"
+echo "  opentidy start"
+echo ""
+echo "Then open http://localhost:5175 to complete setup."
