@@ -4,7 +4,7 @@
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const COMMANDS = ['start', 'setup', 'doctor', 'status', 'update', 'logs', 'uninstall', 'install-service'] as const;
+const COMMANDS = ['start', 'stop', 'restart', 'setup', 'doctor', 'status', 'update', 'logs', 'uninstall', 'install-service'] as const;
 type Command = typeof COMMANDS[number] | 'version' | 'help';
 
 export function route(args: string[]): Command {
@@ -42,6 +42,16 @@ async function main() {
     case 'start': {
       const { boot } = await import('./index.js');
       await boot();
+      break;
+    }
+    case 'stop': {
+      const { runServiceControl } = await import('./cli/service-control.js');
+      await runServiceControl('stop');
+      break;
+    }
+    case 'restart': {
+      const { runServiceControl } = await import('./cli/service-control.js');
+      await runServiceControl('restart');
       break;
     }
     case 'setup': {
@@ -84,6 +94,8 @@ async function main() {
 
 Commands:
   start            Start the backend server (default)
+  stop             Stop the background service
+  restart          Restart the background service
   setup            Interactive first-time setup
   doctor           Verify deps, permissions, config
   status           Show service state, version, uptime
