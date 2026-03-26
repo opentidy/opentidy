@@ -43,19 +43,28 @@ fi
 
 # --- Node.js 22 (forced) ---
 log "Checking Node.js $REQUIRED_NODE_MAJOR..."
-brew install "node@$REQUIRED_NODE_MAJOR" &>/dev/null || true
+if ! brew list "node@$REQUIRED_NODE_MAJOR" &>/dev/null; then
+  dim "Installing Node.js $REQUIRED_NODE_MAJOR via Homebrew..."
+  brew install "node@$REQUIRED_NODE_MAJOR" || { warn "Failed to install node@$REQUIRED_NODE_MAJOR"; exit 1; }
+fi
 NODE_DIR="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
 NODE_CMD="$NODE_DIR/node"
+if [ ! -x "$NODE_CMD" ]; then
+  warn "node@$REQUIRED_NODE_MAJOR installed but binary not found at $NODE_CMD"
+  warn "Try: brew link --overwrite node@$REQUIRED_NODE_MAJOR"
+  exit 1
+fi
 # Force node@22 first in PATH (overrides nvm, volta, etc.)
 export PATH="$NODE_DIR:$PATH"
 ok "Node.js $("$NODE_CMD" --version)"
 
-ok "Node.js $(node --version)"
-
 # --- System dependencies ---
 log "Checking dependencies (pnpm, tmux, ttyd)..."
 for dep in pnpm tmux ttyd; do
-  brew install "$dep" &>/dev/null || true
+  if ! command -v "$dep" &>/dev/null; then
+    dim "Installing $dep..."
+    brew install "$dep" || warn "Failed to install $dep (non-fatal)"
+  fi
 done
 ok "Dependencies ready"
 
@@ -81,8 +90,8 @@ fi
 
 # Enable pnpm via corepack to ensure it uses the correct node@22
 corepack enable pnpm &>/dev/null || true
-pnpm install --force --silent
-pnpm build &>/dev/null
+pnpm install --force --silent 2>&1 | tail -3
+pnpm build 2>&1 | tail -3
 ok "Build complete"
 
 # --- Config ---
