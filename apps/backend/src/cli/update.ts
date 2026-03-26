@@ -36,8 +36,11 @@ export async function runUpdate(): Promise<void> {
 
     console.log(`  Update available: v${latest}\n`);
 
-    // Detect install method
-    const installDir = process.env.OPENTIDY_DIR || path.resolve(import.meta.dirname, '../../..');
+    // Detect install method: walk up from dist/cli.js to find .git
+    const fromDirname = path.resolve(import.meta.dirname, '../../..');
+    const fromUrl = path.resolve(new URL('.', import.meta.url).pathname, '../../..');
+    const installDir = process.env.OPENTIDY_DIR || (fs.existsSync(path.join(fromDirname, '.git')) ? fromDirname : fromUrl);
+    console.log(`  Install dir: ${installDir} (git: ${fs.existsSync(path.join(installDir, '.git'))})\n`);
     if (fs.existsSync(path.join(installDir, '.git'))) {
       return gitUpdate(installDir);
     }
