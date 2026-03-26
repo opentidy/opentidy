@@ -4,6 +4,12 @@
 import { execFileSync } from 'child_process';
 import type { ModuleManifest } from '@opentidy/shared';
 
+// Map CLI binary names to Homebrew formula names when they differ
+const BREW_FORMULA_MAP: Record<string, string> = {
+  bw: 'bitwarden-cli',
+  himalaya: 'himalaya',
+};
+
 /**
  * Run a module's checkCommand to verify its dependencies are present on disk.
  * Returns true if the command exits 0, false otherwise.
@@ -19,6 +25,29 @@ export function runCheckCommand(checkCommand: string): boolean {
   } catch {
     return false;
   }
+}
+
+/**
+ * Install missing CLI dependencies declared in module.json via Homebrew.
+ * Returns true if all deps are available after install attempts.
+ */
+export function installCliDeps(cliDeps: string[]): boolean {
+  for (const bin of cliDeps) {
+    try {
+      execFileSync('/bin/sh', ['-c', `command -v ${bin}`], { timeout: 5_000, stdio: 'pipe' });
+    } catch {
+      const formula = BREW_FORMULA_MAP[bin] ?? bin;
+      console.log(`[modules] Installing CLI dependency: brew install ${formula}`);
+      try {
+        execFileSync('brew', ['install', formula], { timeout: 120_000, stdio: 'pipe' });
+        console.log(`[modules] Installed ${formula}`);
+      } catch (err) {
+        console.error(`[modules] Failed to install ${formula}:`, (err as Error).message);
+        return false;
+      }
+    }
+  }
+  return true;
 }
 
 /**

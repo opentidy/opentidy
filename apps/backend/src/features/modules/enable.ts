@@ -3,7 +3,7 @@
 
 import { Hono } from 'hono';
 import type { ModuleRouteDeps } from './types.js';
-import { runCheckCommand, isModuleConfigured } from './checks.js';
+import { runCheckCommand, isModuleConfigured, installCliDeps } from './checks.js';
 
 export function enableModuleRoute(deps: ModuleRouteDeps) {
   const app = new Hono();
@@ -30,6 +30,14 @@ export function enableModuleRoute(deps: ModuleRouteDeps) {
           error: 'Module not configured',
           missing: missing.map((f) => f.key),
         }, 422);
+      }
+    }
+
+    // Auto-install CLI dependencies declared in module.json
+    if (manifest?.cli?.length) {
+      if (!installCliDeps(manifest.cli)) {
+        console.warn(`[modules] Cannot enable ${name}: CLI dependency installation failed`);
+        return c.json({ error: 'Failed to install CLI dependencies' }, 422);
       }
     }
 
