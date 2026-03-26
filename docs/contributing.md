@@ -36,7 +36,7 @@ opentidy/
 ├── plugins/
 │   └── opentidy-hooks/      # PreToolUse hook scripts
 ├── bin/
-│   └── opentidy             # CLI wrapper
+│   └── opentidy             # CLI entry point (installed via Homebrew)
 ├── workspace/               # Runtime data (gitignored)
 └── docs/                    # Documentation
 ```

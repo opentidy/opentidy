@@ -1010,12 +1010,12 @@ because they have no CLAUDE.md context nor resume.
 | Component | Choice | Reason |
 |---|---|---|
 | Machine | Dedicated Mac Mini, 24/7 | Native macOS for AppleScript, Contacts, Messages, full system access |
-| Backend daemon | macOS LaunchAgent (`com.opentidy.agent.plist`) | Automatic restart, system logs |
+| Backend daemon | Homebrew LaunchAgent (`homebrew.mxcl.opentidy.plist`) | `brew services start/stop/restart opentidy`, automatic restart, system logs |
 | Agent sessions | Agent-agnostic via `AgentAdapter` (Claude stable, Gemini/Copilot experimental) | Child process (autonomous) + tmux (interactive), reliable lifecycle via process exit |
 | Browser | Camoufox | Anti-detection, isolated profiles, parallelism |
 | Frontend hosting | Backend-served | Vite builds to `web-dist/`, served by Hono backend; no separate hosting needed |
 | Network | Cloudflare Tunnel | No open ports, secure access |
-| Logs | `~/Library/Logs/` | 5MB rotation |
+| Logs | `$(brew --prefix)/var/log/opentidy.log` | `opentidy logs` or direct file access |
 | Locks | PID in `/tmp/opentidy-locks/` | Crash recovery via dead PID detection |
 
 ### 9.2 Setup: Machine Installation
@@ -1036,10 +1036,10 @@ because they have no CLAUDE.md context nor resume.
 
 Key: Claude Code module runs AFTER MCP modules so `generateClaudeSettings()` picks up their config.
 
-**Part 1: Dependencies** (automated):
-- Homebrew, Node.js, pnpm, Claude CLI + OAuth, Camoufox, tmux, cloudflared
-- Clone repo, `pnpm install && pnpm build`
-- LaunchAgent installation + Cloudflare tunnel
+**Part 1: Dependencies** (automated via `curl -fsSL https://opentidy.com/install.sh | bash`):
+- Homebrew, Node.js, the `opentidy` formula (via `brew install opentidy`)
+- Camoufox, tmux, cloudflared
+- Background service via `brew services start opentidy` + Cloudflare tunnel
 
 **Part 2: macOS Permissions** (guided, manual clicks):
 

@@ -389,7 +389,7 @@ After each autonomous process exit:
 | Notifications | Telegram (grammy) | Push notifications with links |
 | Remote access | Cloudflare Tunnel | Secure, no open ports |
 | Locks | PID files in /tmp | Simple, crash-recoverable |
-| Process management | LaunchAgent (macOS) / systemd (Linux) | Auto-restart, boot start |
+| Process management | Homebrew LaunchAgent (macOS) / systemd (Linux) | `brew services start/stop/restart opentidy`, auto-restart, boot start |
 
 ## Next steps
 

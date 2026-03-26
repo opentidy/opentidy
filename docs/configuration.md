@@ -92,7 +92,7 @@ The workspace directory contains all tasks, suggestions, gaps, and audit logs. I
 | `delayBeforeUpdate` | string | `"5m"` | Wait time between notification and update |
 | `keepReleases` | number | `3` | Number of previous releases to keep for rollback |
 
-Updates are checked against GitHub Releases. When an update is available, OpenTidy runs a detached updater script that performs `brew upgrade`, health checks, and automatic rollback on failure.
+Updates are checked against GitHub Releases. When an update is available, `opentidy update` runs `brew upgrade opentidy` with health checks and automatic rollback on failure.
 
 ### Claude Code config
 

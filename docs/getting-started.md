@@ -11,24 +11,19 @@ This guide walks you through installing OpenTidy, running the setup wizard, and 
 
 ## Installation
 
-### One-line install (recommended)
-
 ```bash
 curl -fsSL https://opentidy.com/install.sh | bash
 ```
 
-This handles everything: Homebrew, Node.js 22, dependencies, build, LaunchAgent, and starts the server. Safe to re-run.
+This handles everything: Homebrew, Node.js 22, the `opentidy` formula, setup wizard, and background service. Safe to re-run.
 
-### From source
+To uninstall:
 
 ```bash
-git clone https://github.com/opentidy/opentidy.git
-cd opentidy
-pnpm install
-pnpm build
+curl -fsSL https://opentidy.com/install.sh | bash -s -- --uninstall
+# or
+opentidy uninstall
 ```
-
-The CLI is available at `bin/opentidy`.
 
 ## Setup
 
@@ -83,16 +78,23 @@ opentidy setup --all       # re-run everything
 
 ## Starting OpenTidy
 
-```bash
-opentidy start
-```
-
-OpenTidy starts as a foreground process. For production use, install it as a background service:
+The installer starts OpenTidy as a background service automatically. You can also manage it manually:
 
 ```bash
-# macOS LaunchAgent
-brew services start opentidy
+brew services start opentidy     # start background service
+brew services stop opentidy      # stop background service
+brew services restart opentidy   # restart background service
 ```
+
+Or via the CLI:
+
+```bash
+opentidy start       # start
+opentidy stop        # stop
+opentidy restart     # restart
+```
+
+Logs are available at `$(brew --prefix)/var/log/opentidy.log` or via `opentidy logs`.
 
 ### Verify it's running
 

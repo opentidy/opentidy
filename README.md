@@ -34,7 +34,7 @@ It's not a chatbot. It's not a copilot. It's an autonomous assistant that runs i
 curl -fsSL https://opentidy.com/install.sh | bash
 ```
 
-That's it. The installer handles everything: Homebrew, Node.js 22, dependencies, build, LaunchAgent, and starts the server. Safe to re-run.
+That's it. The installer handles everything: Homebrew, Node.js 22, the `opentidy` formula, setup wizard, and background service. Safe to re-run.
 
 OpenTidy runs as a background service. Open the web dashboard at `localhost:5175` to see your jobs, or just wait for Telegram notifications.
 
@@ -126,7 +126,7 @@ When a session ends, a post-session agent extracts learnings into memory, so the
 
 | OS | Status | Install method | Notes |
 |---|---|---|---|
-| **macOS** | ✅ Supported | `brew install opentidy` | Primary platform |
+| **macOS** | ✅ Supported | `curl -fsSL https://opentidy.com/install.sh \| bash` | Primary platform |
 | **Linux** | 🚧 In progress | | Planned for Homebrew on Linux |
 | **Windows** | 🚧 In progress | | WSL2 recommended when available |
 
