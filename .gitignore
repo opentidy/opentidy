@@ -23,11 +23,9 @@ blob-report/
 /.claude/*
 !/.claude/settings.json
 
-# Internal docs (contain personal info, not for public repo)
-/docs/design/
+# Internal docs
 /docs/plans/
 /docs/reports/
-/docs/superpowers/
 
 # IDE and editor files
 .vscode/
