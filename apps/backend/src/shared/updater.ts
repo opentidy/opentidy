@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import { spawn } from 'child_process';
-import { mkdirSync } from 'fs';
-import path from 'path';
-import { getOpenTidyPaths } from './paths.js';
+import { execFileSync } from 'child_process';
 
 export function isNewerVersion(current: string, latest: string): boolean {
   const c = current.split('.').map(Number);
@@ -33,12 +30,7 @@ interface UpdaterDeps {
   repoName: string;
   checkInterval: string;
   autoUpdate: boolean;
-  notifyBeforeUpdate: boolean;
-  delayBeforeUpdate: string;
   sendTelegram: (text: string) => Promise<void>;
-  updaterScriptPath: string;
-  telegramBotToken: string;
-  telegramChatId: string;
 }
 
 export function createUpdater(deps: UpdaterDeps) {
@@ -60,38 +52,27 @@ export function createUpdater(deps: UpdaterDeps) {
     }
   }
 
-  function spawnDetachedUpdater(newVersion: string): void {
-    const cacheDir = path.join(getOpenTidyPaths().cache, 'releases');
-    mkdirSync(cacheDir, { recursive: true });
-
-    const child = spawn('bash', [deps.updaterScriptPath], {
-      detached: true,
-      stdio: 'ignore',
-      env: {
-        ...process.env,
-        BOT_TOKEN: deps.telegramBotToken,
-        CHAT_ID: deps.telegramChatId,
-        NEW_VERSION: newVersion,
-        PREV_VERSION: deps.currentVersion,
-      },
-    });
-    child.unref();
-    console.log(`[updater] Detached updater spawned (PID ${child.pid}) for v${newVersion}`);
-  }
-
   async function tick(): Promise<void> {
     const { available, version } = await checkForUpdate();
     if (!available || !version) return;
 
     console.log(`[updater] New version available: v${version}`);
 
-    if (deps.notifyBeforeUpdate) {
-      await deps.sendTelegram(`OpenTidy v${version} disponible. Mise a jour auto dans ${deps.delayBeforeUpdate}.`);
-    }
+    // Notify user — they update via `brew upgrade opentidy` or `opentidy update`
+    await deps.sendTelegram(`OpenTidy v${version} disponible. Mets à jour avec: opentidy update`);
 
+    // Auto-update via brew if enabled
     if (deps.autoUpdate) {
-      const delayMs = parseInterval(deps.delayBeforeUpdate);
-      setTimeout(() => spawnDetachedUpdater(version), delayMs);
+      console.log('[updater] Auto-updating via brew...');
+      try {
+        execFileSync('brew', ['upgrade', 'opentidy'], { timeout: 300_000, stdio: 'pipe' });
+        execFileSync('brew', ['services', 'restart', 'opentidy'], { timeout: 30_000, stdio: 'pipe' });
+        console.log(`[updater] Updated to v${version}`);
+        await deps.sendTelegram(`OpenTidy v${version} installé et redémarré.`);
+      } catch (err) {
+        console.error('[updater] Auto-update failed:', (err as Error).message);
+        await deps.sendTelegram(`Mise à jour auto échouée. Lance manuellement: opentidy update`);
+      }
     }
   }
 
@@ -99,7 +80,6 @@ export function createUpdater(deps: UpdaterDeps) {
     const intervalMs = parseInterval(deps.checkInterval);
     console.log(`[updater] Checking every ${deps.checkInterval}`);
     timer = setInterval(tick, intervalMs);
-    // Check on startup after 30s delay
     setTimeout(tick, 30_000);
   }
 
@@ -107,5 +87,5 @@ export function createUpdater(deps: UpdaterDeps) {
     if (timer) clearInterval(timer);
   }
 
-  return { start, stop, checkForUpdate, spawnDetachedUpdater };
+  return { start, stop, checkForUpdate };
 }

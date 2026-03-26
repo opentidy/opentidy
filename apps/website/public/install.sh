@@ -5,15 +5,8 @@
 # OpenTidy installer
 # Usage: curl -fsSL https://opentidy.com/install.sh | bash
 #
-# Silent, non-interactive. Safe to re-run.
+# Installs OpenTidy via Homebrew, starts the service, opens the dashboard.
 set -euo pipefail
-
-# --- Config ---
-REPO="https://github.com/opentidy/opentidy.git"
-INSTALL_DIR="${OPENTIDY_DIR:-$HOME/Documents/opentidy}"
-CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/opentidy"
-PORT="${OPENTIDY_PORT:-5175}"
-REQUIRED_NODE_MAJOR=22
 
 # --- Color helpers ---
 log()  { printf "\033[34m  → %s\033[0m\n" "$*"; }
@@ -38,129 +31,27 @@ if ! command -v brew &>/dev/null; then
   fi
   ok "Homebrew installed"
 else
-  ok "Homebrew already installed"
+  ok "Homebrew ready"
 fi
 
-# --- Node.js 22 (forced) ---
-log "Checking Node.js $REQUIRED_NODE_MAJOR..."
-if ! brew list "node@$REQUIRED_NODE_MAJOR" &>/dev/null; then
-  dim "Installing Node.js $REQUIRED_NODE_MAJOR via Homebrew..."
-  brew install "node@$REQUIRED_NODE_MAJOR" || { warn "Failed to install node@$REQUIRED_NODE_MAJOR"; exit 1; }
-fi
-NODE_DIR="$(brew --prefix "node@$REQUIRED_NODE_MAJOR")/bin"
-NODE_CMD="$NODE_DIR/node"
-if [ ! -x "$NODE_CMD" ]; then
-  warn "node@$REQUIRED_NODE_MAJOR installed but binary not found at $NODE_CMD"
-  warn "Try: brew link --overwrite node@$REQUIRED_NODE_MAJOR"
-  exit 1
-fi
-# Force node@22 first in PATH (overrides nvm, volta, etc.)
-export PATH="$NODE_DIR:$PATH"
-ok "Node.js $("$NODE_CMD" --version)"
-
-# --- System dependencies ---
-log "Checking dependencies (pnpm, tmux, ttyd)..."
-for dep in pnpm tmux ttyd; do
-  if ! command -v "$dep" &>/dev/null; then
-    dim "Installing $dep..."
-    brew install "$dep" || warn "Failed to install $dep (non-fatal)"
-  fi
-done
-ok "Dependencies ready"
-
-# --- Clone / pull repo ---
-log "Setting up repo at $INSTALL_DIR..."
-if [ -d "$INSTALL_DIR/.git" ]; then
-  git -C "$INSTALL_DIR" pull --ff-only --quiet
-  dim "Pulled latest"
+# --- Install OpenTidy ---
+log "Installing OpenTidy..."
+brew tap opentidy/opentidy 2>/dev/null || true
+if brew list opentidy &>/dev/null; then
+  brew upgrade opentidy 2>/dev/null || dim "Already up to date"
+  ok "OpenTidy updated"
 else
-  git clone --quiet "$REPO" "$INSTALL_DIR"
-  dim "Cloned repo"
-fi
-ok "Repo ready"
-
-# --- Build ---
-log "Installing dependencies and building..."
-cd "$INSTALL_DIR"
-
-# Approve native build scripts (pnpm 10+)
-if ! grep -q 'better-sqlite3' .npmrc 2>/dev/null; then
-  echo "onlyBuiltDependencies=better-sqlite3,esbuild" >> .npmrc
+  brew install opentidy
+  ok "OpenTidy installed"
 fi
 
-# pnpm already installed via brew above — no corepack needed
-pnpm install --force --silent 2>&1 | tail -3
-pnpm build 2>&1 | tail -3
-ok "Build complete"
-
-# --- Config ---
-log "Checking config..."
-mkdir -p "$CONFIG_DIR"
-CONFIG_FILE="$CONFIG_DIR/config.json"
-
-if [ ! -f "$CONFIG_FILE" ]; then
-  BEARER_TOKEN="$(openssl rand -hex 32)"
-  cat > "$CONFIG_FILE" <<JSON
-{
-  "version": 3,
-  "auth": { "bearerToken": "$BEARER_TOKEN" },
-  "server": { "port": $PORT, "appBaseUrl": "http://localhost:$PORT" },
-  "workspace": { "dir": "", "lockDir": "/tmp/opentidy-locks" },
-  "update": { "autoUpdate": true, "checkInterval": "6h", "notifyBeforeUpdate": true, "delayBeforeUpdate": "5m", "keepReleases": 3 },
-  "agentConfig": { "name": "claude", "configDir": "$CONFIG_DIR/agents/claude" },
-  "claudeConfig": { "dir": "$CONFIG_DIR/agents/claude" },
-  "language": "en",
-  "userInfo": { "name": "", "email": "", "company": "" },
-  "modules": { "opentidy": { "enabled": true, "source": "curated" } }
-}
-JSON
-  ok "Config created"
-else
-  ok "Config exists"
-fi
-
-# --- CLI wrapper ---
-log "Installing CLI..."
-mkdir -p "$HOME/.local/bin"
-cat > "$HOME/.local/bin/opentidy" <<SH
-#!/bin/bash
-export PATH="\$HOME/.local/bin:$NODE_DIR:/opt/homebrew/bin:\$PATH"
-exec "$NODE_DIR/node" "$INSTALL_DIR/apps/backend/dist/cli.js" "\$@"
-SH
-chmod +x "$HOME/.local/bin/opentidy"
-
-# Ensure ~/.local/bin is in PATH (add to .zshrc if not already there)
-if ! grep -q '\.local/bin' "$HOME/.zshrc" 2>/dev/null; then
-  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.zshrc"
-  dim "Added ~/.local/bin to PATH in .zshrc"
-fi
-ok "CLI installed (opentidy)"
-
-# --- LaunchAgent (for future reboots) ---
-log "Installing service..."
-PLIST_SRC="$INSTALL_DIR/com.opentidy.agent.plist"
-PLIST_DST="$HOME/Library/LaunchAgents/com.opentidy.agent.plist"
-
-mkdir -p "$HOME/Library/LaunchAgents"
-launchctl unload "$PLIST_DST" 2>/dev/null || true
-
-sed -e "s|__INSTALL_DIR__|$INSTALL_DIR|g" \
-    -e "s|__HOME__|$HOME|g" \
-    -e "s|__NODE__|$NODE_CMD|g" \
-    "$PLIST_SRC" > "$PLIST_DST"
-
-launchctl load "$PLIST_DST" 2>/dev/null || true
-
-# Start server directly (more reliable than LaunchAgent for first run)
-pkill -f "node.*dist/cli.js.*start" 2>/dev/null || true
-sleep 1
-"$NODE_CMD" "$INSTALL_DIR/apps/backend/dist/cli.js" start \
-  >> "$HOME/Library/Logs/opentidy-stdout.log" \
-  2>> "$HOME/Library/Logs/opentidy-stderr.log" &
-disown
+# --- Start service ---
+log "Starting service..."
+brew services start opentidy 2>/dev/null || true
 ok "Service started"
 
 # --- Health check ---
+PORT=5175
 log "Waiting for server on port $PORT..."
 deadline=$((SECONDS + 30))
 healthy=false
@@ -175,11 +66,11 @@ done
 if [ "$healthy" = true ]; then
   ok "Server is up"
 else
-  warn "Server did not respond within 30s; port $PORT may be in use"
+  warn "Server did not respond within 30s"
   warn "Check logs: opentidy logs"
 fi
 
-# --- Open browser (skip in SSH/headless) ---
+# --- Open browser ---
 if [ "$healthy" = true ] && [ -z "${SSH_CLIENT:-}" ]; then
   open "http://localhost:$PORT" 2>/dev/null || true
 fi
@@ -187,6 +78,8 @@ fi
 # --- Done ---
 printf "\n\033[1m  OpenTidy is running.\033[0m\n"
 dim "http://localhost:$PORT"
-dim "opentidy doctor   verify setup"
-dim "opentidy logs     tail logs"
+dim "opentidy setup   — complete first-time configuration"
+dim "opentidy stop    — stop the service"
+dim "opentidy update  — check for updates"
+dim "opentidy logs    — tail logs"
 printf "\n"

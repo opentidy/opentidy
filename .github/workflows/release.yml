@@ -37,41 +37,28 @@ jobs:
         env:
           VERSION_TAG: ${{ github.ref_name }}
         run: |
-          VERSION="${VERSION_TAG#v}"
+          VERSION="${VERSION_TAG#opentidy-v}"
+          VERSION="${VERSION#v}"
 
-          # pnpm deploy creates a flat node_modules with all prod deps
-          # for the @opentidy/backend package. It also copies dist/ and package.json.
+          # pnpm deploy: flat node_modules with prod deps for backend
           pnpm --filter @opentidy/backend deploy ./release --prod --legacy
 
-          # The shared package is a workspace dependency; pnpm deploy resolves it
-          # into node_modules, but we also include the source for reference.
-          mkdir -p ./release/shared
-          cp -r packages/shared/dist/ ./release/shared/dist/
-          cp packages/shared/package.json ./release/shared/package.json
+          # Web frontend (Vite builds to apps/backend/web-dist/)
+          cp -r apps/backend/web-dist/ ./release/web-dist/
 
-          # Add web frontend build
-          mkdir -p ./release/web-dist
-          cp -r apps/web/dist/ ./release/web-dist/
+          # Module manifests + scripts
+          cp -r apps/backend/modules/ ./release/modules/
 
-          # Add hooks plugin
-          mkdir -p ./release/plugins/opentidy-hooks
+          # Hooks plugin
           cp -r plugins/opentidy-hooks/ ./release/plugins/opentidy-hooks/
 
-          # Add Claude Code config template
-          mkdir -p ./release/config/claude
-          cp -r apps/backend/config/claude/ ./release/config/claude/
+          # Claude Code config template
+          cp -r apps/backend/config/ ./release/config/
 
-          # Add CLI wrapper
+          # CLI wrapper
           mkdir -p ./release/bin
           cp bin/opentidy ./release/bin/opentidy
           chmod +x ./release/bin/opentidy
-
-          # Add LaunchAgent template
-          cp com.opentidy.agent.plist ./release/com.opentidy.agent.plist
-
-          # Add updater script
-          cp opentidy-updater.sh ./release/opentidy-updater.sh
-          chmod +x ./release/opentidy-updater.sh
 
           # Version file (read by cli.ts getVersion())
           echo "$VERSION" > ./release/VERSION

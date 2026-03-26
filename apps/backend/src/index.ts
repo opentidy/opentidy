@@ -418,20 +418,15 @@ const configuredScanInterval = config.preferences?.scanInterval ?? '2h';
 const checkupIntervalMs = configuredScanInterval === 'disabled' ? 0 : (SCAN_INTERVAL_MAP[configuredScanInterval] ?? 7_200_000);
 const scheduler = createScheduler({ db, launcher, checkup, locks, sse, checkupIntervalMs });
 
-// Auto-updater: checks GitHub Releases periodically
+// Auto-updater: checks GitHub Releases periodically, updates via brew
 const updater = config.update?.autoUpdate !== false
   ? createUpdater({
       currentVersion: getVersion(),
       repoOwner: 'opentidy',
       repoName: 'opentidy',
       checkInterval: config.update?.checkInterval ?? '6h',
-      autoUpdate: true,
-      notifyBeforeUpdate: config.update?.notifyBeforeUpdate ?? true,
-      delayBeforeUpdate: config.update?.delayBeforeUpdate ?? '5m',
+      autoUpdate: config.update?.autoUpdate ?? true,
       sendTelegram: (text) => notify.notifyAction('system', text),
-      updaterScriptPath: path.resolve(import.meta.dirname, '../../../opentidy-updater.sh'),
-      telegramBotToken: TELEGRAM_TOKEN,
-      telegramChatId: TELEGRAM_CHAT_ID,
     })
   : null;
 
