@@ -36,11 +36,18 @@ export async function runUpdate(): Promise<void> {
 
     console.log(`  Update available: v${latest}\n`);
 
-    // Detect install method: walk up from dist/cli.js to find .git
-    const fromDirname = path.resolve(import.meta.dirname, '../../..');
-    const fromUrl = path.resolve(new URL('.', import.meta.url).pathname, '../../..');
-    const installDir = process.env.OPENTIDY_DIR || (fs.existsSync(path.join(fromDirname, '.git')) ? fromDirname : fromUrl);
-    console.log(`  Install dir: ${installDir} (git: ${fs.existsSync(path.join(installDir, '.git'))})\n`);
+    // Detect install method: walk up from dist/cli/update.js to find .git
+    // dist/cli/update.js → dist/cli/ → dist/ → apps/backend/ → apps/ → opentidy/
+    let installDir = process.env.OPENTIDY_DIR || '';
+    if (!installDir) {
+      let dir = import.meta.dirname;
+      for (let i = 0; i < 10; i++) {
+        if (fs.existsSync(path.join(dir, '.git'))) { installDir = dir; break; }
+        const parent = path.dirname(dir);
+        if (parent === dir) break;
+        dir = parent;
+      }
+    }
     if (fs.existsSync(path.join(installDir, '.git'))) {
       return gitUpdate(installDir);
     }
