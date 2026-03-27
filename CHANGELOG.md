@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.6](https://github.com/opentidy/opentidy/compare/v0.0.5...v0.0.6) (2026-03-27)
+
+
+### Features
+
+* **backend:** fix setup wizard agent detection and permission checks ([8a814c8](https://github.com/opentidy/opentidy/commit/8a814c88e9d021cb40cd8423ebe67d17a9257834))
+* **backend:** fix setup wizard agent detection and permission checks ([0de2a86](https://github.com/opentidy/opentidy/commit/0de2a86520484c14beb440f23574a3715531f426))
+
+
+### Bug Fixes
+
+* **cli:** use brew upgrade directly instead of brew outdated ([fefa84c](https://github.com/opentidy/opentidy/commit/fefa84cd06f33d18a0383b9859b442e3df98c939))
+
 ## [0.0.5](https://github.com/opentidy/opentidy/compare/v0.0.4...v0.0.5) (2026-03-26)
 
 
