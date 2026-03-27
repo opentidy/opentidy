@@ -3,6 +3,7 @@
 
 import { Hono } from 'hono';
 import { execFileSync } from 'child_process';
+import { loadConfig, getConfigPath } from '../../shared/config.js';
 
 // Core system permissions required for OpenTidy itself (not module-specific)
 // Module-specific permissions (Messages, Mail, etc.) are declared in each module's manifest
@@ -56,22 +57,30 @@ function checkAccessibilityViaAPI(): boolean {
 
 export function defaultCheckPermission(name: string): boolean {
   if (process.platform !== 'darwin') return true;
+
+  // Runtime check: works when running from a terminal with the right permissions
   if (name === 'full-disk-access') {
-    // Check by trying to read the TCC database file itself
-    // If we can read it, FDA is granted. No need to query its content.
     try {
       execFileSync('test', ['-r', '/Library/Application Support/com.apple.TCC/TCC.db'], { timeout: 3000 });
       return true;
-    } catch {
-      return false;
-    }
+    } catch { /* fall through to config */ }
+  } else if (name === 'accessibility') {
+    // Try TCC database query (needs FDA), then native API fallback
+    const service = TCC_SERVICES[name];
+    if (service && checkTccForTerminal(service)) return true;
+    if (checkAccessibilityViaAPI()) return true;
   }
-  // For other permissions, try TCC database first (reliable when FDA is available)
-  const service = TCC_SERVICES[name];
-  if (!service) return false;
-  if (checkTccForTerminal(service)) return true;
-  // Fallback: AXIsProcessTrusted() works without FDA for accessibility
-  if (name === 'accessibility') return checkAccessibilityViaAPI();
+
+  // Fallback: read from config (set by `opentidy doctor --check-permissions` from terminal)
+  try {
+    const config = loadConfig(getConfigPath());
+    const sp = config.systemPermissions;
+    if (sp) {
+      if (name === 'full-disk-access') return sp.fullDiskAccess;
+      if (name === 'accessibility') return sp.accessibility;
+    }
+  } catch { /* ignore */ }
+
   return false;
 }
 

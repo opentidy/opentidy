@@ -177,6 +177,17 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
         ))}
       </div>
 
+      {!allGranted && (
+        <div className="rounded-lg border border-border-subtle bg-card/50 px-4 py-3 -mt-4">
+          <p className="text-xs text-text-secondary">
+            {t('setup.permissionsCli', 'After granting permissions in System Settings, run this command in your terminal to verify:')}
+          </p>
+          <code className="mt-1.5 block rounded bg-bg px-3 py-1.5 text-xs text-accent font-mono select-all">
+            opentidy doctor --check-permissions
+          </code>
+        </div>
+      )}
+
       <div className="flex gap-3">
         <button
           type="button"
@@ -192,6 +203,15 @@ export function PermissionsStep({ onNext, onBack }: PermissionsStepProps) {
         >
           {t('setup.continue')}
         </button>
+        {!allGranted && (
+          <button
+            type="button"
+            onClick={onNext}
+            className="rounded-lg px-4 py-2.5 text-sm text-text-tertiary hover:text-text-secondary"
+          >
+            {t('setup.skip', 'Skip')}
+          </button>
+        )}
       </div>
     </form>
   );

@@ -61,7 +61,7 @@ async function main() {
     }
     case 'doctor': {
       const { runDoctor } = await import('./cli/doctor.js');
-      await runDoctor();
+      await runDoctor(args.slice(1));
       break;
     }
     case 'status': {

@@ -99,7 +99,11 @@ export function AgentStep({ onNext, onBack }: AgentStepProps) {
     }
   };
 
-  const handleTerminalClose = () => {
+  const handleTerminalClose = async () => {
+    if (terminal) {
+      // Confirm connection: verify auth and write marker so the agent shows as connected
+      await fetch(`/api/setup/agents/confirm-connection?agent=${terminal.agent}`, { method: 'POST' }).catch(() => {});
+    }
     setTerminal(null);
     fetchAgents();
   };

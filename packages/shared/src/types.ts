@@ -537,6 +537,11 @@ export interface OpenTidyConfig {
     repo?: string;   // defaults to 'opentidy'
   };
   setupComplete?: boolean;
+  systemPermissions?: {
+    fullDiskAccess: boolean;
+    accessibility: boolean;
+    checkedAt: string;
+  };
 }
 
 export interface SetupStatus {

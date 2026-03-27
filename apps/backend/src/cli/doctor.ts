@@ -3,7 +3,8 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
-import { loadConfig, getConfigPath } from '../shared/config.js';
+import { loadConfig, saveConfig, getConfigPath } from '../shared/config.js';
+import { defaultCheckPermission } from '../features/setup/permissions.js';
 import { getVersion } from '../cli.js';
 
 const REQUIRED_NODE_MAJOR = 22;
@@ -72,7 +73,39 @@ export function checkClaudeConfig(claudeConfigDir: string | undefined): CheckRes
   return { ok: true, name: 'claude-config', detail: claudeConfigDir };
 }
 
-export async function runDoctor(): Promise<void> {
+export function runCheckPermissions(): void {
+  console.log('\n  Checking system permissions...\n');
+
+  const fda = defaultCheckPermission('full-disk-access');
+  const acc = defaultCheckPermission('accessibility');
+
+  console.log(`  ${fda ? 'OK' : '!!'}  Full Disk Access: ${fda ? 'granted' : 'not granted'}`);
+  console.log(`  ${acc ? 'OK' : '!!'}  Accessibility: ${acc ? 'granted' : 'not granted'}`);
+
+  // Save to config so the web UI (running as a service) can read the result
+  const configPath = getConfigPath();
+  const config = loadConfig(configPath);
+  config.systemPermissions = {
+    fullDiskAccess: fda,
+    accessibility: acc,
+    checkedAt: new Date().toISOString(),
+  };
+  saveConfig(configPath, config);
+
+  console.log(`\n  Saved to ${configPath}`);
+  if (!fda || !acc) {
+    console.log('  Grant missing permissions in System Settings → Privacy & Security');
+    console.log('  Then re-run: opentidy doctor --check-permissions\n');
+  } else {
+    console.log('  All permissions granted.\n');
+  }
+}
+
+export async function runDoctor(args: string[] = []): Promise<void> {
+  if (args.includes('--check-permissions')) {
+    runCheckPermissions();
+    return;
+  }
   console.log(`\n  OpenTidy Doctor (v${getVersion()})\n`);
   const results: CheckResult[] = [];
 

@@ -43,20 +43,25 @@ export interface AgentSetupDeps {
   agentConfigDir: string;
 }
 
-function checkOnboarded(agentConfigDir: string, name: AgentName, authed: boolean): boolean {
-  // If auth is confirmed, consider the agent ready — the onboarding wizard is a UX detail
-  // that doesn't affect OpenTidy's ability to spawn sessions.
-  if (name !== 'claude') return true;
-  if (authed) return true;
-  // Fallback: check .claude.json if auth check didn't confirm
+// Check if an agent has been explicitly connected through the setup wizard.
+// Uses a marker file (.opentidy-connected) or Claude's own hasCompletedOnboarding flag.
+// Does NOT rely on `claude auth status` which returns true for global OAuth sessions.
+function isAgentConnected(agentConfigDir: string, name: AgentName): boolean {
   if (!agentConfigDir || !fs.existsSync(agentConfigDir)) return false;
-  try {
-    const statePath = path.join(agentConfigDir, '.claude.json');
-    const data = JSON.parse(fs.readFileSync(statePath, 'utf-8'));
-    return data.hasCompletedOnboarding === true;
-  } catch {
-    return false;
+  const markerPath = path.join(agentConfigDir, '.opentidy-connected');
+  if (fs.existsSync(markerPath)) return true;
+
+  // Detect Claude's own onboarding completion (set when user runs claude interactively)
+  if (name === 'claude') {
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(agentConfigDir, '.claude.json'), 'utf-8'));
+      if (data.hasCompletedOnboarding === true) {
+        fs.writeFileSync(markerPath, new Date().toISOString());
+        return true;
+      }
+    } catch { /* not completed */ }
   }
+  return false;
 }
 
 export function setupAgentsRoute(deps: AgentSetupDeps) {
@@ -68,14 +73,14 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
 
     const agents = AGENT_NAMES.map((name) => {
       const installed = deps.checkInstalled(name);
-      const authed = deps.checkAuth(name);
+      const connected = isAgentConnected(deps.agentConfigDir, name);
       return {
         name,
         label: AGENT_DEFS[name].label,
         badge: AGENT_DEFS[name].badge,
         installed,
-        authed,
-        onboarded: checkOnboarded(deps.agentConfigDir, name, authed),
+        authed: connected,
+        onboarded: connected,
         active: name === activeAgent,
       };
     });
@@ -101,6 +106,27 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
     });
   });
 
+  // POST /setup/agents/confirm-connection: verify auth and write connection marker
+  // Called when user closes the terminal drawer after completing the connect flow
+  app.post('/setup/agents/confirm-connection', (c) => {
+    const agent = c.req.query('agent');
+    console.log(`[setup] POST /setup/agents/confirm-connection agent=${agent}`);
+
+    if (!agent || !AGENT_NAMES.includes(agent as AgentName)) {
+      return c.json({ error: 'Unknown or missing agent' }, 400);
+    }
+
+    const authed = deps.checkAuth(agent as AgentName);
+    if (!authed) {
+      return c.json({ connected: false });
+    }
+
+    const configDir = path.join(path.dirname(getConfigPath()), 'agents', agent);
+    fs.mkdirSync(configDir, { recursive: true });
+    fs.writeFileSync(path.join(configDir, '.opentidy-connected'), new Date().toISOString());
+    return c.json({ connected: true });
+  });
+
   // POST /setup/agents/disconnect: log out the agent from OpenTidy's isolated config
   app.post('/setup/agents/disconnect', (c) => {
     const agent = c.req.query('agent');
@@ -120,6 +146,9 @@ export function setupAgentsRoute(deps: AgentSetupDeps) {
     } catch {
       // Ignore, may already be logged out
     }
+
+    // Remove connection marker
+    try { fs.rmSync(path.join(configDir, '.opentidy-connected'), { force: true }); } catch { /* ignore */ }
 
     return c.json({ success: true });
   });

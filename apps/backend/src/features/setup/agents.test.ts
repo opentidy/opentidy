@@ -48,7 +48,7 @@ describe('GET /setup/agents', () => {
     }
   });
 
-  it('reflects installed/auth status from deps', async () => {
+  it('reflects installed status from deps; authed requires connection marker', async () => {
     const deps = makeDeps({
       checkInstalled: (name) => name === 'claude',
       checkAuth: (name) => name === 'claude',
@@ -59,7 +59,8 @@ describe('GET /setup/agents', () => {
 
     const claude = body.find((a: any) => a.name === 'claude');
     expect(claude.installed).toBe(true);
-    expect(claude.authed).toBe(true);
+    // authed is false because no .opentidy-connected marker exists (fresh config dir)
+    expect(claude.authed).toBe(false);
 
     const gemini = body.find((a: any) => a.name === 'gemini');
     expect(gemini.installed).toBe(false);
