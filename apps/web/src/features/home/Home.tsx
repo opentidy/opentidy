@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useStore } from '../../shared/store';
 import { formatDuration } from '../../shared/utils/format';
+import { urgencyStyles } from '../../shared/utils/status-colors';
 import type { Task, Session, Suggestion } from '@opentidy/shared';
 
 export default function Home() {
@@ -199,12 +200,6 @@ function SectionLabel({ color, dotColor, label }: { color: string; dotColor: str
 }
 
 // --- Suggestions ---
-
-const urgencyStyles: Record<string, { dot: string; border: string; title: string }> = {
-  urgent: { dot: 'bg-red shadow-[0_0_6px_rgba(255,69,58,0.4)]', border: 'border-red/30', title: 'text-red' },
-  normal: { dot: 'bg-[#a78bfa]', border: 'border-[rgba(167,139,250,0.2)]', title: 'text-text' },
-  low: { dot: 'bg-text-tertiary', border: 'border-border-subtle', title: 'text-text-secondary' },
-};
 
 const sourceEmoji: Record<string, string> = {
   email: '📧', sms: '💬', whatsapp: '💬', telegram: '📱', checkup: '🔍', app: '📋',

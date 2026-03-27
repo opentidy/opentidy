@@ -5,12 +5,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { Suggestion } from '@opentidy/shared';
 import { useStore } from './store';
-
-const urgencyColors: Record<string, { border: string; badge: string; badgeBg: string; dot: string }> = {
-  urgent: { border: 'border-l-red', badge: 'text-red', badgeBg: 'bg-red/20', dot: 'bg-red' },
-  normal: { border: 'border-l-accent', badge: 'text-accent', badgeBg: 'bg-accent/20', dot: 'bg-accent' },
-  low: { border: 'border-l-text-tertiary', badge: 'text-text-tertiary', badgeBg: 'bg-text-tertiary/20', dot: 'bg-text-tertiary' },
-};
+import { urgencyColors } from './utils/status-colors';
 
 const sourceIcons: Record<string, string> = {
   email: 'Email',

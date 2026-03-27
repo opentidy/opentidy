@@ -4,14 +4,17 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { dirname } from 'path';
 import type { OpenTidyConfig } from '@opentidy/shared';
+import { OpenTidyConfigSchema } from '@opentidy/shared';
 import { getOpenTidyPaths } from './paths.js';
 
 const openTidyPaths = getOpenTidyPaths();
 
+export const DEFAULT_PORT = 5175;
+
 const DEFAULT_CONFIG: OpenTidyConfig = {
   version: 3,
   auth: { bearerToken: '' },
-  server: { port: 5175, appBaseUrl: 'http://localhost:5175' },
+  server: { port: DEFAULT_PORT, appBaseUrl: `http://localhost:${DEFAULT_PORT}` },
   workspace: { dir: '', lockDir: openTidyPaths.lockDir },
   update: {
     autoUpdate: true,
@@ -179,6 +182,12 @@ export function loadConfig(configPath?: string): OpenTidyConfig {
     const parsed = JSON.parse(raw);
     const migrated = migrateV2ToV3(migrateV1ToV2(parsed));
     const config = deepMerge(DEFAULT_CONFIG, migrated);
+
+    // Validate critical config fields (warn only, don't block for backward compat)
+    const validation = OpenTidyConfigSchema.safeParse(config);
+    if (!validation.success) {
+      console.warn('[config] Config validation warnings:', validation.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', '));
+    }
 
     // Migrate v1 claudeConfig → v2 agentConfig
     if (config.claudeConfig?.dir && (!config.agentConfig?.configDir || config.agentConfig.configDir === '')) {

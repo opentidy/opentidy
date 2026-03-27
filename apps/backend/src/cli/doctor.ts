@@ -3,7 +3,7 @@
 
 import { execFileSync } from 'child_process';
 import { existsSync } from 'fs';
-import { loadConfig, saveConfig, getConfigPath } from '../shared/config.js';
+import { loadConfig, saveConfig, getConfigPath, DEFAULT_PORT } from '../shared/config.js';
 import { defaultCheckPermission } from '../features/setup/permissions.js';
 import { getVersion } from '../cli.js';
 
@@ -127,7 +127,7 @@ export async function runDoctor(args: string[] = []): Promise<void> {
 
   // Health check (if server running)
   try {
-    const port = config.server.port || 5175;
+    const port = config.server.port || DEFAULT_PORT;
     execFileSync('curl', ['-sf', `http://localhost:${port}/api/health`], { encoding: 'utf-8', timeout: 5000 });
     results.push({ ok: true, name: 'server', detail: `running on port ${port}` });
   } catch {

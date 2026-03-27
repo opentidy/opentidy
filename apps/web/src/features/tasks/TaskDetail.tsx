@@ -10,7 +10,7 @@ import StateRenderer from './StateRenderer';
 import InstructionBar from '../../shared/InstructionBar';
 import { getArtifactUrl, getTerminalPort } from '../../shared/api';
 import { TtydTerminal } from '../../shared/TtydTerminal';
-import { formatDuration } from '../../shared/utils/format';
+import { formatDuration, formatSessionDate, formatSessionDuration } from '../../shared/utils/format';
 import { taskStatusConfig } from '../../shared/utils/status-colors';
 import type { Task, SessionHistoryEntry } from '@opentidy/shared';
 import ConfirmModal from '../../shared/ConfirmModal';
@@ -21,24 +21,6 @@ const SESSION_STATUS_COLORS: Record<string, { text: string; bg: string }> = {
   stopped: { text: 'text-yellow-400', bg: 'bg-yellow-400/10' },
   error: { text: 'text-red-400', bg: 'bg-red-400/10' },
 };
-
-function formatSessionDuration(startedAt: string, endedAt?: string): string {
-  const end = endedAt ? new Date(endedAt).getTime() : Date.now();
-  const diff = end - new Date(startedAt).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '< 1 min';
-  if (mins < 60) return `${mins}m`;
-  return `${Math.floor(mins / 60)}h${String(mins % 60).padStart(2, '0')}m`;
-}
-
-function formatSessionDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const isToday = d.toDateString() === now.toDateString();
-  const time = d.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
-  if (isToday) return time;
-  return `${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} ${time}`;
-}
 
 function SessionHistoryList({ entries, onResume }: { entries: SessionHistoryEntry[]; onResume: (taskId: string) => void }) {
   const { t } = useTranslation();

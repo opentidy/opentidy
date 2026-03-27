@@ -4,6 +4,7 @@
 import { readFileSync, writeFileSync, mkdirSync, rmSync, cpSync, existsSync, symlinkSync, readdirSync } from 'fs';
 import { join, resolve } from 'path';
 import type { OpenTidyConfig, SkillsConfig, ModuleManifest, ModuleState, SkillDef, PermissionPreset } from '@opentidy/shared';
+import { DEFAULT_PORT } from './config.js';
 
 // Read-only tools, always safe regardless of preset.
 const READ_ONLY_PERMISSIONS = ['Read', 'Glob', 'Grep'];
@@ -139,7 +140,7 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
   if (!mcp) {
     // v3 config, no legacy mcp field. Return minimal settings.
     allow.push('mcp__opentidy__*');
-    mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
+    mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || DEFAULT_PORT}/mcp` };
     return { permissions: { allow, deny: [] }, mcpServers, _regeneratedAt: new Date().toISOString() };
   }
 
@@ -169,7 +170,7 @@ export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string):
 
   // OpenTidy MCP, always injected
   allow.push('mcp__opentidy__*');
-  mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || 5175}/mcp` };
+  mcpServers.opentidy = { type: 'http', url: `http://localhost:${config.server?.port || DEFAULT_PORT}/mcp` };
 
   return { permissions: { allow, deny: [] }, mcpServers, _regeneratedAt: new Date().toISOString() };
 }

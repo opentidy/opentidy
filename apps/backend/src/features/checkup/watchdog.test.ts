@@ -3,6 +3,7 @@
 
 // tests/launcher/watchdog.test.ts
 import { describe, it, expect, vi, afterEach } from 'vitest';
+import fs from 'fs';
 import { createWorkspaceWatcher } from './watchdog.js';
 
 function makeDeps(overrides: Partial<{ workspaceDir: string }> = {}) {
@@ -18,8 +19,7 @@ describe('createWorkspaceWatcher', () => {
   });
 
   it('creates and closes watcher cleanly', () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const fsWatchMock = vi.spyOn(require('fs'), 'watch').mockReturnValue({
+    const fsWatchMock = vi.spyOn(fs, 'watch').mockReturnValue({
       on: vi.fn(),
       close: vi.fn(),
     } as any);
@@ -38,8 +38,7 @@ describe('createWorkspaceWatcher', () => {
 
   it('start is idempotent, does not open two watchers', () => {
     const closeMock = vi.fn();
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    vi.spyOn(require('fs'), 'watch').mockReturnValue({
+    vi.spyOn(fs, 'watch').mockReturnValue({
       on: vi.fn(),
       close: closeMock,
     } as any);
@@ -63,8 +62,7 @@ describe('createWorkspaceWatcher', () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    vi.spyOn(require('fs'), 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
+    vi.spyOn(fs, 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
       watchCallback = cb;
       return { on: vi.fn(), close: vi.fn() } as any;
     });
@@ -90,7 +88,7 @@ describe('createWorkspaceWatcher', () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
-    vi.spyOn(require('fs'), 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
+    vi.spyOn(fs, 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
       watchCallback = cb;
       return { on: vi.fn(), close: vi.fn() } as any;
     });
@@ -120,7 +118,7 @@ describe('createWorkspaceWatcher', () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
-    vi.spyOn(require('fs'), 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
+    vi.spyOn(fs, 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
       watchCallback = cb;
       return { on: vi.fn(), close: vi.fn() } as any;
     });
@@ -143,7 +141,7 @@ describe('createWorkspaceWatcher', () => {
     vi.useFakeTimers();
     let watchCallback: ((eventType: string, filename: string) => void) | null = null;
 
-    vi.spyOn(require('fs'), 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
+    vi.spyOn(fs, 'watch').mockImplementation((_dir: string, _opts: unknown, cb: (e: string, f: string) => void) => {
       watchCallback = cb;
       return { on: vi.fn(), close: vi.fn() } as any;
     });

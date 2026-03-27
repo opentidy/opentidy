@@ -38,7 +38,7 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
       try {
         const event = JSON.parse(e.data);
         setQrData({ name: event.data.name, qr: event.data.qr });
-      } catch {}
+      } catch (err) { console.error('[modules] Failed to parse auth-required SSE event:', err); }
     });
     es.addEventListener('module:auth-complete', () => {
       setQrData(null);

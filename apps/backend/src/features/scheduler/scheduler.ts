@@ -4,8 +4,9 @@
 import type Database from 'better-sqlite3';
 import type { Schedule, SSEEvent } from '@opentidy/shared';
 import type { CreateScheduleInput, UpdateScheduleInput } from '@opentidy/shared';
+import { schedule as cronSchedule, type ScheduledTask } from 'node-cron';
 
-const POLL_INTERVAL_MS = 10_000;
+const POLL_CRON = '*/10 * * * * *'; // every 10 seconds
 const DEFAULT_CHECKUP_INTERVAL_MS = 7_200_000; // 2h
 
 interface SchedulerDeps {
@@ -62,7 +63,7 @@ export function createScheduler(deps: SchedulerDeps) {
 
   const countSystemStmt = db.prepare("SELECT COUNT(*) as cnt FROM schedules WHERE created_by = 'system'");
 
-  let timer: ReturnType<typeof setInterval> | null = null;
+  let cronTask: ScheduledTask | null = null;
 
   function emitSSE(type: 'schedule:created' | 'schedule:fired' | 'schedule:deleted', data: Record<string, unknown>) {
     sse.emit({ type, data, timestamp: new Date().toISOString() });
@@ -155,16 +156,16 @@ export function createScheduler(deps: SchedulerDeps) {
   return {
     start(): void {
       seedCheckup();
-      timer = setInterval(() => {
+      cronTask = cronSchedule(POLL_CRON, () => {
         checkSchedules().catch(err => console.error('[scheduler] Poll error:', err));
-      }, POLL_INTERVAL_MS);
-      console.log('[scheduler] Polling started (10s interval)');
+      });
+      console.log('[scheduler] Started (cron: every 10s)');
     },
 
     stop(): void {
-      if (timer) {
-        clearInterval(timer);
-        timer = null;
+      if (cronTask) {
+        cronTask.stop();
+        cronTask = null;
       }
     },
 

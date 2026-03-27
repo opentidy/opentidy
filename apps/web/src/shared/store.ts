@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import { useSyncExternalStore } from 'react';
+import { toast } from 'sonner';
 import type { Task, Suggestion, Amelioration, Session, SessionHistoryEntry, SSEEventType, MemoryIndexEntry, MemoryEntry, AgentProcess } from '@opentidy/shared';
 import * as api from './api';
 
@@ -63,6 +64,7 @@ function withError(set: (s: Partial<Store>) => void, fn: () => Promise<void>): P
     const msg = err instanceof Error ? err.message : String(err);
     console.error('[store] action failed:', msg);
     set({ error: msg });
+    toast.error(msg);
   });
 }
 
@@ -175,12 +177,12 @@ export const useStore = create<Store>((set, get) => ({
 
   createTask: (instruction) => withError(set, async () => { await api.createTask(instruction); await get().fetchTasks(); }),
   resumeSession: (id) => withError(set, async () => { await api.resumeSession(id); await get().fetchSessions(); }),
-  sendInstruction: (id, instruction) => withError(set, async () => { await api.sendInstruction(id, instruction); await get().fetchTasks(); await get().fetchSessions(); }),
+  sendInstruction: (id, instruction) => withError(set, async () => { await api.sendInstruction(id, instruction); await get().fetchTasks(); await get().fetchSessions(); toast.success('Instruction envoyée'); }),
   uploadFile: (id, file) => withError(set, async () => { await api.uploadFile(id, file); await get().fetchTasks(); }),
   timeoutSession: (id) => withError(set, async () => { await api.timeoutSession(id); await get().fetchSessions(); }),
   stopSession: (id) => withError(set, async () => { await api.stopSession(id); await get().fetchSessions(); await get().fetchTasks(); }),
-  approveSuggestion: (slug, instruction) => withError(set, async () => { await api.approveSuggestion(slug, instruction); await get().fetchSuggestions(); await get().fetchTasks(); }),
-  ignoreSuggestion: (slug) => withError(set, async () => { await api.ignoreSuggestion(slug); await get().fetchSuggestions(); }),
+  approveSuggestion: (slug, instruction) => withError(set, async () => { await api.approveSuggestion(slug, instruction); await get().fetchSuggestions(); await get().fetchTasks(); toast.success('Suggestion approuvée'); }),
+  ignoreSuggestion: (slug) => withError(set, async () => { await api.ignoreSuggestion(slug); await get().fetchSuggestions(); toast.success('Suggestion ignorée'); }),
   completeTask: (id) => withError(set, async () => { await api.completeTask(id); await get().fetchTasks(); await get().fetchSessions(); }),
   setWaitingType: (id, type) => withError(set, async () => { await api.setWaitingType(id, type); await get().fetchTasks(); await get().fetchSessions(); }),
   resolveAmelioration: (id) => withError(set, async () => { await api.resolveAmelioration(id); await get().fetchAmeliorations(); }),

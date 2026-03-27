@@ -45,7 +45,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-import { loadConfig, saveConfig, getConfigPath } from './shared/config.js';
+import { loadConfig, saveConfig, getConfigPath, DEFAULT_PORT } from './shared/config.js';
 import { regenerateAgentConfig } from './shared/agent-config.js';
 import { createKeychainAdapter } from './shared/keychain.js';
 import { trustDirectory } from './shared/agents/claude.js';
@@ -56,7 +56,7 @@ const config = loadConfig(getConfigPath());
 const openTidyPaths = getOpenTidyPaths();
 const WORKSPACE_DIR = config.workspace.dir || process.env.WORKSPACE_DIR || path.resolve(import.meta.dirname, '../../..', 'workspace');
 const LOCK_DIR = config.workspace.lockDir || process.env.LOCK_DIR || openTidyPaths.lockDir;
-const PORT = config.server.port || parseInt(process.env.PORT || '5175', 10);
+const PORT = config.server.port || parseInt(process.env.PORT || String(DEFAULT_PORT), 10);
 const CHECKUP_INTERVAL = parseInt(process.env.CHECKUP_INTERVAL_MS || '3600000', 10);
 const TELEGRAM_TOKEN = (config.modules?.telegram?.config?.botToken as string) || process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = (config.modules?.telegram?.config?.chatId as string) || process.env.TELEGRAM_CHAT_ID || '';
@@ -74,7 +74,7 @@ fs.mkdirSync(`${WORKSPACE_DIR}/_outputs`, { recursive: true });
 const memoryManager = createMemoryManager(WORKSPACE_DIR);
 memoryManager.ensureDir();
 // Clean stale memory lock from previous run
-try { fs.rmSync(path.join(WORKSPACE_DIR, '_memory', '.lock'), { force: true }); } catch {}
+try { fs.rmSync(path.join(WORKSPACE_DIR, '_memory', '.lock'), { force: true }); } catch (err) { console.warn('[boot] Failed to clean stale memory lock:', err); }
 
 // Hooks are defined in the opentidy-hooks plugin (plugins/opentidy-hooks/hooks/hooks.json)
 // Plugin hooks are loaded by Claude Code via --plugin-dir flag in launchSession()
@@ -114,8 +114,8 @@ if (process.platform === 'darwin') {
         }
       }
     }
-  } catch {
-    console.log('[opentidy] Camoufox server not running or not reachable, skipping profile check');
+  } catch (err) {
+    console.log('[opentidy] Camoufox server not running or not reachable, skipping profile check:', (err as Error).message ?? err);
   }
 }
 

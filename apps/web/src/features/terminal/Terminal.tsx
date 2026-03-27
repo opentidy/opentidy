@@ -7,6 +7,7 @@ import { useStore } from '../../shared/store';
 import { SessionOutput } from '../sessions/SessionOutput';
 import ProcessOutput from './ProcessOutput';
 import LiveProcessOutput from './LiveProcessOutput';
+import { formatElapsed } from '../../shared/utils/format';
 import type { AgentProcess, AgentProcessType } from '@opentidy/shared';
 
 const statusDot: Record<string, string> = {
@@ -24,16 +25,6 @@ const typeLabels: Record<AgentProcessType, string> = {
   'memory-extraction': 'Memory',
   'memory-prompt': 'Memory',
 };
-
-function formatDuration(startedAt: string, endedAt?: string): string {
-  const start = new Date(startedAt).getTime();
-  const end = endedAt ? new Date(endedAt).getTime() : Date.now();
-  const seconds = Math.round((end - start) / 1000);
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remaining = seconds % 60;
-  return `${minutes}m${remaining > 0 ? ` ${remaining}s` : ''}`;
-}
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -65,7 +56,7 @@ function ProcessMetadata({ process }: { process: AgentProcess }) {
           {process.pid && <span>PID {process.pid}</span>}
           <span>{formatTime(process.startedAt)}</span>
           {(process.endedAt || process.status === 'running') && (
-            <span className="font-mono">{formatDuration(process.startedAt, process.endedAt)}</span>
+            <span className="font-mono">{formatElapsed(process.startedAt, process.endedAt)}</span>
           )}
           {process.exitCode != null && (
             <span className={process.exitCode === 0 ? 'text-green' : 'text-red'}>
@@ -211,7 +202,7 @@ export default function Terminal() {
                 <span className="ml-auto text-text-tertiary text-[10px] tabular-nums shrink-0">
                   {formatTime(p.startedAt)}
                   {(p.endedAt || p.status === 'running') && (
-                    <> · {formatDuration(p.startedAt, p.endedAt)}</>
+                    <> · {formatElapsed(p.startedAt, p.endedAt)}</>
                   )}
                 </span>
               </div>

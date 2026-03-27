@@ -7,6 +7,7 @@ import { serve } from '@hono/node-server';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import { createAuthMiddleware } from './shared/auth.js';
+import { DEFAULT_PORT } from './shared/config.js';
 import type { SSEClient } from './shared/sse.js';
 import { ZodError } from 'zod';
 import type { Task, Session, Suggestion, Amelioration, NotificationRecord, AuditEntry, SSEEvent, MemoryEntry, MemoryIndexEntry, ClaudeProcess } from '@opentidy/shared';
@@ -337,7 +338,7 @@ export function createApp(deps?: AppDeps) {
   return app;
 }
 
-export function startServer(app: Hono, port = 5175) {
+export function startServer(app: Hono, port = DEFAULT_PORT) {
   return serve({ fetch: app.fetch, port }, (info) => {
     console.log(`[opentidy] Backend listening on http://localhost:${info.port}`);
   });

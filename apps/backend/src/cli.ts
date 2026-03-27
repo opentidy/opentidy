@@ -11,7 +11,7 @@ export function route(args: string[]): Command {
   const cmd = args[0];
   if (cmd === '--version' || cmd === '-v') return 'version';
   if (cmd === '--help' || cmd === '-h') return 'help';
-  if (COMMANDS.includes(cmd as any)) return cmd as Command;
+  if ((COMMANDS as readonly string[]).includes(cmd!)) return cmd as Command;
   if (!cmd) return 'start';
   return 'help';
 }

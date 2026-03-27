@@ -4,7 +4,7 @@
 import { existsSync, rmSync, renameSync } from 'fs';
 import { join, resolve, dirname, basename } from 'path';
 import { execFileSync } from 'child_process';
-import { loadConfig, getConfigPath } from '../shared/config.js';
+import { loadConfig, getConfigPath, DEFAULT_PORT } from '../shared/config.js';
 import { getOpenTidyPaths } from '../shared/paths.js';
 import { createRawModeSelector } from './interactive-select.js';
 
@@ -95,7 +95,7 @@ function resolveCleanupItems(): CleanupItem[] {
     label: 'Stop OpenTidy process',
     exists: true, // always attempt
     action: () => {
-      const port = config?.server.port || 5175;
+      const port = config?.server.port || DEFAULT_PORT;
       if (process.platform !== 'win32') {
         try {
           const pid = execFileSync('lsof', ['-ti', `:${port}`], { encoding: 'utf-8', timeout: 5000 }).trim();

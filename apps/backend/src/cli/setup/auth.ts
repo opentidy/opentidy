@@ -2,7 +2,7 @@
 // Copyright (c) 2026 Loaddr Ltd
 
 import { randomBytes } from 'crypto';
-import { loadConfig, saveConfig, getConfigPath } from '../../shared/config.js';
+import { loadConfig, saveConfig, getConfigPath, DEFAULT_PORT } from '../../shared/config.js';
 import { info, success } from './utils.js';
 
 export async function setupAuth(): Promise<void> {
@@ -17,14 +17,14 @@ export async function setupAuth(): Promise<void> {
 
   if (config.auth.bearerToken) {
     success(`Token already configured: ...${config.auth.bearerToken.slice(-8)}`);
-    info(`Port: ${config.server.port || 5175}`);
+    info(`Port: ${config.server.port || DEFAULT_PORT}`);
     return;
   }
 
   // Auto-generate, no questions asked
   const bearerToken = randomBytes(32).toString('hex');
   config.auth.bearerToken = bearerToken;
-  config.server.port = config.server.port || 5175;
+  config.server.port = config.server.port || DEFAULT_PORT;
   saveConfig(configPath, config);
 
   success('Bearer token generated automatically.');

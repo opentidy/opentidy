@@ -229,3 +229,13 @@ export const ReceiverEventSchema = z.object({
   content: z.string(),
   metadata: z.record(z.string()),
 });
+
+// === Config validation (critical fields only, lenient for backward compat) ===
+export const OpenTidyConfigSchema = z.object({
+  version: z.number(),
+  auth: z.object({ bearerToken: z.string() }),
+  server: z.object({ port: z.number(), appBaseUrl: z.string().optional() }),
+  workspace: z.object({ dir: z.string(), lockDir: z.string() }).optional(),
+  modules: z.record(z.unknown()).optional(),
+  permissions: PermissionConfigSchema.optional(),
+});

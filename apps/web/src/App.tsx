@@ -4,7 +4,9 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Toaster } from 'sonner';
 import Layout from './shared/Layout';
+import ErrorBoundary from './shared/ErrorBoundary';
 import Home from './features/home/Home';
 import TaskDetail from './features/tasks/TaskDetail';
 import Terminal from './features/terminal/Terminal';
@@ -49,31 +51,34 @@ export default function App() {
   const resetting = useStore((s) => s.resetting);
 
   return (
-    <BrowserRouter>
-      {resetting && <ResetOverlay />}
-      <Routes>
-        <Route path="/setup" element={<SetupWizard />} />
-        <Route
-          element={
-            <SetupGuard>
-              <Layout />
-            </SetupGuard>
-          }
-        >
-          <Route path="/" element={<Home />} />
+    <ErrorBoundary>
+      <BrowserRouter>
+        {resetting && <ResetOverlay />}
+        <Toaster theme="dark" position="bottom-right" />
+        <Routes>
+          <Route path="/setup" element={<SetupWizard />} />
+          <Route
+            element={
+              <SetupGuard>
+                <Layout />
+              </SetupGuard>
+            }
+          >
+            <Route path="/" element={<Home />} />
 
-          <Route path="/task/:id" element={<TaskDetail />} />
-          <Route path="/terminal" element={<Terminal />} />
-          <Route path="/nouveau" element={<Nouveau />} />
-          <Route path="/ameliorations" element={<Ameliorations />} />
-          <Route path="/schedule" element={<SchedulePage />} />
-          <Route path="/memory" element={<Memory />} />
-          <Route path="/modules" element={<ModulesPage />} />
-          <Route path="/permissions" element={<PermissionsPage />} />
-          <Route path="/agents" element={<AgentsPage />} />
-          <Route path="/settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+            <Route path="/task/:id" element={<TaskDetail />} />
+            <Route path="/terminal" element={<Terminal />} />
+            <Route path="/nouveau" element={<Nouveau />} />
+            <Route path="/ameliorations" element={<Ameliorations />} />
+            <Route path="/schedule" element={<SchedulePage />} />
+            <Route path="/memory" element={<Memory />} />
+            <Route path="/modules" element={<ModulesPage />} />
+            <Route path="/permissions" element={<PermissionsPage />} />
+            <Route path="/agents" element={<AgentsPage />} />
+            <Route path="/settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }

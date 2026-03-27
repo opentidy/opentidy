@@ -4,7 +4,7 @@
 import { writeFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execFileSync } from 'child_process';
-import { loadConfig, getConfigPath } from '../../shared/config.js';
+import { loadConfig, getConfigPath, DEFAULT_PORT } from '../../shared/config.js';
 import { ask, run, info, success, warn } from './utils.js';
 
 function writeCloudflaredConfig(
@@ -29,7 +29,7 @@ ingress:
 export async function setupTunnel(): Promise<void> {
   const configPath = getConfigPath();
   const config = loadConfig(configPath);
-  const port = config.server.port || 5175;
+  const port = config.server.port || DEFAULT_PORT;
 
   console.log('');
   console.log('  ┌─────────────────────────────────────┐');

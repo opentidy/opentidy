@@ -4,6 +4,21 @@
 import type Database from 'better-sqlite3';
 import type { AgentProcess, AgentProcessType } from '@opentidy/shared';
 
+/** Raw row shape from the claude_processes SQLite table */
+interface AgentProcessRow {
+  id: number;
+  type: AgentProcessType;
+  task_id: string | null;
+  pid: number | null;
+  started_at: string;
+  ended_at: string | null;
+  status: AgentProcess['status'];
+  exit_code: number | null;
+  output_path: string | null;
+  description: string | null;
+  instruction: string | null;
+}
+
 export function createAgentTracker(db: Database.Database) {
   const insertStmt = db.prepare(
     "INSERT INTO claude_processes (type, task_id, pid, status, description, instruction) VALUES (?, ?, ?, 'queued', ?, ?)"
@@ -46,7 +61,7 @@ export function createAgentTracker(db: Database.Database) {
     setOutputPathStmt.run(outputPath, id);
   }
 
-  function mapRow(row: any): AgentProcess {
+  function mapRow(row: AgentProcessRow): AgentProcess {
     return {
       id: row.id,
       type: row.type,
@@ -63,7 +78,7 @@ export function createAgentTracker(db: Database.Database) {
   }
 
   function getById(id: number): AgentProcess | undefined {
-    const row = db.prepare('SELECT * FROM claude_processes WHERE id = ?').get(id) as any;
+    const row = db.prepare('SELECT * FROM claude_processes WHERE id = ?').get(id) as AgentProcessRow | undefined;
     return row ? mapRow(row) : undefined;
   }
 
@@ -79,7 +94,7 @@ export function createAgentTracker(db: Database.Database) {
       query += ' LIMIT ?';
       params.push(filter.limit);
     }
-    const rows = db.prepare(query).all(...params) as any[];
+    const rows = db.prepare(query).all(...params) as AgentProcessRow[];
     return rows.map(mapRow);
   }
 
@@ -87,8 +102,8 @@ export function createAgentTracker(db: Database.Database) {
     const result = db.prepare(
       "DELETE FROM claude_processes WHERE status != 'running' AND ended_at < datetime('now', '-' || ? || ' days')"
     ).run(olderThanDays);
-    if ((result as any).changes > 0) {
-      console.log(`[agent-tracker] Cleaned ${(result as any).changes} old processes`);
+    if (result.changes > 0) {
+      console.log(`[agent-tracker] Cleaned ${result.changes} old processes`);
     }
   }
 
