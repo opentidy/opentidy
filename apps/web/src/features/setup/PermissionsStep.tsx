@@ -14,16 +14,16 @@ interface Permission {
 
 const INSTRUCTIONS: Record<string, string[]> = {
   'full-disk-access': [
-    'Click "Authorize". System Settings will open to Privacy & Security',
+    'Click "Open Settings". System Settings will open to Privacy & Security',
     'Find "Full Disk Access" in the list',
     'Find the terminal app you used to install OpenTidy and toggle it ON (if unsure, it\'s probably "Terminal")',
-    'Come back here, it will update automatically',
+    'Run opentidy doctor --check-permissions in your terminal to verify',
   ],
   accessibility: [
-    'Click "Authorize". System Settings will open to Privacy & Security',
+    'Click "Open Settings". System Settings will open to Privacy & Security',
     'Find "Accessibility" in the list',
     'Click + and add the terminal app you used to install OpenTidy (if unsure, it\'s probably "Terminal")',
-    'Come back here, it will update automatically',
+    'Run opentidy doctor --check-permissions in your terminal to verify',
   ],
 };
 

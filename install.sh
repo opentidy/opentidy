@@ -96,6 +96,15 @@ else
   warn "Check logs: opentidy logs"
 fi
 
+# --- Check system permissions (macOS) ---
+# Runs from the terminal context where TCC permissions are detectable.
+# Saves results to config so the web UI (running as a service) can read them.
+if [ "$(uname)" = "Darwin" ]; then
+  log "Checking system permissions..."
+  opentidy doctor --check-permissions >/dev/null 2>&1 || true
+  ok "Permissions checked"
+fi
+
 # --- Open browser ---
 if [ "$healthy" = true ] && [ -z "${SSH_CLIENT:-}" ]; then
   open "http://localhost:$PORT" 2>/dev/null || true
