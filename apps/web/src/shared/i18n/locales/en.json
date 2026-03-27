@@ -456,8 +456,13 @@
     "moduleNamePlaceholder": "my-module",
     "moduleNameError": "Name must be lowercase letters, numbers, and hyphens only",
     "creating": "Creating...",
-    "scanQr": "Scan this QR code with your phone to connect",
-    "qrHint": "Open WhatsApp > Settings > Linked Devices > Link a Device"
+    "scanQr": "Scan this QR code to connect an existing WhatsApp account to this device.",
+    "qrHint": "Open WhatsApp > Settings > Linked Devices > Link a Device",
+    "whatsappTitle": "Connect to WhatsApp",
+    "whatsappStep1": "Open WhatsApp on your phone.",
+    "whatsappStep2": "Tap Settings (iPhone) or Menu (Android).",
+    "whatsappStep3": "Linked Devices → Link a Device.",
+    "whatsappStep4": "Scan this QR code with your phone."
   },
   "helpTooltip": {
     "task": "A task that the assistant manages for you, from start to finish.",

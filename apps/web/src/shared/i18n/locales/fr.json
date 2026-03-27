@@ -456,8 +456,13 @@
     "moduleNamePlaceholder": "mon-module",
     "moduleNameError": "Le nom doit contenir uniquement des lettres minuscules, des chiffres et des tirets",
     "creating": "Création...",
-    "scanQr": "Scannez ce QR code avec votre téléphone pour connecter",
-    "qrHint": "Ouvrez WhatsApp > Réglages > Appareils connectés > Lier un appareil"
+    "scanQr": "Scannez ce code QR pour connecter un compte WhatsApp existant à cet appareil.",
+    "qrHint": "Ouvrez WhatsApp > Réglages > Appareils connectés > Lier un appareil",
+    "whatsappTitle": "Se connecter à WhatsApp",
+    "whatsappStep1": "Ouvrez WhatsApp sur votre téléphone.",
+    "whatsappStep2": "Appuyez sur Paramètres (iPhone) ou Menu (Android).",
+    "whatsappStep3": "Appareils connectés → Connecter un appareil.",
+    "whatsappStep4": "Scannez ce QR code avec votre téléphone."
   },
   "helpTooltip": {
     "task": "Une tâche que l'assistant gère pour toi, de A à Z.",

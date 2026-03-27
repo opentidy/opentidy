@@ -243,19 +243,42 @@ export function ModuleList({ autoEnableCore }: ModuleListProps) {
 
       {qrData && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setQrData(null)}>
-          <div className="bg-card rounded-2xl p-8 max-w-sm w-full mx-4 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="text-lg font-semibold text-center mb-2">
-              {modules.find(m => m.name === qrData.name)?.label ?? qrData.name}
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 shadow-xl relative" onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              onClick={() => setQrData(null)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl leading-none"
+            >
+              &times;
+            </button>
+
+            <div className="flex justify-center mb-6">
+              <div className="relative">
+                <QRCodeSVG value={qrData.qr} size={280} level="M" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="bg-white p-1 rounded-full">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                      <path d="M12 2C6.48 2 2 6.48 2 12c0 1.72.44 3.34 1.21 4.75L2 22l5.35-1.17C8.72 21.56 10.32 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z" fill="#25D366"/>
+                      <path d="M17.5 14.38c-.31-.15-1.83-.9-2.11-1-.29-.11-.5-.15-.7.15-.21.31-.8 1-.98 1.21-.18.2-.36.23-.67.08-.31-.16-1.3-.48-2.49-1.53-.92-.82-1.54-1.83-1.72-2.14-.18-.31-.02-.48.13-.63.14-.14.31-.36.46-.54.15-.18.2-.31.31-.52.1-.2.05-.38-.03-.54-.08-.15-.7-1.69-.96-2.31-.25-.61-.51-.53-.7-.54h-.6c-.2 0-.54.08-.82.38-.28.31-1.08 1.05-1.08 2.57s1.1 2.98 1.26 3.19c.15.2 2.17 3.31 5.26 4.64.74.32 1.31.51 1.76.65.74.24 1.41.2 1.94.12.59-.09 1.83-.75 2.09-1.47.26-.72.26-1.34.18-1.47-.08-.13-.28-.21-.59-.36z" fill="white"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 text-center mb-2">
+              {t('modules.whatsappTitle', 'Se connecter à WhatsApp')}
             </h3>
-            <p className="text-sm text-text-secondary text-center mb-6">
+            <p className="text-sm text-gray-500 text-center mb-5">
               {t('modules.scanQr')}
             </p>
-            <div className="flex justify-center bg-white p-4 rounded-xl">
-              <QRCodeSVG value={qrData.qr} size={256} />
-            </div>
-            <p className="text-xs text-text-tertiary text-center mt-4">
-              {t('modules.qrHint')}
-            </p>
+
+            <ol className="border border-gray-200 rounded-xl px-5 py-4 space-y-2.5 text-sm text-gray-700 list-decimal list-inside">
+              <li>{t('modules.whatsappStep1', 'Ouvrez WhatsApp sur votre téléphone.')}</li>
+              <li>{t('modules.whatsappStep2', 'Appuyez sur Paramètres (iPhone) ou Menu (Android).')}</li>
+              <li>{t('modules.whatsappStep3', 'Appareils connectés → Connecter un appareil.')}</li>
+              <li>{t('modules.whatsappStep4', 'Scannez ce QR code avec votre téléphone.')}</li>
+            </ol>
           </div>
         </div>
       )}
