@@ -1,11 +1,17 @@
 <p align="center">
-  <h1 align="center">OpenTidy</h1>
-  <p align="center">
-    <strong>The AI assistant that handles your admin while you sleep.</strong>
-  </p>
-  <p align="center">
-    Autonomous · Local-first · Agent-agnostic · Open source
-  </p>
+  <img src="docs/assets/banner.png" alt="OpenTidy" width="700" />
+</p>
+
+<p align="center">
+  <strong>The AI assistant that handles your admin while you sleep.</strong>
+</p>
+<p align="center">
+  Autonomous · Local-first · Agent-agnostic · Open source
+</p>
+
+> **Early Stage** — OpenTidy is under active development. Expect bugs, breaking changes, and incomplete features. Contributions and bug reports are welcome!
+
+<p align="center">
   <p align="center">
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue" alt="License" /></a>
     <a href="https://github.com/opentidy/opentidy/actions"><img src="https://img.shields.io/github/actions/workflow/status/opentidy/opentidy/release.yml?branch=main" alt="CI" /></a>

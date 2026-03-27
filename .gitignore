@@ -18,6 +18,7 @@ blob-report/
 # Screenshots (Playwright failures, debug captures, browser-bridge)
 .screenshots/
 *.png
+!docs/assets/*.png
 
 # Claude Code local files (keep settings.json for project hooks)
 /.claude/*
