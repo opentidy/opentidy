@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.7](https://github.com/opentidy/opentidy/compare/v0.0.6...v0.0.7) (2026-03-27)
+
+
+### Features
+
+* **web:** redesign WhatsApp QR code modal to match WhatsApp Web style ([956bdfa](https://github.com/opentidy/opentidy/commit/956bdfa5c5b0fdbee3caa37d4c1a9b691b303282))
+
+
+### Bug Fixes
+
+* **backend:** resolve all 19 ESLint errors ([0cfe1d3](https://github.com/opentidy/opentidy/commit/0cfe1d37493b75d60dbbdf50e8f4366b39d384ab))
+
 ## [0.0.6](https://github.com/opentidy/opentidy/compare/v0.0.5...v0.0.6) (2026-03-27)
 
 
