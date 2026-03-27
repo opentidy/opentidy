@@ -12,8 +12,6 @@ const PERMISSIONS = [
   { name: 'accessibility', label: 'Accessibility', app: '', required: true, description: 'Required for agents to interact with macOS apps' },
 ] as const;
 
-const PERMISSION_NAMES = PERMISSIONS.map((p) => p.name);
-
 const KNOWN_TERMINALS = [
   'com.googlecode.iterm2',
   'com.apple.Terminal',

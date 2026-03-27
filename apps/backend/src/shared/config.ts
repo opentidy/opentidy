@@ -153,7 +153,7 @@ function migratePermissionLevels(config: OpenTidyConfig): boolean {
   };
   const presetDef = PRESET_DEFAULTS[perms.preset as string];
   if (presetDef) {
-    for (const [key, value] of Object.entries(perms.modules)) {
+    for (const [, value] of Object.entries(perms.modules)) {
       if (typeof value === 'object' && value) {
         const mpl = value as Record<string, any>;
         const hasOverrides = mpl.overrides && Object.keys(mpl.overrides).length > 0;

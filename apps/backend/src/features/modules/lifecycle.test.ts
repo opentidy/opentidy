@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createModuleLifecycle } from './lifecycle.js';
-import type { OpenTidyConfig, ModuleManifest, ModuleState, SSEEvent } from '@opentidy/shared';
+import type { OpenTidyConfig, ModuleManifest, SSEEvent } from '@opentidy/shared';
 
 function makeConfig(overrides: Partial<OpenTidyConfig> = {}): OpenTidyConfig {
   return {

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 // Copyright (c) 2026 Loaddr Ltd
 
-import path from 'path';
 import type { AgentAdapter, AgentName } from '@opentidy/shared';
 import { createClaudeAdapter } from './claude.js';
 

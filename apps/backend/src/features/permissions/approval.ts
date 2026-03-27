@@ -82,7 +82,8 @@ export function createApprovalManager(deps: ApprovalDeps) {
   }
 
   function listPending(): Array<Omit<PendingApproval, 'resolve'>> {
-    return Array.from(pending.values()).map(({ resolve: _, ...rest }) => rest);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return Array.from(pending.values()).map(({ resolve: _resolve, ...rest }) => rest);
   }
 
   return { requestApproval, respond, cancelTask, listPending };

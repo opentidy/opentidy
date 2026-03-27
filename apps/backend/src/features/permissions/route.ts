@@ -6,9 +6,7 @@ import { HookPayloadSchema } from '@opentidy/shared';
 import type { PermissionCheckDeps } from './types.js';
 import { createPermissionChecker } from './check.js';
 
-export interface PermissionRouteDeps extends PermissionCheckDeps {
-  // No additional deps required beyond the checker
-}
+export type PermissionRouteDeps = PermissionCheckDeps;
 
 function extractTaskId(sessionId: string, cwd?: string): string | null {
   // Try session_id first (format: opentidy-<taskId>)

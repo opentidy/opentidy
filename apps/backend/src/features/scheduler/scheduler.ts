@@ -61,7 +61,6 @@ export function createScheduler(deps: SchedulerDeps) {
     )
   `);
 
-  const countSystemStmt = db.prepare("SELECT COUNT(*) as cnt FROM schedules WHERE created_by = 'system'");
 
   let cronTask: ScheduledTask | null = null;
 

@@ -58,7 +58,7 @@ import { notificationsRecentRoute } from './features/notifications/list.js';
 // Checkup routes
 import { checkupTriggerRoute } from './features/checkup/trigger.js';
 // Scheduler routes
-import { schedulerRoutes, type SchedulerRouteDeps } from './features/scheduler/routes.js';
+import { schedulerRoutes } from './features/scheduler/routes.js';
 import type { Scheduler } from './features/scheduler/scheduler.js';
 // Module routes
 import { listModulesRoute } from './features/modules/list.js';
@@ -78,9 +78,9 @@ import type { WebhookDeps } from './features/modules/webhook.js';
 import { preferencesRoute, type PreferencesDeps } from './features/settings/preferences.js';
 // Setup routes
 import { setupStatusRoute, type SetupDeps } from './features/setup/status.js';
-import { setupUserInfoRoute, type UserInfoDeps } from './features/setup/user-info.js';
+import { setupUserInfoRoute } from './features/setup/user-info.js';
 import { setupCompleteRoute } from './features/setup/complete.js';
-import { setupPermissionsRoute, defaultCheckPermission, type PermissionsDeps } from './features/setup/permissions.js';
+import { setupPermissionsRoute, defaultCheckPermission } from './features/setup/permissions.js';
 import { setupAgentsRoute, type AgentSetupDeps } from './features/setup/agents.js';
 // Permission routes
 import { permissionCheckRoute } from './features/permissions/route.js';

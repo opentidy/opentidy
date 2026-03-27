@@ -631,12 +631,10 @@ describe('Adversarial: readAllFiles', () => {
 // ==========================================================================
 describe('Adversarial: writeFile', () => {
   let workspaceDir: string
-  let memDir: string
   let manager: ReturnType<typeof createMemoryManager>
 
   beforeEach(() => {
     workspaceDir = fs.mkdtempSync(path.join(os.tmpdir(), 'opentidy-adv-write-'))
-    memDir = path.join(workspaceDir, '_memory')
     manager = createMemoryManager(workspaceDir)
     manager.ensureDir()
   })

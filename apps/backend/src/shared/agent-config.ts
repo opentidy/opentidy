@@ -130,7 +130,8 @@ export function readEnvFile(filePath: string): Record<string, string> {
  * @deprecated Use generateSettingsFromModules() + regenerateAgentConfig() with modules/manifests params.
  * Legacy function for pre-v3 configs that still have config.mcp.
  */
-export function generateClaudeSettings(config: OpenTidyConfig, envDir?: string): ClaudeSettings {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function generateClaudeSettings(config: OpenTidyConfig, _envDir?: string): ClaudeSettings {
   const preset = config.permissions?.preset ?? 'supervised';
   const allow = [...(PRESET_PERMISSIONS[preset] ?? PRESET_PERMISSIONS.supervised)];
   const mcpServers: Record<string, McpServerEntry> = {};

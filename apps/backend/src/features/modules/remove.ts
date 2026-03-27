@@ -40,7 +40,9 @@ export function removeModuleRoute(deps: ModuleRouteDeps) {
     } catch {}
 
     // Remove from config
-    delete config.modules[name];
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { [name]: _, ...remainingModules } = config.modules;
+    config.modules = remainingModules;
     deps.saveConfig(config);
 
     // Remove from manifests

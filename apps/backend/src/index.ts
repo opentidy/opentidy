@@ -252,6 +252,7 @@ const approvalManager = createApprovalManager({
 // Launcher
 const tmuxExecutor = createTmuxExecutor();
 // Terminal ref, resolved after launcher is created (avoids TDZ circular ref)
+// eslint-disable-next-line prefer-const
 let terminalRef: { ensureReady: (name: string) => Promise<number | undefined>; killTtyd: (sessionName: string) => void } | undefined;
 const launcher = createLauncher({
   tmuxExecutor,

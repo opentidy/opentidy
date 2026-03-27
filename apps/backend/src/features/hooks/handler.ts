@@ -103,14 +103,16 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
     });
   }
 
-  function handleNotification(taskId: string, payload: HookPayload): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleNotification(taskId: string, _payload: HookPayload): void {
     // Notify only, no launcher state change needed
     if (deps.notify.notifyIdle) {
       deps.notify.notifyIdle(taskId);
     }
   }
 
-  function handleSessionEnd(taskId: string, payload: HookPayload): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleSessionEnd(taskId: string, _payload: HookPayload): void {
     // SessionEnd fires when Claude Code process exits; cleanup only
     deps.launcher.handleSessionEnd(taskId);
     deps.onSessionEnd?.(taskId);
@@ -121,7 +123,8 @@ export function createHooksHandler(deps: HooksHandlerDeps) {
     });
   }
 
-  function handleStop(taskId: string, payload: HookPayload): void {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  function handleStop(taskId: string, _payload: HookPayload): void {
     // Stop = Claude finished its turn, waiting for input → mark as idle
     deps.launcher.markWaiting(taskId);
     deps.sse.emit({
